@@ -138,11 +138,3 @@ impl[T : Arbitrary + Show] Arbitrary for @immut/list.T[T] with shrink(xs) {
     fn(k) { removes(k, n, xs) },
   ).flatten().iter().concat(shr_subterms(xs))
 }
-
-
-test {
-  let x = @immut/list.of([11, 1, 4, 5, 1, 4])
-  let a = Arbitrary::shrink(100U).collect()
-  println(a)
-  println(Arbitrary::shrink(x).collect())
-}

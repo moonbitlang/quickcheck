@@ -278,12 +278,6 @@ pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
   )
 }
 
-test "flatten array" {
-  let g = flatten_array(Array::makei(10, fn(_i) { int_bound(100) }))
-  let s = sample_with_gen(g, 2)
-  println(s)
-}
-
 pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
   match opt {
     None => pure(None)
@@ -318,9 +312,4 @@ pub fn sorted_list[T : Compare](
 
 pub fn array_with_size[T](size : Int, gen : Gen[T]) -> Gen[Array[T]] {
   Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { gen.run(i, rs) }) })
-}
-
-test "sample list" {
-  let s : Array[Array[Int]] = sample_with_gen(array_with_size(10, nat()), 2)
-  println(s)
 }

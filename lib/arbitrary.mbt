@@ -21,11 +21,6 @@ impl Arbitrary for Char with arbitrary(_i, rs) {
   Char::from_int(c)
 }
 
-test "" {
-  let x : Array[Char] = sample(spawn())
-  println(x)
-}
-
 /// Byte
 impl Arbitrary for Byte with arbitrary(_i, rs) {
   let c = rs.rs.gen_int() % 0xFF
@@ -43,20 +38,6 @@ impl Arbitrary for String with arbitrary(i, rs) {
       str
     },
   ).run(i, rs)
-}
-
-test "" {
-  let rs = RandomState::new()
-  let s1 : String = Arbitrary::arbitrary(1, rs)
-  let s2 : String = Arbitrary::arbitrary(1, rs)
-  let s3 : String = Arbitrary::arbitrary(1, rs)
-  let s4 : String = Arbitrary::arbitrary(1, rs)
-  let s5 : String = Arbitrary::arbitrary(1, rs)
-  println(s1)
-  println(s2)
-  println(s3)
-  println(s4)
-  println(s5)
 }
 
 /// Number

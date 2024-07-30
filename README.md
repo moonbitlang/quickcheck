@@ -16,7 +16,7 @@ MoonBit QuickCheck brings many modern academic ideas into industrial practice.
 - Functional Enumeration 
 - Random Generation
 
-### Property Verifcation
+### Property Verification
 
 - Existential Quantification
 - Algebraic Invariant
