@@ -135,3 +135,12 @@ impl[T : Arbitrary, E : Arbitrary] Arbitrary for Result[T, E] with arbitrary(
     Err(Arbitrary::arbitrary(i, rs))
   }
 }
+
+/// List
+impl[T : Arbitrary] Arbitrary for @immut/list.T[T] with arbitrary(i, rs) {
+  small_int().bind(
+    fn(x){
+      list_with_size(x, Gen::spawn())
+    }
+  ).run(i, rs)
+}

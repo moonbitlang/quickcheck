@@ -47,7 +47,7 @@ pub fn sample_with_gen[T](gen : Gen[T], count : Int) -> Array[T] {
   Array::makei(count, fn(i) { (gen.gen)(i, state) })
 }
 
-pub fn sample[T : Arbitrary](count : Int) -> Array[T] {
+pub fn samples_[T : Arbitrary](count : Int) -> Array[T] {
   let state = RandomState::new()
   Array::makei(count, fn(i) { Arbitrary::arbitrary(i, state) })
 }
