@@ -3,7 +3,6 @@ pub trait Arbitrary {
   shrink(Self) -> Iter[Self]
 }
 
-
 /// Unit 
 impl Arbitrary for Unit with arbitrary(_i, _rs) { () }
 
@@ -18,14 +17,46 @@ impl Arbitrary for Bool with arbitrary(_i, rs) {
 
 /// Char
 impl Arbitrary for Char with arbitrary(_i, rs) {
-  let c = rs.rs.gen_int()
+  let c = rs.rs.gen_int() % 0x10ffff
   Char::from_int(c)
+}
+
+test "" {
+  let x : Array[Char] = sample(spawn())
+  println(x)
 }
 
 /// Byte
 impl Arbitrary for Byte with arbitrary(_i, rs) {
   let c = rs.rs.gen_int() % 0xFF
   c.to_byte()
+}
+
+/// String
+impl Arbitrary for String with arbitrary(i, rs) {
+  small_int().fmap(
+    fn(x) {
+      let mut str = ""
+      for i = 0; i < x; i = i + 1 {
+        str = str + (Arbitrary::arbitrary(i, rs) : Char).to_string()
+      }
+      str
+    },
+  ).run(i, rs)
+}
+
+test "" {
+  let rs = RandomState::new()
+  let s1 : String = Arbitrary::arbitrary(1, rs)
+  let s2 : String = Arbitrary::arbitrary(1, rs)
+  let s3 : String = Arbitrary::arbitrary(1, rs)
+  let s4 : String = Arbitrary::arbitrary(1, rs)
+  let s5 : String = Arbitrary::arbitrary(1, rs)
+  println(s1)
+  println(s2)
+  println(s3)
+  println(s4)
+  println(s5)
 }
 
 /// Number
@@ -35,37 +66,22 @@ impl Arbitrary for Int with arbitrary(_i, rs) { rs.rs.gen_int() }
 
 impl Arbitrary for Int64 with arbitrary(_i, rs) { rs.rs.gen_int64() }
 
-impl Arbitrary for Double with arbitrary(_i, rs) { 
+impl Arbitrary for Double with arbitrary(_i, rs) {
   let r1 = Double::from_int(rs.rs.gen_int())
   let r2 = Double::from_int(rs.rs.gen_int())
   r1 / (r1 + r2)
- }
-
-/// Array
-impl[X : Arbitrary] Arbitrary for Array[X] with arbitrary(i, rs) {
-  let length = Arbitrary::arbitrary(i, rs)
-  Array::makei(length, fn(i) { Arbitrary::arbitrary(i, rs) })
-}
-
-impl[X : Arbitrary] Arbitrary for FixedArray[X] with arbitrary(i, rs) {
-  let length = Arbitrary::arbitrary(i, rs)
-  FixedArray::makei(length, fn(i) { Arbitrary::arbitrary(i, rs) })
 }
 
 /// Tuples
 impl[A : Arbitrary, B : Arbitrary] Arbitrary for (A, B) with arbitrary(i, rs) {
-  (Arbitrary::arbitrary(i, rs), Arbitrary::arbitrary(i, rs))
+  liftA2(fn(x, y) { (x, y) }, spawn(), spawn()).run(i, rs)
 }
 
 impl[A : Arbitrary, B : Arbitrary, C : Arbitrary] Arbitrary for (A, B, C) with arbitrary(
   i,
   rs
 ) {
-  (
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-  )
+  liftA3(fn(x, y, z) { (x, y, z) }, spawn(), spawn(), spawn()).run(i, rs)
 }
 
 impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary] Arbitrary for (
@@ -74,11 +90,8 @@ impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary] Arbitrary for (
   C,
   D,
 ) with arbitrary(i, rs) {
-  (
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
+  liftA4(fn(x, y, z, w) { (x, y, z, w) }, spawn(), spawn(), spawn(), spawn()).run(
+    i, rs,
   )
 }
 
@@ -89,13 +102,14 @@ impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary, E : Arbitrary] 
   D,
   E,
 ) with arbitrary(i, rs) {
-  (
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-  )
+  liftA5(
+    fn(x, y, z, w, v) { (x, y, z, w, v) },
+    spawn(),
+    spawn(),
+    spawn(),
+    spawn(),
+    spawn(),
+  ).run(i, rs)
 }
 
 impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary, E : Arbitrary, F : Arbitrary] Arbitrary for (
@@ -106,14 +120,15 @@ impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary, E : Arbitrary, 
   E,
   F,
 ) with arbitrary(i, rs) {
-  (
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-    Arbitrary::arbitrary(i, rs),
-  )
+  liftA6(
+    fn(x, y, z, w, v, u) { (x, y, z, w, v, u) },
+    spawn(),
+    spawn(),
+    spawn(),
+    spawn(),
+    spawn(),
+    spawn(),
+  ).run(i, rs)
 }
 
 /// Result and Option
@@ -138,9 +153,16 @@ impl[T : Arbitrary, E : Arbitrary] Arbitrary for Result[T, E] with arbitrary(
 
 /// List
 impl[T : Arbitrary] Arbitrary for @immut/list.T[T] with arbitrary(i, rs) {
+  small_int().bind(fn(x) { list_with_size(x, Gen::spawn()) }).run(i, rs)
+}
+
+/// Array
+impl[T : Arbitrary] Arbitrary for Array[T] with arbitrary(i, rs) {
+  small_int().bind(fn(x) { array_with_size(x, Gen::spawn()) }).run(i, rs)
+}
+
+impl[T : Arbitrary] Arbitrary for FixedArray[T] with arbitrary(i, rs) {
   small_int().bind(
-    fn(x){
-      list_with_size(x, Gen::spawn())
-    }
+    fn(x) { array_with_size(x, Gen::spawn()).fmap(FixedArray::from_array) },
   ).run(i, rs)
 }

@@ -1,4 +1,5 @@
-// Gen is a Monad
+// RNG Wrapper for Core
+// TODO: Modify this to use the new random module
 
 struct RandomState {
   rs : @random.RandomState

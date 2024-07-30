@@ -48,6 +48,69 @@ pub fn liftA3[A, B, C, D](
   v.bind(fn(a) { w.bind(fn(b) { x.bind(fn(c) { pure(f(a, b, c)) }) }) })
 }
 
+pub fn liftA4[A, B, C, D, E](
+  f : (A, B, C, D) -> E,
+  v : Gen[A],
+  w : Gen[B],
+  x : Gen[C],
+  y : Gen[D]
+) -> Gen[E] {
+  v.bind(
+    fn(a) {
+      w.bind(fn(b) { x.bind(fn(c) { y.bind(fn(d) { pure(f(a, b, c, d)) }) }) })
+    },
+  )
+}
+
+pub fn liftA5[A, B, C, D, E, F](
+  f : (A, B, C, D, E) -> F,
+  v : Gen[A],
+  w : Gen[B],
+  x : Gen[C],
+  y : Gen[D],
+  z : Gen[E]
+) -> Gen[F] {
+  v.bind(
+    fn(a) {
+      w.bind(
+        fn(b) {
+          x.bind(
+            fn(c) { y.bind(fn(d) { z.bind(fn(e) { pure(f(a, b, c, d, e)) }) }) },
+          )
+        },
+      )
+    },
+  )
+}
+
+pub fn liftA6[A, B, C, D, E, F, G](
+  ff : (A, B, C, D, E, F) -> G,
+  v : Gen[A],
+  w : Gen[B],
+  x : Gen[C],
+  y : Gen[D],
+  z : Gen[E],
+  u : Gen[F]
+) -> Gen[G] {
+  v.bind(
+    fn(a) {
+      w.bind(
+        fn(b) {
+          x.bind(
+            fn(c) {
+              y.bind(
+                fn(d) {
+                  z.bind(fn(e) { u.bind(fn(f) { pure(ff(a, b, c, d, e, f)) }) })
+                },
+              )
+            },
+          )
+        },
+      )
+    },
+  )
+}
+
 pub fn pair[X, Y](gx : Gen[X], gy : Gen[Y]) -> Gen[(X, Y)] {
   Gen::new(
     fn(n, s) {
@@ -209,14 +272,29 @@ pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
   }
 }
 
-// pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
-//   abort("todo")
-// }
+pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
+  Gen::new(
+    fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) },
+  )
+}
+
+test "flatten array" {
+  let g = flatten_array(Array::makei(10, fn(_i) { int_bound(100) }))
+  let s = sample_with_gen(g, 2)
+  println(s)
+}
 
 pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
   match opt {
     None => pure(None)
     Some(x) => x.fmap(Option::Some)
+  }
+}
+
+pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
+  match res {
+    Ok(x) => x.fmap(Result::Ok)
+    Err(e) => pure(Err(e))
   }
 }
 
@@ -231,14 +309,18 @@ pub fn list_with_size[T](size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
   }
 }
 
-// pub fn array_with_size[T](size : Int, gen : Gen[T]) -> Gen[Array[T]] {
-//   abort("todo")
-// }
+pub fn sorted_list[T : Compare](
+  size : Int,
+  gen : Gen[T]
+) -> Gen[@immut/list.T[T]] {
+  list_with_size(size, gen).fmap(@immut/list.sort)
+}
+
+pub fn array_with_size[T](size : Int, gen : Gen[T]) -> Gen[Array[T]] {
+  Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { gen.run(i, rs) }) })
+}
 
 test "sample list" {
-  let s : Array[@immut/list.T[Int]] = sample_with_gen(
-    list_with_size(1000, nat()),
-    10,
-  )
+  let s : Array[Array[Int]] = sample_with_gen(array_with_size(10, nat()), 2)
   println(s)
 }

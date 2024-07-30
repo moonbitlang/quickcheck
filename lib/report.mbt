@@ -5,28 +5,32 @@ struct Report[T] {
   distribution : Map[String, Int]? // distribution of the test cases (Label, Count)
 }
 
-pub fn summary[T : Show](self : Report[T]) -> Unit {
-  let (succ, total) = self.count
-  let name = self.name
-  let succ_text = @chalk.color(total.to_string(), @chalk.Green)
-  let failed_text = @chalk.color((total - succ).to_string(), @chalk.Red)
-  let msg = "[\(name)] Total tests: \(total), passed: \(succ_text), failed: \(failed_text)"
+pub fn is_success[T](self : Report[T]) -> Bool {
+  self.count.0 == self.count.1
+}
+
+pub fn is_failure[T](self : Report[T]) -> Bool {
+  self.is_success().not()
+}
+
+pub fn print_distribution[T](self: Report[T]) -> Unit {
   self.distribution.map(
     fn(map) {
-      println("Distribution:")
+      println("Distribution: ")
       map.each(
         fn(k, v) {
-          let r = Double::from_int(v) / Double::from_int(total)
+          let r = Double::from_int(v) / Double::from_int(self.count.1)
           println("  \(k): \(r)")
         },
       )
     },
-  )
-  |> ignore
+  ) |> ignore
+}
+
+pub fn print_failures[T : Show](self : Report[T]) -> Unit {
   match self.failure_cases {
-    None => println(msg)
+    None => ()
     Some(failed) => {
-      println(msg)
       println("Failed cases:")
       failed.each(
         fn(x) {
@@ -36,4 +40,15 @@ pub fn summary[T : Show](self : Report[T]) -> Unit {
       )
     }
   }
+}
+
+pub fn summary[T : Show](self : Report[T]) -> Unit {
+  let (succ, total) = self.count
+  let name = self.name
+  let succ_text = @chalk.Chalk(total.to_string()).color(@chalk.Green)
+  let failed_text = @chalk.Chalk((total - succ).to_string()).color(@chalk.Red)
+  let msg = "[\(name)] Total tests: \(total), passed: \(succ_text), failed: \(failed_text)"
+  println(msg)
+  self.print_distribution()
+  self.print_failures()
 }
