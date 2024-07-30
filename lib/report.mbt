@@ -13,17 +13,9 @@ struct Report {
 }
 
 pub fn summary(report : Report) -> Unit {
-  match report.ok {
-    true => {
-      println("All tests passed")
-    }
-    false => {
-      let (succ, total) = report.count
-      let style = { color: "red", bold: true, italic: false }
-      let buffer = Buffer::new()
-      println("Success \(succ) out of \(total)")
-      (report.print.unwrap())(style, buffer)
-      println(buffer.to_string())
-    }
-  }
+  let (succ, total) = report.count
+  let succ_text = @chalk.color(total.to_string(), @chalk.Green)
+  let failed_text = @chalk.color((total - succ).to_string(), @chalk.Red)
+  let msg = "Total tests: \(total), passed: \(succ_text), failed: \(failed_text)"
+  println(msg)
 }

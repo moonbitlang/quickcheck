@@ -1,1 +1,8 @@
-{}
+{
+    "import": [
+    {
+        "path": "Lampese/moonbit-chalk",
+        "alias": "chalk"
+    }
+    ]
+}

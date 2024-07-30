@@ -1,6 +1,7 @@
 {
   "is-main": true,
   "import": [
-    "username/hello/lib"
+    "CAIMEOX/quickcheck/lib",
+    "Lampese/moonbit-chalk"
   ]
 }

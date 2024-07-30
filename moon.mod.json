@@ -1,9 +1,14 @@
 {
-  "name": "username/hello",
-  "version": "0.1.0",
+  "name": "CAIMEOX/quickcheck",
+  "version": "0.1.1",
+  "deps": {
+    "Lampese/moonbit-chalk": "0.1.1"
+  },
   "readme": "README.md",
-  "repository": "",
+  "repository": "https://github.com/CAIMEOX/quickcheck",
   "license": "Apache-2.0",
-  "keywords": [],
-  "description": ""
+  "keywords": [
+    "property-based-testing"
+  ],
+  "description": "Automatic testing of MoonBit programs"
 }
