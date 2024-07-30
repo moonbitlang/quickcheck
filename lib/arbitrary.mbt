@@ -3,9 +3,6 @@ pub trait Arbitrary {
   shrink(Self) -> Iter[Self]
 }
 
-trait Integer {}
-
-impl Arbitrary with shrink(_a) { Iter::empty() }
 
 /// Unit 
 impl Arbitrary for Unit with arbitrary(_i, _rs) { () }
@@ -19,6 +16,18 @@ impl Arbitrary for Bool with arbitrary(_i, rs) {
   }
 }
 
+/// Char
+impl Arbitrary for Char with arbitrary(_i, rs) {
+  let c = rs.rs.gen_int()
+  Char::from_int(c)
+}
+
+/// Byte
+impl Arbitrary for Byte with arbitrary(_i, rs) {
+  let c = rs.rs.gen_int() % 0xFF
+  c.to_byte()
+}
+
 /// Number
 impl Arbitrary for UInt with arbitrary(_i, rs) { rs.rs.gen_int().to_uint() }
 
@@ -26,7 +35,11 @@ impl Arbitrary for Int with arbitrary(_i, rs) { rs.rs.gen_int() }
 
 impl Arbitrary for Int64 with arbitrary(_i, rs) { rs.rs.gen_int64() }
 
-impl Arbitrary for Double with arbitrary(_i, rs) { rs.rs.gen_double() }
+impl Arbitrary for Double with arbitrary(_i, rs) { 
+  let r1 = Double::from_int(rs.rs.gen_int())
+  let r2 = Double::from_int(rs.rs.gen_int())
+  r1 / (r1 + r2)
+ }
 
 /// Array
 impl[X : Arbitrary] Arbitrary for Array[X] with arbitrary(i, rs) {

@@ -1,3 +1,5 @@
+impl Arbitrary with shrink(_a) { Iter::empty() }
+
 impl Arbitrary for Int with shrink(x) {
   Iter::new(
     fn {
