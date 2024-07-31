@@ -10,6 +10,32 @@ pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
   { gen: T::arbitrary }
 }
 
+pub fn feat[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
+  loop enumerate.parts, size {
+    Nil, _ => abort("uniform: empty enumeration")
+    ps, maxp => {
+      let (incl, rest) = ps.split_at(maxp)
+      let fin = incl.fin_mconcat()
+      match fin.fCard {
+        0 => continue rest, 1
+        _ => break int_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })
+      }
+    }
+  }
+}
+
+pub fn Gen::fe[T : @feat.Enumerable](size : Int) -> Gen[T] {
+  feat(T::enumerate(), size)
+}
+
+test "fe" {
+  let fe : Gen[Int] = fe(10)
+  inspect!(
+    fe.samples(size=50),
+    content="[2, 2, -2, 4, 2, 4, -2, 1, -3, -2, -1, 2, 2, -4, 1, -1, -2, -2, -1, 2, -1, 5, 2, 4, -2, 1, -6, -2, 8, 0, 1, 3, 2, 3, -4, 5, 2, 2, 0, 0, 0, 1, 6, 0, -5, 0, 6, -4, -6, 3]",
+  )
+}
+
 /// Monad
 pub fn pure[T](val : T) -> Gen[T] {
   Gen::new(fn(_n, _s) { val })

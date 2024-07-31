@@ -3,6 +3,7 @@
         {
             "path": "Lampese/moonbit-chalk",
             "alias": "chalk"
-        }
+        },
+        "CAIMEOX/quickcheck/lib/feat"
     ]
 }

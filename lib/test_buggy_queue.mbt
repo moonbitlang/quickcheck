@@ -70,20 +70,6 @@ impl Arbitrary for Axiom[Queue] with arbitrary(i, rs) {
   { lhs, rhs }
 }
 
-fn axiomQ1(x : Int) -> Axiom[Int] {
+fn _axiomQ1(x : Int) -> Axiom[Int] {
   { lhs: x, rhs: front(enqueue(empty_queue(), x)) }
-}
-
-test "Queue" {
-  let aq : Gen[Axiom[Queue]] = spawn()
-  let s = aq.samples()
-  let _a1 = axiomQ1(12)
-  println(s)
-  // println(a1)
-}
-
-test "int" {
-  let ig : Gen[Int] = spawn()
-  let s = ig.samples(size=200)
-  println(s)
 }
