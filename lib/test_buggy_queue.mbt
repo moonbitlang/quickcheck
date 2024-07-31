@@ -77,7 +77,7 @@ fn axiomQ1(x : Int) -> Axiom[Int] {
 test "Queue" {
   let aq : Gen[Axiom[Queue]] = spawn()
   let s = aq.samples()
-  let a1 = axiomQ1(12)
+  let _a1 = axiomQ1(12)
   println(s)
   // println(a1)
 }

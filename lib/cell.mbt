@@ -66,6 +66,6 @@ pub fn quick_check[T](self : Cell[T]) -> Report[T] {
   }
 }
 
-pub fn verbose_check[T: Show](self: Cell[T]) -> Report[T] {
+pub fn verbose_check[T: Show](_self: Cell[T]) -> Report[T] {
   abort("not implemented")
 }

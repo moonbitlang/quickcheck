@@ -21,12 +21,33 @@ pub fn next_uint64(self : RandomState) -> UInt64 {
   mix64(self.seed)
 }
 
+test "next_uint64" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_uint64())
+  }
+}
+
 pub fn next_uint(self : RandomState) -> UInt {
   self.next_uint64().to_uint()
 }
 
+test "next_uint" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_uint())
+  }
+}
+
 pub fn next_int64(self : RandomState) -> Int64 {
   self.next_uint64().to_int64()
+}
+
+test "next_int64" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_int64())
+  }
 }
 
 pub fn next_two_uint(self : RandomState) -> (UInt, UInt) {
@@ -34,8 +55,22 @@ pub fn next_two_uint(self : RandomState) -> (UInt, UInt) {
   (g.lsr(32).to_uint(), g.to_uint())
 }
 
+test "next_two_uint" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_two_uint())
+  }
+}
+
 pub fn next_int(self : RandomState) -> Int {
   self.next_uint().to_int()
+}
+
+test "next_int" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_int())
+  }
 }
 
 pub fn next_double(self : RandomState) -> Double {
@@ -43,8 +78,22 @@ pub fn next_double(self : RandomState) -> Double {
   u.lsr(11).to_int64().to_double() * double_ulp
 }
 
-pub fn next_int_abs(self: RandomState) -> Int {
+test "next_double" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_double())
+  }
+}
+
+pub fn next_int_abs(self : RandomState) -> Int {
   self.next_int().abs()
+}
+
+test "next_int_abs" {
+  let state = RandomState::new()
+  for i = 0; i < 100; i = i + 1 {
+    println(state.next_int_abs())
+  }
 }
 
 pub fn split(self : RandomState) -> RandomState {
@@ -52,7 +101,6 @@ pub fn split(self : RandomState) -> RandomState {
   self.seed = seed1 + self.gamma
   { seed: mix64(seed1), gamma: mix_gamma(self.seed) }
 }
-
 
 fn shift_xor(n : Int, w : UInt64) -> UInt64 {
   w.lxor(w.lsr(n))
@@ -90,4 +138,3 @@ fn mix_gamma(z0 : UInt64) -> UInt64 {
     z1.lxor(0xaaaaaaaaaaaaaaaa)
   }
 }
-

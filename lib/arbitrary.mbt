@@ -47,6 +47,8 @@ impl Arbitrary for Int64 with arbitrary(_i, rs) { rs.next_int64() }
 
 impl Arbitrary for Double with arbitrary(_i, rs) { rs.next_double() }
 
+impl Arbitrary for UInt64 with arbitrary(_i, rs) { rs.next_uint64() }
+
 /// Tuples
 impl[A : Arbitrary, B : Arbitrary] Arbitrary for (A, B) with arbitrary(i, rs) {
   liftA2(fn(x, y) { (x, y) }, spawn(), spawn()).run(i, rs)

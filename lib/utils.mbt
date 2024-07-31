@@ -6,12 +6,12 @@ fn removes[T](
   if k > n {
     Nil
   } else {
-    let xs = xs.drop(k)
-    if xs.is_empty() {
+    let xs_drop = xs.drop(k)
+    if xs_drop.is_empty() {
       Nil
     } else {
-      let ys = xs.take(k)
-      Cons(xs, removes(k, n - k, xs).map(fn(x) { ys.concat(x) }))
+      let xs_take = xs.take(k)
+      Cons(xs_drop, removes(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }))
     }
   }
 }

@@ -115,10 +115,6 @@ pub fn pair[X, Y](gx : Gen[X], gy : Gen[Y]) -> Gen[(X, Y)] {
   gx.bind(fn(x) { gy.fmap(fn(y) { (x, y) }) })
 }
 
-pub fn asr[X](gx : Gen[X], gy : Gen[X]) -> Gen[X] {
-  gx.bind(fn(x) { gy })
-}
-
 pub fn run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
   (self.gen)(i, rs)
 }
@@ -142,11 +138,18 @@ pub fn small_int() -> Gen[Int] {
     fn(_i, rs) {
       let p = rs.next_double()
       if p < 0.75 {
-        rs.next_int() % 10
+        rs.next_int() % 11
       } else {
-        rs.next_int() % 100
+        rs.next_int() % 97
       }
     },
+  )
+}
+
+test "small int" {
+  inspect!(
+    small_int().samples(size=50),
+    content="[6, -7, 5, 0, 10, -10, 0, 7, -5, -1, -5, -4, 0, 3, 7, -5, 42, 3, 78, 1, 10, -5, -10, -51, -5, -73, -1, 3, -1, 9, 22, 88, -2, -7, 3, 9, 7, 1, 1, -1, 6, -9, -7, -25, -1, -10, -6, -33, -1, -4]",
   )
 }
 
@@ -167,8 +170,22 @@ pub fn nat() -> Gen[Int] {
   )
 }
 
+test "nat" {
+  inspect!(
+    nat().samples(size=50),
+    content="[4, -93, 2, 4, 92, 0, 6, 7, -90, 0, -6, -92, 0, 70, 96, -7, 816, 6, 229, 6, 4, -5, -1, -163, -93, -231, -18, 6, -74, 5, 618, 206, -12, -2, 1, 3, 5, 2, 83, -6, 8, -8, -3, -676, -5, -31, -2, -514, -61, -6]",
+  )
+}
+
 pub fn bool() -> Gen[Bool] {
   Gen::new(fn(_i, rs) { rs.next_double() < 0.5 })
+}
+
+test "bool" {
+  inspect!(
+    bool().samples(size=50),
+    content="[true, true, false, false, false, false, true, false, false, false, true, false, true, true, true, false, false, true, true, false, true, true, false, true, true, false, false, false, false, false, true, false, false, true, true, true, false, true, true, true, true, true, true, true, true, true, false, true, false, true]",
+  )
 }
 
 pub fn neg_int() -> Gen[Int] {
@@ -197,19 +214,42 @@ pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
 }
 
 pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
-  int_range(lo.to_int(), hi.to_int()).fmap(Char::from_int)
+  int_range(lo.to_int(), hi.to_int() + 1).fmap(Char::from_int)
+}
+
+test "char range" {
+  inspect!(
+    char_range('a', 'c').samples(size=50),
+    content="['a', 'a', 'b', 'a', 'c', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'a', 'a', 'c', 'b', 'b', 'a', 'b', 'a', 'c', 'a', 'a', 'b', 'b', 'c', 'b', 'a', 'b', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'c', 'b', 'a', 'c', 'a', 'a', 'a', 'a', 'b', 'b', 'a', 'b', 'c', 'b']",
+  )
 }
 
 pub fn one_of[T](arr : Array[Gen[T]]) -> Gen[T] {
-  int_bound(arr.length() - 1).bind(fn(x) { arr[x] })
+  int_bound(arr.length()).bind(fn(x) { arr[x] })
+}
+
+test "one of" {
+  inspect!(
+    one_of([pure(1), pure(2), pure(3), pure(4)]).samples(size=50),
+    content="[1, 3, 2, 1, 4, 3, 3, 1, 3, 1, 4, 1, 4, 3, 1, 4, 2, 3, 1, 2, 3, 1, 2, 2, 3, 4, 3, 1, 2, 4, 1, 3, 3, 2, 3, 3, 2, 1, 1, 2, 3, 1, 3, 3, 1, 3, 2, 4, 1, 4]",
+  )
 }
 
 pub fn one_of_list[T](lst : @immut/list.T[T]) -> Gen[T] {
-  int_bound(lst.length() - 1).fmap(fn(x) { lst.nth_exn(x) })
+  int_bound(lst.length()).fmap(fn(x) { lst.nth_exn(x) })
 }
 
 pub fn one_of_array[T](arr : Array[T]) -> Gen[T] {
-  int_bound(arr.length() - 1).fmap(fn(x) { arr[x] })
+  int_bound(arr.length()).fmap(fn(x) { arr[x] })
+}
+
+test "one of array" {
+  inspect!(
+    one_of_array(["a", "b", "c"]).samples(size=50),
+    content=
+      #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
+    ,
+  )
 }
 
 pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
@@ -220,7 +260,8 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
     if sum < 1 {
       abort("frequency: total weight is less than 1")
     } else {
-      int_bound(sum - 1).bind(
+      println(sum - 1)
+      int_range(1, sum + 1).bind(
         fn(k) {
           for i = 0, acc = 0; i < arr.length(); {
             let (w, g) = arr[i]
@@ -236,6 +277,13 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
       )
     }
   }
+}
+
+test "frequency int" {
+  inspect!(
+    frequency([(1, pure(42)), (2, pure(37)), (3, pure(114))]).samples(size=50),
+    content="[114, 42, 114, 37, 114, 42, 37, 114, 114, 42, 114, 37, 114, 42, 114, 37, 114, 114, 37, 114, 114, 37, 114, 114, 114, 114, 114, 37, 37, 114, 114, 42, 37, 37, 42, 37, 37, 114, 42, 114, 114, 37, 37, 114, 114, 37, 37, 37, 42, 114]",
+  )
 }
 
 pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
