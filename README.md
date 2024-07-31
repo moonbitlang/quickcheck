@@ -30,5 +30,4 @@ MoonBit QuickCheck brings many modern academic ideas into industrial practice.
 - [QuickCheck: a lightweight tool for random testing of Haskell programs](https://doi.org/10.1145/351240.351266)
 - [SmallCheck and Lazy SmallCheck automatic exhaustive testing for small values](https://doi.org/10.1145/1411286.1411292)
 - [Automatic Testing of Operation Invariance](https://ceur-ws.org/Vol-1335/wflp2014_paper9.pdf)
-
-
+- [Fast Splittable Pseudorandom Number Generators](https://doi.org/10.1145/2660193.2660195)

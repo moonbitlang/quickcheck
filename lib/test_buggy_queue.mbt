@@ -79,5 +79,11 @@ test "Queue" {
   let s = aq.samples()
   let a1 = axiomQ1(12)
   println(s)
-  println(a1)
+  // println(a1)
+}
+
+test "int" {
+  let ig : Gen[Int] = spawn()
+  let s = ig.samples(size=200)
+  println(s)
 }

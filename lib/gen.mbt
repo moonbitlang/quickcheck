@@ -112,13 +112,11 @@ pub fn liftA6[A, B, C, D, E, F, G](
 }
 
 pub fn pair[X, Y](gx : Gen[X], gy : Gen[Y]) -> Gen[(X, Y)] {
-  Gen::new(
-    fn(n, s) {
-      let x = gx.run(n, s)
-      let y = gy.run(n, s)
-      (x, y)
-    },
-  )
+  gx.bind(fn(x) { gy.fmap(fn(y) { (x, y) }) })
+}
+
+pub fn asr[X](gx : Gen[X], gy : Gen[X]) -> Gen[X] {
+  gx.bind(fn(x) { gy })
 }
 
 pub fn run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
@@ -127,7 +125,7 @@ pub fn run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
 
 pub fn sample[T](self : Gen[T]) -> T {
   let state = RandomState::new()
-  let size = state.rs.gen_int() % 100
+  let size = state.next_int() % 100
   self.run(size, state)
 }
 
@@ -142,11 +140,11 @@ pub fn small_int() -> Gen[Int] {
   /// TODO: Update (along with other)
   Gen::new(
     fn(_i, rs) {
-      let p = rs.rs.gen_double()
+      let p = rs.next_double()
       if p < 0.75 {
-        rs.rs.gen_int() % 10
+        rs.next_int() % 10
       } else {
-        rs.rs.gen_int() % 100
+        rs.next_int() % 100
       }
     },
   )
@@ -155,49 +153,44 @@ pub fn small_int() -> Gen[Int] {
 pub fn nat() -> Gen[Int] {
   Gen::new(
     fn(_i, rs) {
-      let p = rs.rs.gen_double()
+      let p = rs.next_double()
       if p < 0.5 {
-        rs.rs.gen_int() % 10
+        rs.next_int() % 10
       } else if p < 0.75 {
-        rs.rs.gen_int() % 100
+        rs.next_int() % 100
       } else if p < 0.95 {
-        rs.rs.gen_int() % 1000
+        rs.next_int() % 1000
       } else {
-        rs.rs.gen_int() % 10000
+        rs.next_int() % 10000
       }
     },
   )
 }
 
 pub fn bool() -> Gen[Bool] {
-  Gen::new(fn(_i, rs) { rs.rs.gen_double() < 0.5 })
+  Gen::new(fn(_i, rs) { rs.next_double() < 0.5 })
 }
 
 pub fn neg_int() -> Gen[Int] {
-  Gen::new(fn(_i, rs) { -rs.rs.gen_int() })
+  Gen::new(fn(_i, rs) { -rs.next_int_abs() })
 }
 
 pub fn numeral() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.rs.gen_int() % 10 + 48) })
+  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 10 + 48) })
 }
 
 pub fn alphabet() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.rs.gen_int() % 26 + 65) })
+  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 26 + 65) })
 }
 
 pub fn int_bound(bound : Int) -> Gen[Int] {
-  Gen::new(
-    fn(_i, rs) {
-      let j = rs.rs.gen_int() % bound
-      j.abs()
-    },
-  )
+  Gen::new(fn(_i, rs) { rs.next_int_abs() % bound })
 }
 
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   Gen::new(
     fn(_i, rs) {
-      let j = rs.rs.gen_int() % (hi - lo)
+      let j = rs.next_int_abs() % (hi - lo)
       j + lo
     },
   )

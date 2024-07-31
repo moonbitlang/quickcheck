@@ -8,7 +8,7 @@ impl Arbitrary for Unit with arbitrary(_i, _rs) { () }
 
 /// Boolean
 impl Arbitrary for Bool with arbitrary(_i, rs) {
-  if rs.rs.gen_double() < 0.5 {
+  if rs.next_double() < 0.5 {
     true
   } else {
     false
@@ -16,15 +16,13 @@ impl Arbitrary for Bool with arbitrary(_i, rs) {
 }
 
 /// Char
-impl Arbitrary for Char with arbitrary(_i, rs) {
-  let c = rs.rs.gen_int() % 0x10ffff
-  Char::from_int(c)
+impl Arbitrary for Char with arbitrary(i, rs) {
+  int_bound(0x10ffff).fmap(Char::from_int).run(i, rs)
 }
 
 /// Byte
 impl Arbitrary for Byte with arbitrary(_i, rs) {
-  let c = rs.rs.gen_int() % 0xFF
-  c.to_byte()
+  int_bound(0xFF).fmap(fn(x) { x.to_byte() }).run(0, rs)
 }
 
 /// String
@@ -41,17 +39,13 @@ impl Arbitrary for String with arbitrary(i, rs) {
 }
 
 /// Number
-impl Arbitrary for UInt with arbitrary(_i, rs) { rs.rs.gen_int().to_uint() }
+impl Arbitrary for UInt with arbitrary(_i, rs) { rs.next_uint() }
 
-impl Arbitrary for Int with arbitrary(_i, rs) { rs.rs.gen_int() }
+impl Arbitrary for Int with arbitrary(_i, rs) { rs.next_int() }
 
-impl Arbitrary for Int64 with arbitrary(_i, rs) { rs.rs.gen_int64() }
+impl Arbitrary for Int64 with arbitrary(_i, rs) { rs.next_int64() }
 
-impl Arbitrary for Double with arbitrary(_i, rs) {
-  let r1 = Double::from_int(rs.rs.gen_int())
-  let r2 = Double::from_int(rs.rs.gen_int())
-  r1 / (r1 + r2)
-}
+impl Arbitrary for Double with arbitrary(_i, rs) { rs.next_double() }
 
 /// Tuples
 impl[A : Arbitrary, B : Arbitrary] Arbitrary for (A, B) with arbitrary(i, rs) {
@@ -114,7 +108,7 @@ impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary, E : Arbitrary, 
 
 /// Result and Option
 impl[X : Arbitrary] Arbitrary for X? with arbitrary(i, rs) {
-  if rs.rs.gen_double() < 0.5 {
+  if rs.next_double() < 0.5 {
     None
   } else {
     Arbitrary::arbitrary(i, rs)
@@ -125,7 +119,7 @@ impl[T : Arbitrary, E : Arbitrary] Arbitrary for Result[T, E] with arbitrary(
   i,
   rs
 ) {
-  if rs.rs.gen_double() < 0.5 {
+  if rs.next_double() < 0.5 {
     Ok(Arbitrary::arbitrary(i, rs))
   } else {
     Err(Arbitrary::arbitrary(i, rs))
