@@ -10,7 +10,7 @@ pub fn to_string[T : Show](self : LazyList[T]) -> String {
   }
 }
 
-pub fn output[T : Show](self : LazyList[T], logger: Logger) -> Unit {
+pub fn output[T : Show](self : LazyList[T], logger : Logger) -> Unit {
   logger.write_string(self.to_string())
 }
 
@@ -22,11 +22,22 @@ pub fn index[T](self : LazyList[T], i : Int) -> T {
   }
 }
 
+pub fn to_lazy[T](ls : @immut/list.T[T]) -> LazyList[T] {
+  match ls {
+    Nil => Nil
+    Cons(x, xs) => Cons(x, fn() { to_lazy(xs) })
+  }
+}
+
 pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   match self {
     Nil => other
     Cons(x, xs) => Cons(x, fn() { concat(xs(), other) })
   }
+}
+
+pub fn repeat[T](val : T) -> LazyList[T] {
+  Cons(val, fn() { repeat(val) })
 }
 
 pub fn map[T, U](self : LazyList[T], f : (T) -> U) -> LazyList[U] {

@@ -13,7 +13,7 @@ pub fn is_failure[T](self : Report[T]) -> Bool {
   self.is_success().not()
 }
 
-pub fn print_distribution[T](self: Report[T]) -> Unit {
+pub fn print_distribution[T](self : Report[T]) -> Unit {
   self.distribution.map(
     fn(map) {
       println("Distribution: ")
@@ -24,7 +24,8 @@ pub fn print_distribution[T](self: Report[T]) -> Unit {
         },
       )
     },
-  ) |> ignore
+  )
+  |> ignore
 }
 
 pub fn print_failures[T : Show](self : Report[T]) -> Unit {

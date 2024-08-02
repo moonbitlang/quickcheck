@@ -1,19 +1,118 @@
+struct ShrinkTree[T] {
+  leaf : T
+  branch : Iter[ShrinkTree[T]]
+}
+
+pub fn to_string[T : Show](self : ShrinkTree[T]) -> String {
+  self.draw(100).to_array().join("\n")
+}
+
+pub fn output[T : Show](self : ShrinkTree[T], logger : Logger) -> Unit {
+  logger.write_string(self.to_string())
+}
+
+
+
+pub fn draw[T : Show](
+  self : ShrinkTree[T],
+  depth : Int
+) -> @immut/list.T[String] {
+  if depth == 0 {
+    return Cons("limit reach", Nil)
+  }
+  fn shift(first : String, other : String, x : @immut/list.T[String]) {
+    zw_helper(String::op_add, Cons(first, fn() { @feat.repeat(other) }), x)
+  }
+
+  fn draw_sub(l) {
+    match l {
+      @immut/list.Nil => @immut/list.Nil
+      Cons(t, Nil) => Cons("│", shift("└─ ", "   ", draw(t, depth - 1)))
+      Cons(t, ts) =>
+        @immut/list.concat(
+          Cons("│", shift("├─ ", "│  ", draw(t, depth - 1))),
+          draw_sub(ts),
+        )
+    }
+  }
+
+  Cons(self.leaf.to_string(), draw_sub(@immut/list.from_iter(self.branch)))
+}
+
+fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
+  if depth == 0 {
+    return ""
+  }
+  let s = self.leaf.to_string()
+  let child = self.branch.map(fn(x) { x.to_string_with_depth(depth - 1) }).filter(
+    fn(x) { x != "" },
+  ).collect().join(", ")
+  "Node(\(s), [\(child)])"
+}
+
+pub fn ShrinkTree::from_value[T](x : T) -> ShrinkTree[T] {
+  { leaf: x, branch: Iter::empty() }
+}
+
+pub fn ShrinkTree::from_shinker[T](
+  shrink : (T) -> Iter[T],
+  x : T
+) -> ShrinkTree[T] {
+  fn build(x) {
+    { leaf: x, branch: shrink(x).map(build) }
+  }
+
+  build(x)
+}
+
+test "from_shrinker" {
+  let si : ShrinkTree[Int] = ShrinkTree::from_shinker(Arbitrary::shrink, 4)
+  println(si)
+}
+
+pub fn smap[T, U](self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
+  { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { smap(x, f) }) }
+}
+
+pub fn join[T](tr : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
+  let x = tr.leaf.leaf
+  let ts = tr.branch.map(join).concat(
+    match tr.leaf {
+      { branch: ts, .. } => ts
+    },
+  )
+  { leaf: x, branch: ts }
+}
+
+pub fn bind[T, U](
+  self : ShrinkTree[T],
+  f : (T) -> ShrinkTree[U]
+) -> ShrinkTree[U] {
+  self.smap(f) |> join
+}
+
+pub fn get_value[T](self : ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]]) {
+  let { leaf, branch } = self
+  (leaf, branch)
+}
+
 impl Arbitrary with shrink(_a) { Iter::empty() }
 
 impl Arbitrary for Int with shrink(x) {
   apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() }).map(
     fn(i) { x - i },
-  ).iter().append(0)
+  ).iter().append(0).filter(fn(u) { u != x })
 }
 
 test "shrink int" {
   inspect!(Arbitrary::shrink(100), content="[99, 97, 94, 88, 75, 50, 0]")
+  inspect!(Arbitrary::shrink(0), content="[]")
 }
 
 impl Arbitrary for Int64 with shrink(x) {
   apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() }).map(
     fn(i) { x - i },
-  ).iter().append(0)
+  ).iter().append(0).filter(fn(u) { u != x })
 }
 
 test "shrink int64" {
@@ -26,7 +125,7 @@ test "shrink int64" {
 impl Arbitrary for UInt with shrink(x) {
   apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 }).map(fn(i) { x - i }).iter().append(
     0,
-  )
+  ).filter(fn(u) { u != x })
 }
 
 test "shrink uint" {
@@ -39,7 +138,7 @@ test "shrink uint" {
 impl Arbitrary for UInt64 with shrink(x) {
   apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 }).map(fn(i) { x - i }).iter().append(
     0,
-  )
+  ).filter(fn(u) { u != x })
 }
 
 test "shrink uint64" {
@@ -107,7 +206,10 @@ impl[T : Arbitrary, E : Arbitrary] Arbitrary for Result[T, E] with shrink(x) {
 test "shrink result" {
   let b : Result[Bool, Int] = Err(100)
   let x : Result[Bool, Int] = Ok(true)
-  inspect!(Arbitrary::shrink(b), content="[Err(99), Err(97), Err(94), Err(88), Err(75), Err(50), Err(0)]")
+  inspect!(
+    Arbitrary::shrink(b),
+    content="[Err(99), Err(97), Err(94), Err(88), Err(75), Err(50), Err(0)]",
+  )
   inspect!(Arbitrary::shrink(x), content="[Ok(false)]")
 }
 
@@ -120,7 +222,10 @@ impl[A : Arbitrary, B : Arbitrary] Arbitrary for (A, B) with shrink(x) {
 
 test "shrink tuple" {
   let x = (120, true)
-  inspect!(Arbitrary::shrink(x), content="[(119, true), (117, true), (113, true), (105, true), (90, true), (60, true), (0, true), (120, false)]")
+  inspect!(
+    Arbitrary::shrink(x),
+    content="[(119, true), (117, true), (113, true), (105, true), (90, true), (60, true), (0, true), (120, false)]",
+  )
 }
 
 impl[A : Arbitrary, B : Arbitrary, C : Arbitrary] Arbitrary for (A, B, C) with shrink(
@@ -185,7 +290,10 @@ impl[A : Arbitrary, B : Arbitrary, C : Arbitrary, D : Arbitrary, E : Arbitrary, 
 
 test "shrink 6-tuple" {
   let x = (20, 'A', 30U, true, true, true)
-  inspect!(Arbitrary::shrink(x), content="[(19, 'A', 30, true, true, true), (18, 'A', 30, true, true, true), (15, 'A', 30, true, true, true), (10, 'A', 30, true, true, true), (0, 'A', 30, true, true, true), (20, '@', 30, true, true, true), (20, 'B', 30, true, true, true), (20, 'a', 30, true, true, true), (20, 'A', 30, true, true, true), (20, '1', 30, true, true, true), (20, '\\n', 30, true, true, true), (20, '\\t', 30, true, true, true), (20, '\\b', 30, true, true, true), (20, '\\\\', 30, true, true, true), (20, '\\'', 30, true, true, true), (20, '\\r', 30, true, true, true), (20, ' ', 30, true, true, true), (20, 'A', 29, true, true, true), (20, 'A', 27, true, true, true), (20, 'A', 23, true, true, true), (20, 'A', 15, true, true, true), (20, 'A', 0, true, true, true), (20, 'A', 30, false, true, true), (20, 'A', 30, true, false, true), (20, 'A', 30, true, true, false)]")
+  inspect!(
+    Arbitrary::shrink(x),
+    content="[(19, 'A', 30, true, true, true), (18, 'A', 30, true, true, true), (15, 'A', 30, true, true, true), (10, 'A', 30, true, true, true), (0, 'A', 30, true, true, true), (20, '@', 30, true, true, true), (20, 'B', 30, true, true, true), (20, 'a', 30, true, true, true), (20, 'A', 30, true, true, true), (20, '1', 30, true, true, true), (20, '\\n', 30, true, true, true), (20, '\\t', 30, true, true, true), (20, '\\b', 30, true, true, true), (20, '\\\\', 30, true, true, true), (20, '\\'', 30, true, true, true), (20, '\\r', 30, true, true, true), (20, ' ', 30, true, true, true), (20, 'A', 29, true, true, true), (20, 'A', 27, true, true, true), (20, 'A', 23, true, true, true), (20, 'A', 15, true, true, true), (20, 'A', 0, true, true, true), (20, 'A', 30, false, true, true), (20, 'A', 30, true, false, true), (20, 'A', 30, true, true, false)]",
+  )
 }
 
 impl[T : Arbitrary + Show] Arbitrary for @immut/list.T[T] with shrink(xs) {

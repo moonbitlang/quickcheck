@@ -85,6 +85,7 @@ test "next_double" {
   }
 }
 
+
 pub fn next_int_abs(self : RandomState) -> Int {
   self.next_int().abs()
 }
