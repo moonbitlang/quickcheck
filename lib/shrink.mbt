@@ -1,3 +1,22 @@
+// Trivial Shrinker
+pub fn linear_shrink[T](
+  max : Int,
+  shrinker : (T) -> Iter[T],
+  law : (T) -> Bool,
+  ~init : T
+) -> (Int, T) {
+  loop max, init {
+    0, acc => break (max, acc)
+    n, acc => {
+      let i = shrinker(acc).take_while(fn(x) { law(x).not() })
+      match i.to_array().pop() {
+        None => (max - n, acc)
+        Some(ce) => continue n - 1, ce
+      }
+    }
+  }
+}
+
 struct ShrinkTree[T] {
   leaf : T
   branch : Iter[ShrinkTree[T]]
@@ -10,8 +29,6 @@ pub fn to_string[T : Show](self : ShrinkTree[T]) -> String {
 pub fn output[T : Show](self : ShrinkTree[T], logger : Logger) -> Unit {
   logger.write_string(self.to_string())
 }
-
-
 
 pub fn draw[T : Show](
   self : ShrinkTree[T],
@@ -310,7 +327,6 @@ impl[T : Arbitrary + Show] Arbitrary for @immut/list.T[T] with shrink(xs) {
 
   apply_while(n, fn(x) { x / 2 }, fn(x) { x > 0 }).map(
     fn(k) {
-      println(removes(k, n, xs))
       removes(k, n, xs)
     },
   ).flatten().iter().concat(shr_subterms(xs))
