@@ -17,7 +17,14 @@ impl Arbitrary for Bool with arbitrary(_i, rs) {
 
 /// Char
 impl Arbitrary for Char with arbitrary(i, rs) {
-  int_bound(0x10ffff).fmap(Char::from_int).run(i, rs)
+  let planes = [
+    (60, unicode_ascii()),
+    (10, unicode_plane0()),
+    (10, unicode_plane1()),
+    (5, unicode_plane2()),
+    (5, unicode_plane14()),
+  ]
+  excluding(reserved, frequency(planes)).fmap(Char::from_int).run(i, rs)
 }
 
 /// Byte
@@ -26,16 +33,16 @@ impl Arbitrary for Byte with arbitrary(_i, rs) {
 }
 
 /// String
-impl Arbitrary for String with arbitrary(i, rs) {
-  small_int().fmap(
+impl Arbitrary for String with arbitrary(size, rs) {
+  int_bound(size).bind(
     fn(x) {
-      let mut str = ""
-      for i = 0; i < x; i = i + 1 {
-        str = str + (Arbitrary::arbitrary(i, rs) : Char).to_string()
-      }
-      str
+      list_with_size(x, spawn()).fmap(
+        fn(x) {
+          x.fold_left(init="", fn(x, acc : Char) { x + acc.to_string() })
+        },
+      )
     },
-  ).run(i, rs)
+  ).run(size, rs)
 }
 
 /// Number

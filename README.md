@@ -6,6 +6,32 @@ QuickCheck is a library for random testing of program properties. The programmer
 
 MoonBit QuickCheck brings many modern academic ideas into industrial practice.
 
+## Demo
+
+Check file `lib/qc_demo.mbt` for usages. The following example reports an error of `@json.stringify` in [core](https://github.com/moonbitlang/core/pull/811).
+
+```moonbit
+test "json generator" {
+  quick_check(
+    fn(jv : JValue) {
+      match @result.wrap1(f=@json.parse, @json.stringify(jv)) {
+        Err(_) => false
+        Ok(jv2) => jv == jv2
+      }
+    },
+  ).print()
+}
+```
+
+Output:
+
+```
+[test-0]: FAIL
+  There exist Object({"\x0c": True}) (State={seed: 1941323925062528825, gamma: 16934044424796929712}) such that condition is false (after 0 shrink(s))
+    Distribution: 
+      1.0: trivial
+```
+
 ### Testing Strategy
 
 - Test randomly

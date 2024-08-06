@@ -286,7 +286,6 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
     if sum < 1 {
       abort("frequency: total weight is less than 1")
     } else {
-      println(sum - 1)
       int_range(1, sum + 1).bind(
         fn(k) {
           for i = 0, acc = 0; i < arr.length(); {
@@ -307,8 +306,8 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
 
 test "frequency int" {
   inspect!(
-    frequency([(1, pure(42)), (2, pure(37)), (3, pure(114))]).samples(size=50),
-    content="[114, 42, 114, 37, 114, 42, 37, 114, 114, 42, 114, 37, 114, 42, 114, 37, 114, 114, 37, 114, 114, 37, 114, 114, 114, 114, 114, 37, 37, 114, 114, 42, 37, 37, 42, 37, 37, 114, 42, 114, 114, 37, 37, 114, 114, 37, 37, 37, 42, 114]",
+    frequency([(4, pure(42)), (1, pure(37)), (3, pure(114))]).samples(size=50),
+    content="[42, 114, 114, 42, 42, 42, 114, 37, 42, 42, 114, 42, 114, 42, 42, 42, 114, 42, 42, 42, 114, 37, 42, 42, 114, 114, 114, 42, 114, 42, 37, 42, 42, 114, 42, 114, 42, 37, 37, 114, 42, 42, 114, 42, 37, 42, 114, 42, 42, 42]",
   )
 }
 
@@ -378,5 +377,118 @@ pub fn sorted_list[T : Compare](
 }
 
 pub fn array_with_size[T](size : Int, gen : Gen[T]) -> Gen[Array[T]] {
-  Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { gen.run(i, rs) }) })
+  Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { gen.run(i, rs) }) })
+}
+
+pub fn tuple[T, U](gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
+  gen1.bind(fn(x) { gen2.fmap(fn(y) { (x, y) }) })
+}
+
+pub fn triple[T, U, V](
+  gen1 : Gen[T],
+  gen2 : Gen[U],
+  gen3 : Gen[V]
+) -> Gen[(T, U, V)] {
+  gen1.bind(fn(x) { gen2.bind(fn(y) { gen3.fmap(fn(z) { (x, y, z) }) }) })
+}
+
+pub fn quad[T, U, V, W](
+  gen1 : Gen[T],
+  gen2 : Gen[U],
+  gen3 : Gen[V],
+  gen4 : Gen[W]
+) -> Gen[(T, U, V, W)] {
+  gen1.bind(
+    fn(x) {
+      gen2.bind(
+        fn(y) { gen3.bind(fn(z) { gen4.fmap(fn(w) { (x, y, z, w) }) }) },
+      )
+    },
+  )
+}
+
+pub fn reserved(c : Int) -> Bool {
+  let masked = c.land(0xffff)
+  [
+    c < 0,
+    c > 0x10ffff,
+    c >= 0xDC00 && c <= 0xDFFF,
+    c >= 0xD800 && c <= 0xDBFF,
+    masked == 0xFFFE || masked == 0xFFFF,
+  ].fold_left(fn(x, acc) { acc || x }, init=false)
+}
+
+pub fn unicode_string() -> Gen[String] {
+  let g : Gen[Char] = spawn()
+  int_range(0, 100).bind(fn(x) { list_with_size(x, g).fmap(fn(x) {
+    x.fold_left(init="", fn(x, acc) { x + acc.to_string() })
+  }) })
+}
+
+test "unicode char" {
+  let g : Gen[Char] = spawn()
+  println(g.samples(size=50))
+}
+
+test "unicode string" {
+  let g = unicode_string()
+  println(g.samples(size=50))
+}
+
+pub fn excluding[T](bad: (T) -> Bool, gen: Gen[T]) -> Gen[T] {
+  Gen::new(fn(i, rs) {
+    loop gen.run(i, rs) {
+      x => if bad(x) { continue gen.run(i, rs) } else { break x }
+    }
+  })
+}
+
+test "excluding" {
+  let g = excluding(fn(x) { x > 0}, int_range(-100, 100))
+  inspect!(g.samples(size=50), content="[-16, -84, -7, -66, -15, -4, -74, -13, -10, -11, -20, -84, -8, -30, -58, -30, -4, -20, -3, -84, -44, -52, -71, -13, -83, -69, -73, -82, -44, -26, -44, -75, -82, -62, -94, -88, -45, -83, -39, -33, -68, -9, -92, -67, -24, -42, -95, -69, -79, -74]")
+}
+
+pub fn unicode_ascii() -> Gen[Int] {
+  int_range(0, 0x7F)
+}
+
+pub fn unicode_plane0() -> Gen[Int] {
+  int_range(0, 0x0FFFF)
+}
+
+pub fn unicode_plane1() -> Gen[Int] {
+  one_of(
+    [
+      int_range(0x10000, 0x10FFF),
+      int_range(0x11000, 0x11FFF),
+      int_range(0x12000, 0x12FFF),
+      int_range(0x13000, 0x13FFF),
+      int_range(0x1D000, 0x1DFFF),
+      int_range(0x1F000, 0x1FFFF),
+    ],
+  )
+}
+
+pub fn unicode_plane2() -> Gen[Int] {
+  one_of(
+    [
+      int_range(0x20000, 0x20FFF),
+      int_range(0x21000, 0x21FFF),
+      int_range(0x22000, 0x22FFF),
+      int_range(0x23000, 0x23FFF),
+      int_range(0x24000, 0x24FFF),
+      int_range(0x25000, 0x25FFF),
+      int_range(0x26000, 0x26FFF),
+      int_range(0x27000, 0x27FFF),
+      int_range(0x28000, 0x28FFF),
+      int_range(0x29000, 0x29FFF),
+      int_range(0x2A000, 0x2AFFF),
+      int_range(0x2B000, 0x2BFFF),
+      int_range(0x2F000, 0x2FFFF),
+    ],
+  )
+}
+
+pub fn unicode_plane14() -> Gen[Int] {
+  int_range(0xE0000, 0xE0FFF)
 }

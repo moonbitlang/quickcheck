@@ -21,13 +21,12 @@ pub struct Replay {
 }
 
 struct LabelRecord[T] {
-  enable : Bool
   classify : (T) -> String
   map : Map[String, Int]
 }
 
 pub fn LabelRecord::make[T](f : (T) -> String) -> LabelRecord[T] {
-  { enable: true, classify: f, map: Map::new() }
+  { classify: f, map: Map::new() }
 }
 
 pub fn classify[T](self : LabelRecord[T], v : T) -> Unit {
@@ -107,9 +106,8 @@ pub fn print[T : Show](
     GaveUp => pc.print("Gave up: no tests completed")
   }
   pc.ident()
-  if self.label.enable {
-    pc.print("Distribution: ")
-    self.label.to_string().map(fn(x) { pc.print(x) }) |> ignore
-  }
+  pc.print("Distribution: ")
+  pc.ident()
+  self.label.to_string().map(fn(x) { pc.print(x) }) |> ignore
   pc.unident()
 }
