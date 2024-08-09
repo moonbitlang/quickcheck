@@ -1,1 +1,5 @@
-{}
+{
+"import":[
+    "CAIMEOX/quickcheck/lib/lazy"
+]
+}

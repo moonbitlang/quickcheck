@@ -14,10 +14,10 @@ pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
 
 pub fn feat[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   loop enumerate.parts, size {
-    Nil, _ => abort("uniform: empty enumeration")
+    @lazy.Nil, _ => abort("uniform: empty enumeration")
     ps, maxp => {
       let (incl, rest) = ps.split_at(maxp)
-      let fin = incl.fin_mconcat()
+      let fin = @feat.fin_mconcat(incl)
       match fin.fCard {
         0 => continue rest, 1
         _ => break int_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })

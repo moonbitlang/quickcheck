@@ -38,7 +38,7 @@ pub fn draw[T : Show](
     return Cons("limit reach", Nil)
   }
   fn shift(first : String, other : String, x : @immut/list.T[String]) {
-    zw_helper(String::op_add, Cons(first, fn() { @feat.repeat(other) }), x)
+    zw_helper(String::op_add, Cons(first, fn() { @lazy.repeat(other) }), x)
   }
 
   fn draw_sub(l) {

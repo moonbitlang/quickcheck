@@ -65,11 +65,11 @@ pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, ~init : U) -> U {
   }
 }
 
-fn sum_list(l : LazyList[Int]) -> Int {
+pub fn sum_list(l : LazyList[Int]) -> Int {
   l.fold_left(Int::op_add, init=0)
 }
 
-fn zip_with[A, B, C](
+pub fn zip_with[A, B, C](
   f : (A, B) -> C,
   xs : LazyList[A],
   ys : LazyList[B]

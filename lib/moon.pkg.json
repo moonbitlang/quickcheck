@@ -1,10 +1,11 @@
 {
     "import": [
-        {
-            "path": "Lampese/moonbit-chalk",
-            "alias": "chalk"
-        },
-        "CAIMEOX/quickcheck/lib/feat",
-        "CAIMEOX/quickcheck/lib/splitmix"
+      {
+        "path": "Lampese/moonbit-chalk",
+        "alias": "chalk"
+      },
+      "CAIMEOX/quickcheck/lib/feat",
+      "CAIMEOX/quickcheck/lib/splitmix",
+      "CAIMEOX/quickcheck/lib/lazy"
     ]
 }
