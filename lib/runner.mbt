@@ -76,13 +76,13 @@ pub fn check_verbose[T : Eq + Show](
     let arb = prop.generator.run(c, state)
     distribution.classify(arb) |> ignore
     if (prop.filter)(arb).not() {
-      println("\(arb) filtered")
+      println("\{arb} filtered")
       continue
     } else {
       let res = law(arb)
       test_ran += 1
       if res.not() {
-        println("\(arb) failed")
+        println("\{arb} failed")
         let shrunk = linear_shrink(
           config.max_shrink,
           prop.shrinker,
@@ -103,7 +103,7 @@ pub fn check_verbose[T : Eq + Show](
             replay: Some({ rand_state: state }),
           }
       } else {
-        println("\(arb) passed")
+        println("\{arb} passed")
       }
     }
   } else {

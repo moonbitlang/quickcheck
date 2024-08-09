@@ -87,7 +87,7 @@ pub fn print[T : Show](
   ~pc : Printer = Default::default()
 ) -> Unit {
   let name = self.name
-  pc.print("[\(name)]: " + self.outcome.to_string())
+  pc.print("[\{name}]: " + self.outcome.to_string())
   pc.ident()
   match self.outcome {
     Fail(x) => {
@@ -95,13 +95,13 @@ pub fn print[T : Show](
       let seed = self.replay.unwrap().rand_state
       let shrink_count = self.shrink_count
       pc.print(
-        "There exist \(ce) (State=\(seed)) such that condition is false (after \(shrink_count) shrink(s))",
+        "There exist \{ce} (State=\{seed}) such that condition is false (after \{shrink_count} shrink(s))",
       )
     }
     Success => {
       let test_count = self.success_count
       let total_count = self.total_test_count
-      pc.print("\(test_count)/\(total_count) tests completed")
+      pc.print("\{test_count}/\{total_count} tests completed")
     }
     GaveUp => pc.print("Gave up: no tests completed")
   }

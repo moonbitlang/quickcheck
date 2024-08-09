@@ -227,7 +227,11 @@ pub fn alphabet() -> Gen[Char] {
 }
 
 pub fn int_bound(bound : Int) -> Gen[Int] {
-  Gen::new(fn(_i, rs) { rs.next_int_abs() % bound })
+  if bound == 0 {
+    pure(0)
+  } else {
+    Gen::new(fn(_i, rs) { rs.next_int_abs() % bound })
+  }
 }
 
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
@@ -420,9 +424,13 @@ pub fn reserved(c : Int) -> Bool {
 
 pub fn unicode_string() -> Gen[String] {
   let g : Gen[Char] = spawn()
-  int_range(0, 100).bind(fn(x) { list_with_size(x, g).fmap(fn(x) {
-    x.fold_left(init="", fn(x, acc) { x + acc.to_string() })
-  }) })
+  int_range(0, 100).bind(
+    fn(x) {
+      list_with_size(x, g).fmap(
+        fn(x) { x.fold_left(init="", fn(x, acc) { x + acc.to_string() }) },
+      )
+    },
+  )
 }
 
 test "unicode char" {
@@ -435,17 +443,22 @@ test "unicode string" {
   println(g.samples(size=50))
 }
 
-pub fn excluding[T](bad: (T) -> Bool, gen: Gen[T]) -> Gen[T] {
-  Gen::new(fn(i, rs) {
-    loop gen.run(i, rs) {
-      x => if bad(x) { continue gen.run(i, rs) } else { break x }
-    }
-  })
+pub fn excluding[T](bad : (T) -> Bool, gen : Gen[T]) -> Gen[T] {
+  Gen::new(
+    fn(i, rs) {
+      loop gen.run(i, rs) {
+        x => if bad(x) { continue gen.run(i, rs) } else { break x }
+      }
+    },
+  )
 }
 
 test "excluding" {
-  let g = excluding(fn(x) { x > 0}, int_range(-100, 100))
-  inspect!(g.samples(size=50), content="[-16, -84, -7, -66, -15, -4, -74, -13, -10, -11, -20, -84, -8, -30, -58, -30, -4, -20, -3, -84, -44, -52, -71, -13, -83, -69, -73, -82, -44, -26, -44, -75, -82, -62, -94, -88, -45, -83, -39, -33, -68, -9, -92, -67, -24, -42, -95, -69, -79, -74]")
+  let g = excluding(fn(x) { x > 0 }, int_range(-100, 100))
+  inspect!(
+    g.samples(size=50),
+    content="[-16, -84, -7, -66, -15, -4, -74, -13, -10, -11, -20, -84, -8, -30, -58, -30, -4, -20, -3, -84, -44, -52, -71, -13, -83, -69, -73, -82, -44, -26, -44, -75, -82, -62, -94, -88, -45, -83, -39, -33, -68, -9, -92, -67, -24, -42, -95, -69, -79, -74]",
+  )
 }
 
 pub fn unicode_ascii() -> Gen[Int] {

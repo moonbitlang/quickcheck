@@ -150,7 +150,7 @@ pub fn jstring() -> Gen[JValue] {
 }
 
 pub fn jobject() -> Gen[JValue] {
-  int_bound(10).bind(
+  spawn().bind(
     fn(x) {
       array_with_size(x, tuple(spawn(), jGen())).fmap(
         fn(x) {

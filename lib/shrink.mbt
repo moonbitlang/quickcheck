@@ -64,7 +64,7 @@ fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
   let child = self.branch.map(fn(x) { x.to_string_with_depth(depth - 1) }).filter(
     fn(x) { x != "" },
   ).collect().join(", ")
-  "Node(\(s), [\(child)])"
+  "Node(\{s}, [\{child}])"
 }
 
 pub fn ShrinkTree::from_value[T](x : T) -> ShrinkTree[T] {
