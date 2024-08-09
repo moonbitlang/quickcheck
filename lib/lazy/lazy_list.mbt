@@ -65,11 +65,18 @@ pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, ~init : U) -> U {
   }
 }
 
-fn sum_list(l : LazyList[Int]) -> Int {
+pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, ~init : U) -> U {
+  match self {
+    Nil => init
+    Cons(y, ys) => f(y, ys().fold_right(f, ~init))
+  }
+}
+
+pub fn sum_list(l : LazyList[Int]) -> Int {
   l.fold_left(Int::op_add, init=0)
 }
 
-fn zip_with[A, B, C](
+pub fn zip_with[A, B, C](
   f : (A, B) -> C,
   xs : LazyList[A],
   ys : LazyList[B]
@@ -79,4 +86,20 @@ fn zip_with[A, B, C](
       Cons(f(x, y), fn() { zip_with(f, xs(), ys()) })
     (_, _) => Nil
   }
+}
+
+pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+  match self {
+    Nil => Nil
+    Cons(x, xs) =>
+      if p(x) {
+        Cons(x, fn() { take_while(xs(), p) })
+      } else {
+        Nil
+      }
+  }
+}
+
+pub fn infinite_uint(start : UInt, step : UInt) -> LazyList[UInt] {
+  Cons(start, fn() { infinite_uint(start + step, step) })
 }

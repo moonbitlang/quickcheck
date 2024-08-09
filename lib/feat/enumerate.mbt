@@ -1,3 +1,5 @@
+
+
 pub struct Enumerate[T] {
   parts : LazyList[Finite[T]]
 }

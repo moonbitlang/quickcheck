@@ -1,3 +1,4 @@
+pub typealias LazyList[T] = @lazy.LazyList[T]
 fn sum(a : Array[Int]) -> Int {
   a.fold_left(Int::op_add, init=0)
 }
@@ -8,8 +9,8 @@ fn convolution[A, B](
 ) -> Finite[(A, B)] {
   let s1 = xs.map(fn(x) { x.fCard })
   let s2 = ys.map(fn(x) { x.fCard })
-  let card = sum_list(zip_with(Int::op_mul, s1, s2))
-  let fx = zip_with(fin_cart, xs, ys).fold_left(fin_union, init=fin_empty()).fIndex
+  let card = @lazy.sum_list(@lazy.zip_with(Int::op_mul, s1, s2))
+  let fx = @lazy.zip_with(fin_cart, xs, ys).fold_left(fin_union, init=fin_empty()).fIndex
   { fCard: card, fIndex: fx }
 }
 
@@ -27,9 +28,9 @@ fn zip_plus[T](
 
 fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go {
-    _, Nil => Nil
+    _, @lazy.Nil => @lazy.Nil
     rev, Cons(x, xs) => {
-      let rev1 = Cons(x, rev)
+      let rev1 = @lazy.Cons(x, rev)
       Cons(rev1, fn() { go(fn() { rev1 }, xs()) })
     }
   }

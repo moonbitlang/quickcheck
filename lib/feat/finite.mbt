@@ -79,8 +79,8 @@ pub fn fin_concat[M](m : Array[Finite[M]]) -> Finite[M] {
   }
 }
 
-pub fn fin_mconcat[M](self: LazyList[Finite[M]]) -> Finite[M] {
-  self.fold_left(fin_union, init=fin_empty())
+pub fn fin_mconcat[M](val: LazyList[Finite[M]]) -> Finite[M] {
+  val.fold_left(fin_union, init=fin_empty())
 }
 
 pub fn to_array[T](self : Finite[T]) -> (Int, Array[T]) {

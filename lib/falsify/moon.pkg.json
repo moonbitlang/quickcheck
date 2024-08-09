@@ -1,0 +1,6 @@
+{
+  "import": [
+    "CAIMEOX/quickcheck/lib/splitmix",
+    "CAIMEOX/quickcheck/lib/lazy"
+  ]
+}
