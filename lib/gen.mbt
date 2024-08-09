@@ -1,3 +1,4 @@
+pub typealias RandomState = @splitmix.RandomState
 struct Gen[T] {
   gen : (Int, RandomState) -> T
 }
@@ -9,6 +10,7 @@ pub fn Gen::new[T](gen : (Int, RandomState) -> T) -> Gen[T] {
 pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
   { gen: T::arbitrary }
 }
+
 
 pub fn feat[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   loop enumerate.parts, size {

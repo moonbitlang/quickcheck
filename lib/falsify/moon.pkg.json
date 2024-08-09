@@ -1,0 +1,5 @@
+{
+  "import": [
+    "CAIMEOX/quickcheck/lib/splitmix"
+  ]
+}
