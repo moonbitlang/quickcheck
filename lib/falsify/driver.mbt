@@ -2,22 +2,31 @@ struct Success[T] {
   result : T
   seed : RandomState
   run : TestRun
-} derive (Show)
+} derive(Show)
 
 struct Failure[E] {
   seed : RandomState
   run : ShrinkExplain[(E, TestRun), TestRun]
-} derive (Show)
+} derive(Show)
 
-struct Opt {
+struct Config {
   tests : Int
   max_shrinks : Int
   replay : RandomState?
   max_ratio : Int
+  verbose : Bool
+  expect_failure : Bool
 } derive(Show)
 
-pub impl Default for Opt with default() {
-  { tests: 100, max_shrinks: 100, replay: None, max_ratio: 10 }
+pub impl Default for Config with default() {
+  {
+    tests: 100,
+    max_shrinks: 100,
+    replay: None,
+    max_ratio: 10,
+    verbose: false,
+    expect_failure: false,
+  }
 }
 
 struct DriverState[T] {
@@ -42,7 +51,7 @@ fn append_success[T](
   }
 }
 
-pub fn init_state[T](opt : Opt) -> DriverState[T] {
+pub fn init_state[T](opt : Config) -> DriverState[T] {
   {
     rng: opt.replay.or(RandomState::new()),
     success: Nil,
@@ -70,7 +79,7 @@ fn result_is_valid_shrink[T, E](
 
 // (replay, total discarded, failed?)
 pub fn falsify[T, E](
-  opt : Opt,
+  opt : Config,
   prop : Property[T, E]
 ) -> (RandomState, List[Success[T]], Int, Failure[E]?) {
   let st : DriverState[T] = init_state(opt)
@@ -104,10 +113,7 @@ pub fn falsify[T, E](
             sf.e_fmap(@tuple.snd),
             Some(opt.max_shrinks),
           )
-          let failure = {
-            seed: acc.rng.clone(),
-            run: explain
-          }
+          let failure = { seed: acc.rng.clone(), run: explain }
           (acc.success, acc.total_discard, Some(failure))
         }
         _ => abort("todo: discard")
@@ -120,21 +126,21 @@ pub fn falsify[T, E](
 }
 
 test "falsify" {
-  let prop = test_gen(fn(x: UInt) {
-    x + 1 == x + 12
-  }, prim())
+  let prop = test_gen(fn(x : UInt) { x + 1 == x + 12 }, prim())
   let tr = falsify(Default::default(), prop)
   println(tr.3.is_empty())
 }
 
-pub fn render_test_result[T,E](opt: (RandomState, List[Success[T]], Int, Failure[E]?)) -> RenderResult {
-  let (seed, success, discarded, f) = opt
+pub fn render_test_result[T](
+  opt : Config,
+  res : (RandomState, List[Success[T]], Int, Failure[String]?)
+) -> RenderResult {
+  let (seed, success, discarded, f) = res
   match f {
-    Some(x) => {
-      {
-        passed: false,
-        output: "Failed at " + x.seed.to_string()
-      }
-    }
+    Some(x) => { passed: false, output: "Failed at " + x.seed.to_string() }
   }
+}
+
+pub fn print_result(rs : RenderResult) -> Unit {
+
 }

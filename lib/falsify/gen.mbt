@@ -49,7 +49,9 @@ pub fn combine_shrunk(
     }
   }
 
-  unless_minimal(l, ls).map(fn(l1) { SampleTree(s, fn() { l1 }, fn() { r }) }).concat(
+  unless_minimal(l, ls)
+  .map(fn(l1) { SampleTree(s, fn() { l1 }, fn() { r }) })
+  .concat(
     unless_minimal(r, rs).map(fn(r1) { SampleTree(s, fn() { l }, fn() { r1 }) }),
   )
   |> shortcut
@@ -83,19 +85,3 @@ pub fn prim() -> Gen[UInt] {
   prim_with(fn(s) { sample_value(s) |> binary }).fmap(sample_value)
 }
 
-// Selective Applicative Functor
-pub fn select[T, U](self : Gen[(T) -> U], e : Gen[Result[T, U]]) -> Gen[U] {
-  new(
-    fn(st) {
-      let (s, l, r) = st.view()
-      let (ma, ls) = e.run_gen(l)
-      match ma {
-        Ok(a) => {
-          let (f1, rs) = self.run_gen(r)
-          (f1(a), combine_shrunk(s, l, r, ls, rs))
-        }
-        Err(b) => (b, combine_shrunk(s, l, r, ls, Nil))
-      }
-    },
-  )
-}
