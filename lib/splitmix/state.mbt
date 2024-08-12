@@ -139,3 +139,7 @@ fn mix_gamma(z0 : UInt64) -> UInt64 {
     z1.lxor(0xaaaaaaaaaaaaaaaa)
   }
 }
+
+pub fn clone(self: RandomState) -> RandomState {
+  { ..self }
+}

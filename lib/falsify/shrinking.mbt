@@ -118,3 +118,22 @@ pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
 
   prim_with(shrinker).fmap(aux)
 }
+
+/// (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
+fn h_fmap[P, M, N](
+  self : ShrinkHistroy[P, M],
+  f : (M) -> N
+) -> ShrinkHistroy[P, N] {
+  match self {
+    ShrinkStopped => ShrinkStopped
+    ShrinkDone(x) => ShrinkDone(x.map(f))
+    ShrinkTo(p, xs) => ShrinkTo(p, xs.h_fmap(f))
+  }
+}
+
+fn e_fmap[P, M, N](
+  self : ShrinkExplain[P, M],
+  f : (M) -> N
+) -> ShrinkExplain[P, N] {
+  { initial: self.initial, history: self.history.h_fmap(f) }
+}
