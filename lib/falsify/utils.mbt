@@ -16,8 +16,13 @@ pub fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
 pub fn binary(u : UInt) -> @lazy.LazyList[UInt] {
   fn go {
     _, @lazy.Nil => @lazy.Nil
-    (n: UInt), Cons(x, xs) => @lazy.Cons(n, fn() { go(n + x, xs()) })
+    (n : UInt), Cons(x, xs) => @lazy.Cons(n, fn() { go(n + x, xs()) })
   }
 
   go(0U, deltas(u))
+}
+
+pub fn second[A, B, C](f : (B) -> C, v : (A, B)) -> (A, C) {
+  let (a, b) = v
+  (a, f(b))
 }
