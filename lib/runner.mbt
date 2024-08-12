@@ -58,7 +58,9 @@ pub fn check_one[T : Eq](config : Config, prop : Property[T]) -> TestResult[T] {
   }
 }
 
-pub fn quick_check[T : Arbitrary + Eq](law : (T) -> Bool) -> TestResult[T] {
+pub fn quick_check[T : Arbitrary + Shrink + Eq](
+  law : (T) -> Bool
+) -> TestResult[T] {
   let prop = with_law(law)
   let config : Config = Default::default()
   check_one(config, prop)
@@ -123,7 +125,7 @@ pub fn check_verbose[T : Eq + Show](
   }
 }
 
-pub fn quick_check_verbose[T : Arbitrary + Eq + Show](
+pub fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show](
   law : (T) -> Bool
 ) -> TestResult[T] {
   let prop = with_law(law)

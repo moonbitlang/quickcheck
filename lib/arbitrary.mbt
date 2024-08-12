@@ -1,6 +1,5 @@
 pub trait Arbitrary {
   arbitrary(Int, RandomState) -> Self
-  shrink(Self) -> Iter[Self]
 }
 
 /// Unit 

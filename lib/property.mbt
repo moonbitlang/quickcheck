@@ -6,11 +6,11 @@ struct Property[T] {
   filter : (T) -> Bool
 }
 
-pub fn with_law[T : Arbitrary](law : (T) -> Bool) -> Property[T] {
+pub fn with_law[T : Arbitrary + Shrink](law : (T) -> Bool) -> Property[T] {
   {
     law,
     generator: spawn(),
-    shrinker: Arbitrary::shrink,
+    shrinker: Shrink::shrink,
     classify: fn(_v) { "trivial" },
     filter: fn(_p) { true },
   }
