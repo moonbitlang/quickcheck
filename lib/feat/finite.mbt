@@ -50,8 +50,8 @@ pub fn fin_cart[T, U](f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
 
 pub fn fin_app[M, N](f : Finite[(M) -> N], e : Finite[M]) -> Finite[N] {
   fin_fmap(
-    fn(in) {
-      let (g, x) = in
+    fn(inp) {
+      let (g, x) = inp
       g(x)
     },
     fin_cart(f, e),
