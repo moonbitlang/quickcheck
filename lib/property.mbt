@@ -22,7 +22,7 @@ pub fn with_law_fe[T : @feat.Enumerable](
 ) -> Property[T] {
   {
     law,
-    generator: Gen::fe(card),
+    generator: Gen::feat(card),
     shrinker: fn(_x) { Iter::empty() },
     classify: fn(_v) { "trivial" },
     filter: fn(_p) { true },

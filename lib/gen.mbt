@@ -1,18 +1,47 @@
 pub typealias RandomState = @splitmix.RandomState
+
 struct Gen[T] {
   gen : (Int, RandomState) -> T
 }
 
+/// Create a new generator from a function
 pub fn Gen::new[T](gen : (Int, RandomState) -> T) -> Gen[T] {
   { gen, }
 }
 
+/// Spawn a new generator from an arbitrary instance
 pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
   { gen: T::arbitrary }
 }
 
+/// Generate a value from an enumerable instance
+pub fn Gen::feat[T : @feat.Enumerable](size : Int) -> Gen[T] {
+  feat_helper(T::enumerate(), size)
+}
 
-pub fn feat[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
+/// Run a generator with a size and random state
+pub fn Gen::run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
+  (self.gen)(i, rs)
+}
+
+/// Generate a value from a generator
+pub fn Gen::sample[T](self : Gen[T], ~seed : UInt64 = 37) -> T {
+  let state = RandomState::new(~seed)
+  let size = state.next_int() % 100
+  self.run(size, state)
+}
+
+/// Generate an array of samples from a generator
+pub fn Gen::samples[T](
+  self : Gen[T],
+  ~size : Int = 10,
+  ~seed : UInt64 = 37
+) -> Array[T] {
+  let state = RandomState::new(~seed)
+  Array::makei(size, fn(_x) { self.run(size, state) })
+}
+
+fn feat_helper[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   loop enumerate.parts, size {
     @lazy.Nil, _ => abort("uniform: empty enumeration")
     ps, maxp => {
@@ -26,31 +55,16 @@ pub fn feat[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   }
 }
 
-pub fn Gen::fe[T : @feat.Enumerable](size : Int) -> Gen[T] {
-  feat(T::enumerate(), size)
-}
-
-test "fe" {
-  let fe : Gen[Int] = fe(10)
+test "feat" {
+  let fe : Gen[Int] = feat(10)
   inspect!(
     fe.samples(size=50),
     content="[2, 2, -2, 4, 2, 4, -2, 1, -3, -2, -1, 2, 2, -4, 1, -1, -2, -2, -1, 2, -1, 5, 2, 4, -2, 1, -6, -2, 8, 0, 1, 3, 2, 3, -4, 5, 2, 2, 0, 0, 0, 1, 6, 0, -5, 0, 6, -4, -6, 3]",
   )
 }
 
-/// Monad
 pub fn pure[T](val : T) -> Gen[T] {
   Gen::new(fn(_n, _s) { val })
-}
-
-pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
-  Gen::new(
-    fn(n, s) {
-      let s2 = s.split()
-      let t = self.run(n, s)
-      f(t).run(n, s2)
-    },
-  )
 }
 
 /// Functor
@@ -61,6 +75,17 @@ pub fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U] {
 /// Applicative Functor
 pub fn ap[T, U](self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
   self.bind(fn(f) { v.bind(fn(x) { pure(f(x)) }) })
+}
+
+/// Monad
+pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
+  Gen::new(
+    fn(n, s) {
+      let s2 = s.split()
+      let t = self.run(n, s)
+      f(t).run(n, s2)
+    },
+  )
 }
 
 pub fn liftA2[A, B, C](f : (A, B) -> C, v : Gen[A], w : Gen[B]) -> Gen[C] {
@@ -139,29 +164,182 @@ pub fn liftA6[A, B, C, D, E, F, G](
   )
 }
 
-pub fn pair[X, Y](gx : Gen[X], gy : Gen[Y]) -> Gen[(X, Y)] {
-  gx.bind(fn(x) { gy.fmap(fn(y) { (x, y) }) })
-}
-
-pub fn run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
-  (self.gen)(i, rs)
-}
-
-pub fn sample[T](self : Gen[T]) -> T {
-  let state = RandomState::new()
-  let size = state.next_int() % 100
-  self.run(size, state)
-}
-
-pub fn samples[T](self : Gen[T], ~size : Int = 10) -> Array[T] {
-  let state = RandomState::new()
-  Array::makei(size, fn(_x) { self.run(size, state) })
-}
-
 /// Combinators
+
+/// Create sized generators
+pub fn sized[T](f : (Int) -> Gen[T]) -> Gen[T] {
+  Gen::new(fn(i, rs) { f(i).run(i, rs) })
+}
+
+/// Adjust the size parameter of a generator
+pub fn scale[T](self : Gen[T], f : (Int) -> Int) -> Gen[T] {
+  Gen::new(
+    fn(i, rs) {
+      let j = f(i)
+      self.run(j, rs)
+    },
+  )
+}
+
+/// Resize a generator to a specific value
+pub fn resize[T](self : Gen[T], size : Int) -> Gen[T] {
+  scale(self, fn(_n) { size })
+}
+
+/// Attempt to generate a value that satisfies a predicate
+/// If failures reach the maximum size, return None
+pub fn such_that_maybe[T](self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
+  fn attempt {
+    m, n =>
+      if m > n {
+        pure(None)
+      } else {
+        self
+        .resize(m)
+        .bind(
+          fn(x) { if pred(x) { x |> Some |> pure } else { attempt(m + 1, n) } },
+        )
+      }
+  }
+
+  sized(fn(n) { attempt(n, 2 * n) })
+}
+
+/// Generate a value that satisfies a predicate
+pub fn such_that[T](self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
+  self
+  .such_that_maybe(pred)
+  .bind(
+    fn {
+      None => sized(fn { n => self.such_that(pred).resize(n + 1) })
+      Some(x) => pure(x)
+    },
+  )
+}
+
+pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
+  if arr.is_empty() {
+    abort("frequency: empty list")
+  } else {
+    let sum = arr.map(@tuple.fst).fold_left(Int::op_add, init=0)
+    if sum < 1 {
+      abort("frequency: total weight is less than 1")
+    } else {
+      int_range(1, sum + 1).bind(
+        fn(k) {
+          for i = 0, acc = 0; i < arr.length(); {
+            let (w, g) = arr[i]
+            if k <= acc + w {
+              break g
+            } else {
+              continue i + 1, acc + w
+            }
+          } else {
+            abort("frequency: internal error (impossible)")
+          }
+        },
+      )
+    }
+  }
+}
+
+test "frequency int" {
+  inspect!(
+    frequency([(4, pure(42)), (1, pure(37)), (3, pure(114))]).samples(size=50),
+    content="[42, 114, 114, 42, 42, 42, 114, 37, 42, 42, 114, 42, 114, 42, 42, 42, 114, 42, 42, 42, 114, 37, 42, 42, 114, 114, 114, 42, 114, 42, 37, 42, 42, 114, 42, 114, 42, 37, 37, 114, 42, 42, 114, 42, 37, 42, 114, 42, 42, 42]",
+  )
+}
+
+pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
+  lst
+  .to_array()
+  .map(
+    fn(x) {
+      let (w, v) = x
+      (w, pure(v))
+    },
+  )
+  |> frequency
+}
+
+pub fn frequency_array[T](arr : Array[(Int, T)]) -> Gen[T] {
+  arr.map(
+    fn(x) {
+      let (w, v) = x
+      (w, pure(v))
+    },
+  )
+  |> frequency
+}
+
+pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
+  match lst {
+    Nil => pure(Nil)
+    Cons(x, xs) => liftA2(@immut/list.T::Cons, x, flatten_list(xs))
+  }
+}
+
+pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
+  Gen::new(
+    fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) },
+  )
+}
+
+pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
+  match opt {
+    None => pure(None)
+    Some(x) => x.fmap(Option::Some)
+  }
+}
+
+pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
+  match res {
+    Ok(x) => x.fmap(Result::Ok)
+    Err(e) => pure(Err(e))
+  }
+}
+
+pub fn one_of[T](arr : Array[Gen[T]]) -> Gen[T] {
+  int_bound(arr.length()).bind(fn(x) { arr[x] })
+}
+
+test "one of" {
+  inspect!(
+    one_of([pure(1), pure(2), pure(3), pure(4)]).samples(size=50),
+    content="[1, 3, 2, 1, 4, 3, 3, 1, 3, 1, 4, 1, 4, 3, 1, 4, 2, 3, 1, 2, 3, 1, 2, 2, 3, 4, 3, 1, 2, 4, 1, 3, 3, 2, 3, 3, 2, 1, 1, 2, 3, 1, 3, 3, 1, 3, 2, 4, 1, 4]",
+  )
+}
+
+pub fn one_of_list[T](lst : @immut/list.T[T]) -> Gen[T] {
+  int_bound(lst.length()).fmap(fn(x) { lst.nth_exn(x) })
+}
+
+pub fn one_of_array[T](arr : Array[T]) -> Gen[T] {
+  int_bound(arr.length()).fmap(fn(x) { arr[x] })
+}
+
+test "one of array" {
+  inspect!(
+    one_of_array(["a", "b", "c"]).samples(size=50),
+    content=
+      #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
+    ,
+  )
+}
+
+/// Randomly select one element from an array
+pub fn elements[T](val : Array[T]) -> Gen[T] {
+  int_bound(val.length()).fmap(fn(x) { val[x] })
+}
+
+test "elements" {
+  inspect!(
+    elements([1, 2, 3, 4, 10]).samples(),
+    content="[2, 10, 2, 4, 1, 3, 4, 10, 1, 3]",
+  )
+}
+
 pub fn small_int() -> Gen[Int] {
-  /// NOTE: double gen can produce value > 0
-  /// TODO: Update (along with other)
   Gen::new(
     fn(_i, rs) {
       let p = rs.next_double()
@@ -251,117 +429,9 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 
 test "char range" {
   inspect!(
-    char_range('a', 'c').samples(size=50),
-    content="['a', 'a', 'b', 'a', 'c', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'a', 'a', 'c', 'b', 'b', 'a', 'b', 'a', 'c', 'a', 'a', 'b', 'b', 'c', 'b', 'a', 'b', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'c', 'b', 'a', 'c', 'a', 'a', 'a', 'a', 'b', 'b', 'a', 'b', 'c', 'b']",
+    char_range('a', 'c').samples(size=20),
+    content="['a', 'a', 'b', 'a', 'c', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'a', 'a', 'c', 'b', 'b', 'a', 'b', 'a']",
   )
-}
-
-pub fn one_of[T](arr : Array[Gen[T]]) -> Gen[T] {
-  int_bound(arr.length()).bind(fn(x) { arr[x] })
-}
-
-test "one of" {
-  inspect!(
-    one_of([pure(1), pure(2), pure(3), pure(4)]).samples(size=50),
-    content="[1, 3, 2, 1, 4, 3, 3, 1, 3, 1, 4, 1, 4, 3, 1, 4, 2, 3, 1, 2, 3, 1, 2, 2, 3, 4, 3, 1, 2, 4, 1, 3, 3, 2, 3, 3, 2, 1, 1, 2, 3, 1, 3, 3, 1, 3, 2, 4, 1, 4]",
-  )
-}
-
-pub fn one_of_list[T](lst : @immut/list.T[T]) -> Gen[T] {
-  int_bound(lst.length()).fmap(fn(x) { lst.nth_exn(x) })
-}
-
-pub fn one_of_array[T](arr : Array[T]) -> Gen[T] {
-  int_bound(arr.length()).fmap(fn(x) { arr[x] })
-}
-
-test "one of array" {
-  inspect!(
-    one_of_array(["a", "b", "c"]).samples(size=50),
-    content=
-      #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
-    ,
-  )
-}
-
-pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
-  if arr.is_empty() {
-    abort("frequency: empty list")
-  } else {
-    let sum = arr.map(@tuple.fst).fold_left(Int::op_add, init=0)
-    if sum < 1 {
-      abort("frequency: total weight is less than 1")
-    } else {
-      int_range(1, sum + 1).bind(
-        fn(k) {
-          for i = 0, acc = 0; i < arr.length(); {
-            let (w, g) = arr[i]
-            if k <= acc + w {
-              break g
-            } else {
-              continue i + 1, acc + w
-            }
-          } else {
-            abort("frequency: internal error")
-          }
-        },
-      )
-    }
-  }
-}
-
-test "frequency int" {
-  inspect!(
-    frequency([(4, pure(42)), (1, pure(37)), (3, pure(114))]).samples(size=50),
-    content="[42, 114, 114, 42, 42, 42, 114, 37, 42, 42, 114, 42, 114, 42, 42, 42, 114, 42, 42, 42, 114, 37, 42, 42, 114, 114, 114, 42, 114, 42, 37, 42, 42, 114, 42, 114, 42, 37, 37, 114, 42, 42, 114, 42, 37, 42, 114, 42, 42, 42]",
-  )
-}
-
-pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
-  lst.to_array().map(
-    fn(x) {
-      let (w, v) = x
-      (w, pure(v))
-    },
-  )
-  |> frequency
-}
-
-pub fn frequency_array[T](arr : Array[(Int, T)]) -> Gen[T] {
-  arr.map(
-    fn(x) {
-      let (w, v) = x
-      (w, pure(v))
-    },
-  )
-  |> frequency
-}
-
-pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
-  match lst {
-    Nil => pure(Nil)
-    Cons(x, xs) => liftA2(@immut/list.T::Cons, x, flatten_list(xs))
-  }
-}
-
-pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
-  Gen::new(
-    fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) },
-  )
-}
-
-pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
-  match opt {
-    None => pure(None)
-    Some(x) => x.fmap(Option::Some)
-  }
-}
-
-pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
-  match res {
-    Ok(x) => x.fmap(Result::Ok)
-    Err(e) => pure(Err(e))
-  }
 }
 
 pub fn list_with_size[T](size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
@@ -382,8 +452,8 @@ pub fn sorted_list[T : Compare](
   list_with_size(size, gen).fmap(@immut/list.sort)
 }
 
-pub fn array_with_size[T](size : Int, gen : Gen[T]) -> Gen[Array[T]] {
-  Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { gen.run(i, rs) }) })
+pub fn array_with_size[T](self : Gen[T], size : Int) -> Gen[Array[T]] {
+  Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { self.run(i, rs) }) })
 }
 
 pub fn tuple[T, U](gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
@@ -424,7 +494,7 @@ pub fn reserved(c : Int) -> Bool {
   ].fold_left(fn(x, acc) { acc || x }, init=false)
 }
 
-pub fn unicode_string() -> Gen[String] {
+fn unicode_string() -> Gen[String] {
   let g : Gen[Char] = spawn()
   int_range(0, 100).bind(
     fn(x) {
@@ -445,33 +515,15 @@ test "unicode string" {
   println(g.samples(size=50))
 }
 
-pub fn excluding[T](bad : (T) -> Bool, gen : Gen[T]) -> Gen[T] {
-  Gen::new(
-    fn(i, rs) {
-      loop gen.run(i, rs) {
-        x => if bad(x) { continue gen.run(i, rs) } else { break x }
-      }
-    },
-  )
-}
-
-test "excluding" {
-  let g = excluding(fn(x) { x > 0 }, int_range(-100, 100))
-  inspect!(
-    g.samples(size=50),
-    content="[-16, -84, -7, -66, -15, -4, -74, -13, -10, -11, -20, -84, -8, -30, -58, -30, -4, -20, -3, -84, -44, -52, -71, -13, -83, -69, -73, -82, -44, -26, -44, -75, -82, -62, -94, -88, -45, -83, -39, -33, -68, -9, -92, -67, -24, -42, -95, -69, -79, -74]",
-  )
-}
-
-pub fn unicode_ascii() -> Gen[Int] {
+fn unicode_ascii() -> Gen[Int] {
   int_range(0, 0x7F)
 }
 
-pub fn unicode_plane0() -> Gen[Int] {
+fn unicode_plane0() -> Gen[Int] {
   int_range(0, 0x0FFFF)
 }
 
-pub fn unicode_plane1() -> Gen[Int] {
+fn unicode_plane1() -> Gen[Int] {
   one_of(
     [
       int_range(0x10000, 0x10FFF),
@@ -484,7 +536,7 @@ pub fn unicode_plane1() -> Gen[Int] {
   )
 }
 
-pub fn unicode_plane2() -> Gen[Int] {
+fn unicode_plane2() -> Gen[Int] {
   one_of(
     [
       int_range(0x20000, 0x20FFF),
@@ -504,6 +556,6 @@ pub fn unicode_plane2() -> Gen[Int] {
   )
 }
 
-pub fn unicode_plane14() -> Gen[Int] {
+fn unicode_plane14() -> Gen[Int] {
   int_range(0xE0000, 0xE0FFF)
 }

@@ -37,7 +37,7 @@ impl @feat.Enumerable for Nat with enumerate() {
   )
 }
 
-impl Arbitrary for Nat with arbitrary(i, rs) { Gen::fe(i).run(i, rs) }
+impl Arbitrary for Nat with arbitrary(i, rs) { Gen::feat(i).run(i, rs) }
 
 fn op_add(self : Nat, other : Nat) -> Nat {
   match self {
@@ -95,7 +95,7 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
 }
 
 test "Tree" {
-  let tg : Gen[Tree[Nat]] = Gen::fe(10)
+  let tg : Gen[Tree[Nat]] = Gen::feat(10)
   inspect!(
     tg.samples(),
     content="[Branch({forest: @list.of([Leaf(Zero)])}), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Zero)), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Branch({forest: @list.of([Leaf(Zero), Leaf(Zero)])}), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Succ(Succ(Succ(Succ(Zero))))))]",
@@ -127,76 +127,13 @@ test "int ranged" {
   ).print()
 }
 
-pub typealias JValue = @json.JsonValue
 
-pub fn jnull() -> Gen[JValue] {
-  pure(Null)
-}
-
-pub fn jbool() -> Gen[JValue] {
-  one_of([pure(True), pure(False)])
-}
-
-pub fn jnumber() -> Gen[JValue] {
-  spawn().fmap(JValue::Number)
-}
-
-pub fn jarray() -> Gen[JValue] {
-  spawn()
-}
-
-pub fn jstring() -> Gen[JValue] {
-  spawn().fmap(JValue::String)
-}
-
-pub fn jobject() -> Gen[JValue] {
-  spawn().bind(
-    fn(x) {
-      array_with_size(x, tuple(spawn(), jGen())).fmap(
-        fn(x) {
-          let map = Map::new()
-          x.each(
-            fn(kv) {
-              let (k, v) = kv
-              map[k] = v
-            },
-          )
-          JValue::Object(map)
-        },
-      )
-    },
-  )
-}
-
-pub fn jGen() -> Gen[JValue] {
-  let composite = [jarray(), jobject()]
-  let scalar = [jnull(), jbool(), jnumber(), jstring()]
-  Gen::new(
-    fn(size, rs) {
-      if size < 4 {
-        if size > 0 {
-          frequency([(4, one_of(scalar)), (1, one_of(composite))]).run(
-            size / 2,
-            rs,
-          )
-        } else {
-          one_of(scalar).run(size, rs)
-        }
-      } else {
-        frequency([(1, one_of(scalar)), (4, one_of(composite))]).run(
-          size / 2,
-          rs,
-        )
-      }
-    },
-  )
-}
-
-impl Arbitrary for JValue with arbitrary(i, rs) { jGen().run(i, rs) }
 
 test "json generator" {
+  let gj : Gen[Json] = spawn()
+  println(gj.samples(size=10))
   quick_check(
-    fn(jv : JValue) {
+    fn(jv : Json) {
       match @result.wrap1(f=@json.parse, @json.stringify(jv)) {
         Err(_) => false
         Ok(jv2) => jv == jv2
