@@ -50,8 +50,8 @@ MoonBit QuickCheck brings many modern academic ideas into industrial practice. N
 
 - [x] Boolean Property
 - [ ] Existential Quantification
-- [ ] Algebraic Invariant
-- [ ] `Testable` TypeClass
+- [x] Operation Invariance
+- [ ] `Testable` Trait
 
 ### Shrinking
 
