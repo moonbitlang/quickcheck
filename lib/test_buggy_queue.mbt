@@ -20,8 +20,8 @@ pub fn enqueue(q : Queue, x : Int) -> Queue {
   }
 }
 
-pub fn is_empty(q : Queue) -> Bool {
-  match q {
+pub fn is_empty(self : Queue) -> Bool {
+  match self {
     { f, .. } =>
       match f {
         Nil => true
@@ -43,7 +43,7 @@ fn to_list(self : Queue) -> @immut/list.T[Int] {
   self.f.concat(self.r.rev())
 }
 
-impl Eq for Queue with op_equal(self : Queue, other : Queue) {
+fn op_equal(self : Queue, other : Queue) -> Bool {
   self.to_list() == other.to_list()
 }
 
@@ -53,7 +53,7 @@ impl Arbitrary for Queue with arbitrary(i, rs) {
   build_queue(f, r)
 }
 
-impl Arbitrary for Axiom[Queue] with arbitrary(i, rs) {
+impl Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
   fn split(xs : @immut/list.T[Int], i) {
     (xs.take(i), xs.drop(i))
   }
@@ -70,6 +70,17 @@ impl Arbitrary for Axiom[Queue] with arbitrary(i, rs) {
   { lhs, rhs }
 }
 
-fn _axiomQ1(x : Int) -> Axiom[Int] {
-  { lhs: x, rhs: front(enqueue(empty_queue(), x)) }
+fn flip[M, N, Z](f : (M, N) -> Z) -> (N, M) -> Z {
+  fn(x, y) { f(y, x) }
+}
+
+test {
+  let a = Axiom::new(
+    fn(x) { { lhs: x, rhs: enqueue(empty_queue(), x).front() } },
+  )
+  let prop1 = to_property_parametric(a, flip(enqueue), Eq::op_equal)
+  inspect!(
+    check_verbose(Default::default(), with_law(prop1)).outcome,
+    content="OK",
+  )
 }

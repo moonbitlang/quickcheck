@@ -49,7 +49,7 @@ fn op_add(self : Nat, other : Nat) -> Nat {
 fn op_equal(self : Nat, other : Nat) -> Bool {
   match (self, other) {
     (Zero, Zero) => true
-    (Succ(a), Succ(b)) => op_equal(a, b)
+    (Succ(a), Succ(b)) => a == b
     _ => false
   }
 }

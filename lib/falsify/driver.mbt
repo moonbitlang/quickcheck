@@ -111,7 +111,12 @@ pub fn falsify[T, E](
           let failure = { seed: acc.rng.clone(), run: explain }
           (acc.success, acc.total_discard, Some(failure))
         }
-        _ => abort("todo: discard")
+        TestDiscarded => {
+          let discarded = acc.discarded + 1
+          let total_discard = acc.total_discard + 1
+          let next = { ..acc, rng: later, discarded, total_discard }
+          go(next)
+        }
       }
     }
   }
