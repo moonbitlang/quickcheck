@@ -18,7 +18,7 @@ struct Config {
   expect_failure : Bool
 } derive(Show)
 
-pub impl Default for Config with default() {
+impl Default for Config with default() {
   {
     tests: 100,
     max_shrinks: 100,
@@ -71,8 +71,6 @@ fn result_is_valid_shrink[T, E](
     TestPassed(a) => Invalid((Some(a), run))
   }
 }
-
-// (replay, total discarded, failed?)
 pub fn falsify[T, E](
   opt : Config,
   prop : Property[T, E]

@@ -1,11 +1,3 @@
-let global_counter : Ref[Int] = @ref.new(0)
-
-fn fresh_name() -> String {
-  let counter = global_counter.val
-  @ref.update(global_counter, fn(x) { x + 1 })
-  "test-" + counter.to_string()
-}
-
 pub fn check_one[T : Eq](config : Config, prop : Property[T]) -> TestResult[T] {
   let state = RandomState::new(seed=config.seed)
   let distribution = LabelRecord::make(prop.classify)

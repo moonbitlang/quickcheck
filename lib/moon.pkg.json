@@ -6,6 +6,7 @@
       },
       "CAIMEOX/quickcheck/lib/feat",
       "CAIMEOX/quickcheck/lib/splitmix",
-      "CAIMEOX/quickcheck/lib/lazy"
+      "CAIMEOX/quickcheck/lib/lazy",
+      "CAIMEOX/quickcheck/lib/utils"
     ]
 }

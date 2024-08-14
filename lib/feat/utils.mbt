@@ -38,12 +38,3 @@ fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
   go(fn() { Nil }, l)
 }
 
-pub fn curry3[A, B, C, D](f : (A, B, C) -> D) -> (A) -> (B) -> (C) -> D {
-  fn { a => fn { b => fn { c => f(a, b, c) } } }
-}
-
-pub fn curry4[A, B, C, D, E](
-  f : (A, B, C, D) -> E
-) -> (A) -> (B) -> (C) -> (D) -> E {
-  fn { a => fn { b => fn { c => fn { d => f(a, b, c, d) } } } }
-}

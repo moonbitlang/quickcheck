@@ -104,13 +104,13 @@ pub fn infinite_uint(start : UInt, step : UInt) -> LazyList[UInt] {
   Cons(start, fn() { infinite_uint(start + step, step) })
 }
 
-pub fn zw_helper[A, B, C](
+pub fn zip_lazy_normal[A, B, C](
   f : (A, B) -> C,
   xs : LazyList[A],
   ys : @immut/list.T[B]
 ) -> @immut/list.T[C] {
   match (xs, ys) {
-    (Cons(x, xs), Cons(y, ys)) => Cons(f(x, y), zw_helper(f, xs(), ys))
+    (Cons(x, xs), Cons(y, ys)) => Cons(f(x, y), zip_lazy_normal(f, xs(), ys))
     (_, _) => Nil
   }
 }

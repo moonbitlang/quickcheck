@@ -24,7 +24,7 @@ pub fn linear_shrink[T](
 impl Shrink with shrink(_a) { Iter::empty() }
 
 impl Shrink for Int with shrink(x) {
-  apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
@@ -37,7 +37,7 @@ test "shrink int" {
 }
 
 impl Shrink for Int64 with shrink(x) {
-  apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
@@ -52,7 +52,7 @@ test "shrink int64" {
 }
 
 impl Shrink for UInt with shrink(x) {
-  apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
@@ -67,7 +67,7 @@ test "shrink uint" {
 }
 
 impl Shrink for UInt64 with shrink(x) {
-  apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
@@ -236,8 +236,8 @@ impl[T : Shrink + Show] Shrink for @immut/list.T[T] with shrink(xs) {
     }
   }
 
-  apply_while(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { removes(k, n, xs) })
+  @utils.apply_while(n, fn(x) { x / 2 }, fn(x) { x > 0 })
+  .map(fn(k) { @utils.removes(k, n, xs) })
   .flatten()
   .iter()
   .concat(shr_subterms(xs))

@@ -19,7 +19,7 @@ pub fn draw[T : Show](
     return Cons("limit reach", Nil)
   }
   fn shift(first : String, other : String, x : @immut/list.T[String]) {
-    @lazy.zw_helper(
+    @lazy.zip_lazy_normal(
       String::op_add,
       @lazy.Cons(first, fn() { @lazy.repeat(other) }),
       x,

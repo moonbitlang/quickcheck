@@ -18,5 +18,5 @@ pub fn with_max_shrink(max_shrink : Int) -> Config {
 }
 
 impl Default for Config with default() {
-  { seed: 37, name: fresh_name(), max_shrink: 100, max_test: 100 }
+  { seed: 37, name: @utils.fresh_name(), max_shrink: 100, max_test: 100 }
 }
