@@ -130,50 +130,60 @@ pub fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show](
 ) -> TestResult[T] {
   let prop = with_law(law)
   let config : Config = Default::default()
-  check_verbose(config, prop)
+  check_one(config, prop)
 }
 
 test "simple shrink" {
-  quick_check(fn(x : Int) { x + 1 == x + 2 }).print()
-  quick_check(fn(x : @immut/list.T[Int]) { @immut/list.Cons(1, x) == x }).print()
+  inspect!(quick_check(fn(x : Int) { x + 1 == x + 2 }).outcome, content="FAIL")
 }
 
 test "simple pass" {
-  quick_check(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).print()
-  // quick_check_verbose(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).print()
+  inspect!(
+    quick_check(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).outcome,
+    content="OK",
+  )
 }
 
 test "with classify" {
-  check_verbose(
-    with_name("reverse . reverse == id"),
-    with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_classify(
-      fn(x) {
-        match x {
-          Nil => "nil"
-          _ => "trivial"
-        }
-      },
-    ),
-  ).print()
+  inspect!(
+    check_one(
+      with_name("reverse . reverse == id"),
+      with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_classify(
+        fn(x) {
+          match x {
+            Nil => "nil"
+            _ => "trivial"
+          }
+        },
+      ),
+    ).outcome,
+    content="OK",
+  )
 }
 
 test "all rejected" {
-  check_verbose(
-    with_max_test(10000),
-    with_law(fn(x) { x == 1 }).with_filter(fn(_x) { false }),
-  ).print()
+  inspect!(
+    check_one(
+      with_max_test(10000),
+      with_law(fn(x) { x == 1 }).with_filter(fn(_x) { false }),
+    ).outcome,
+    content="GAVE UP",
+  )
 }
 
 test "with filter" {
-  check_one(
-    { ..Default::default(), max_test: 1000 },
-    with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_filter(
-      fn(x) {
-        match x {
-          Nil => false
-          _ => true
-        }
-      },
-    ),
-  ).print()
+  inspect!(
+    check_one(
+      { ..Default::default(), max_test: 1000 },
+      with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_filter(
+        fn(x) {
+          match x {
+            Nil => false
+            _ => true
+          }
+        },
+      ),
+    ).outcome,
+    content="OK",
+  )
 }

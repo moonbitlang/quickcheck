@@ -13,8 +13,8 @@ fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
 }
 
 test {
-  quick_check(add_comm_double).print()
-  quick_check(add_assoc_double).print()
+  inspect!(quick_check(add_comm_double).outcome, content="OK")
+  inspect!(quick_check(add_assoc_double).outcome, content="FAIL")
 }
 
 /// Custom Data Types (especially recursive) using Functional Enumeration
@@ -60,8 +60,8 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 }
 
 test "Natural Number" {
-  check_verbose(Default::default(), with_law(add_comm_nat)).print()
-  check_one(Default::default(), with_law(add_comm_nat)).print()
+  inspect!(check_one(Default::default(), with_law(add_comm_nat)).outcome, content="OK")
+  inspect!(check_one(Default::default(), with_law(add_comm_nat)).outcome, content="OK")
 }
 
 /// Tree ///
@@ -106,7 +106,7 @@ test "Tree" {
 
 test "int ranged" {
   /// With default generator
-  check_verbose(
+  inspect!(check_one(
     Default::default(),
     with_law(
       fn(xy : (Int, Int)) {
@@ -114,9 +114,9 @@ test "int ranged" {
         x + y == 100
       },
     ),
-  ).print()
+  ).outcome, content="FAIL")
   /// With custom generator
-  check_verbose(
+  inspect!(check_one(
     Default::default(),
     with_law(
       fn(xy : (Int, Int)) {
@@ -124,20 +124,5 @@ test "int ranged" {
         x + y == 100
       },
     ).with_generator(tuple(int_bound(10), int_bound(10))),
-  ).print()
-}
-
-
-
-test "json generator" {
-  let gj : Gen[Json] = spawn()
-  println(gj.samples(size=10))
-  quick_check(
-    fn(jv : Json) {
-      match @result.wrap1(f=@json.parse, @json.stringify(jv)) {
-        Err(_) => false
-        Ok(jv2) => jv == jv2
-      }
-    },
-  ).print()
+  ).outcome, content="FAIL")
 }

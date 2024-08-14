@@ -61,11 +61,6 @@ pub fn init_state[T](opt : Config) -> DriverState[T] {
   }
 }
 
-struct RenderResult {
-  passed : Bool
-  output : String
-}
-
 fn result_is_valid_shrink[T, E](
   ra : (TestResult[T, E], TestRun)
 ) -> IsValidShrink[(E, TestRun), (T?, TestRun)] {
@@ -123,24 +118,4 @@ pub fn falsify[T, E](
 
   let (success, discarded, failed) = go(st)
   (st.rng, success, discarded, failed)
-}
-
-test "falsify" {
-  let prop = test_gen(fn(x : UInt) { x + 1 == x + 12 }, prim())
-  let tr = falsify(Default::default(), prop)
-  println(tr.3.is_empty())
-}
-
-pub fn render_test_result[T](
-  opt : Config,
-  res : (RandomState, List[Success[T]], Int, Failure[String]?)
-) -> RenderResult {
-  let (seed, success, discarded, f) = res
-  match f {
-    Some(x) => { passed: false, output: "Failed at " + x.seed.to_string() }
-  }
-}
-
-pub fn print_result(rs : RenderResult) -> Unit {
-
 }

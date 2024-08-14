@@ -11,6 +11,10 @@ pub fn RandomState::new(~seed : UInt64 = 37) -> RandomState {
   { seed: mix64(seed), gamma: mix_gamma(seed + golden_gamma) }
 }
 
+pub fn clone(self : RandomState) -> RandomState {
+  { ..self }
+}
+
 pub fn next(self : RandomState) -> Unit {
   self.next_uint64() |> ignore
 }
@@ -23,9 +27,12 @@ pub fn next_uint64(self : RandomState) -> UInt64 {
 
 test "next_uint64" {
   let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_uint64())
+  let len : Int64 = 10000
+  let set = @sorted_set.new()
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_uint64())
   }
+  @test.is_true!(set.size() == len)
 }
 
 pub fn next_uint(self : RandomState) -> UInt {
@@ -34,9 +41,12 @@ pub fn next_uint(self : RandomState) -> UInt {
 
 test "next_uint" {
   let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_uint())
+  let len : Int64 = 10000
+  let set = @sorted_set.new()
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_uint())
   }
+  @test.is_true!(set.size() == len)
 }
 
 pub fn next_int64(self : RandomState) -> Int64 {
@@ -45,21 +55,17 @@ pub fn next_int64(self : RandomState) -> Int64 {
 
 test "next_int64" {
   let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_int64())
+  let len : Int64 = 10000
+  let set = @sorted_set.new()
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_int64())
   }
+  @test.is_true!(set.size() == len)
 }
 
 pub fn next_two_uint(self : RandomState) -> (UInt, UInt) {
   let g = self.next_uint64()
   (g.lsr(32).to_uint(), g.to_uint())
-}
-
-test "next_two_uint" {
-  let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_two_uint())
-  }
 }
 
 pub fn next_int(self : RandomState) -> Int {
@@ -68,9 +74,12 @@ pub fn next_int(self : RandomState) -> Int {
 
 test "next_int" {
   let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_int())
+  let len : Int64 = 10000
+  let set = @sorted_set.new()
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_int())
   }
+  @test.is_true!(set.size() == len)
 }
 
 pub fn next_double(self : RandomState) -> Double {
@@ -78,29 +87,36 @@ pub fn next_double(self : RandomState) -> Double {
   u.lsr(11).to_int64().to_double() * double_ulp
 }
 
-test "next_double" {
+test "next_int" {
   let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_double())
+  let len : Int64 = 10000
+  let set = @sorted_set.new()
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_double())
   }
+  @test.is_true!(set.size() == len)
 }
-
 
 pub fn next_int_abs(self : RandomState) -> Int {
   self.next_int().abs()
-}
-
-test "next_int_abs" {
-  let state = RandomState::new()
-  for i = 0; i < 100; i = i + 1 {
-    println(state.next_int_abs())
-  }
 }
 
 pub fn split(self : RandomState) -> RandomState {
   let seed1 = self.seed + self.gamma
   self.seed = seed1 + self.gamma
   { seed: mix64(seed1), gamma: mix_gamma(self.seed) }
+}
+
+test "split" {
+  let state = RandomState::new()
+  let state_prim = state.split()
+  let set = @sorted_set.new()
+  let len = 100000L
+  for i = 0L; i < len; i = i + 1 {
+    set.add(state.next_uint64())
+    set.add(state_prim.next_uint64())
+  }
+  @test.is_true!(set.size() == len * 2)
 }
 
 fn shift_xor(n : Int, w : UInt64) -> UInt64 {
@@ -138,8 +154,4 @@ fn mix_gamma(z0 : UInt64) -> UInt64 {
   } else {
     z1.lxor(0xaaaaaaaaaaaaaaaa)
   }
-}
-
-pub fn clone(self: RandomState) -> RandomState {
-  { ..self }
 }

@@ -494,27 +494,6 @@ pub fn reserved(c : Int) -> Bool {
   ].fold_left(fn(x, acc) { acc || x }, init=false)
 }
 
-fn unicode_string() -> Gen[String] {
-  let g : Gen[Char] = spawn()
-  int_range(0, 100).bind(
-    fn(x) {
-      list_with_size(x, g).fmap(
-        fn(x) { x.fold_left(init="", fn(x, acc) { x + acc.to_string() }) },
-      )
-    },
-  )
-}
-
-test "unicode char" {
-  let g : Gen[Char] = spawn()
-  println(g.samples(size=50))
-}
-
-test "unicode string" {
-  let g = unicode_string()
-  println(g.samples(size=50))
-}
-
 fn unicode_ascii() -> Gen[Int] {
   int_range(0, 0x7F)
 }

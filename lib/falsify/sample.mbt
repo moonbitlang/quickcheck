@@ -59,14 +59,8 @@ pub fn mod(self : SampleTree, u : UInt) -> SampleTree {
   map(self, fn(x) { x % u })
 }
 
-pub fn sample[T](self: Gen[T]) -> T {
+pub fn sample[T](self : Gen[T]) -> T {
   let s = RandomState::new()
   let (x, _shrunk) = self.run_gen(from_rng(s))
   x
-}
-
-test "sample" {
-  let g = prim()
-  let x = sample(g)
-  println(x)
 }
