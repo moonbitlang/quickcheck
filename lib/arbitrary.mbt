@@ -18,7 +18,7 @@ impl Arbitrary for Char with arbitrary(i, rs) {
     (5, unicode_plane2()),
     (5, unicode_plane14()),
   ]
-  frequency(planes).such_that(reserved).fmap(Char::from_int).run(i, rs)
+  frequency(planes).such_that(fn(x) { reserved(x).not()}).fmap(Char::from_int).run(i, rs)
 }
 
 /// Byte
