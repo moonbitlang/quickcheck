@@ -1,0 +1,26 @@
+package CAIMEOX/quickcheck/lib/internal_shrinking
+
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn join[T](ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T]
+
+// Types and methods
+type ShrinkTree
+impl ShrinkTree {
+  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  draw[T : Show](Self[T], Int) -> @list.T[String]
+  from_shinker[T]((T) -> Iter[T], T) -> Self[T]
+  from_value[T](T) -> Self[T]
+  get_value[T](Self[T]) -> Tuple[T, Iter[Self[T]]]
+  output[T : Show](Self[T], Logger) -> Unit
+  smap[T, U](Self[T], (T) -> U) -> Self[U]
+  to_string[T : Show](Self[T]) -> String
+}
+
+// Type aliases
+
+// Traits
+
+// Extension Methods
+

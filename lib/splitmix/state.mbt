@@ -32,7 +32,7 @@ test "next_uint64" {
   for i = 0L; i < len; i = i + 1 {
     set.add(state.next_uint64())
   }
-  @test.is_true!(set.size() == len)
+  assert_true!(set.size() == len)
 }
 
 pub fn next_uint(self : RandomState) -> UInt {
@@ -46,7 +46,7 @@ test "next_uint" {
   for i = 0L; i < len; i = i + 1 {
     set.add(state.next_uint())
   }
-  @test.is_true!(set.size() == len)
+  assert_true!(set.size() == len)
 }
 
 pub fn next_int64(self : RandomState) -> Int64 {
@@ -60,7 +60,7 @@ test "next_int64" {
   for i = 0L; i < len; i = i + 1 {
     set.add(state.next_int64())
   }
-  @test.is_true!(set.size() == len)
+  assert_true!(set.size() == len)
 }
 
 pub fn next_two_uint(self : RandomState) -> (UInt, UInt) {
@@ -79,7 +79,7 @@ test "next_int" {
   for i = 0L; i < len; i = i + 1 {
     set.add(state.next_int())
   }
-  @test.is_true!(set.size() == len)
+  assert_true!(set.size() == len)
 }
 
 pub fn next_double(self : RandomState) -> Double {
@@ -94,7 +94,7 @@ test "next_int" {
   for i = 0L; i < len; i = i + 1 {
     set.add(state.next_double())
   }
-  @test.is_true!(set.size() == len)
+  assert_true!(set.size() == len)
 }
 
 pub fn next_int_abs(self : RandomState) -> Int {
@@ -116,7 +116,7 @@ test "split" {
     set.add(state.next_uint64())
     set.add(state_prim.next_uint64())
   }
-  @test.is_true!(set.size() == len * 2)
+  assert_true!(set.size() == len * 2)
 }
 
 fn shift_xor(n : Int, w : UInt64) -> UInt64 {

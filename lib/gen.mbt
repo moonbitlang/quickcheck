@@ -49,7 +49,7 @@ fn feat_helper[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
       let fin = @feat.fin_mconcat(incl)
       match fin.fCard {
         0 => continue rest, 1
-        _ => break int_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })
+        _ => break integer_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })
       }
     }
   }
@@ -411,6 +411,14 @@ pub fn int_bound(bound : Int) -> Gen[Int] {
     pure(0)
   } else {
     Gen::new(fn(_i, rs) { rs.next_int_abs() % bound })
+  }
+}
+
+pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
+  if bound == 0 {
+    pure(0)
+  } else {
+    Gen::new(fn(_i, rs) { BigInt::from_int64(rs.next_int64()) % bound })
   }
 }
 

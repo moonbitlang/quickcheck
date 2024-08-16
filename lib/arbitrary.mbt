@@ -18,7 +18,10 @@ impl Arbitrary for Char with arbitrary(i, rs) {
     (5, unicode_plane2()),
     (5, unicode_plane14()),
   ]
-  frequency(planes).such_that(fn(x) { reserved(x).not()}).fmap(Char::from_int).run(i, rs)
+  frequency(planes)
+  .such_that(fn(x) { reserved(x).not() })
+  .fmap(Char::from_int)
+  .run(i, rs)
 }
 
 /// Byte
@@ -73,6 +76,14 @@ impl Arbitrary for UInt64 with arbitrary(size, rs) {
     0
   } else {
     rs.next_uint64() % size.to_uint().to_uint64()
+  }
+}
+
+impl Arbitrary for BigInt with arbitrary(size, rs) {
+  if size == 0 {
+    0
+  } else {
+    rs.next_int64() |> BigInt::from_int64
   }
 }
 

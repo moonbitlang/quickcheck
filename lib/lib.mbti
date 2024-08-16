@@ -1,0 +1,233 @@
+package CAIMEOX/quickcheck/lib
+
+alias @CAIMEOX/quickcheck/lib/feat as @feat
+alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn alphabet() -> Gen[Char]
+
+fn bool() -> Gen[Bool]
+
+fn char_range(Char, Char) -> Gen[Char]
+
+fn check_one[T : Eq](Config, Property[T]) -> TestResult[T]
+
+fn check_verbose[T : Eq + Show](Config, Property[T]) -> TestResult[T]
+
+fn elements[T](Array[T]) -> Gen[T]
+
+fn empty_queue() -> Queue
+
+fn enqueue(Queue, Int) -> Queue
+
+fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
+
+fn flatten_list[T](@list.T[Gen[T]]) -> Gen[@list.T[T]]
+
+fn flatten_option[T](Gen[T]?) -> Gen[T?]
+
+fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
+
+fn frequency[T](Array[Tuple[Int, Gen[T]]]) -> Gen[T]
+
+fn frequency_array[T](Array[Tuple[Int, T]]) -> Gen[T]
+
+fn frequency_list[T](@list.T[Tuple[Int, T]]) -> Gen[T]
+
+fn int_bound(Int) -> Gen[Int]
+
+fn int_range(Int, Int) -> Gen[Int]
+
+fn integer_bound(BigInt) -> Gen[BigInt]
+
+fn liftA2[A, B, C]((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
+
+fn liftA3[A, B, C, D]((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
+
+fn liftA4[A, B, C, D, E]((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
+
+fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
+
+fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
+
+fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> Tuple[Int, T]
+
+fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn nat() -> Gen[Int]
+
+fn neg_int() -> Gen[Int]
+
+fn numeral() -> Gen[Char]
+
+fn one_of[T](Array[Gen[T]]) -> Gen[T]
+
+fn one_of_array[T](Array[T]) -> Gen[T]
+
+fn one_of_list[T](@list.T[T]) -> Gen[T]
+
+fn pure[T](T) -> Gen[T]
+
+fn pure_eq[T](T) -> Equivalence[T]
+
+fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[Tuple[T, U, V, W]]
+
+fn quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
+
+fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
+
+fn reserved(Int) -> Bool
+
+fn sized[T]((Int) -> Gen[T]) -> Gen[T]
+
+fn small_int() -> Gen[Int]
+
+fn sorted_list[T : Compare + Eq](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[Tuple[T, U, V]]
+
+fn tuple[T, U](Gen[T], Gen[U]) -> Gen[Tuple[T, U]]
+
+fn with_law[T : Arbitrary + Shrink]((T) -> Bool) -> Property[T]
+
+fn with_law_fe[T : @feat.Enumerable]((T) -> Bool, Int) -> Property[T]
+
+fn with_max_shrink(Int) -> Config
+
+fn with_max_test(Int) -> Config
+
+fn with_name(String) -> Config
+
+// Types and methods
+type Axiom
+impl Axiom {
+  new[T]((T) -> Equivalence[T]) -> Self[T]
+  run[T](Self[T], T) -> Equivalence[T]
+  to_property[T, U](Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
+  to_property_eq[T, U : Eq](Self[T], (T) -> U) -> (T) -> Bool
+  to_property_parametric[T, M, N](Self[T], (T, M) -> N, (N, N) -> Bool) -> (Tuple[T, M]) -> Bool
+  to_property_parametric_eq[T, M, N : Eq](Self[T], (T, M) -> N) -> (Tuple[T, M]) -> Bool
+}
+
+type Config
+
+type Equivalence
+impl Equivalence {
+  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
+  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  equal_by[T](Self[T], (T, T) -> Bool) -> Bool
+  fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  is_equal[T : Eq](Self[T]) -> Bool
+  new[T](T, T) -> Self[T]
+  to_string[T : Show](Self[T]) -> String
+}
+
+type Forest
+impl Forest {
+  to_string[T : Show](Self[T]) -> String
+}
+
+type Gen
+impl Gen {
+  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
+  array_with_size[T](Self[T], Int) -> Self[Array[T]]
+  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  feat[T : @feat.Enumerable](Int) -> Self[T]
+  fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  new[T]((Int, @splitmix.RandomState) -> T) -> Self[T]
+  resize[T](Self[T], Int) -> Self[T]
+  run[T](Self[T], Int, @splitmix.RandomState) -> T
+  sample[T](Self[T], ~seed : UInt64 = ..) -> T
+  samples[T](Self[T], ~size : Int = .., ~seed : UInt64 = ..) -> Array[T]
+  scale[T](Self[T], (Int) -> Int) -> Self[T]
+  spawn[T : Arbitrary]() -> Self[T]
+  such_that[T](Self[T], (T) -> Bool) -> Self[T]
+  such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
+}
+
+type LabelRecord
+impl LabelRecord {
+  classify[T](Self[T], T) -> Unit
+  make[T]((T) -> String) -> Self[T]
+  to_string[T : Show](Self[T]) -> Array[String]
+}
+
+type Nat
+impl Nat {
+  to_string(Self) -> String
+}
+
+pub enum Outcome {
+  Success
+  GaveUp
+  Fail(T)
+}
+impl Outcome {
+  output[T](Self[T], Logger) -> Unit
+  to_string[T](Self[T]) -> String
+  to_string_colored[T](Self[T]) -> String
+}
+
+type Printer
+impl Printer {
+  format(Self, String) -> String
+  ident(Self, ~size : Int = ..) -> Unit
+  print(Self, String) -> Unit
+  unident(Self) -> Unit
+}
+
+type Property
+impl Property {
+  with_classify[T](Self[T], (T) -> String) -> Self[T]
+  with_filter[T](Self[T], (T) -> Bool) -> Self[T]
+  with_generator[T](Self[T], Gen[T]) -> Self[T]
+  with_shrinker[T](Self[T], (T) -> Iter[T]) -> Self[T]
+}
+
+type Queue
+impl Queue {
+  is_empty(Self) -> Bool
+  to_string(Self) -> String
+}
+
+pub struct Replay {
+  pub rand_state : @splitmix.RandomState
+}
+
+type TestResult
+impl TestResult {
+  output[T : Show](Self[T], Logger) -> Unit
+  to_string[T : Show](Self[T]) -> String
+}
+
+type Tree
+impl Tree {
+  to_string[T : Show](Self[T]) -> String
+}
+
+// Type aliases
+pub typealias RandomState = @splitmix.RandomState
+
+// Traits
+pub trait Arbitrary {
+  arbitrary(Int, @splitmix.RandomState) -> Self
+}
+
+pub trait Shrink {
+  shrink(Self) -> Iter[Self]
+}
+
+// Extension Methods
+impl Shrink for Shrink
+
+impl Show for Equivalence
+
+impl Show for Forest
+
+impl Show for Nat
+
+impl Show for Queue
+
+impl Show for Tree
+

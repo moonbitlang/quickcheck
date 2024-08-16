@@ -50,3 +50,7 @@ pub fn apply_while[T](
     }
   }
 }
+
+pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
+  fn { (x, y) => f(x, y) }
+}

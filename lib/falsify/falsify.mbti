@@ -1,0 +1,149 @@
+package CAIMEOX/quickcheck/lib/falsify
+
+alias @CAIMEOX/quickcheck/lib/lazy as @lazy
+alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn binary(UInt) -> @lazy.LazyList[UInt]
+
+fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
+
+fn combine_shrunk(Sample, SampleTree, SampleTree, @lazy.LazyList[SampleTree], @lazy.LazyList[SampleTree]) -> @lazy.LazyList[SampleTree]
+
+fn constant(UInt) -> SampleTree
+
+fn deltas(UInt) -> @lazy.LazyList[UInt]
+
+fn discard[T, E]() -> Property[T, E]
+
+fn falsify[T, E](Config, Property[T, E]) -> Tuple[@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?]
+
+fn from_rng(@splitmix.RandomState) -> SampleTree
+
+fn from_seed(UInt64) -> SampleTree
+
+fn gen[T, E]((T) -> String?, Gen[T]) -> Property[T, E]
+
+fn info(String) -> Property[Unit, String]
+
+fn init_state[T](Config) -> DriverState[T]
+
+fn init_test_run() -> TestRun
+
+fn label[E](String, @list.T[String]) -> Property[Unit, E]
+
+fn mk_property[T, E]((TestRun) -> Gen[Tuple[TestResult[T, E], TestRun]]) -> Property[T, E]
+
+fn new[T]((SampleTree) -> Tuple[T, @lazy.LazyList[SampleTree]]) -> Gen[T]
+
+fn prim() -> Gen[UInt]
+
+fn prim_with((Sample) -> @lazy.LazyList[UInt]) -> Gen[Sample]
+
+fn pure[T](T) -> Gen[T]
+
+fn run_property[T, E](Property[T, E]) -> Gen[Tuple[TestResult[T, E], TestRun]]
+
+fn second[A, B, C]((B) -> C, Tuple[A, B]) -> Tuple[A, C]
+
+fn shrink_to_list[T](T, @lazy.LazyList[T]) -> Gen[T]
+
+fn test_gen[T]((T) -> Bool, Gen[T]) -> Property[T, String]
+
+// Types and methods
+type Config
+impl Config {
+  to_string(Self) -> String
+}
+
+type DriverState
+
+type Either
+
+type Failure
+impl Failure {
+  to_string[E : Show](Self[E]) -> String
+}
+
+type Gen
+impl Gen {
+  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
+  apS[A, B](Self[(A) -> B], Self[A]) -> Self[B]
+  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  ifS[T](Self[Bool], Self[T], Self[T]) -> Self[T]
+  run_gen[T](Self[T], SampleTree) -> Tuple[T, @lazy.LazyList[SampleTree]]
+  sample[T](Self[T]) -> T
+  select[T, U](Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
+  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], Tuple[P, @lazy.LazyList[SampleTree]]) -> ShrinkExplain[P, N]
+}
+
+type IsValidShrink
+
+type Property
+impl Property {
+  run[T, E](Self[T, E], TestRun) -> Gen[Tuple[TestResult[T, E], TestRun]]
+}
+
+type Sample
+impl Sample {
+  sample_value(Self) -> UInt
+}
+
+type SampleTree
+impl SampleTree {
+  map(Self, (UInt) -> UInt) -> Self
+  mod(Self, UInt) -> Self
+  view(Self) -> Tuple[Sample, Self, Self]
+}
+
+type ShrinkExplain
+impl ShrinkExplain {
+  limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
+  shrink_history[P, N](Self[P, N]) -> Array[P]
+  shrink_outcome[P, N](Self[P, N]) -> Tuple[P, @lazy.LazyList[N]?]
+  to_string[P : Show, N : Show](Self[P, N]) -> String
+}
+
+type ShrinkHistroy
+impl ShrinkHistroy {
+  to_string[P : Show, N : Show](Self[P, N]) -> String
+}
+
+type Success
+impl Success {
+  to_string[T : Show](Self[T]) -> String
+}
+
+type TestResult
+
+type TestRun
+impl TestRun {
+  to_string(Self) -> String
+}
+
+// Type aliases
+pub typealias LazyList[T] = @lazy.LazyList[T]
+
+pub typealias List[T] = @list.T[T]
+
+pub typealias Map[K, V] = @moonbitlang/core/immut/hashmap.T[K, V]
+
+pub typealias RandomState = @splitmix.RandomState
+
+// Traits
+
+// Extension Methods
+impl Show for Config
+
+impl Show for Failure
+
+impl Show for ShrinkExplain
+
+impl Show for ShrinkHistroy
+
+impl Show for Success
+
+impl Show for TestRun
+

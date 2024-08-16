@@ -1,0 +1,25 @@
+package CAIMEOX/quickcheck/lib/utils
+
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn apply_while[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
+
+fn curry3[A, B, C, D]((A, B, C) -> D) -> (A) -> (B) -> (C) -> D
+
+fn curry4[A, B, C, D, E]((A, B, C, D) -> E) -> (A) -> (B) -> (C) -> (D) -> E
+
+fn fresh_name() -> String
+
+fn pair_function[A, B, C]((A, B) -> C) -> (Tuple[A, B]) -> C
+
+fn removes[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
+// Extension Methods
+

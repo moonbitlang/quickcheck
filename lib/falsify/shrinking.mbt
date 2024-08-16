@@ -108,7 +108,7 @@ pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
   fn shrinker {
     Shrunk(_) => @lazy.Nil
     NotShrunk(_) =>
-      @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_uint(0, 1), xs)
+      @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
   }
 
   fn aux {

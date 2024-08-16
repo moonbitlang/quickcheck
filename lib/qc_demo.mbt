@@ -29,10 +29,7 @@ enum Nat {
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(
     fn() {
-      @feat.union(
-        @feat.singleton(Zero),
-        @feat.fmap(Nat::Succ, @feat.Enumerable::enumerate()),
-      )
+      @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ)
     },
   )
 }
@@ -60,8 +57,14 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 }
 
 test "Natural Number" {
-  inspect!(check_one(Default::default(), with_law(add_comm_nat)).outcome, content="OK")
-  inspect!(check_one(Default::default(), with_law(add_comm_nat)).outcome, content="OK")
+  inspect!(
+    check_one(Default::default(), with_law(add_comm_nat)).outcome,
+    content="OK",
+  )
+  inspect!(
+    check_one(Default::default(), with_law(add_comm_nat)).outcome,
+    content="OK",
+  )
 }
 
 /// Tree ///
@@ -77,19 +80,15 @@ struct Forest[T] {
 
 impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
   @feat.pay(
-    fn() {
-      @feat.fmap(fn { forest => { forest, } }, @feat.Enumerable::enumerate())
-    },
+    fn() { @feat.Enumerable::enumerate().fmap(fn { forest => { forest, } }) },
   )
 }
 
 impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
   @feat.pay(
     fn() {
-      @feat.union(
-        @feat.fmap(Tree::Leaf, E::enumerate()),
-        @feat.fmap(Tree::Branch, @feat.Enumerable::enumerate()),
-      )
+      E::enumerate().fmap(Tree::Leaf) +
+      @feat.Enumerable::enumerate().fmap(Tree::Branch)
     },
   )
 }
@@ -106,23 +105,29 @@ test "Tree" {
 
 test "int ranged" {
   /// With default generator
-  inspect!(check_one(
-    Default::default(),
-    with_law(
-      fn(xy : (Int, Int)) {
-        let (x, y) = xy
-        x + y == 100
-      },
-    ),
-  ).outcome, content="FAIL")
+  inspect!(
+    check_one(
+      Default::default(),
+      with_law(
+        fn(xy : (Int, Int)) {
+          let (x, y) = xy
+          x + y == 100
+        },
+      ),
+    ).outcome,
+    content="FAIL",
+  )
   /// With custom generator
-  inspect!(check_one(
-    Default::default(),
-    with_law(
-      fn(xy : (Int, Int)) {
-        let (x, y) = xy
-        x + y == 100
-      },
-    ).with_generator(tuple(int_bound(10), int_bound(10))),
-  ).outcome, content="FAIL")
+  inspect!(
+    check_one(
+      Default::default(),
+      with_law(
+        fn(xy : (Int, Int)) {
+          let (x, y) = xy
+          x + y == 100
+        },
+      ).with_generator(tuple(int_bound(10), int_bound(10))),
+    ).outcome,
+    content="FAIL",
+  )
 }
