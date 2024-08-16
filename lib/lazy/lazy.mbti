@@ -1,0 +1,54 @@
+package CAIMEOX/quickcheck/lib/lazy
+
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn default[X : Default]() -> LazyList[X]
+
+fn infinite_stream[X : Monoid](X, X) -> LazyList[X]
+
+fn repeat[T](T) -> LazyList[T]
+
+fn sum[X : Monoid](LazyList[X], ~init : X) -> X
+
+fn to_lazy[T](@list.T[T]) -> LazyList[T]
+
+fn zip_lazy_normal[A, B, C]((A, B) -> C, LazyList[A], @list.T[B]) -> @list.T[C]
+
+fn zip_plus[T]((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
+
+fn zip_with[A, B, C]((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
+
+// Types and methods
+pub enum LazyList {
+  Nil
+  Cons(T, () -> LazyList[T])
+}
+impl LazyList {
+  concat[T](Self[T], Self[T]) -> Self[T]
+  drop_while[T](Self[T], (T) -> Bool) -> Self[T]
+  fold_left[T, U](Self[T], (U, T) -> U, ~init : U) -> U
+  fold_right[T, U](Self[T], (T, U) -> U, ~init : U) -> U
+  head[T](Self[T]) -> T
+  index[T](Self[T], Int) -> T
+  length[T](Self[T]) -> Int
+  map[T, U](Self[T], (T) -> U) -> Self[U]
+  op_add[T](Self[T], Self[T]) -> Self[T]
+  output[T : Show](Self[T], Logger) -> Unit
+  split_at[T](Self[T], Int) -> Tuple[Self[T], Self[T]]
+  tail[T](Self[T]) -> Self[T]
+  take_while[T](Self[T], (T) -> Bool) -> Self[T]
+  to_string[T : Show](Self[T]) -> String
+  unfold[T](Self[T], (Self[T]) -> Tuple[T, Self[T]]?) -> Self[T]
+}
+
+// Type aliases
+pub typealias Lazy[T] = () -> T
+
+// Traits
+pub trait Monoid {
+  op_add(Self, Self) -> Self
+}
+
+// Extension Methods
+

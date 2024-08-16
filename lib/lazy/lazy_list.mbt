@@ -1,6 +1,16 @@
+pub typealias Lazy[T] = () -> T
+
 pub enum LazyList[T] {
   Nil
-  Cons(T, () -> LazyList[T])
+  Cons(T, Lazy[LazyList[T]])
+}
+
+pub trait Monoid {
+  op_add(Self, Self) -> Self
+}
+
+pub fn default[X : Default]() -> LazyList[X] {
+  Nil
 }
 
 pub fn to_string[T : Show](self : LazyList[T]) -> String {
@@ -34,6 +44,10 @@ pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
     Nil => other
     Cons(x, xs) => Cons(x, fn() { concat(xs(), other) })
   }
+}
+
+pub fn op_add[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
+  self.concat(other)
 }
 
 pub fn repeat[T](val : T) -> LazyList[T] {
@@ -72,8 +86,26 @@ pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, ~init : U) -> U {
   }
 }
 
-pub fn sum_list(l : LazyList[Int]) -> Int {
-  l.fold_left(Int::op_add, init=0)
+pub fn head[T](self : LazyList[T]) -> T {
+  match self {
+    Cons(x, _) => x
+    Nil => abort("head of empty list")
+  }
+}
+
+pub fn tail[T](self : LazyList[T]) -> LazyList[T] {
+  match self {
+    Cons(_, xs) => xs()
+    Nil => abort("tail of empty list")
+  }
+}
+
+pub fn length[T](self : LazyList[T]) -> Int {
+  self.fold_left(fn(acc, _x) { acc + 1 }, init=0)
+}
+
+pub fn sum[X : Monoid](l : LazyList[X], ~init : X) -> X {
+  l.fold_left(Monoid::op_add, ~init)
 }
 
 pub fn zip_with[A, B, C](
@@ -100,8 +132,15 @@ pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   }
 }
 
-pub fn infinite_uint(start : UInt, step : UInt) -> LazyList[UInt] {
-  Cons(start, fn() { infinite_uint(start + step, step) })
+pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+  match self {
+    Nil => Nil
+    Cons(x, xs) => if p(x) { drop_while(xs(), p) } else { self }
+  }
+}
+
+pub fn infinite_stream[X : Monoid](start : X, step : X) -> LazyList[X] {
+  Cons(start, fn() { infinite_stream(start + step, step) })
 }
 
 pub fn zip_lazy_normal[A, B, C](
@@ -112,5 +151,27 @@ pub fn zip_lazy_normal[A, B, C](
   match (xs, ys) {
     (Cons(x, xs), Cons(y, ys)) => Cons(f(x, y), zip_lazy_normal(f, xs(), ys))
     (_, _) => Nil
+  }
+}
+
+pub fn zip_plus[T](
+  f : (T, T) -> T,
+  ls1 : LazyList[T],
+  ls2 : LazyList[T]
+) -> LazyList[T] {
+  match (ls1, ls2) {
+    (Cons(x, xs), Cons(y, ys)) =>
+      Cons(f(x, y), fn() { zip_plus(f, xs(), ys()) })
+    (xs, ys) => xs.concat(ys)
+  }
+}
+
+pub fn unfold[T](
+  self : LazyList[T],
+  f : (LazyList[T]) -> (T, LazyList[T])?
+) -> LazyList[T] {
+  match f(self) {
+    None => Nil
+    Some((x, y)) => Cons(x, fn() { y.unfold(f) })
   }
 }
