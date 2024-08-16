@@ -1,6 +1,6 @@
 pub struct Finite[T] {
-  fCard : Int
-  fIndex : (Int) -> T
+  fCard : BigInt
+  fIndex : (BigInt) -> T
 }
 
 pub fn fin_empty[T]() -> Finite[T] {
@@ -26,6 +26,10 @@ pub fn fin_union[T](f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
   }
 }
 
+pub fn op_add[T](self : Finite[T], other : Finite[T]) -> Finite[T] {
+  fin_union(self, other)
+}
+
 pub fn fin_fmap[T, U](f : (T) -> U, f1 : Finite[T]) -> Finite[U] {
   { fCard: f1.fCard, fIndex: fn(i) { f((f1.fIndex)(i)) } }
 }
@@ -49,16 +53,14 @@ pub fn fin_cart[T, U](f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
 }
 
 pub fn fin_app[M, N](f : Finite[(M) -> N], e : Finite[M]) -> Finite[N] {
-  fin_fmap(
-    fn(i) {
-      let (g, x) = i
-      g(x)
-    },
-    fin_cart(f, e),
-  )
+  fin_fmap(fn { (g, x) => g(x) }, fin_cart(f, e))
 }
 
-fn sum_sel[M](a : Array[Finite[M]]) -> (Int) -> M {
+pub fn fin_bind[M, N](m : Finite[M], f : (M) -> Finite[N]) -> Finite[N] {
+  { fCard: m.fCard, fIndex: fn(i) { (f((m.fIndex)(i)).fIndex)(0) } }
+}
+
+fn sum_sel[M](a : Array[Finite[M]]) -> (BigInt) -> M {
   fn(idx) {
     for j = 0, i = idx; j < a.length(); {
       if i < a[j].fCard {
@@ -83,15 +85,25 @@ pub fn fin_mconcat[M](val : LazyList[Finite[M]]) -> Finite[M] {
   val.fold_left(fin_union, init=fin_empty())
 }
 
-pub fn to_array[T](self : Finite[T]) -> (Int, Array[T]) {
-  (self.fCard, Array::makei(self.fCard, self.fIndex))
+pub fn to_array[T](self : Finite[T]) -> (BigInt, LazyList[T]) {
+  (
+    self.fCard,
+    loop self.fCard, @lazy.Nil {
+      0, acc => break acc
+      n, acc => continue n - 1, @lazy.Cons((self.fIndex)(n), fn() { acc })
+    },
+  )
 }
 
 pub fn to_string[T : Show](self : Finite[T]) -> String {
   to_array(self).1.to_string()
 }
 
-pub fn fin_finite(i : Int) -> Finite[Int] {
+pub fn output[T : Show](self : Finite[T], logger : Logger) -> Unit {
+  logger.write_string(self.to_string())
+}
+
+pub fn fin_finite(i : BigInt) -> Finite[BigInt] {
   if i < 0 {
     fin_empty()
   } else {

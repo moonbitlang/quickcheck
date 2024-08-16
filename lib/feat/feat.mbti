@@ -1,0 +1,96 @@
+package CAIMEOX/quickcheck/lib/feat
+
+alias @CAIMEOX/quickcheck/lib/lazy as @lazy
+alias @moonbitlang/core/immut/list as @list
+
+// Values
+fn app[T, U](Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
+
+fn consts[T](@list.T[Enumerate[T]]) -> Enumerate[T]
+
+fn default[T]() -> Enumerate[T]
+
+fn empty[T]() -> Enumerate[T]
+
+fn en_index[T](Enumerate[T], BigInt) -> T
+
+fn fin_app[M, N](Finite[(M) -> N], Finite[M]) -> Finite[N]
+
+fn fin_bind[M, N](Finite[M], (M) -> Finite[N]) -> Finite[N]
+
+fn fin_cart[T, U](Finite[T], Finite[U]) -> Finite[Tuple[T, U]]
+
+fn fin_concat[M](Array[Finite[M]]) -> Finite[M]
+
+fn fin_empty[T]() -> Finite[T]
+
+fn fin_finite(BigInt) -> Finite[BigInt]
+
+fn fin_fmap[T, U]((T) -> U, Finite[T]) -> Finite[U]
+
+fn fin_mconcat[M](@lazy.LazyList[Finite[M]]) -> Finite[M]
+
+fn fin_pure[T](T) -> Finite[T]
+
+fn fin_union[T](Finite[T], Finite[T]) -> Finite[T]
+
+fn pay[T](() -> Enumerate[T]) -> Enumerate[T]
+
+fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[Tuple[T, U]]
+
+fn singleton[T](T) -> Enumerate[T]
+
+fn unary[T : Enumerable, U]((T) -> U) -> Enumerate[U]
+
+fn union[T](Enumerate[T], Enumerate[T]) -> Enumerate[T]
+
+// Types and methods
+pub struct Enumerate {
+  pub parts : @lazy.LazyList[Finite[T]]
+}
+impl Enumerate {
+  eval[T](Self[T]) -> @lazy.LazyList[Finite[T]]
+  fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  op_add[T](Self[T], Self[T]) -> Self[T]
+}
+
+pub struct Finite {
+  pub fCard : BigInt
+  pub fIndex : (BigInt) -> T
+}
+impl Finite {
+  op_add[T](Self[T], Self[T]) -> Self[T]
+  output[T : Show](Self[T], Logger) -> Unit
+  to_array[T](Self[T]) -> Tuple[BigInt, @lazy.LazyList[T]]
+  to_string[T : Show](Self[T]) -> String
+}
+
+// Type aliases
+pub typealias LazyList[T] = @lazy.LazyList[T]
+
+// Traits
+pub trait Enumerable {
+  enumerate() -> Enumerate[Self]
+}
+
+// Extension Methods
+impl Enumerable for Unit
+
+impl Enumerable for Bool
+
+impl Enumerable for Int
+
+impl Enumerable for Int64
+
+impl Enumerable for UInt
+
+impl Enumerable for UInt64
+
+impl Enumerable for Option
+
+impl Enumerable for Result
+
+impl Enumerable for @list.T
+
+impl Enumerable for Tuple
+

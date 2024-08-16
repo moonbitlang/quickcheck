@@ -1,5 +1,3 @@
-
-
 pub struct Enumerate[T] {
   parts : LazyList[Finite[T]]
 }
@@ -12,11 +10,15 @@ pub fn empty[T]() -> Enumerate[T] {
   { parts: Nil }
 }
 
+pub fn default[T]() -> Enumerate[T] {
+  empty()
+}
+
 pub fn singleton[T](val : T) -> Enumerate[T] {
   { parts: Cons(fin_pure(val), fn() { Nil }) }
 }
 
-pub fn en_index[T](e : Enumerate[T], idx : Int) -> T {
+pub fn en_index[T](e : Enumerate[T], idx : BigInt) -> T {
   let fin = e.parts
   loop fin, idx {
     Nil, _ => abort("index out of bounds")
@@ -30,11 +32,15 @@ pub fn en_index[T](e : Enumerate[T], idx : Int) -> T {
 }
 
 pub fn union[T](e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
-  { parts: zip_plus(fin_union, e1.parts, e2.parts) }
+  { parts: @lazy.zip_plus(fin_union, e1.parts, e2.parts) }
 }
 
-pub fn fmap[T, U](f : (T) -> U, e : Enumerate[T]) -> Enumerate[U] {
-  { parts: e.parts.map(fn { x => fin_fmap(f, x) }) }
+pub fn op_add[T](self : Enumerate[T], other : Enumerate[T]) -> Enumerate[T] {
+  union(self, other)
+}
+
+pub fn fmap[T, U](self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
+  { parts: self.parts.map(fn { x => fin_fmap(f, x) }) }
 }
 
 pub fn pay[T](f : () -> Enumerate[T]) -> Enumerate[T] {
@@ -53,11 +59,13 @@ fn prod_helper[T, U](
 }
 
 pub fn app[T, U](f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
-  fmap(
-    fn(g) {
-      let (ff, x) = g
-      ff(x)
-    },
-    product(f, e),
-  )
+  product(f, e).fmap(fn { (ff, x) => ff(x) })
+}
+
+pub fn consts[T](ls : @immut/list.T[Enumerate[T]]) -> Enumerate[T] {
+  pay(fn() { ls.fold_left(union, init=empty()) })
+}
+
+pub fn unary[T : Enumerable, U](f : (T) -> U) -> Enumerate[U] {
+  T::enumerate().fmap(f)
 }
