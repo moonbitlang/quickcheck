@@ -1,5 +1,6 @@
 pub typealias RandomState = @splitmix.RandomState
 
+/// The Gen type represents a generator of values of type T.
 struct Gen[T] {
   gen : (Int, RandomState) -> T
 }
@@ -14,8 +15,9 @@ pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
   { gen: T::arbitrary }
 }
 
-/// Generate a value from an enumerable instance
-pub fn Gen::feat[T : @feat.Enumerable](size : Int) -> Gen[T] {
+/// Generate a value from an enumerable instance (up to a size bound)
+/// @alert unsafe "Experimental: May cause stack overflow"
+pub fn Gen::feat_random[T : @feat.Enumerable](size : Int) -> Gen[T] {
   feat_helper(T::enumerate(), size)
 }
 
@@ -41,11 +43,12 @@ pub fn Gen::samples[T](
   Array::makei(size, fn(_x) { self.run(size, state) })
 }
 
+/// Helper function for feat_random
 fn feat_helper[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   loop enumerate.parts, size {
     @lazy.Nil, _ => abort("uniform: empty enumeration")
-    ps, maxp => {
-      let (incl, rest) = ps.split_at(maxp)
+    parts, bound => {
+      let (incl, rest) = parts.split_at(bound)
       let fin = @feat.fin_mconcat(incl)
       match fin.fCard {
         0 => continue rest, 1
@@ -55,29 +58,22 @@ fn feat_helper[T](enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   }
 }
 
-test "feat" {
-  let fe : Gen[Int] = feat(10)
-  inspect!(
-    fe.samples(size=50),
-    content="[2, 2, -2, 4, 2, 4, -2, 1, -3, -2, -1, 2, 2, -4, 1, -1, -2, -2, -1, 2, -1, 5, 2, 4, -2, 1, -6, -2, 8, 0, 1, 3, 2, 3, -4, 5, 2, 2, 0, 0, 0, 1, 6, 0, -5, 0, 6, -4, -6, 3]",
-  )
-}
-
+/// Functor instance for Gen[T] (pure)
 pub fn pure[T](val : T) -> Gen[T] {
   Gen::new(fn(_n, _s) { val })
 }
 
-/// Functor
+/// Functor instance for Gen[T] (fmap)
 pub fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U] {
   Gen::new(fn(n, s) { f(self.run(n, s)) })
 }
 
-/// Applicative Functor
+/// Applicative Functor instance for Gen[T]
 pub fn ap[T, U](self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
   self.bind(fn(f) { v.bind(fn(x) { pure(f(x)) }) })
 }
 
-/// Monad
+/// Monad instance for Gen[T]
 pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   Gen::new(
     fn(n, s) {
@@ -88,10 +84,16 @@ pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   )
 }
 
+pub fn join[T](self : Gen[Gen[T]]) -> Gen[T] {
+  self.bind(@utils.id)
+}
+
+/// Lift a binary function to generators
 pub fn liftA2[A, B, C](f : (A, B) -> C, v : Gen[A], w : Gen[B]) -> Gen[C] {
   v.bind(fn(x) { w.bind(fn(y) { pure(f(x, y)) }) })
 }
 
+/// Lift a ternary function to generators
 pub fn liftA3[A, B, C, D](
   f : (A, B, C) -> D,
   v : Gen[A],
@@ -101,6 +103,7 @@ pub fn liftA3[A, B, C, D](
   v.bind(fn(a) { w.bind(fn(b) { x.bind(fn(c) { pure(f(a, b, c)) }) }) })
 }
 
+/// Lift a quaternary function to generators
 pub fn liftA4[A, B, C, D, E](
   f : (A, B, C, D) -> E,
   v : Gen[A],
@@ -115,6 +118,7 @@ pub fn liftA4[A, B, C, D, E](
   )
 }
 
+/// Lift a quinary function to generators
 pub fn liftA5[A, B, C, D, E, F](
   f : (A, B, C, D, E) -> F,
   v : Gen[A],
@@ -136,6 +140,7 @@ pub fn liftA5[A, B, C, D, E, F](
   )
 }
 
+/// Lift a senary function to generators
 pub fn liftA6[A, B, C, D, E, F, G](
   ff : (A, B, C, D, E, F) -> G,
   v : Gen[A],
@@ -164,7 +169,37 @@ pub fn liftA6[A, B, C, D, E, F, G](
   )
 }
 
-/// Combinators
+/// Common Combinators
+
+/// Create tuple generator from two generators
+pub fn tuple[T, U](gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
+  gen1.bind(fn(x) { gen2.fmap(fn(y) { (x, y) }) })
+}
+
+/// Create triple generator from three generators
+pub fn triple[T, U, V](
+  gen1 : Gen[T],
+  gen2 : Gen[U],
+  gen3 : Gen[V]
+) -> Gen[(T, U, V)] {
+  gen1.bind(fn(x) { gen2.bind(fn(y) { gen3.fmap(fn(z) { (x, y, z) }) }) })
+}
+
+/// Create quad generator from four generators
+pub fn quad[T, U, V, W](
+  gen1 : Gen[T],
+  gen2 : Gen[U],
+  gen3 : Gen[V],
+  gen4 : Gen[W]
+) -> Gen[(T, U, V, W)] {
+  gen1.bind(
+    fn(x) {
+      gen2.bind(
+        fn(y) { gen3.bind(fn(z) { gen4.fmap(fn(w) { (x, y, z, w) }) }) },
+      )
+    },
+  )
+}
 
 /// Create sized generators
 pub fn sized[T](f : (Int) -> Gen[T]) -> Gen[T] {
@@ -173,12 +208,7 @@ pub fn sized[T](f : (Int) -> Gen[T]) -> Gen[T] {
 
 /// Adjust the size parameter of a generator
 pub fn scale[T](self : Gen[T], f : (Int) -> Int) -> Gen[T] {
-  Gen::new(
-    fn(i, rs) {
-      let j = f(i)
-      self.run(j, rs)
-    },
-  )
+  Gen::new(fn(i, rs) { self.run(f(i), rs) })
 }
 
 /// Resize a generator to a specific value
@@ -217,9 +247,11 @@ pub fn such_that[T](self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
   )
 }
 
+/// Chooses one of the given generators, with a weighted random distribution.
+/// @alert unsafe "Panics if the array is empty or total weight is less than one"
 pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
-    abort("frequency: empty list")
+    abort("frequency: empty array")
   } else {
     let sum = arr.map(@tuple.fst).fold_left(Int::op_add, init=0)
     if sum < 1 {
@@ -243,13 +275,8 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
   }
 }
 
-test "frequency int" {
-  inspect!(
-    frequency([(4, pure(42)), (1, pure(37)), (3, pure(114))]).samples(size=50),
-    content="[42, 114, 114, 42, 42, 42, 114, 37, 42, 42, 114, 42, 114, 42, 42, 42, 114, 42, 42, 42, 114, 37, 42, 42, 114, 114, 114, 42, 114, 42, 37, 42, 42, 114, 42, 114, 42, 37, 37, 114, 42, 42, 114, 42, 37, 42, 114, 42, 42, 42]",
-  )
-}
-
+/// Chooses one of the given generators, with a weighted random distribution.
+/// @alert unsafe "Panics if the list is empty or total weight is less than one"
 pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
   lst
   .to_array()
@@ -262,16 +289,7 @@ pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
   |> frequency
 }
 
-pub fn frequency_array[T](arr : Array[(Int, T)]) -> Gen[T] {
-  arr.map(
-    fn(x) {
-      let (w, v) = x
-      (w, pure(v))
-    },
-  )
-  |> frequency
-}
-
+/// Generate a list of elements from individual generators
 pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
   match lst {
     Nil => pure(Nil)
@@ -279,12 +297,14 @@ pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
   }
 }
 
+/// Generate an array of elements from individual generators
 pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
   Gen::new(
     fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) },
   )
 }
 
+/// Generate an option from an optional generator
 pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
   match opt {
     None => pure(None)
@@ -292,6 +312,7 @@ pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
   }
 }
 
+/// Generate a result of a generator or return the pure error
 pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
   match res {
     Ok(x) => x.fmap(Result::Ok)
@@ -299,45 +320,25 @@ pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
   }
 }
 
+/// Randomly uses one of the given generators. 
+/// @alert unsafe "Panics if the array is empty"
 pub fn one_of[T](arr : Array[Gen[T]]) -> Gen[T] {
   int_bound(arr.length()).bind(fn(x) { arr[x] })
 }
 
-test "one of" {
-  inspect!(
-    one_of([pure(1), pure(2), pure(3), pure(4)]).samples(size=50),
-    content="[1, 3, 2, 1, 4, 3, 3, 1, 3, 1, 4, 1, 4, 3, 1, 4, 2, 3, 1, 2, 3, 1, 2, 2, 3, 4, 3, 1, 2, 4, 1, 3, 3, 2, 3, 3, 2, 1, 1, 2, 3, 1, 3, 3, 1, 3, 2, 4, 1, 4]",
-  )
-}
-
+/// Randomly uses one of the given generators in list
+/// @alert unsafe "Panics if the list is empty"
 pub fn one_of_list[T](lst : @immut/list.T[T]) -> Gen[T] {
   int_bound(lst.length()).fmap(fn(x) { lst.nth_exn(x) })
 }
 
-pub fn one_of_array[T](arr : Array[T]) -> Gen[T] {
-  int_bound(arr.length()).fmap(fn(x) { arr[x] })
-}
-
-test "one of array" {
-  inspect!(
-    one_of_array(["a", "b", "c"]).samples(size=50),
-    content=
-      #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
-    ,
-  )
-}
-
 /// Randomly select one element from an array
-pub fn elements[T](val : Array[T]) -> Gen[T] {
+/// @alert unsafe "Panics if the array is empty"
+pub fn one_of_array[T](val : Array[T]) -> Gen[T] {
   int_bound(val.length()).fmap(fn(x) { val[x] })
 }
 
-test "elements" {
-  inspect!(
-    elements([1, 2, 3, 4, 10]).samples(),
-    content="[2, 10, 2, 4, 1, 3, 4, 10, 1, 3]",
-  )
-}
+/// Primitive Generators and Combinators
 
 pub fn small_int() -> Gen[Int] {
   Gen::new(
@@ -349,13 +350,6 @@ pub fn small_int() -> Gen[Int] {
         rs.next_int() % 97
       }
     },
-  )
-}
-
-test "small int" {
-  inspect!(
-    small_int().samples(size=50),
-    content="[6, -7, 5, 0, 10, -10, 0, 7, -5, -1, -5, -4, 0, 3, 7, -5, 42, 3, 78, 1, 10, -5, -10, -51, -5, -73, -1, 3, -1, 9, 22, 88, -2, -7, 3, 9, 7, 1, 1, -1, 6, -9, -7, -25, -1, -10, -6, -33, -1, -4]",
   )
 }
 
@@ -376,36 +370,22 @@ pub fn nat() -> Gen[Int] {
   )
 }
 
-test "nat" {
-  inspect!(
-    nat().samples(size=50),
-    content="[4, -93, 2, 4, 92, 0, 6, 7, -90, 0, -6, -92, 0, 70, 96, -7, 816, 6, 229, 6, 4, -5, -1, -163, -93, -231, -18, 6, -74, 5, 618, 206, -12, -2, 1, 3, 5, 2, 83, -6, 8, -8, -3, -676, -5, -31, -2, -514, -61, -6]",
-  )
-}
-
-pub fn bool() -> Gen[Bool] {
-  Gen::new(fn(_i, rs) { rs.next_double() < 0.5 })
-}
-
-test "bool" {
-  inspect!(
-    bool().samples(size=50),
-    content="[true, true, false, false, false, false, true, false, false, false, true, false, true, true, true, false, false, true, true, false, true, true, false, true, true, false, false, false, false, false, true, false, false, true, true, true, false, true, true, true, true, true, true, true, true, true, false, true, false, true]",
-  )
-}
-
+/// Generates a negative integer
 pub fn neg_int() -> Gen[Int] {
   Gen::new(fn(_i, rs) { -rs.next_int_abs() })
 }
 
+/// Generates a numeral char
 pub fn numeral() -> Gen[Char] {
   Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 10 + 48) })
 }
 
+/// Generates alphabet
 pub fn alphabet() -> Gen[Char] {
   Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 26 + 65) })
 }
 
+/// Generates int within given bound [0, bound)
 pub fn int_bound(bound : Int) -> Gen[Int] {
   if bound == 0 {
     pure(0)
@@ -414,6 +394,7 @@ pub fn int_bound(bound : Int) -> Gen[Int] {
   }
 }
 
+/// Generates integer within given bound [0, bound)
 pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
   if bound == 0 {
     pure(0)
@@ -422,6 +403,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
   }
 }
 
+/// Generates int within given range [lo, hi)
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   Gen::new(
     fn(_i, rs) {
@@ -431,15 +413,9 @@ pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   )
 }
 
+/// Generate char within given range [lo, hi]
 pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
   int_range(lo.to_int(), hi.to_int() + 1).fmap(Char::from_int)
-}
-
-test "char range" {
-  inspect!(
-    char_range('a', 'c').samples(size=20),
-    content="['a', 'a', 'b', 'a', 'c', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'a', 'a', 'c', 'b', 'b', 'a', 'b', 'a']",
-  )
 }
 
 pub fn list_with_size[T](size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
@@ -464,34 +440,7 @@ pub fn array_with_size[T](self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { self.run(i, rs) }) })
 }
 
-pub fn tuple[T, U](gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
-  gen1.bind(fn(x) { gen2.fmap(fn(y) { (x, y) }) })
-}
-
-pub fn triple[T, U, V](
-  gen1 : Gen[T],
-  gen2 : Gen[U],
-  gen3 : Gen[V]
-) -> Gen[(T, U, V)] {
-  gen1.bind(fn(x) { gen2.bind(fn(y) { gen3.fmap(fn(z) { (x, y, z) }) }) })
-}
-
-pub fn quad[T, U, V, W](
-  gen1 : Gen[T],
-  gen2 : Gen[U],
-  gen3 : Gen[V],
-  gen4 : Gen[W]
-) -> Gen[(T, U, V, W)] {
-  gen1.bind(
-    fn(x) {
-      gen2.bind(
-        fn(y) { gen3.bind(fn(z) { gen4.fmap(fn(w) { (x, y, z, w) }) }) },
-      )
-    },
-  )
-}
-
-pub fn reserved(c : Int) -> Bool {
+fn reserved(c : Int) -> Bool {
   let masked = c.land(0xffff)
   [
     c < 0,
