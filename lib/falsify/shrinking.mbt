@@ -68,11 +68,11 @@ fn partition_result[T, E](
   val : LazyList[Result[T, E]]
 ) -> (LazyList[T], LazyList[E]) {
   fn left(a : T) -> Ret[T, E] {
-    fn { (l, r) => (@lazy.Cons(a, fn() { l }), r) }
+    fn { (l, r) => (@lazy.Cons(a, @lazy.from_value(l)), r) }
   }
 
   fn right(a : E) -> Ret[T, E] {
-    fn { (l, r) => (l, @lazy.Cons(a, fn() { r })) }
+    fn { (l, r) => (l, @lazy.Cons(a, @lazy.from_value(r))) }
   }
 
   let r = either(left, right)

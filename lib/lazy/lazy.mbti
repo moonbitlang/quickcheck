@@ -22,7 +22,7 @@ fn zip_with[A, B, C]((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
 // Types and methods
 pub enum LazyList {
   Nil
-  Cons(T, () -> LazyList[T])
+  Cons(T, LazyRef[LazyList[T]])
 }
 impl LazyList {
   concat[T](Self[T], Self[T]) -> Self[T]
@@ -37,13 +37,20 @@ impl LazyList {
   output[T : Show](Self[T], Logger) -> Unit
   split_at[T](Self[T], Int) -> Tuple[Self[T], Self[T]]
   tail[T](Self[T]) -> Self[T]
+  tails[T](Self[T]) -> Self[Self[T]]
   take_while[T](Self[T], (T) -> Bool) -> Self[T]
   to_string[T : Show](Self[T]) -> String
   unfold[T](Self[T], (Self[T]) -> Tuple[T, Self[T]]?) -> Self[T]
 }
 
+type LazyRef
+impl LazyRef {
+  force[T](Self[T]) -> T
+  from_thunk[T](() -> T) -> Self[T]
+  from_value[T](T) -> Self[T]
+}
+
 // Type aliases
-pub typealias Lazy[T] = () -> T
 
 // Traits
 pub trait Monoid {

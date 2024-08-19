@@ -15,7 +15,7 @@ pub fn default[T]() -> Enumerate[T] {
 }
 
 pub fn singleton[T](val : T) -> Enumerate[T] {
-  { parts: Cons(fin_pure(val), fn() { Nil }) }
+  { parts: Cons(fin_pure(val), @lazy.from_value(Nil)) }
 }
 
 pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
@@ -26,7 +26,7 @@ pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
       if i < f.fCard {
         (f.fIndex)(i)
       } else {
-        continue rest(), i - f.fCard
+        continue rest.force(), i - f.fCard
       }
   }
 }
@@ -44,7 +44,7 @@ pub fn fmap[T, U](self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
 }
 
 pub fn pay[T](f : () -> Enumerate[T]) -> Enumerate[T] {
-  { parts: Cons(fin_empty(), fn() { f().parts }) }
+  { parts: Cons(fin_empty(), @lazy.from_thunk(fn() { f().parts })) }
 }
 
 pub fn product[T, U](e1 : Enumerate[T], e2 : Enumerate[U]) -> Enumerate[(T, U)] {

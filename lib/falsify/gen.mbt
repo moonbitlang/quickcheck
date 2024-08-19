@@ -35,7 +35,7 @@ pub fn combine_shrunk(
   fn shortcut(st : @lazy.LazyList[SampleTree]) -> @lazy.LazyList[SampleTree] {
     match st {
       Nil => Nil
-      ts => Cons(Minimal, fn() { ts })
+      ts => Cons(Minimal, @lazy.from_value(ts))
     }
   }
 
@@ -84,4 +84,3 @@ pub fn prim_with(f : (Sample) -> @lazy.LazyList[UInt]) -> Gen[Sample] {
 pub fn prim() -> Gen[UInt] {
   prim_with(fn(s) { sample_value(s) |> binary }).fmap(sample_value)
 }
-
