@@ -20,7 +20,7 @@ test {
 /// Custom Data Types (especially recursive) using Functional Enumeration
 /// We have basic instances for builtin types like bool / list / int
 
-/// Natural Numbers ///
+/// Natural Numbers
 enum Nat {
   Zero
   Succ(Nat)
@@ -34,7 +34,7 @@ impl @feat.Enumerable for Nat with enumerate() {
   )
 }
 
-impl Arbitrary for Nat with arbitrary(i, rs) { Gen::feat(i).run(i, rs) }
+impl Arbitrary for Nat with arbitrary(i, rs) { Gen::feat_random(i).run(i, rs) }
 
 fn op_add(self : Nat, other : Nat) -> Nat {
   match self {
@@ -93,11 +93,24 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
   )
 }
 
+enum SingleTree {
+  Leaf(Bool)
+  Node(Bool, SingleTree)
+} derive(Show)
+
+impl @feat.Enumerable for SingleTree with enumerate() {
+  @feat.consts(
+    @immut/list.of(
+      [@feat.Enumerable::enumerate().fmap(SingleTree::Leaf), @feat.unary(@utils.pair_function(SingleTree::Node))],
+    ),
+  )
+}
+
 test "Tree" {
-  let tg : Gen[Tree[Nat]] = Gen::feat(10)
+  let tg : Gen[Tree[Nat]] = Gen::feat_random(10)
   inspect!(
     tg.samples(),
-    content="[Branch({forest: @list.of([Leaf(Zero)])}), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Zero)), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Branch({forest: @list.of([Leaf(Zero), Leaf(Zero)])}), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Succ(Succ(Succ(Succ(Zero))))))]",
+    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Zero)), Branch({forest: @list.of([Leaf(Zero)])}), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Leaf(Zero)])}), Leaf(Succ(Succ(Zero)))]",
   )
 }
 

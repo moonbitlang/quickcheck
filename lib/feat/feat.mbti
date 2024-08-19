@@ -12,8 +12,6 @@ fn default[T]() -> Enumerate[T]
 
 fn empty[T]() -> Enumerate[T]
 
-fn en_index[T](Enumerate[T], BigInt) -> T
-
 fn fin_app[M, N](Finite[(M) -> N], Finite[M]) -> Finite[N]
 
 fn fin_bind[M, N](Finite[M], (M) -> Finite[N]) -> Finite[N]
@@ -49,6 +47,7 @@ pub struct Enumerate {
   pub parts : @lazy.LazyList[Finite[T]]
 }
 impl Enumerate {
+  en_index[T](Self[T], BigInt) -> T
   eval[T](Self[T]) -> @lazy.LazyList[Finite[T]]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   op_add[T](Self[T], Self[T]) -> Self[T]

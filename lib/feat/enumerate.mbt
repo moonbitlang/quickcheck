@@ -18,8 +18,8 @@ pub fn singleton[T](val : T) -> Enumerate[T] {
   { parts: Cons(fin_pure(val), fn() { Nil }) }
 }
 
-pub fn en_index[T](e : Enumerate[T], idx : BigInt) -> T {
-  let fin = e.parts
+pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
+  let fin = self.parts
   loop fin, idx {
     Nil, _ => abort("index out of bounds")
     Cons(f, rest), i =>

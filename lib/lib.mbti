@@ -7,7 +7,7 @@ alias @moonbitlang/core/immut/list as @list
 // Values
 fn alphabet() -> Gen[Char]
 
-fn bool() -> Gen[Bool]
+fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
 
 fn char_range(Char, Char) -> Gen[Char]
 
@@ -15,11 +15,15 @@ fn check_one[T : Eq](Config, Property[T]) -> TestResult[T]
 
 fn check_verbose[T : Eq + Show](Config, Property[T]) -> TestResult[T]
 
-fn elements[T](Array[T]) -> Gen[T]
+fn classify_it(Bool, ~cfg : Config = ..) -> Config
 
-fn empty_queue() -> Queue
+fn commutative[A, B : Eq]((A, A) -> B) -> (Tuple[A, A]) -> Bool
 
-fn enqueue(Queue, Int) -> Queue
+fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
+
+fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
+
+fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
 
 fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
 
@@ -31,15 +35,19 @@ fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
 
 fn frequency[T](Array[Tuple[Int, Gen[T]]]) -> Gen[T]
 
-fn frequency_array[T](Array[Tuple[Int, T]]) -> Gen[T]
-
 fn frequency_list[T](@list.T[Tuple[Int, T]]) -> Gen[T]
+
+fn idempotent[A : Eq]((A) -> A) -> (A) -> Bool
 
 fn int_bound(Int) -> Gen[Int]
 
 fn int_range(Int, Int) -> Gen[Int]
 
 fn integer_bound(BigInt) -> Gen[BigInt]
+
+fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
+
+fn involutory[A : Eq]((A) -> A) -> (A) -> Bool
 
 fn liftA2[A, B, C]((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
 
@@ -54,6 +62,10 @@ fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], 
 fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> Tuple[Int, T]
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
+
+fn mono_increase[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
 
 fn nat() -> Gen[Int]
 
@@ -77,8 +89,6 @@ fn quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
 
 fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
 
-fn reserved(Int) -> Bool
-
 fn sized[T]((Int) -> Gen[T]) -> Gen[T]
 
 fn small_int() -> Gen[Int]
@@ -93,11 +103,13 @@ fn with_law[T : Arbitrary + Shrink]((T) -> Bool) -> Property[T]
 
 fn with_law_fe[T : @feat.Enumerable]((T) -> Bool, Int) -> Property[T]
 
-fn with_max_shrink(Int) -> Config
+fn with_max_shrink(Int, ~cfg : Config = ..) -> Config
 
-fn with_max_test(Int) -> Config
+fn with_max_test(Int, ~cfg : Config = ..) -> Config
 
-fn with_name(String) -> Config
+fn with_name(String, ~cfg : Config = ..) -> Config
+
+fn with_seed(UInt64, ~cfg : Config = ..) -> Config
 
 // Types and methods
 type Axiom
@@ -133,8 +145,9 @@ impl Gen {
   ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
   array_with_size[T](Self[T], Int) -> Self[Array[T]]
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
-  feat[T : @feat.Enumerable](Int) -> Self[T]
+  feat_random[T : @feat.Enumerable](Int) -> Self[T]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  join[T](Self[Self[T]]) -> Self[T]
   new[T]((Int, @splitmix.RandomState) -> T) -> Self[T]
   resize[T](Self[T], Int) -> Self[T]
   run[T](Self[T], Int, @splitmix.RandomState) -> T
@@ -185,14 +198,13 @@ impl Property {
   with_shrinker[T](Self[T], (T) -> Iter[T]) -> Self[T]
 }
 
-type Queue
-impl Queue {
-  is_empty(Self) -> Bool
-  to_string(Self) -> String
-}
-
 pub struct Replay {
   pub rand_state : @splitmix.RandomState
+}
+
+type SingleTree
+impl SingleTree {
+  to_string(Self) -> String
 }
 
 type TestResult
@@ -227,7 +239,7 @@ impl Show for Forest
 
 impl Show for Nat
 
-impl Show for Queue
+impl Show for SingleTree
 
 impl Show for Tree
 
