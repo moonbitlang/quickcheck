@@ -1,6 +1,6 @@
 {
   "name": "CAIMEOX/quickcheck",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "deps": {
     "Lampese/moonbit-chalk": "0.3.1"
   },
