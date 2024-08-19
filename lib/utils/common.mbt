@@ -51,6 +51,12 @@ pub fn apply_while[T](
   }
 }
 
+pub fn id[T](x : T) -> T = "%identity"
+
+pub fn const[T, U](t : T) -> (U) -> T {
+  fn { _ => t }
+}
+
 pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
   fn { (x, y) => f(x, y) }
 }

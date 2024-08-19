@@ -5,11 +5,15 @@ alias @moonbitlang/core/immut/list as @list
 // Values
 fn apply_while[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
 
+fn const[T, U](T) -> (U) -> T
+
 fn curry3[A, B, C, D]((A, B, C) -> D) -> (A) -> (B) -> (C) -> D
 
 fn curry4[A, B, C, D, E]((A, B, C, D) -> E) -> (A) -> (B) -> (C) -> (D) -> E
 
 fn fresh_name() -> String
+
+fn id[T](T) -> T
 
 fn pair_function[A, B, C]((A, B) -> C) -> (Tuple[A, B]) -> C
 
