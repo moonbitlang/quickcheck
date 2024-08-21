@@ -9,9 +9,7 @@ struct Config {
   // Maximum number of tests
   max_test : Int
   // Whether to classify the test by a given classifier
-  classify_it : Bool
-  // Whether to print verbose output
-  verbose: Bool
+  max_discard : Int
 }
 
 impl Default for Config with default() {
@@ -20,8 +18,7 @@ impl Default for Config with default() {
     name: @utils.fresh_name(),
     max_shrink: 100,
     max_test: 100,
-    classify_it: false,
-    verbose: false,
+    max_discard: 100,
   }
 }
 
@@ -51,9 +48,10 @@ pub fn with_max_shrink(
   { ..cfg, max_shrink, }
 }
 
-pub fn classify_it(
-  classify_it : Bool,
+/// Create a new configuration with the given maximum number of discards.
+pub fn with_max_discard(
+  max_discard : Int,
   ~cfg : Config = Default::default()
 ) -> Config {
-  { ..cfg, classify_it, }
+  { ..cfg, max_discard, }
 }
