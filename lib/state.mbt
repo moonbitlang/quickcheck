@@ -55,7 +55,7 @@ struct State {
 
   // Note that Map provides inner mutability hence we don't need to use mut tag.
 
-  collects : Collects
+  collects : Coverage
   // Expected result of the test
   mut expected : Bool
   // Current random state
@@ -68,11 +68,67 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
+// Computes the test size from the state
+fn compute_size(self : State) -> Int {
+  match self {
+    {
+      replay_start_size_: Some(x),
+      num_success_tests: 0,
+      num_recent_discarded_tests: 0,
+      ..,
+    } => x
+    {
+      max_success_tests_: mss,
+      max_test_size_: mts,
+      max_discarded_ratio_: mdr,
+      num_success_tests: n,
+      num_recent_discarded_tests: d,
+      ..,
+    } => {
+      fn clamp {
+        x, l, h => @math.maximum(l, @math.minimum(x, h))
+      }
+
+      let dDenom = if mdr > 0 { clamp(mss * mdr / 3, 1, 10) } else { 1 }
+      fn round_to {
+        n, m => n / m * m
+      }
+
+      if round_to(n, mts) + mts <= mss || n >= mss || mss % mts == 0 {
+        @math.minimum(n % mts + d / dDenom, mts)
+      } else {
+        (n % mts * mts / (mss % mts) + d / dDenom) % mts
+      }
+    }
+  }
+}
+
+fn finished_successfully(self : State) -> Bool {
+  self.num_success_tests >= self.max_success_tests_
+}
+
+fn discarded_too_much(self : State) -> Bool {
+  if self.max_discarded_ratio_ > 0 {
+    self.num_discarded_tests / self.max_discarded_ratio_ >=
+    @math.maximum(self.num_success_tests, self.max_success_tests_)
+  } else {
+    false
+  }
+}
+
+fn test_count(self: State) -> String {
+  "tests: \{self.num_success_tests} ; discarded: \{self.num_discarded_tests}"
+}
+
 // Labels / Classes / Tables are used to collect statistics of the test
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
-struct Collects {
+struct Coverage {
   labels : Map[Array[String], Int]
   classes : Map[String, Int]
   tables : Map[String, Map[String, Int]]
+}
+
+pub fn Coverage::new() -> Coverage {
+  { labels: Map::new(), classes: Map::new(), tables: Map::new() }
 }
