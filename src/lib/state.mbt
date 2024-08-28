@@ -9,6 +9,10 @@ pub fn Printer::from_buffer(buf : Buffer) -> Printer {
   { buf, ident: 0 }
 }
 
+pub fn Printer::to_string(self : Printer) -> String {
+  self.buf.to_string()
+}
+
 pub fn ident(self : Printer, ~size : Int = 2) -> Unit {
   self.ident += size
 }
@@ -68,6 +72,10 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
+fn clone(self : State) -> State {
+  { ..self }
+}
+
 // Computes the test size from the state
 fn compute_size(self : State) -> Int {
   match self {
@@ -116,7 +124,25 @@ fn discarded_too_much(self : State) -> Bool {
   }
 }
 
-fn test_count(self: State) -> String {
+fn callback_post_test(self : State, res : SingleResult) -> Unit {
+  res.callbacks.each(
+    fn {
+      PostTest(_, f) => f(self, res)
+      _ => ()
+    },
+  )
+}
+
+fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
+  res.callbacks.each(
+    fn {
+      PostFinalFailure(_, f) => f(self, res)
+      _ => ()
+    },
+  )
+}
+
+fn test_count(self : State) -> String {
   "tests: \{self.num_success_tests} ; discarded: \{self.num_discarded_tests}"
 }
 

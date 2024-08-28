@@ -26,6 +26,11 @@ pub fn output[T](self : Outcome[T], logger : Logger) -> Unit {
 
 pub struct Replay {
   rand_state : RandomState
+  size : Int
+}
+
+pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
+  { rand_state, size }
 }
 
 struct LabelRecord[T] {
@@ -56,8 +61,6 @@ pub fn to_string[T : Show](self : LabelRecord[T]) -> Array[String] {
   )
   .to_array()
 }
-
-
 
 struct TestResult[T] {
   name : String

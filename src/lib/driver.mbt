@@ -115,41 +115,42 @@ pub fn run_test(st : State, prop : PropertyX) -> TotalResult {
   }
 }
 
-pub fn complete_test(st : State, _prop : PropertyX) -> TotalResult {
-  if st.expected.not() {
-    println("*** Failed!")
+pub fn complete_test(self : State, _prop : PropertyX) -> TotalResult {
+  if self.expected.not() {
+    println("*** Failed! Expected failure, but passed \{self.test_count()}")
   } else {
-    println("+++ Ok, passed.")
+    println("+++ Ok, passed! \{self.test_count()}")
   }
-  abort("todo")
-}
-
-pub fn give_up(st : State, prop : PropertyX) -> TotalResult {
-  println("*** Gave up!")
-  abort("todo")
-}
-
-pub fn callback_post_test(st : State, res : SingleResult) -> Unit {
-  res.callbacks.each(
-    fn {
-      PostTest(_, f) => f(st, res)
-      _ => abort("callback_post_test: internal error")
-    },
+  // TODO: Print coverage
+  Success(
+    num_tests=self.num_success_tests,
+    num_discarded=self.num_discarded_tests,
+    coverage=self.collects,
+    output=self.static_writer.to_string(),
   )
 }
 
-pub fn run_single_test(st : State, prop : PropertyX) -> TotalResult {
-  let rnd1 = st.random_state.split()
-  let rnd2 = st.random_state
-  let size = 1
+pub fn give_up(self : State, prop : PropertyX) -> TotalResult {
+  println("*** Gave up! Passed only \{self.test_count()} tests.")
+  // TODO: Print coverage
+  GaveUp(
+    num_tests=self.num_success_tests,
+    num_discarded=self.num_discarded_tests,
+    coverage=self.collects,
+    output=self.static_writer.to_string(),
+  )
+}
+
+pub fn run_single_test(self : State, prop : PropertyX) -> TotalResult {
+  let rnd1 = self.random_state.split()
+  let rnd2 = self.random_state
+  let size = self.compute_size()
   let { val: res, branch: ts } = prop.property.run(size, rnd1).rose
-  fn next(end_with, nst : State) {
-    fn(p) {
-      if res.abort {
-        end_with(update_state(nst), p)
-      } else {
-        run_test(update_state(nst), p)
-      }
+  fn next(end_with, nst : State, p : PropertyX) {
+    if res.abort {
+      end_with(update_state(nst), p)
+    } else {
+      run_test(update_state(nst), p)
     }
   }
 
@@ -170,48 +171,94 @@ pub fn run_single_test(st : State, prop : PropertyX) -> TotalResult {
     }
   }
 
-  callback_post_test(st, res)
+  let stc = self.clone()
+  callback_post_test(self, res)
   match res {
     { ok: Some(true), .. } =>
       next(
         complete_test,
         {
-          ..st //climb the tree
-          ,
-          num_success_tests: st.num_success_tests + 1,
+          ..self,
+          num_success_tests: self.num_success_tests + 1,
           num_recent_discarded_tests: 0,
         },
-      )(prop)
-    { ok: Some(false), .. } => abort("")
+        prop,
+      )
+    { ok: Some(false), .. } => {
+      let (n, tf, lf, res) = self.found_failure(res, ts)
+      let output = self.static_writer.to_string()
+      match res.expect.not() {
+        true =>
+          Success(
+            num_tests=stc.num_success_tests + 1,
+            num_discarded=stc.num_discarded_tests,
+            coverage=stc.collects,
+            ~output,
+          )
+        false =>
+          Fail(
+            error=res.error,
+            replay_info=Replay::new(stc.random_state, size),
+            num_tests=stc.num_success_tests + 1,
+            num_discarded=stc.num_discarded_tests,
+            num_shrinks=n,
+            num_shrink_tries=tf,
+            num_shrink_final=lf,
+            reason=res.reason,
+            ~output,
+            failing_case=res.test_case.to_array(),
+            failing_labels=res.labels.to_array(),
+            failing_classes=@sorted_set.new(), // TODO: Add classes
+          )
+      }
+    }
     { ok: None, .. } =>
       next(
         give_up,
         {
-          ..st,
-          num_discarded_tests: st.num_discarded_tests + 1,
-          num_recent_discarded_tests: st.num_recent_discarded_tests + 1,
+          ..self,
+          num_discarded_tests: self.num_discarded_tests + 1,
+          num_recent_discarded_tests: self.num_recent_discarded_tests + 1,
         },
-      )(prop)
+        prop,
+      )
   }
 }
 
 pub fn found_failure(
-  st : State,
+  self : State,
   res : SingleResult,
-  ts : Iter[SingleResult]
+  ts : Iter[Rose[SingleResult]]
 ) -> (Int, Int, Int, SingleResult) {
-  local_min({ ..st, num_try_shrinks: 0 }, res, ts)
+  local_min({ ..self, num_try_shrinks: 0 }, res, ts)
 }
 
 pub fn local_min(
-  st : State,
+  self : State,
   res : SingleResult,
-  ts : Iter[SingleResult]
+  ts : Iter[Rose[SingleResult]]
 ) -> (Int, Int, Int, SingleResult) {
-  if st.num_success_shrinks + st.num_to_try_shrinks >= st.max_shrinks_ {
-    local_min_found(st, res)
+  if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
+    local_min_found(self, res)
   } else {
-    abort("todo")
+    let t = ts.head()
+    match t {
+      Some({ val, branch }) => {
+        self.callback_post_test(val)
+        match val.ok {
+          Some(false) => {
+            self.num_success_shrinks += 1
+            self.num_try_shrinks = 0
+          }
+          _ => {
+            self.num_to_try_shrinks += 1
+            self.num_try_shrinks += 1
+          }
+        }
+        local_min(self, res, branch)
+      }
+      None => local_min_found(self, res)
+    }
   }
 }
 
@@ -219,7 +266,7 @@ pub fn local_min_found(
   st : State,
   res : SingleResult
 ) -> (Int, Int, Int, SingleResult) {
-  // todo 
+  // TODO: Print error
   (
     st.num_success_shrinks,
     st.num_to_try_shrinks - st.num_try_shrinks,
