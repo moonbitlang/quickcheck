@@ -1,6 +1,6 @@
 {
   "name": "CAIMEOX/quickcheck",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "deps": {
     "Lampese/moonbit-chalk": "0.3.1"
   },
@@ -11,5 +11,6 @@
     "property-based-testing",
     "quickcheck"
   ],
+  "source": "src",
   "description": "Automatic testing of MoonBit programs"
 }
