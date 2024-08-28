@@ -20,19 +20,35 @@ enum TotalResult {
   Success(
     ~num_tests : Int,
     ~num_discarded : Int,
-    ~labels : Map[Array[String], Int],
-    ~classes : Map[String, Int]
+    ~coverage : Coverage,
+    ~output : String
   )
-  Fail(~num_tests : Int, ~num_discarded : Int, ~num_shrinks : Int)
+  Fail(
+    ~num_tests : Int,
+    ~num_discarded : Int,
+    ~num_shrinks : Int,
+    ~num_shrink_tries : Int,
+    ~num_shrink_final : Int,
+    ~replay_info : Replay,
+    ~reason : String,
+    ~error : Error,
+    ~output : String,
+    ~failing_case : Array[String],
+    ~failing_labels : Array[String],
+    ~failing_classes : @sorted_set.T[String]
+  )
   NoneExpectedFail(
     ~num_tests : Int,
     ~num_discarded : Int,
-    ~labels : Map[Array[String], Int],
-    ~classes : Map[String, Int],
-    ~tables : Map[String, Map[String, Int]],
+    ~coverage : Coverage,
     ~output : String
   )
-  GaveUp
+  GaveUp(
+    ~num_tests : Int,
+    ~num_discarded : Int,
+    ~coverage : Coverage,
+    ~output : String
+  )
 }
 
 pub fn success(self : TotalResult) -> Bool {
@@ -44,6 +60,12 @@ pub fn success(self : TotalResult) -> Bool {
 
 pub fn quick_check1[P : Testable](prop : P) -> Unit {
   quick_check_with(Default::default(), prop)
+}
+
+pub fn quick_check_fn[A : Arbitrary + Shrink, B : Testable](
+  f : (A) -> B
+) -> Unit {
+  quick_check1(Arrow(f))
 }
 
 pub fn quick_check_with[P : Testable](cfg : Args, prop : P) -> Unit {
@@ -63,17 +85,16 @@ pub fn with_state[T](cfg : Args, ts : (State) -> T) -> T {
     None => RandomState::new()
   }
   let state : State = {
-    max_test_size: cfg.max_size,
-    max_success_tests: cfg.max_success,
-    max_discarded_ratio: cfg.max_discard_ratio,
-    num_to_max_shrinks: 0,
-    replay_start_size: cfg.replay.map(fn(x) { x.1 }),
+    static_writer: Default::default(),
+    max_test_size_: cfg.max_size,
+    max_success_tests_: cfg.max_success,
+    max_discarded_ratio_: cfg.max_discard_ratio,
+    max_shrinks_: 0,
+    replay_start_size_: cfg.replay.map(fn(x) { x.1 }),
     num_success_tests: 0,
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
-    labels: Map::new(),
-    classes: Map::new(),
-    tables: Map::new(),
+    collects: Coverage::new(),
     expected: true,
     random_state: rs,
     num_success_shrinks: 0,
@@ -84,17 +105,17 @@ pub fn with_state[T](cfg : Args, ts : (State) -> T) -> T {
 }
 
 pub fn run_test(st : State, prop : PropertyX) -> TotalResult {
-  if st.num_success_tests >= st.max_success_tests {
-    done_test(st, prop)
-  } else if st.num_discarded_tests / st.max_discarded_ratio >=
-    @math.maximum(st.num_success_tests, st.max_success_tests) {
+  if st.num_success_tests >= st.max_success_tests_ {
+    complete_test(st, prop)
+  } else if st.num_discarded_tests / st.max_discarded_ratio_ >=
+    @math.maximum(st.num_success_tests, st.max_success_tests_) {
     give_up(st, prop)
   } else {
     run_single_test(st, prop)
   }
 }
 
-pub fn done_test(st : State, prop : PropertyX) -> TotalResult {
+pub fn complete_test(st : State, _prop : PropertyX) -> TotalResult {
   if st.expected.not() {
     println("*** Failed!")
   } else {
@@ -139,10 +160,12 @@ pub fn run_single_test(st : State, prop : PropertyX) -> TotalResult {
   fn add_new_options(st0 : State) {
     {
       ..st0,
-      max_success_tests: res.maybe_num_tests.or(st0.max_success_tests),
-      max_discarded_ratio: res.maybe_discarded_ratio.or(st0.max_discarded_ratio),
-      max_test_size: res.maybe_max_test_size.or(st0.max_test_size),
-      num_to_max_shrinks: res.maybe_max_shrinks.or(st0.num_to_max_shrinks),
+      max_success_tests_: res.maybe_num_tests.or(st0.max_success_tests_),
+      max_discarded_ratio_: res.maybe_discarded_ratio.or(
+        st0.max_discarded_ratio_,
+      ),
+      max_test_size_: res.maybe_max_test_size.or(st0.max_test_size_),
+      max_shrinks_: res.maybe_max_shrinks.or(st0.max_shrinks_),
       expected: res.expect,
     }
   }
@@ -151,9 +174,10 @@ pub fn run_single_test(st : State, prop : PropertyX) -> TotalResult {
   match res {
     { ok: Some(true), .. } =>
       next(
-        done_test,
+        complete_test,
         {
-          ..st,
+          ..st //climb the tree
+          ,
           num_success_tests: st.num_success_tests + 1,
           num_recent_discarded_tests: 0,
         },
@@ -184,7 +208,7 @@ pub fn local_min(
   res : SingleResult,
   ts : Iter[SingleResult]
 ) -> (Int, Int, Int, SingleResult) {
-  if st.num_success_shrinks + st.num_to_try_shrinks >= st.num_to_max_shrinks {
+  if st.num_success_shrinks + st.num_to_try_shrinks >= st.max_shrinks_ {
     local_min_found(st, res)
   } else {
     abort("todo")

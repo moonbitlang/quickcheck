@@ -57,32 +57,7 @@ pub fn to_string[T : Show](self : LabelRecord[T]) -> Array[String] {
   .to_array()
 }
 
-struct Printer {
-  buf : Buffer
-  mut ident : Int
-}
 
-impl Default for Printer with default() { { buf: Buffer::new(), ident: 0 } }
-
-pub fn ident(self : Printer, ~size : Int = 2) -> Unit {
-  self.ident += size
-}
-
-pub fn unident(self : Printer) -> Unit {
-  self.ident -= 1
-}
-
-pub fn format(self : Printer, str : String) -> String {
-  let mut s = ""
-  for i = 0; i < self.ident; i = i + 1 {
-    s += " "
-  }
-  s + str
-}
-
-pub fn print(self : Printer, str : String) -> Unit {
-  self.buf.write_string(self.format(str) + "\n")
-}
 
 struct TestResult[T] {
   name : String

@@ -1,24 +1,4 @@
-/// Internal State of Compiler
-struct State {
-  max_test_size : Int
-  max_success_tests : Int
-  max_discarded_ratio : Int
-  num_to_max_shrinks : Int
-  replay_start_size : Int?
-  num_success_tests : Int
-  num_discarded_tests : Int
-  num_recent_discarded_tests : Int
-  labels : Map[Array[String], Int]
-  classes : Map[String, Int]
-  tables : Map[String, Map[String, Int]]
-  expected : Bool
-  random_state : RandomState
-  num_success_shrinks : Int
-  num_try_shrinks : Int
-  num_to_try_shrinks : Int
-}
-
-type! InternalError
+type! InternalError String
 
 enum Callback {
   PostTest(Kind, (State, SingleResult) -> Unit)
@@ -33,7 +13,7 @@ enum Kind {
 struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
-}
+} derive(Show)
 
 pub fn join_rose[T](self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
@@ -70,9 +50,9 @@ struct SingleResult {
   maybe_discarded_ratio : Int?
   maybe_max_shrinks : Int?
   maybe_max_test_size : Int?
-  labels : Array[String]
-  classes : Array[(String, Bool)]
-  tables : Array[(String, String)]
+  labels : List[String]
+  classes : List[(String, Bool)]
+  tables : List[(String, String)]
   test_case : @immut/array.T[String]
   error : Error
   callbacks : @immut/list.T[Callback]
@@ -100,7 +80,7 @@ pub trait Testable {
 
 type Arrow[A, B] (A) -> B
 
-enum Discard {}
+type Discard
 
 impl Testable for PropertyX with property(self) { self }
 
@@ -160,11 +140,11 @@ impl Default for SingleResult with default() {
     maybe_discarded_ratio: None,
     maybe_max_shrinks: None,
     maybe_max_test_size: None,
-    labels: [],
-    classes: [],
-    tables: [],
+    labels: Nil,
+    classes: Nil,
+    tables: Nil,
     test_case: @immut/array.new(),
-    error: InternalError,
+    error: InternalError("none"),
     callbacks: Nil,
   }
 }
@@ -222,6 +202,10 @@ pub fn callback[P : Testable](cb : Callback) -> (P) -> PropertyX {
       fn(res) { { ..res, callbacks: Cons(cb, res.callbacks) } },
     )
   }
+}
+
+pub fn label[P : Testable](p : P, s : String) -> PropertyX {
+  map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
 }
 
 pub fn counterexample[P : Testable](s : String) -> (P) -> PropertyX {
