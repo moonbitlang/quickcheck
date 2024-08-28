@@ -34,9 +34,9 @@ MoonBit QuickCheck brings many modern academic ideas into industrial practice. N
 
 ### Testing Strategy
 
-- [x] Test randomly
+- [x] Randomized property test: Run the test for `N` random elements drawn from the argument type.
   - Similar to Haskell QuickCheck
-- [ ] Test all finite values up to some depth
+- [ ] Exhaustive specialized property test: Run the test for each element of a subset of the argument type.
   - Similar to SmallCheck and Feat
 
 ### Data Generation

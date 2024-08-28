@@ -25,6 +25,8 @@ fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> B
 
 fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
 
+fn failed() -> QRes
+
 fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
 
 fn flatten_list[T](@list.T[Gen[T]]) -> Gen[@list.T[T]]
@@ -59,9 +61,19 @@ fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 
 fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
+fn lift_bool(Bool) -> QRes
+
+fn lift_option[T : Testable](T?) -> PropertyX
+
 fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> Tuple[Int, T]
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn map_prop[P : Testable](P, (Prop) -> Prop) -> PropertyX
+
+fn map_rose_result[P : Testable](P, (Rose[QRes]) -> Rose[QRes]) -> PropertyX
+
+fn map_total_result[P : Testable](P, (QRes) -> QRes) -> PropertyX
 
 fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
 
@@ -83,17 +95,23 @@ fn pure[T](T) -> Gen[T]
 
 fn pure_eq[T](T) -> Equivalence[T]
 
+fn pure_rose[T](T) -> Rose[T]
+
 fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[Tuple[T, U, V, W]]
 
 fn quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
 
 fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
 
+fn rejected() -> QRes
+
 fn sized[T]((Int) -> Gen[T]) -> Gen[T]
 
 fn small_int() -> Gen[Int]
 
 fn sorted_list[T : Compare + Eq](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn succeed() -> QRes
 
 fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[Tuple[T, U, V]]
 
@@ -123,6 +141,8 @@ impl Axiom {
 }
 
 type Config
+
+type Discard
 
 type Equivalence
 impl Equivalence {
@@ -190,6 +210,11 @@ impl Printer {
   unident(Self) -> Unit
 }
 
+type Prop
+impl Prop {
+  make(Rose[QRes]) -> Self
+}
+
 type Property
 impl Property {
   with_classify[T](Self[T], (T) -> String) -> Self[T]
@@ -198,8 +223,23 @@ impl Property {
   with_shrinker[T](Self[T], (T) -> Iter[T]) -> Self[T]
 }
 
+type PropertyX
+impl PropertyX {
+  make(Gen[Prop]) -> Self
+}
+
+type QRes
+
 pub struct Replay {
   pub rand_state : @splitmix.RandomState
+}
+
+type Rose
+impl Rose {
+  bind_rose[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  fmap_rose[T, U](Self[T], (T) -> U) -> Self[U]
+  join_rose[T](Self[Self[T]]) -> Self[T]
+  on_rose[T](Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
 }
 
 type SingleTree
@@ -228,6 +268,10 @@ pub trait Arbitrary {
 
 pub trait Shrink {
   shrink(Self) -> Iter[Self]
+}
+
+pub trait Testable {
+  property(Self) -> PropertyX
 }
 
 // Extension Methods

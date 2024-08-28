@@ -169,6 +169,10 @@ pub fn liftA6[A, B, C, D, E, F, G](
   )
 }
 
+fn delay[T]() -> Gen[(Gen[T]) -> T] {
+  Gen::new(fn(n, rs) { fn(g) { g.run(n, rs) } })
+}
+
 /// Common Combinators
 
 /// Create tuple generator from two generators

@@ -1,0 +1,134 @@
+struct Printer {
+  buf : Buffer
+  mut ident : Int
+}
+
+impl Default for Printer with default() { { buf: Buffer::new(), ident: 0 } }
+
+pub fn Printer::from_buffer(buf : Buffer) -> Printer {
+  { buf, ident: 0 }
+}
+
+pub fn ident(self : Printer, ~size : Int = 2) -> Unit {
+  self.ident += size
+}
+
+pub fn unident(self : Printer) -> Unit {
+  self.ident -= 1
+}
+
+pub fn format(self : Printer, str : String) -> String {
+  let mut s = ""
+  for i = 0; i < self.ident; i = i + 1 {
+    s += " "
+  }
+  s + str
+}
+
+pub fn print(self : Printer, str : String) -> Unit {
+  self.buf.write_string(self.format(str) + "\n")
+}
+
+/// Internal State of Compiler
+struct State {
+  // Printer that collects output of the test
+  static_writer : Printer
+  // Top bound of test size (immutable, the argument of the Gen)
+  max_test_size_ : Int
+  // Maximum number of successful tests (immutable)
+  max_success_tests_ : Int
+  // Maximum ratio of discarded tests (immutable)
+  // For instance if max_success_tests is 100 and max_discarded_ratio is 0.1
+  // then the maximum number of discarded tests is 10
+  max_discarded_ratio_ : Int
+  // Maximum number of shrinks (immutable)
+  max_shrinks_ : Int
+  // Size of the test to start replaying from (immutable, the argument of the Gen)
+  replay_start_size_ : Int?
+
+  // Number of tests that have succeeded (mutable)
+  mut num_success_tests : Int
+  // Number of tests that have been discarded (mutable, total)
+  mut num_discarded_tests : Int
+  // Since last successful test, number of discarded tests (mutable)
+  mut num_recent_discarded_tests : Int
+
+  // Note that Map provides inner mutability hence we don't need to use mut tag.
+
+  collects : Coverage
+  // Expected result of the test
+  mut expected : Bool
+  // Current random state
+  mut random_state : RandomState
+  // Number of successful shrinks
+  mut num_success_shrinks : Int
+  // Number of shrinks tried since last successful shrink
+  mut num_try_shrinks : Int
+  // Number of shrinks failed (total)
+  mut num_to_try_shrinks : Int
+}
+
+// Computes the test size from the state
+fn compute_size(self : State) -> Int {
+  match self {
+    {
+      replay_start_size_: Some(x),
+      num_success_tests: 0,
+      num_recent_discarded_tests: 0,
+      ..,
+    } => x
+    {
+      max_success_tests_: mss,
+      max_test_size_: mts,
+      max_discarded_ratio_: mdr,
+      num_success_tests: n,
+      num_recent_discarded_tests: d,
+      ..,
+    } => {
+      fn clamp {
+        x, l, h => @math.maximum(l, @math.minimum(x, h))
+      }
+
+      let dDenom = if mdr > 0 { clamp(mss * mdr / 3, 1, 10) } else { 1 }
+      fn round_to {
+        n, m => n / m * m
+      }
+
+      if round_to(n, mts) + mts <= mss || n >= mss || mss % mts == 0 {
+        @math.minimum(n % mts + d / dDenom, mts)
+      } else {
+        (n % mts * mts / (mss % mts) + d / dDenom) % mts
+      }
+    }
+  }
+}
+
+fn finished_successfully(self : State) -> Bool {
+  self.num_success_tests >= self.max_success_tests_
+}
+
+fn discarded_too_much(self : State) -> Bool {
+  if self.max_discarded_ratio_ > 0 {
+    self.num_discarded_tests / self.max_discarded_ratio_ >=
+    @math.maximum(self.num_success_tests, self.max_success_tests_)
+  } else {
+    false
+  }
+}
+
+fn test_count(self: State) -> String {
+  "tests: \{self.num_success_tests} ; discarded: \{self.num_discarded_tests}"
+}
+
+// Labels / Classes / Tables are used to collect statistics of the test
+// TODO : Maybe a more general way to collect infos (use typeclass?)
+
+struct Coverage {
+  labels : Map[Array[String], Int]
+  classes : Map[String, Int]
+  tables : Map[String, Map[String, Int]]
+}
+
+pub fn Coverage::new() -> Coverage {
+  { labels: Map::new(), classes: Map::new(), tables: Map::new() }
+}
