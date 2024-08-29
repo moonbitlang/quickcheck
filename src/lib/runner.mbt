@@ -1,4 +1,4 @@
-pub fn check_one[T : Eq](config : Config, prop : Property[T]) -> TestResult[T] {
+pub fn check_one[T : Eq](config : Config, prop : Property_Old[T]) -> TestResult[T] {
   let state = RandomState::new(seed=config.seed)
   let distribution = LabelRecord::make(prop.classify)
   let law = prop.law
@@ -60,7 +60,7 @@ pub fn quick_check[T : Arbitrary + Shrink + Eq](
 
 pub fn check_verbose[T : Eq + Show](
   config : Config,
-  prop : Property[T]
+  prop : Property_Old[T]
 ) -> TestResult[T] {
   let state = RandomState::new(seed=config.seed)
   let distribution = LabelRecord::make(prop.classify)

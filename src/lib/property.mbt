@@ -1,4 +1,4 @@
-struct Property[T] {
+struct Property_Old[T] {
   law : (T) -> Bool
   generator : Gen[T]
   shrinker : (T) -> Iter[T]
@@ -6,7 +6,7 @@ struct Property[T] {
   filter : (T) -> Bool
 }
 
-pub fn with_law[T : Arbitrary + Shrink](law : (T) -> Bool) -> Property[T] {
+pub fn with_law[T : Arbitrary + Shrink](law : (T) -> Bool) -> Property_Old[T] {
   {
     law,
     generator: spawn(),
@@ -19,7 +19,7 @@ pub fn with_law[T : Arbitrary + Shrink](law : (T) -> Bool) -> Property[T] {
 pub fn with_law_fe[T : @feat.Enumerable](
   law : (T) -> Bool,
   card : Int
-) -> Property[T] {
+) -> Property_Old[T] {
   {
     law,
     generator: Gen::feat_random(card),
@@ -30,23 +30,23 @@ pub fn with_law_fe[T : @feat.Enumerable](
 }
 
 pub fn with_classify[T](
-  self : Property[T],
+  self : Property_Old[T],
   classify : (T) -> String
-) -> Property[T] {
+) -> Property_Old[T] {
   { ..self, classify, }
 }
 
-pub fn with_filter[T](self : Property[T], filter : (T) -> Bool) -> Property[T] {
+pub fn with_filter[T](self : Property_Old[T], filter : (T) -> Bool) -> Property_Old[T] {
   { ..self, filter, }
 }
 
-pub fn with_generator[T](self : Property[T], generator : Gen[T]) -> Property[T] {
+pub fn with_generator[T](self : Property_Old[T], generator : Gen[T]) -> Property_Old[T] {
   { ..self, generator, }
 }
 
 pub fn with_shrinker[T](
-  self : Property[T],
+  self : Property_Old[T],
   shrinker : (T) -> Iter[T]
-) -> Property[T] {
+) -> Property_Old[T] {
   { ..self, shrinker, }
 }

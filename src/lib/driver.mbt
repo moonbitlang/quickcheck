@@ -79,7 +79,7 @@ pub fn quick_check_with_result[P : Testable](
   run_test(from_config(cfg), prop.property())
 }
 
-pub fn run_test(self : State, prop : PropertyX) -> TotalResult {
+pub fn run_test(self : State, prop : Property) -> TotalResult {
   if self.finished_successfully() {
     self.complete_test(prop)
   } else if self.discarded_too_much() {
@@ -89,7 +89,7 @@ pub fn run_test(self : State, prop : PropertyX) -> TotalResult {
   }
 }
 
-pub fn complete_test(self : State, _prop : PropertyX) -> TotalResult {
+pub fn complete_test(self : State, _prop : Property) -> TotalResult {
   // TODO: Print coverage
   if self.expected.not() {
     println("*** Failed! Expected failure, but passed \{self.test_count()}")
@@ -110,7 +110,7 @@ pub fn complete_test(self : State, _prop : PropertyX) -> TotalResult {
   }
 }
 
-pub fn give_up(self : State, _prop : PropertyX) -> TotalResult {
+pub fn give_up(self : State, _prop : Property) -> TotalResult {
   println("*** Gave up! Passed only \{self.test_count()} tests.")
   // TODO: Print coverage
   GaveUp(
@@ -121,12 +121,12 @@ pub fn give_up(self : State, _prop : PropertyX) -> TotalResult {
   )
 }
 
-pub fn run_single_test(self : State, prop : PropertyX) -> TotalResult {
+pub fn run_single_test(self : State, prop : Property) -> TotalResult {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let size = self.compute_size()
   let { val: res, branch: ts } = prop.property.run(size, rnd1).rose
-  fn next(end_with, nst : State, p : PropertyX) {
+  fn next(end_with, nst : State, p : Property) {
     if res.abort {
       end_with(update_state(nst), p)
     } else {
