@@ -257,7 +257,7 @@ pub fn frequency[T](arr : Array[(Int, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
   } else {
-    let sum = arr.map(@tuple.fst).fold_left(Int::op_add, init=0)
+    let sum = arr.map(@tuple.fst).fold(Int::op_add, init=0)
     if sum < 1 {
       abort("frequency: total weight is less than 1")
     } else {
@@ -452,7 +452,7 @@ fn reserved(c : Int) -> Bool {
     c >= 0xDC00 && c <= 0xDFFF,
     c >= 0xD800 && c <= 0xDBFF,
     masked == 0xFFFE || masked == 0xFFFF,
-  ].fold_left(fn(x, acc) { acc || x }, init=false)
+  ].fold(fn(x, acc) { acc || x }, init=false)
 }
 
 fn unicode_ascii() -> Gen[Int] {

@@ -36,7 +36,7 @@ impl Arbitrary for String with arbitrary(size, rs) {
     fn(x) {
       list_with_size(x, spawn()).fmap(
         fn(x) {
-          x.fold_left(init="", fn(x, acc : Char) { x + acc.to_string() })
+          x.fold(init="", fn(x, acc : Char) { x + acc.to_string() })
         },
       )
     },

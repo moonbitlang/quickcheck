@@ -1,8 +1,10 @@
 type! InternalError String
 
+typealias CallbackFn = (State, SingleResult) -> Unit
+
 enum Callback {
-  PostTest(Kind, (State, SingleResult) -> Unit)
-  PostFinalFailure(Kind, (State, SingleResult) -> Unit)
+  PostTest(Kind, CallbackFn)
+  PostFinalFailure(Kind, CallbackFn)
 } derive(Show)
 
 enum Kind {

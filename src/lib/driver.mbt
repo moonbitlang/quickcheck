@@ -174,6 +174,7 @@ pub fn run_single_test(self : State, prop : PropertyX) -> TotalResult {
       )
     { ok: Some(false), .. } => {
       let (n, tf, lf, res) = self.found_failure(res, ts)
+      println((n, res.test_case))
       let output = self.static_writer.to_string()
       match res.expect.not() {
         true =>
@@ -237,13 +238,14 @@ pub fn local_min(
           Some(false) => {
             self.num_success_shrinks += 1
             self.num_try_shrinks = 0
+            local_min(self, val, branch)
           }
           _ => {
             self.num_to_try_shrinks += 1
             self.num_try_shrinks += 1
+            local_min(self, res, ts.drop(1))
           }
         }
-        local_min(self, res, branch)
       }
       None => local_min_found(self, res)
     }
@@ -263,10 +265,8 @@ pub fn local_min_found(
   )
 }
 
-
 test "quick check" {
-  let prop_rev = fn(l : List[Int]) {
-    l.rev().rev() == l.rev()
-  }
+  let s = Shrink::shrink(@immut/list.of([1]))
+  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
   quick_check_fn(prop_rev)
 }
