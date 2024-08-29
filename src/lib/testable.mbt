@@ -1,6 +1,12 @@
 type! InternalError String
 
+type Arrow[A, B] (A) -> B
+
+type ArrowEffect[A, B] (A) -> B!Error
+
 typealias CallbackFn = (State, SingleResult) -> Unit
+
+typealias Rose[T] = @rose.Rose[T]
 
 enum Callback {
   PostTest(Kind, CallbackFn)
@@ -12,35 +18,8 @@ enum Kind {
   Nothing
 } derive(Show)
 
-struct Rose[T] {
-  val : T
-  branch : Iter[Rose[T]]
-} derive(Show)
-
-pub fn join_rose[T](self : Rose[Rose[T]]) -> Rose[T] {
-  let tss = self.branch
-  let ts = self.val.branch
-  { val: self.val.val, branch: tss.map(join_rose).concat(ts) }
-}
-
-pub fn pure_rose[T](val : T) -> Rose[T] {
-  { val, branch: Iter::empty() }
-}
-
-pub fn promote_rose[T](self : Rose[Gen[T]]) -> Gen[Rose[T]] {
-  delay().fmap(fn(m) { fmap_rose(self, m) })
-}
-
-pub fn fmap_rose[T, U](self : Rose[T], f : (T) -> U) -> Rose[U] {
-  { val: f(self.val), branch: self.branch.map(fn(x) { fmap_rose(x, f) }) }
-}
-
-pub fn bind_rose[T, U](self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {
-  join_rose(fmap_rose(self, f))
-}
-
-pub fn on_rose[T](self : Rose[T], f : (T, Iter[Rose[T]]) -> Rose[T]) -> Rose[T] {
-  f(self.val, self.branch)
+pub fn promote_rose[T](s : Rose[Gen[T]]) -> Gen[Rose[T]] {
+  delay().fmap(fn(m) { s.fmap(m) })
 }
 
 struct SingleResult {
@@ -80,9 +59,9 @@ pub trait Testable {
   property(Self) -> PropertyX
 }
 
-type Arrow[A, B] (A) -> B
-
-type Discard
+enum Discard {
+  Discard
+}
 
 impl Testable for PropertyX with property(self) { self }
 
@@ -95,7 +74,7 @@ impl Testable for Unit with property(_self) { succeed() |> Testable::property }
 impl Testable for Prop with property(self) { { property: pure(self) } }
 
 impl Testable for SingleResult with property(self) {
-  { property: pure(Prop::make(pure_rose(self))) }
+  { property: pure(Prop::make(@rose.pure(self))) }
 }
 
 impl Testable for Bool with property(self) {
@@ -129,7 +108,7 @@ pub fn map_total_result[P : Testable](
   prop : P,
   f : (SingleResult) -> SingleResult
 ) -> PropertyX {
-  map_rose_result(prop, fn { rose => fmap_rose(rose, f) })
+  map_rose_result(prop, fn { rose => rose.fmap(f) })
 }
 
 impl Default for SingleResult with default() {
@@ -163,14 +142,14 @@ pub fn rejected() -> SingleResult {
   { ..Default::default(), ok: None }
 }
 
-pub fn lift_bool(b : Bool) -> SingleResult {
+fn lift_bool(b : Bool) -> SingleResult {
   match b {
     true => succeed()
     false => { ..failed(), reason: "Falsified" }
   }
 }
 
-pub fn lift_option[T : Testable](opt : T?) -> PropertyX {
+fn lift_option[T : Testable](opt : T?) -> PropertyX {
   match opt {
     None => rejected() |> Testable::property
     Some(x) => x.property()
@@ -187,13 +166,11 @@ pub fn shrinking[P : Testable, T](
   pf : (T) -> P
 ) -> PropertyX {
   fn props(x) -> Rose[Gen[Prop]] {
-    { val: pf(x).property().property, branch: shrinker(x).map(props) }
+    @rose.new(pf(x).property().property, shrinker(x).map(props))
   }
 
   let x = promote_rose(props(x0))
-  x.fmap(
-    fn(x) { x.fmap_rose(fn { { rose } => rose }) |> join_rose |> Prop::make },
-  )
+  x.fmap(fn(x) { x.fmap(fn { { rose } => rose }).join() |> Prop::make })
   |> PropertyX::make
 }
 
@@ -206,8 +183,23 @@ pub fn callback[P : Testable](cb : Callback) -> (P) -> PropertyX {
   }
 }
 
-pub fn label[P : Testable](p : P, s : String) -> PropertyX {
-  map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
+pub fn label[P : Testable](s : String) -> (P) -> PropertyX {
+  fn(p) {
+    map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
+  }
+}
+
+pub fn collect[P : Testable, T : Show](t : T) -> (P) -> PropertyX {
+  label(t.to_string())
+}
+
+pub fn classify[P : Testable](cond : Bool, s : String) -> (P) -> PropertyX {
+  fn(p) {
+    map_total_result(
+      p,
+      fn(res) { { ..res, classes: Cons((s, cond), res.classes) } },
+    )
+  }
 }
 
 pub fn counterexample[P : Testable](s : String) -> (P) -> PropertyX {
@@ -220,6 +212,15 @@ pub fn counterexample[P : Testable](s : String) -> (P) -> PropertyX {
   }
 }
 
+pub fn implies[P : Testable](cond : Bool) -> (P) -> PropertyX {
+  fn(p) {
+    match cond {
+      true => p.property()
+      false => Testable::property(Discard)
+    }
+  }
+}
+
 pub fn forall[T : Testable, A : Arbitrary + Shrink](f : (A) -> T) -> PropertyX {
   spawn().bind(fn(x) { shrinking(A::shrink, x, f).property }) |> PropertyX::make
 }
@@ -228,4 +229,45 @@ pub fn forall_show[T : Testable, A : Arbitrary + Shrink + Show](
   f : (A) -> T
 ) -> PropertyX {
   forall(fn(x : A) { counterexample(x.to_string())(f(x)) })
+}
+
+pub fn if_fail[P : Testable](f : () -> Unit) -> (P) -> PropertyX {
+  callback(
+    PostTest(
+      Nothing,
+      fn(_st, res) {
+        match res.ok {
+          Some(false) => f()
+          _ => ()
+        }
+      },
+    ),
+  )
+}
+
+// Modifies a property to make it terminate after the first test
+pub fn terminate[P : Testable](p : P) -> PropertyX {
+  map_total_result(p, fn(res) { { ..res, abort: true } })
+}
+
+pub fn with_max_successs[P : Testable](n : Int) -> (P) -> PropertyX {
+  fn(p) { map_total_result(p, fn(res) { { ..res, maybe_num_tests: Some(n) } }) }
+}
+
+pub fn with_discarded_ratio[P : Testable](n : Int) -> (P) -> PropertyX {
+  fn(p) {
+    map_total_result(p, fn(res) { { ..res, maybe_discarded_ratio: Some(n) } })
+  }
+}
+
+pub fn with_max_shrinks[P : Testable](n : Int) -> (P) -> PropertyX {
+  fn(p) {
+    map_total_result(p, fn(res) { { ..res, maybe_max_shrinks: Some(n) } })
+  }
+}
+
+pub fn with_max_size[P : Testable](n : Int) -> (P) -> PropertyX {
+  fn(p) {
+    map_total_result(p, fn(res) { { ..res, maybe_max_test_size: Some(n) } })
+  }
 }
