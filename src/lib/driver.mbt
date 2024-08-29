@@ -62,7 +62,7 @@ pub fn quick_check1[P : Testable](prop : P) -> Unit {
   quick_check_with(Default::default(), prop)
 }
 
-pub fn quick_check_fn[A : Arbitrary + Shrink, B : Testable](
+pub fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable](
   f : (A) -> B
 ) -> Unit {
   quick_check1(Arrow(f))
@@ -76,61 +76,41 @@ pub fn quick_check_with_result[P : Testable](
   cfg : Args,
   prop : P
 ) -> TotalResult {
-  with_state(cfg, fn(s) { run_test(s, prop.property()) })
+  run_test(from_config(cfg), prop.property())
 }
 
-pub fn with_state[T](cfg : Args, ts : (State) -> T) -> T {
-  let rs = match cfg.replay {
-    Some((rng, _)) => rng
-    None => RandomState::new()
-  }
-  let state : State = {
-    static_writer: Default::default(),
-    max_test_size_: cfg.max_size,
-    max_success_tests_: cfg.max_success,
-    max_discarded_ratio_: cfg.max_discard_ratio,
-    max_shrinks_: 0,
-    replay_start_size_: cfg.replay.map(fn(x) { x.1 }),
-    num_success_tests: 0,
-    num_discarded_tests: 0,
-    num_recent_discarded_tests: 0,
-    collects: Coverage::new(),
-    expected: true,
-    random_state: rs,
-    num_success_shrinks: 0,
-    num_try_shrinks: 0,
-    num_to_try_shrinks: 0,
-  }
-  ts(state)
-}
-
-pub fn run_test(st : State, prop : PropertyX) -> TotalResult {
-  if st.num_success_tests >= st.max_success_tests_ {
-    complete_test(st, prop)
-  } else if st.num_discarded_tests / st.max_discarded_ratio_ >=
-    @math.maximum(st.num_success_tests, st.max_success_tests_) {
-    give_up(st, prop)
+pub fn run_test(self : State, prop : PropertyX) -> TotalResult {
+  if self.finished_successfully() {
+    self.complete_test(prop)
+  } else if self.discarded_too_much() {
+    self.give_up(prop)
   } else {
-    run_single_test(st, prop)
+    self.run_single_test(prop)
   }
 }
 
 pub fn complete_test(self : State, _prop : PropertyX) -> TotalResult {
+  // TODO: Print coverage
   if self.expected.not() {
     println("*** Failed! Expected failure, but passed \{self.test_count()}")
+    NoneExpectedFail(
+      num_tests=self.num_success_tests,
+      num_discarded=self.num_discarded_tests,
+      coverage=self.collects,
+      output=self.static_writer.to_string(),
+    )
   } else {
     println("+++ Ok, passed! \{self.test_count()}")
+    Success(
+      num_tests=self.num_success_tests,
+      num_discarded=self.num_discarded_tests,
+      coverage=self.collects,
+      output=self.static_writer.to_string(),
+    )
   }
-  // TODO: Print coverage
-  Success(
-    num_tests=self.num_success_tests,
-    num_discarded=self.num_discarded_tests,
-    coverage=self.collects,
-    output=self.static_writer.to_string(),
-  )
 }
 
-pub fn give_up(self : State, prop : PropertyX) -> TotalResult {
+pub fn give_up(self : State, _prop : PropertyX) -> TotalResult {
   println("*** Gave up! Passed only \{self.test_count()} tests.")
   // TODO: Print coverage
   GaveUp(
@@ -158,6 +138,13 @@ pub fn run_single_test(self : State, prop : PropertyX) -> TotalResult {
     add_new_options({ ..st0, random_state: rnd2 })
   }
 
+  fn add_coverages(st0 : State) -> Unit {
+    match st0.collects.labels[res.labels] {
+      Some(v) => st0.collects.labels[res.labels] = v + 1
+      None => st0.collects.labels[res.labels] = 1
+    }
+  }
+
   fn add_new_options(st0 : State) {
     {
       ..st0,
@@ -172,6 +159,7 @@ pub fn run_single_test(self : State, prop : PropertyX) -> TotalResult {
   }
 
   let stc = self.clone()
+  add_coverages(stc)
   callback_post_test(self, res)
   match res {
     { ok: Some(true), .. } =>
@@ -273,4 +261,12 @@ pub fn local_min_found(
     st.num_try_shrinks,
     res,
   )
+}
+
+
+test "quick check" {
+  let prop_rev = fn(l : List[Int]) {
+    l.rev().rev() == l.rev()
+  }
+  quick_check_fn(prop_rev)
 }

@@ -29,7 +29,7 @@ pub fn check_one[T : Eq](config : Config, prop : Property[T]) -> TestResult[T] {
             },
             outcome: Fail(shrunk.1),
             label: distribution,
-            replay: Some({ rand_state: state }),
+            replay: Some({ rand_state: state, size: c }),
           }
       }
     }
@@ -94,7 +94,7 @@ pub fn check_verbose[T : Eq + Show](
             },
             outcome: Fail(shrunk.1),
             label: distribution,
-            replay: Some({ rand_state: state }),
+            replay: Some({ rand_state: state, size: c }),
           }
       } else {
         println("\{arb} passed")

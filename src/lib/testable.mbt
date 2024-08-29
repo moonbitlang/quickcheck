@@ -3,12 +3,12 @@ type! InternalError String
 enum Callback {
   PostTest(Kind, (State, SingleResult) -> Unit)
   PostFinalFailure(Kind, (State, SingleResult) -> Unit)
-}
+} derive(Show)
 
 enum Kind {
   CounterExample
   Nothing
-}
+} derive(Show)
 
 struct Rose[T] {
   val : T
@@ -56,7 +56,7 @@ struct SingleResult {
   test_case : @immut/array.T[String]
   error : Error
   callbacks : @immut/list.T[Callback]
-}
+} derive(Show)
 
 struct Prop {
   rose : Rose[SingleResult]
@@ -106,10 +106,10 @@ impl[P : Testable] Testable for Gen[P] with property(self) {
 
 impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
 
-impl[P : Testable, A : Arbitrary + Shrink] Testable for Arrow[A, P] with property(
+impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P] with property(
   self
 ) {
-  forall(self.0)
+  forall_show(self.0)
 }
 
 pub fn map_prop[P : Testable](prop : P, f : (Prop) -> Prop) -> PropertyX {
@@ -120,7 +120,7 @@ pub fn map_rose_result[P : Testable](
   prop : P,
   f : (Rose[SingleResult]) -> Rose[SingleResult]
 ) -> PropertyX {
-  map_prop(prop, fn { { rose: un_prop } => Prop::make(un_prop) })
+  map_prop(prop, fn { { rose: un_prop } => Prop::make(f(un_prop)) })
 }
 
 pub fn map_total_result[P : Testable](
@@ -133,8 +133,8 @@ pub fn map_total_result[P : Testable](
 impl Default for SingleResult with default() {
   {
     ok: None,
-    expect: false,
-    reason: "dunno",
+    expect: true,
+    reason: "unknown",
     abort: false,
     maybe_num_tests: None,
     maybe_discarded_ratio: None,
@@ -210,7 +210,7 @@ pub fn label[P : Testable](p : P, s : String) -> PropertyX {
 
 pub fn counterexample[P : Testable](s : String) -> (P) -> PropertyX {
   fn(p) {
-    let cb = callback(PostFinalFailure(CounterExample, fn(st, _res) {  }))
+    let cb = callback(PostFinalFailure(CounterExample, fn(_st, _res) {  }))
     map_total_result(
       cb(p),
       fn(res) { { ..res, test_case: res.test_case.push(s) } },

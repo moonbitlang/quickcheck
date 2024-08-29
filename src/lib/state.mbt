@@ -72,6 +72,30 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
+fn from_config(cfg : Args) -> State {
+  let rs = match cfg.replay {
+    Some((rng, _)) => rng
+    None => RandomState::new()
+  }
+  {
+    static_writer: Default::default(),
+    max_test_size_: cfg.max_size,
+    max_success_tests_: cfg.max_success,
+    max_discarded_ratio_: cfg.max_discard_ratio,
+    max_shrinks_: cfg.max_shrink,
+    replay_start_size_: cfg.replay.map(fn(x) { x.1 }),
+    num_success_tests: 0,
+    num_discarded_tests: 0,
+    num_recent_discarded_tests: 0,
+    collects: Coverage::new(),
+    expected: true,
+    random_state: rs,
+    num_success_shrinks: 0,
+    num_try_shrinks: 0,
+    num_to_try_shrinks: 0,
+  }
+}
+
 fn clone(self : State) -> State {
   { ..self }
 }
@@ -146,15 +170,33 @@ fn test_count(self : State) -> String {
   "tests: \{self.num_success_tests} ; discarded: \{self.num_discarded_tests}"
 }
 
+type ListCompare[T] List[T] derive(Eq)
+
+impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
+  match (self.0, other.0) {
+    (Cons(x, xs), Cons(y, ys)) => {
+      let res = T::compare(x, y)
+      if res == 0 {
+        Compare::compare(ListCompare(xs), ListCompare(ys))
+      } else {
+        res
+      }
+    }
+    (Cons(_), Nil) => 1
+    (Nil, Cons(_)) => -1
+    (Nil, Nil) => 0
+  }
+}
+
 // Labels / Classes / Tables are used to collect statistics of the test
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 struct Coverage {
-  labels : Map[Array[String], Int]
+  labels : @sorted_map.T[ListCompare[String], Int]
   classes : Map[String, Int]
   tables : Map[String, Map[String, Int]]
 }
 
 pub fn Coverage::new() -> Coverage {
-  { labels: Map::new(), classes: Map::new(), tables: Map::new() }
+  { labels: @sorted_map.new(), classes: Map::new(), tables: Map::new() }
 }
