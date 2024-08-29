@@ -266,7 +266,6 @@ pub fn local_min_found(
 }
 
 test "quick check" {
-  let s = Shrink::shrink(@immut/list.of([1]))
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
   quick_check_fn(prop_rev)
 }

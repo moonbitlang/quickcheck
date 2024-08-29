@@ -5,7 +5,7 @@ pub fn check_one[T : Eq](config : Config, prop : Property[T]) -> TestResult[T] {
   let mut test_ran = 0
   for c = 0; c < config.max_test; c = c + 1 {
     let arb = prop.generator.run(c, state)
-    distribution.classify(arb) |> ignore
+    distribution.classify_it(arb) |> ignore
     if (prop.filter)(arb).not() {
       continue
     } else {
@@ -68,7 +68,7 @@ pub fn check_verbose[T : Eq + Show](
   let mut test_ran = 0
   for c = 0; c < config.max_test; c = c + 1 {
     let arb = prop.generator.run(c, state)
-    distribution.classify(arb) |> ignore
+    distribution.classify_it(arb) |> ignore
     if (prop.filter)(arb).not() {
       println("\{arb} filtered")
       continue

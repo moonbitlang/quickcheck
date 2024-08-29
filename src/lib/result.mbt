@@ -42,7 +42,7 @@ pub fn LabelRecord::make[T](f : (T) -> String) -> LabelRecord[T] {
   { classify: f, map: Map::new() }
 }
 
-pub fn classify[T](self : LabelRecord[T], v : T) -> Unit {
+pub fn classify_it[T](self : LabelRecord[T], v : T) -> Unit {
   let label = (self.classify)(v)
   self.map[label] = self.map.get(label).map_or(1, fn(x) { x + 1 })
 }

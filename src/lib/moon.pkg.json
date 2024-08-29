@@ -8,6 +8,6 @@
       "CAIMEOX/quickcheck/lib/splitmix",
       "CAIMEOX/quickcheck/lib/lazy",
       "CAIMEOX/quickcheck/lib/utils",
-      "CAIMEOX/quickcheck/lib/successors"
+      "CAIMEOX/quickcheck/lib/rose"
     ]
 }
