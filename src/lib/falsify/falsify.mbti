@@ -5,15 +5,11 @@ alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
 
 // Values
-fn binary(UInt) -> @lazy.LazyList[UInt]
-
 fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
 
 fn combine_shrunk(Sample, SampleTree, SampleTree, @lazy.LazyList[SampleTree], @lazy.LazyList[SampleTree]) -> @lazy.LazyList[SampleTree]
 
 fn constant(UInt) -> SampleTree
-
-fn deltas(UInt) -> @lazy.LazyList[UInt]
 
 fn discard[T, E]() -> Property[T, E]
 
@@ -127,8 +123,6 @@ impl TestRun {
 pub typealias LazyList[T] = @lazy.LazyList[T]
 
 pub typealias List[T] = @list.T[T]
-
-pub typealias Map[K, V] = @moonbitlang/core/immut/hashmap.T[K, V]
 
 pub typealias RandomState = @splitmix.RandomState
 

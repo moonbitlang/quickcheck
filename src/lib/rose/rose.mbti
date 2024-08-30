@@ -1,0 +1,27 @@
+package CAIMEOX/quickcheck/lib/rose
+
+// Values
+fn new[T](T, Iter[Rose[T]]) -> Rose[T]
+
+fn pure[T](T) -> Rose[T]
+
+// Types and methods
+pub struct Rose {
+  pub val : T
+  pub branch : Iter[Rose[T]]
+}
+impl Rose {
+  apply[T](Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
+  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
+  fmap[T, U](Self[T], (T) -> U) -> Self[U]
+  join[T](Self[Self[T]]) -> Self[T]
+  to_string[T : Show](Self[T]) -> String
+}
+
+// Type aliases
+
+// Traits
+
+// Extension Methods
+impl Show for Rose
+

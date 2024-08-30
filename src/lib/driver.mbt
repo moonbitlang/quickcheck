@@ -166,7 +166,7 @@ pub fn run_single_test(self : State, prop : Property) -> TotalResult {
       next(
         complete_test,
         {
-          ..self,
+          ..stc,
           num_success_tests: self.num_success_tests + 1,
           num_recent_discarded_tests: 0,
         },

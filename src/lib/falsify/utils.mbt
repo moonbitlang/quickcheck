@@ -1,4 +1,4 @@
-pub fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
+fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
   match u {
     0 => Nil
     1 => Cons(1, @lazy.from_value(Nil))
@@ -13,7 +13,7 @@ pub fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
   }
 }
 
-pub fn binary(u : UInt) -> @lazy.LazyList[UInt] {
+fn binary(u : UInt) -> @lazy.LazyList[UInt] {
   fn go {
     _, @lazy.Nil => @lazy.Nil
     (n : UInt), Cons(x, xs) =>

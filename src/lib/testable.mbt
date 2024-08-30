@@ -250,6 +250,10 @@ pub fn terminate[P : Testable](p : P) -> Property {
   map_total_result(p, fn(res) { { ..res, abort: true } })
 }
 
+pub fn expect_fail[P : Testable](p: P) -> Property {
+  map_total_result(p, fn(res) { {..res, expect:false }})
+}
+
 pub fn with_max_successs[P : Testable](n : Int) -> (P) -> Property {
   fn(p) { map_total_result(p, fn(res) { { ..res, maybe_num_tests: Some(n) } }) }
 }

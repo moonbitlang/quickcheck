@@ -1,6 +1,7 @@
 package CAIMEOX/quickcheck/lib
 
 alias @CAIMEOX/quickcheck/lib/feat as @feat
+alias @CAIMEOX/quickcheck/lib/rose as @rose
 alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
 
@@ -9,23 +10,31 @@ fn alphabet() -> Gen[Char]
 
 fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
 
+fn callback[P : Testable](Callback) -> (P) -> Property
+
 fn char_range(Char, Char) -> Gen[Char]
 
-fn check_one[T : Eq](Config, Property[T]) -> TestResult[T]
+fn check_one[T : Eq](Config, Property_Old[T]) -> TestResult[T]
 
-fn check_verbose[T : Eq + Show](Config, Property[T]) -> TestResult[T]
+fn check_verbose[T : Eq + Show](Config, Property_Old[T]) -> TestResult[T]
 
-fn classify_it(Bool, ~cfg : Config = ..) -> Config
+fn classify[P : Testable](Bool, String) -> (P) -> Property
+
+fn collect[P : Testable, T : Show](T) -> (P) -> Property
 
 fn commutative[A, B : Eq]((A, A) -> B) -> (Tuple[A, A]) -> Bool
+
+fn counterexample[P : Testable](String) -> (P) -> Property
 
 fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
 
 fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
 
+fn expect_fail[P : Testable](P) -> Property
+
 fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
 
-fn failed() -> QRes
+fn failed() -> SingleResult
 
 fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
 
@@ -35,11 +44,19 @@ fn flatten_option[T](Gen[T]?) -> Gen[T?]
 
 fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
 
+fn forall[T : Testable, A : Arbitrary + Shrink]((A) -> T) -> Property
+
+fn forall_show[T : Testable, A : Arbitrary + Shrink + Show]((A) -> T) -> Property
+
 fn frequency[T](Array[Tuple[Int, Gen[T]]]) -> Gen[T]
 
 fn frequency_list[T](@list.T[Tuple[Int, T]]) -> Gen[T]
 
 fn idempotent[A : Eq]((A) -> A) -> (A) -> Bool
+
+fn if_fail[P : Testable](() -> Unit) -> (P) -> Property
+
+fn implies[P : Testable](Bool) -> (P) -> Property
 
 fn int_bound(Int) -> Gen[Int]
 
@@ -51,6 +68,8 @@ fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
 
 fn involutory[A : Eq]((A) -> A) -> (A) -> Bool
 
+fn label[P : Testable](String) -> (P) -> Property
+
 fn liftA2[A, B, C]((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
 
 fn liftA3[A, B, C, D]((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
@@ -61,19 +80,19 @@ fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 
 fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-fn lift_bool(Bool) -> QRes
-
-fn lift_option[T : Testable](T?) -> PropertyX
-
 fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> Tuple[Int, T]
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
 
-fn map_prop[P : Testable](P, (Prop) -> Prop) -> PropertyX
+fn local_min_found(State, SingleResult) -> Tuple[Int, Int, Int, SingleResult]
 
-fn map_rose_result[P : Testable](P, (Rose[QRes]) -> Rose[QRes]) -> PropertyX
+fn map_prop[P : Testable](P, (Prop) -> Prop) -> Property
 
-fn map_total_result[P : Testable](P, (QRes) -> QRes) -> PropertyX
+fn map_rose_result[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
+
+fn map_size[P : Testable]((Int) -> Int) -> (P) -> Property
+
+fn map_total_result[P : Testable](P, (SingleResult) -> SingleResult) -> Property
 
 fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
 
@@ -95,15 +114,23 @@ fn pure[T](T) -> Gen[T]
 
 fn pure_eq[T](T) -> Equivalence[T]
 
-fn pure_rose[T](T) -> Rose[T]
-
 fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[Tuple[T, U, V, W]]
 
 fn quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
 
+fn quick_check1[P : Testable](P) -> Unit
+
+fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit
+
 fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
 
-fn rejected() -> QRes
+fn quick_check_with[P : Testable](Args, P) -> Unit
+
+fn quick_check_with_result[P : Testable](Args, P) -> TotalResult
+
+fn rejected() -> SingleResult
+
+fn shrinking[P : Testable, T]((T) -> Iter[T], T, (T) -> P) -> Property
 
 fn sized[T]((Int) -> Gen[T]) -> Gen[T]
 
@@ -111,17 +138,27 @@ fn small_int() -> Gen[Int]
 
 fn sorted_list[T : Compare + Eq](Int, Gen[T]) -> Gen[@list.T[T]]
 
-fn succeed() -> QRes
+fn succeed() -> SingleResult
+
+fn terminate[P : Testable](P) -> Property
 
 fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[Tuple[T, U, V]]
 
 fn tuple[T, U](Gen[T], Gen[U]) -> Gen[Tuple[T, U]]
 
-fn with_law[T : Arbitrary + Shrink]((T) -> Bool) -> Property[T]
+fn with_discarded_ratio[P : Testable](Int) -> (P) -> Property
 
-fn with_law_fe[T : @feat.Enumerable]((T) -> Bool, Int) -> Property[T]
+fn with_law[T : Arbitrary + Shrink]((T) -> Bool) -> Property_Old[T]
+
+fn with_law_fe[T : @feat.Enumerable]((T) -> Bool, Int) -> Property_Old[T]
 
 fn with_max_shrink(Int, ~cfg : Config = ..) -> Config
+
+fn with_max_shrinks[P : Testable](Int) -> (P) -> Property
+
+fn with_max_size[P : Testable](Int) -> (P) -> Property
+
+fn with_max_successs[P : Testable](Int) -> (P) -> Property
 
 fn with_max_test(Int, ~cfg : Config = ..) -> Config
 
@@ -130,6 +167,12 @@ fn with_name(String, ~cfg : Config = ..) -> Config
 fn with_seed(UInt64, ~cfg : Config = ..) -> Config
 
 // Types and methods
+type Args
+
+type Arrow
+
+type ArrowError
+
 type Axiom
 impl Axiom {
   new[T]((T) -> Equivalence[T]) -> Self[T]
@@ -140,7 +183,17 @@ impl Axiom {
   to_property_parametric_eq[T, M, N : Eq](Self[T], (T, M) -> N) -> (Tuple[T, M]) -> Bool
 }
 
+type Callback
+impl Callback {
+  to_string(Self) -> String
+}
+
 type Config
+
+type Coverage
+impl Coverage {
+  new() -> Self
+}
 
 type Discard
 
@@ -179,11 +232,23 @@ impl Gen {
   such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
 }
 
+type InternalError
+
+type Kind
+impl Kind {
+  to_string(Self) -> String
+}
+
 type LabelRecord
 impl LabelRecord {
-  classify[T](Self[T], T) -> Unit
+  classify_it[T](Self[T], T) -> Unit
   make[T]((T) -> String) -> Self[T]
   to_string[T : Show](Self[T]) -> Array[String]
+}
+
+type ListCompare
+impl ListCompare {
+  op_equal[T : Eq](Self[T], Self[T]) -> Bool
 }
 
 type Nat
@@ -205,41 +270,42 @@ impl Outcome {
 type Printer
 impl Printer {
   format(Self, String) -> String
+  from_buffer(Buffer) -> Self
   ident(Self, ~size : Int = ..) -> Unit
   print(Self, String) -> Unit
+  to_string(Self) -> String
   unident(Self) -> Unit
 }
 
 type Prop
 impl Prop {
-  make(Rose[QRes]) -> Self
+  make(@rose.Rose[SingleResult]) -> Self
 }
 
 type Property
 impl Property {
+  make(Gen[Prop]) -> Self
+}
+
+type Property_Old
+impl Property_Old {
   with_classify[T](Self[T], (T) -> String) -> Self[T]
   with_filter[T](Self[T], (T) -> Bool) -> Self[T]
   with_generator[T](Self[T], Gen[T]) -> Self[T]
   with_shrinker[T](Self[T], (T) -> Iter[T]) -> Self[T]
 }
 
-type PropertyX
-impl PropertyX {
-  make(Gen[Prop]) -> Self
-}
-
-type QRes
-
 pub struct Replay {
   pub rand_state : @splitmix.RandomState
+  pub size : Int
+}
+impl Replay {
+  new(@splitmix.RandomState, Int) -> Self
 }
 
-type Rose
-impl Rose {
-  bind_rose[T, U](Self[T], (T) -> Self[U]) -> Self[U]
-  fmap_rose[T, U](Self[T], (T) -> U) -> Self[U]
-  join_rose[T](Self[Self[T]]) -> Self[T]
-  on_rose[T](Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
+type SingleResult
+impl SingleResult {
+  to_string(Self) -> String
 }
 
 type SingleTree
@@ -247,10 +313,25 @@ impl SingleTree {
   to_string(Self) -> String
 }
 
+type State
+impl State {
+  complete_test(Self, Property) -> TotalResult
+  found_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> Tuple[Int, Int, Int, SingleResult]
+  give_up(Self, Property) -> TotalResult
+  local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> Tuple[Int, Int, Int, SingleResult]
+  run_single_test(Self, Property) -> TotalResult
+  run_test(Self, Property) -> TotalResult
+}
+
 type TestResult
 impl TestResult {
   output[T : Show](Self[T], Logger) -> Unit
   to_string[T : Show](Self[T]) -> String
+}
+
+type TotalResult
+impl TotalResult {
+  success(Self) -> Bool
 }
 
 type Tree
@@ -271,17 +352,23 @@ pub trait Shrink {
 }
 
 pub trait Testable {
-  property(Self) -> PropertyX
+  property(Self) -> Property
 }
 
 // Extension Methods
 impl Shrink for Shrink
 
+impl Show for Callback
+
 impl Show for Equivalence
 
 impl Show for Forest
 
+impl Show for Kind
+
 impl Show for Nat
+
+impl Show for SingleResult
 
 impl Show for SingleTree
 

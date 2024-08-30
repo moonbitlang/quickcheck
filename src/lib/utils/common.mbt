@@ -1,15 +1,18 @@
 let global_counter : Ref[Int] = @ref.new(0)
 
+// Generate a fresh name
 pub fn fresh_name() -> String {
   let counter = global_counter.val
   @ref.update(global_counter, fn(x) { x + 1 })
   "test-" + counter.to_string()
 }
 
+// Curry a function of arity 3
 pub fn curry3[A, B, C, D](f : (A, B, C) -> D) -> (A) -> (B) -> (C) -> D {
   fn { a => fn { b => fn { c => f(a, b, c) } } }
 }
 
+// Curry a function of arity 4
 pub fn curry4[A, B, C, D, E](
   f : (A, B, C, D) -> E
 ) -> (A) -> (B) -> (C) -> (D) -> E {

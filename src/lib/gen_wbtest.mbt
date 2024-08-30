@@ -17,13 +17,12 @@ test "feat nat" {
 test "feat tree" {
   let fe : Gen[Tree[Nat]] = feat_random(11)
   inspect!(fe.sample(), content="Leaf(Zero)")
-  // feat_bounded((@feat.Enumerable::enumerate() : @feat.Enumerate[List[Nat]]), 1000)
   let x = (@feat.Enumerable::enumerate() : @feat.Enumerate[SingleTree]).en_index(
-    10,
+    196606, // Magic Number 196607 will cause crash of BigInt 
   )
   inspect!(
     x,
-    content="Node(false, Node(true, Node(false, Node(true, Node(false, Node(false, Node(false, Node(false, Node(true, Node(true, Node(false, Node(false, Node(true, Node(true, Node(true, Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(false, Node(false, Node(false, Node(false, Node(true, Node(false, Node(true, Node(true, Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(false, Node(false, Node(false, Node(true, Node(true, Node(true, Leaf(Succ(Succ(Zero))))))))))))))))))))))))))))))))))))))))))))))",
+    content="Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Leaf(true)))))))))))))))))",
   )
 }
 

@@ -96,6 +96,7 @@ fn from_config(cfg : Args) -> State {
   }
 }
 
+// Deep copy of the state
 fn clone(self : State) -> State {
   { ..self }
 }
@@ -192,6 +193,8 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 struct Coverage {
+  // Note that List[String] is not hashable, so we use ListCompare[String]
+  // and sorted_map instead
   labels : @sorted_map.T[ListCompare[String], Int]
   classes : Map[String, Int]
   tables : Map[String, Map[String, Int]]

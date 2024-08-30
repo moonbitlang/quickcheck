@@ -1,15 +1,13 @@
 pub typealias List[T] = @immut/list.T[T]
 
-pub typealias Map[K, V] = @immut/hashmap.T[K, V]
-
 struct TestRun {
   log : List[String]
   deterministic : Bool
-  labels : Map[String, @sorted_set.T[String]]
+  labels : @immut/hashmap.T[String, @sorted_set.T[String]]
 } derive(Show)
 
 pub fn init_test_run() -> TestRun {
-  { log: Nil, deterministic: true, labels: Map::new() }
+  { log: Nil, deterministic: true, labels: @immut/hashmap.T::new() }
 }
 
 enum TestResult[T, E] {
