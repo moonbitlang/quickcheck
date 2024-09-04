@@ -160,7 +160,7 @@ pub fn counterexample[P : Testable](s : String) -> (P) -> Property {
   }
 }
 
-pub fn implies[P : Testable](cond : Bool) -> (P) -> Property {
+pub fn filter[P : Testable](cond : Bool) -> (P) -> Property {
   fn(p) {
     match cond {
       true => p.property()

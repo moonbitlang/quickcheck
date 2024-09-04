@@ -139,7 +139,7 @@ pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
   }
 
   let stc = self.clone()
-  add_coverages(stc)
+  add_coverages(stc) // The failure should not be counted
   callback_post_test(self, res)
   match res {
     { ok: Some(true), .. } =>

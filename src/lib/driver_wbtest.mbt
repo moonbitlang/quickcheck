@@ -8,13 +8,16 @@ fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
   x + y + z == x + (y + z) // Actually does not hold for Double
 }
 
-test "prop reverse wrong" {
+fn prop_rev(l : List[Int]) -> Bool {
+  l.rev().rev() == l
+}
+
+test "prop reverse (fail)" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
   quick_check_fn!(prop_rev)
 }
 
 test "prop reverse" {
-  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l }
   quick_check_fn!(prop_rev)
 }
 
@@ -22,8 +25,26 @@ test "add comm double" {
   quick_check_fn!(add_comm_double)
 }
 
-test "add assoc double (fail)" {
+test "modify max tests" {
+  quick_check!(with_max_successs(1000)(Arrow(prop_rev)))
+}
+
+test "add assoc double (expect fail)" {
   quick_check!(Arrow(add_assoc_double) |> expect_fail)
+}
+
+test "non empty list (with filter)" {
+  let prop_is_non_empty = fn(l : List[Int]) { 
+    filter(l.is_empty().not())(l.is_empty().not())
+  }
+  quick_check!(Arrow(prop_is_non_empty))
+}
+
+test "reject all" {
+  let prop_reject = fn(_x: Int) {
+    filter(false)(true)
+  }
+  quick_check!(Arrow(prop_reject))
 }
 
 /// Natural Numbers

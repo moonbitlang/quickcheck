@@ -1,7 +1,7 @@
 typealias List[T] = @immut/list.T[T]
 
 struct Printer {
-  buf : Buffer
+  buf : Logger
   mut ident : Int
 }
 
@@ -9,10 +9,6 @@ impl Default for Printer with default() { { buf: Buffer::new(), ident: 0 } }
 
 pub fn Printer::from_buffer(buf : Buffer) -> Printer {
   { buf, ident: 0 }
-}
-
-pub fn Printer::to_string(self : Printer) -> String {
-  self.buf.to_string()
 }
 
 pub fn ident(self : Printer, ~size : Int = 2) -> Unit {
