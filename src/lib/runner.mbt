@@ -1,4 +1,4 @@
-pub fn check_one[T : Eq](config : Config, prop : Property_Old[T]) -> TestResult[T] {
+pub fn _check_one[T : Eq](config : Config, prop : Property_Old[T]) -> TestResult[T] {
   let state = RandomState::new(seed=config.seed)
   let distribution = LabelRecord::make(prop.classify)
   let law = prop.law
@@ -50,15 +50,15 @@ pub fn check_one[T : Eq](config : Config, prop : Property_Old[T]) -> TestResult[
   }
 }
 
-pub fn quick_check[T : Arbitrary + Shrink + Eq](
+pub fn _quick_check[T : Arbitrary + Shrink + Eq](
   law : (T) -> Bool
 ) -> TestResult[T] {
   let prop = with_law(law)
   let config : Config = Default::default()
-  check_one(config, prop)
+  _check_one(config, prop)
 }
 
-pub fn check_verbose[T : Eq + Show](
+pub fn _check_verbose[T : Eq + Show](
   config : Config,
   prop : Property_Old[T]
 ) -> TestResult[T] {
@@ -117,28 +117,28 @@ pub fn check_verbose[T : Eq + Show](
   }
 }
 
-pub fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show](
+pub fn _quick_check_verbose[T : Arbitrary + Eq + Shrink + Show](
   law : (T) -> Bool
 ) -> TestResult[T] {
   let prop = with_law(law)
   let config : Config = Default::default()
-  check_one(config, prop)
+  _check_one(config, prop)
 }
 
 test "simple shrink" {
-  inspect!(quick_check(fn(x : Int) { x + 1 == x + 2 }).outcome, content="FAIL")
+  inspect!(_quick_check(fn(x : Int) { x + 1 == x + 2 }).outcome, content="FAIL")
 }
 
 test "simple pass" {
   inspect!(
-    quick_check(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).outcome,
+    _quick_check(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).outcome,
     content="OK",
   )
 }
 
 test "with classify" {
   inspect!(
-    check_one(
+    _check_one(
       with_name("reverse . reverse == id"),
       with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_classify(
         fn(x) {
@@ -155,7 +155,7 @@ test "with classify" {
 
 test "all rejected" {
   inspect!(
-    check_one(
+    _check_one(
       with_max_test(10000),
       with_law(fn(x) { x == 1 }).with_filter(fn(_x) { false }),
     ).outcome,
@@ -165,7 +165,7 @@ test "all rejected" {
 
 test "with filter" {
   inspect!(
-    check_one(
+    _check_one(
       { ..Default::default(), max_test: 1000 },
       with_law(fn(x : @immut/list.T[Int]) { x.rev().rev() == x }).with_filter(
         fn(x) {

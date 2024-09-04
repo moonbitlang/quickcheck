@@ -1,3 +1,4 @@
+/// Configuration for initializing a test runner.
 struct Args {
   replay : (RandomState, Int)?
   max_success : Int
@@ -16,13 +17,7 @@ impl Default for Args with default() {
   }
 }
 
-enum TotalResult {
-  Success(
-    ~num_tests : Int,
-    ~num_discarded : Int,
-    ~coverage : Coverage,
-    ~output : String
-  )
+type! TestError {
   Fail(
     ~num_tests : Int,
     ~num_discarded : Int,
@@ -37,13 +32,22 @@ enum TotalResult {
     ~failing_labels : Array[String],
     ~failing_classes : @sorted_set.T[String]
   )
+  GaveUp(
+    ~num_tests : Int,
+    ~num_discarded : Int,
+    ~coverage : Coverage,
+    ~output : String
+  )
   NoneExpectedFail(
     ~num_tests : Int,
     ~num_discarded : Int,
     ~coverage : Coverage,
     ~output : String
   )
-  GaveUp(
+}
+
+enum TestSuccess {
+  Success(
     ~num_tests : Int,
     ~num_discarded : Int,
     ~coverage : Coverage,
@@ -51,91 +55,99 @@ enum TotalResult {
   )
 }
 
-pub fn success(self : TotalResult) -> Bool {
-  match self {
-    Success(_) => true
-    _ => false
-  }
-}
-
-pub fn quick_check1[P : Testable](prop : P) -> Unit {
-  quick_check_with(Default::default(), prop)
+pub fn quick_check[P : Testable](prop : P) -> Unit!Failure {
+  quick_check_with!(Default::default(), prop)
 }
 
 pub fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable](
   f : (A) -> B
-) -> Unit {
-  quick_check1(Arrow(f))
+) -> Unit!Failure {
+  quick_check!(Arrow(f))
 }
 
-pub fn quick_check_with[P : Testable](cfg : Args, prop : P) -> Unit {
-  quick_check_with_result(cfg, prop) |> ignore
+pub fn quick_check_with[P : Testable](cfg : Args, prop : P) -> Unit!Failure {
+  fn f(s : String) -> _!Failure {
+    fail!("\n\{s}")
+  }
+
+  try {
+    match quick_check_with_result!(cfg, prop) {
+      Success(~output, ..) => println(output)
+    }
+  } catch {
+    // TODO: Print coverage
+    GaveUp(~output, ..) => f!(output)
+    Fail(~output, ~failing_case, ..) =>
+      f!(output + "\n" + failing_case.join("\n"))
+    NoneExpectedFail(~output, ..) => f!(output)
+  }
 }
 
 pub fn quick_check_with_result[P : Testable](
   cfg : Args,
   prop : P
-) -> TotalResult {
-  run_test(from_config(cfg), prop.property())
+) -> TestSuccess!TestError {
+  run_test!(from_config(cfg), prop.property())
 }
 
-pub fn run_test(self : State, prop : Property) -> TotalResult {
+pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
   if self.finished_successfully() {
-    self.complete_test(prop)
+    self.complete_test!(prop)
   } else if self.discarded_too_much() {
-    self.give_up(prop)
+    self.give_up!(prop)
   } else {
-    self.run_single_test(prop)
+    self.run_single_test!(prop)
   }
 }
 
-pub fn complete_test(self : State, _prop : Property) -> TotalResult {
-  // TODO: Print coverage
+pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
   if self.expected.not() {
-    println("*** Failed! Expected failure, but passed \{self.test_count()}")
-    NoneExpectedFail(
+    raise NoneExpectedFail(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
-      output=self.static_writer.to_string(),
+      output="*** \{self.counts()} Failed! Expected failure, but passed!",
     )
   } else {
-    println("+++ Ok, passed! \{self.test_count()}")
     Success(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
-      output=self.static_writer.to_string(),
+      output="+++ \{self.counts()} Ok, passed!",
     )
   }
 }
 
-pub fn give_up(self : State, _prop : Property) -> TotalResult {
-  println("*** Gave up! Passed only \{self.test_count()} tests.")
-  // TODO: Print coverage
-  GaveUp(
+pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
+  raise TestError::GaveUp(
     num_tests=self.num_success_tests,
     num_discarded=self.num_discarded_tests,
     coverage=self.collects,
-    output=self.static_writer.to_string(),
+    output="*** \{self.counts()} Gave up! Passed only \{self.num_success_tests} tests.",
   )
 }
 
-pub fn run_single_test(self : State, prop : Property) -> TotalResult {
+pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let size = self.compute_size()
-  let { val: res, branch: ts } = prop.property.run(size, rnd1).rose
-  fn next(end_with, nst : State, p : Property) {
+  let { val: res, branch: ts } = prop.property.run(size, rnd1)
+  fn next(
+    end_with : (State, Property) -> TestSuccess!TestError,
+    nst : State,
+    p : Property
+  ) -> _!TestError {
+    update_state(nst)
     if res.abort {
-      end_with(update_state(nst), p)
+      end_with!(nst, p)
     } else {
-      run_test(update_state(nst), p)
+      run_test!(nst, p)
     }
   }
 
   fn update_state(st0) {
-    add_new_options({ ..st0, random_state: rnd2 })
+    self.random_state = rnd2
+    update_state_from_res(st0, res)
   }
 
   fn add_coverages(st0 : State) -> Unit {
@@ -145,25 +157,12 @@ pub fn run_single_test(self : State, prop : Property) -> TotalResult {
     }
   }
 
-  fn add_new_options(st0 : State) {
-    {
-      ..st0,
-      max_success_tests_: res.maybe_num_tests.or(st0.max_success_tests_),
-      max_discarded_ratio_: res.maybe_discarded_ratio.or(
-        st0.max_discarded_ratio_,
-      ),
-      max_test_size_: res.maybe_max_test_size.or(st0.max_test_size_),
-      max_shrinks_: res.maybe_max_shrinks.or(st0.max_shrinks_),
-      expected: res.expect,
-    }
-  }
-
   let stc = self.clone()
   add_coverages(stc)
   callback_post_test(self, res)
   match res {
     { ok: Some(true), .. } =>
-      next(
+      next!(
         complete_test,
         {
           ..stc,
@@ -172,37 +171,9 @@ pub fn run_single_test(self : State, prop : Property) -> TotalResult {
         },
         prop,
       )
-    { ok: Some(false), .. } => {
-      let (n, tf, lf, res) = self.found_failure(res, ts)
-      println((n, res.test_case))
-      let output = self.static_writer.to_string()
-      match res.expect.not() {
-        true =>
-          Success(
-            num_tests=stc.num_success_tests + 1,
-            num_discarded=stc.num_discarded_tests,
-            coverage=stc.collects,
-            ~output,
-          )
-        false =>
-          Fail(
-            error=res.error,
-            replay_info=Replay::new(stc.random_state, size),
-            num_tests=stc.num_success_tests + 1,
-            num_discarded=stc.num_discarded_tests,
-            num_shrinks=n,
-            num_shrink_tries=tf,
-            num_shrink_final=lf,
-            reason=res.reason,
-            ~output,
-            failing_case=res.test_case.to_array(),
-            failing_labels=res.labels.to_array(),
-            failing_classes=@sorted_set.new(), // TODO: Add classes
-          )
-      }
-    }
+    { ok: Some(false), .. } => self.find_failure!(res, ts)
     { ok: None, .. } =>
-      next(
+      next!(
         give_up,
         {
           ..self,
@@ -214,12 +185,36 @@ pub fn run_single_test(self : State, prop : Property) -> TotalResult {
   }
 }
 
-pub fn found_failure(
+pub fn find_failure(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]]
-) -> (Int, Int, Int, SingleResult) {
-  local_min({ ..self, num_try_shrinks: 0 }, res, ts)
+) -> TestSuccess!TestError {
+  let (n, tf, lf, ce) = local_min({ ..self, num_try_shrinks: 0 }, res, ts)
+  match res.expect {
+    true =>
+      raise TestError::Fail(
+        error=res.error,
+        replay_info=Replay::new(self.random_state, self.compute_size()),
+        num_tests=self.num_success_tests + 1,
+        num_discarded=self.num_discarded_tests,
+        num_shrinks=n,
+        num_shrink_tries=tf,
+        num_shrink_final=lf,
+        reason=res.reason,
+        output="*** \{self.counts()} Failed! \{res.reason}",
+        failing_case=ce.test_case.to_array(),
+        failing_labels=ce.labels.to_array(),
+        failing_classes=@sorted_set.new(), // TODO: Add classes
+      )
+    false =>
+      Success(
+        num_tests=self.num_success_tests + 1,
+        num_discarded=self.num_discarded_tests,
+        coverage=self.collects,
+        output="+++ \{self.counts()} Success! Failed as expected.",
+      )
+  }
 }
 
 pub fn local_min(
@@ -267,5 +262,10 @@ pub fn local_min_found(
 
 test "quick check" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
-  quick_check_fn(prop_rev)
+  quick_check_fn!(prop_rev)
+}
+
+test "success" {
+  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l }
+  quick_check_fn!(prop_rev)
 }

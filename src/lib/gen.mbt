@@ -403,7 +403,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
   if bound == 0 {
     pure(0)
   } else {
-    Gen::new(fn(_i, rs) { BigInt::from_int64(rs.next_int64()) % bound })
+    Gen::new(fn(_i, rs) { BigInt::from_int64(rs.next_int64().abs()) % bound })
   }
 }
 

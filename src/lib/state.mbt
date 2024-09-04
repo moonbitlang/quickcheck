@@ -29,24 +29,26 @@ pub fn format(self : Printer, str : String) -> String {
   s + str
 }
 
-pub fn print(self : Printer, str : String) -> Unit {
+pub fn write_string(self : Printer, str : String) -> Unit {
   self.buf.write_string(self.format(str) + "\n")
 }
 
 /// Internal State of Compiler
 struct State {
+  // Name of the test
+  name : String
   // Printer that collects output of the test
   static_writer : Printer
   // Top bound of test size (immutable, the argument of the Gen)
-  max_test_size_ : Int
+  mut max_test_size_ : Int
   // Maximum number of successful tests (immutable)
-  max_success_tests_ : Int
+  mut max_success_tests_ : Int
   // Maximum ratio of discarded tests (immutable)
   // For instance if max_success_tests is 100 and max_discarded_ratio is 0.1
   // then the maximum number of discarded tests is 10
-  max_discarded_ratio_ : Int
+  mut max_discarded_ratio_ : Int
   // Maximum number of shrinks (immutable)
-  max_shrinks_ : Int
+  mut max_shrinks_ : Int
   // Size of the test to start replaying from (immutable, the argument of the Gen)
   replay_start_size_ : Int?
 
@@ -72,12 +74,17 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
+fn format_name(self: State, ~loc: ArgsLoc = _) -> String {
+  "[\{self.name}] \{loc}"
+}
+
 fn from_config(cfg : Args) -> State {
   let rs = match cfg.replay {
     Some((rng, _)) => rng
     None => RandomState::new()
   }
   {
+    name: @utils.fresh_name(),
     static_writer: Default::default(),
     max_test_size_: cfg.max_size,
     max_success_tests_: cfg.max_success,
@@ -136,6 +143,16 @@ fn compute_size(self : State) -> Int {
   }
 }
 
+fn update_state_from_res(self : State, result : SingleResult) -> Unit {
+    self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
+    self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
+      self.max_discarded_ratio_,
+    )
+    self.max_test_size_ = result.maybe_max_test_size.or(self.max_test_size_)
+    self.max_shrinks_ = result.maybe_max_shrinks.or(self.max_shrinks_)
+    self.expected = result.expect
+  }
+
 fn finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
 }
@@ -167,10 +184,11 @@ fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
   )
 }
 
-fn test_count(self : State) -> String {
-  "tests: \{self.num_success_tests} ; discarded: \{self.num_discarded_tests}"
+fn counts(self: State) -> String {
+  let succs = @chalk.chalk().color(@chalk.Red).render(self.num_success_tests)
+  let disc = @chalk.chalk().color(@chalk.White).render(self.num_discarded_tests)
+  "[\{succs}/\{disc}/\{self.max_success_tests_}]"
 }
-
 type ListCompare[T] List[T] derive(Eq)
 
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {

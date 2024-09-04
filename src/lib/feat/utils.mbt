@@ -1,7 +1,7 @@
 pub typealias LazyList[T] = @lazy.LazyList[T]
 
 fn sum(a : Array[BigInt]) -> BigInt {
-  a.fold_left(BigInt::op_add, init=0)
+  a.fold(BigInt::op_add, init=0)
 }
 
 fn convolution[A, B](

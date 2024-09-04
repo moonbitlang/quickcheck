@@ -75,28 +75,28 @@ struct TestResult[T] {
 pub fn to_string[T : Show](self : TestResult[T]) -> String {
   let pc : Printer = Default::default()
   let name = self.name
-  pc.print("[\{name}]: " + self.outcome.to_string_colored())
+  pc.write_string("[\{name}]: " + self.outcome.to_string_colored())
   pc.ident()
   match self.outcome {
     Fail(x) => {
       let ce = @chalk.chalk().color(@chalk.Red).render(x)
       let seed = self.replay.unwrap().rand_state
       let shrink_count = self.shrink_count
-      pc.print(
+      pc.write_string(
         "There exist \{ce} (State=\{seed}) such that condition is false (after \{shrink_count} shrink(s))",
       )
     }
     Success => {
       let test_count = self.success_count
       let total_count = self.total_test_count
-      pc.print("\{test_count}/\{total_count} tests completed")
+      pc.write_string("\{test_count}/\{total_count} tests completed")
     }
-    GaveUp => pc.print("Gave up: no tests completed")
+    GaveUp => pc.write_string("Gave up: no tests completed")
   }
   pc.ident()
-  pc.print("Distribution: ")
+  pc.write_string("Distribution: ")
   pc.ident()
-  self.label.to_string().map(fn(x) { pc.print(x) }) |> ignore
+  self.label.to_string().map(fn(x) { pc.write_string(x) }) |> ignore
   pc.unident()
   pc.buf.to_string()
 }

@@ -13,8 +13,8 @@ fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
 }
 
 test {
-  inspect!(quick_check(add_comm_double).outcome, content="OK")
-  inspect!(quick_check(add_assoc_double).outcome, content="FAIL")
+  inspect!(_quick_check(add_comm_double).outcome, content="OK")
+  inspect!(_quick_check(add_assoc_double).outcome, content="FAIL")
 }
 
 /// Custom Data Types (especially recursive) using Functional Enumeration
@@ -58,11 +58,11 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 
 test "Natural Number" {
   inspect!(
-    check_one(Default::default(), with_law(add_comm_nat)).outcome,
+    _check_one(Default::default(), with_law(add_comm_nat)).outcome,
     content="OK",
   )
   inspect!(
-    check_one(Default::default(), with_law(add_comm_nat)).outcome,
+    _check_one(Default::default(), with_law(add_comm_nat)).outcome,
     content="OK",
   )
 }
@@ -110,7 +110,7 @@ test "Tree" {
   let tg : Gen[Tree[Nat]] = Gen::feat_random(10)
   inspect!(
     tg.samples(),
-    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Leaf(Succ(Zero)), Branch({forest: @list.of([Leaf(Zero)])}), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Zero))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Leaf(Zero)])}), Leaf(Succ(Succ(Zero)))]",
+    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.of([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.of([Branch({forest: @list.of([])})])})]",
   )
 }
 
@@ -119,7 +119,7 @@ test "Tree" {
 test "int ranged" {
   /// With default generator
   inspect!(
-    check_one(
+    _check_one(
       Default::default(),
       with_law(
         fn(xy : (Int, Int)) {
@@ -132,7 +132,7 @@ test "int ranged" {
   )
   /// With custom generator
   inspect!(
-    check_one(
+    _check_one(
       Default::default(),
       with_law(
         fn(xy : (Int, Int)) {

@@ -63,7 +63,7 @@ pub fn app[T, U](f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
 }
 
 pub fn consts[T](ls : @immut/list.T[Enumerate[T]]) -> Enumerate[T] {
-  pay(fn() { ls.fold_left(union, init=empty()) })
+  pay(fn() { ls.fold(union, init=empty()) })
 }
 
 pub fn unary[T : Enumerable, U](f : (T) -> U) -> Enumerate[U] {

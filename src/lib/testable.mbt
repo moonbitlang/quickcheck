@@ -2,7 +2,9 @@ type! InternalError String
 
 type Arrow[A, B] (A) -> B
 
-type ArrowError[A, B] (A) -> B!Error
+typealias RoseRes = Rose[SingleResult]
+
+typealias TestableArrow[P] = (P) -> Property
 
 typealias CallbackFn = (State, SingleResult) -> Unit
 
@@ -39,20 +41,16 @@ struct SingleResult {
   callbacks : List[Callback]
 } derive(Show)
 
-struct Prop {
-  rose : Rose[SingleResult]
-}
-
-pub fn Prop::make(rose : Rose[SingleResult]) -> Prop {
-  { rose, }
-}
-
 struct Property {
-  property : Gen[Prop]
+  property : Gen[RoseRes]
 }
 
-pub fn Property::make(property : Gen[Prop]) -> Property {
+pub fn Property::make(property : Gen[RoseRes]) -> Property {
   { property, }
+}
+
+pub fn Property::run_prop(self : Property) -> Gen[RoseRes] {
+  self.property
 }
 
 pub trait Testable {
@@ -71,10 +69,10 @@ impl Testable for Discard with property(_self) {
 
 impl Testable for Unit with property(_self) { succeed() |> Testable::property }
 
-impl Testable for Prop with property(self) { { property: pure(self) } }
+impl Testable for RoseRes with property(self) { { property: pure(self) } }
 
 impl Testable for SingleResult with property(self) {
-  { property: pure(Prop::make(@rose.pure(self))) }
+  { property: pure(@rose.pure(self)) }
 }
 
 impl Testable for Bool with property(self) {
@@ -93,7 +91,7 @@ impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P] with 
   forall_show(self.0)
 }
 
-pub fn map_prop[P : Testable](prop : P, f : (Prop) -> Prop) -> Property {
+pub fn map_prop[P : Testable](prop : P, f : (RoseRes) -> RoseRes) -> Property {
   prop.property().property.fmap(f) |> Property::make
 }
 
@@ -101,7 +99,7 @@ pub fn map_rose_result[P : Testable](
   prop : P,
   f : (Rose[SingleResult]) -> Rose[SingleResult]
 ) -> Property {
-  map_prop(prop, fn { { rose: un_prop } => Prop::make(f(un_prop)) })
+  map_prop(prop, f)
 }
 
 pub fn map_total_result[P : Testable](
@@ -145,7 +143,7 @@ pub fn rejected() -> SingleResult {
 fn lift_bool(b : Bool) -> SingleResult {
   match b {
     true => succeed()
-    false => { ..failed(), reason: "Falsified" }
+    false => { ..failed(), reason: "Falsified." }
   }
 }
 
@@ -165,13 +163,11 @@ pub fn shrinking[P : Testable, T](
   x0 : T,
   pf : (T) -> P
 ) -> Property {
-  fn props(x) -> Rose[Gen[Prop]] {
+  fn props(x) -> Rose[Gen[RoseRes]] {
     @rose.new(pf(x).property().property, shrinker(x).map(props))
   }
 
-  let x = promote_rose(props(x0))
-  x.fmap(fn(x) { x.fmap(fn { { rose } => rose }).join() |> Prop::make })
-  |> Property::make
+  promote_rose(props(x0)).fmap(fn(x) { x.join() }) |> Property::make
 }
 
 pub fn callback[P : Testable](cb : Callback) -> (P) -> Property {
@@ -250,8 +246,8 @@ pub fn terminate[P : Testable](p : P) -> Property {
   map_total_result(p, fn(res) { { ..res, abort: true } })
 }
 
-pub fn expect_fail[P : Testable](p: P) -> Property {
-  map_total_result(p, fn(res) { {..res, expect:false }})
+pub fn expect_fail[P : Testable](p : P) -> Property {
+  map_total_result(p, fn(res) { { ..res, expect: false } })
 }
 
 pub fn with_max_successs[P : Testable](n : Int) -> (P) -> Property {

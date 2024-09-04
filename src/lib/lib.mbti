@@ -6,6 +6,14 @@ alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
 
 // Values
+fn _check_one[T : Eq](Config, Property_Old[T]) -> TestResult[T]
+
+fn _check_verbose[T : Eq + Show](Config, Property_Old[T]) -> TestResult[T]
+
+fn _quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
+
+fn _quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
+
 fn alphabet() -> Gen[Char]
 
 fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
@@ -13,10 +21,6 @@ fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
 fn callback[P : Testable](Callback) -> (P) -> Property
 
 fn char_range(Char, Char) -> Gen[Char]
-
-fn check_one[T : Eq](Config, Property_Old[T]) -> TestResult[T]
-
-fn check_verbose[T : Eq + Show](Config, Property_Old[T]) -> TestResult[T]
 
 fn classify[P : Testable](Bool, String) -> (P) -> Property
 
@@ -86,7 +90,7 @@ fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn local_min_found(State, SingleResult) -> Tuple[Int, Int, Int, SingleResult]
 
-fn map_prop[P : Testable](P, (Prop) -> Prop) -> Property
+fn map_prop[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
 
 fn map_rose_result[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
 
@@ -116,17 +120,13 @@ fn pure_eq[T](T) -> Equivalence[T]
 
 fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[Tuple[T, U, V, W]]
 
-fn quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
+fn quick_check[P : Testable](P) -> Unit!Failure
 
-fn quick_check1[P : Testable](P) -> Unit
+fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
 
-fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit
+fn quick_check_with[P : Testable](Args, P) -> Unit!Failure
 
-fn quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
-
-fn quick_check_with[P : Testable](Args, P) -> Unit
-
-fn quick_check_with_result[P : Testable](Args, P) -> TotalResult
+fn quick_check_with_result[P : Testable](Args, P) -> TestSuccess!TestError
 
 fn rejected() -> SingleResult
 
@@ -170,8 +170,6 @@ fn with_seed(UInt64, ~cfg : Config = ..) -> Config
 type Args
 
 type Arrow
-
-type ArrowError
 
 type Axiom
 impl Axiom {
@@ -272,19 +270,15 @@ impl Printer {
   format(Self, String) -> String
   from_buffer(Buffer) -> Self
   ident(Self, ~size : Int = ..) -> Unit
-  print(Self, String) -> Unit
   to_string(Self) -> String
   unident(Self) -> Unit
-}
-
-type Prop
-impl Prop {
-  make(@rose.Rose[SingleResult]) -> Self
+  write_string(Self, String) -> Unit
 }
 
 type Property
 impl Property {
-  make(Gen[Prop]) -> Self
+  make(Gen[@rose.Rose[SingleResult]]) -> Self
+  run_prop(Self) -> Gen[@rose.Rose[SingleResult]]
 }
 
 type Property_Old
@@ -315,13 +309,15 @@ impl SingleTree {
 
 type State
 impl State {
-  complete_test(Self, Property) -> TotalResult
-  found_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> Tuple[Int, Int, Int, SingleResult]
-  give_up(Self, Property) -> TotalResult
+  complete_test(Self, Property) -> TestSuccess!TestError
+  find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
+  give_up(Self, Property) -> TestSuccess!TestError
   local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> Tuple[Int, Int, Int, SingleResult]
-  run_single_test(Self, Property) -> TotalResult
-  run_test(Self, Property) -> TotalResult
+  run_single_test(Self, Property) -> TestSuccess!TestError
+  run_test(Self, Property) -> TestSuccess!TestError
 }
+
+type TestError
 
 type TestResult
 impl TestResult {
@@ -329,10 +325,7 @@ impl TestResult {
   to_string[T : Show](Self[T]) -> String
 }
 
-type TotalResult
-impl TotalResult {
-  success(Self) -> Bool
-}
+type TestSuccess
 
 type Tree
 impl Tree {

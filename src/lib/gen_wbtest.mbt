@@ -2,15 +2,15 @@ test "feat int" {
   let fe : Gen[Int] = feat_random(10)
   inspect!(
     fe.samples(size=50),
-    content="[-3, 2, -6, 0, -3, -2, -4, 6, -1, -4, -4, 4, -2, -2, -5, -3, 2, 0, 1, -1, 1, -4, 1, -1, 2, 1, 0, 2, 1, -2, 0, -2, -1, 2, 3, 0, -2, -2, 1, -1, -1, -4, -1, 0, -2, -4, -2, 0, -2, -1]",
+    content="[-3, 2, 3, -1, 2, -1, -4, 5, 0, 2, -4, 2, -2, -2, -5, 2, -3, 0, 1, 0, 1, -4, -2, -1, 2, -2, -2, -4, 0, 1, 0, 3, 0, 2, 3, 0, -2, -2, 1, -1, -1, -4, -1, 0, -2, -4, 0, 0, -2, -1]",
   )
 }
 
 test "feat nat" {
-  let fe : Gen[Nat] = feat_random(20)
+  let fe : Gen[Nat] = feat_random(21)
   inspect!(
     fe.samples(size=20),
-    content="[Succ(Succ(Succ(Zero))), Zero, Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Zero))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))))), Succ(Zero), Zero, Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Zero, Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))), Succ(Zero), Succ(Succ(Zero))]",
+    content="[Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))), Zero, Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))))), Succ(Succ(Zero)), Succ(Succ(Zero)), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Zero))))]",
   )
 }
 

@@ -80,7 +80,7 @@ test {
   )
   let prop1 = to_property_parametric(a, flip(enqueue), Eq::op_equal)
   inspect!(
-    check_verbose(Default::default(), with_law(prop1)).outcome,
+    _check_one(Default::default(), with_law(prop1)).outcome,
     content="OK",
   )
 }

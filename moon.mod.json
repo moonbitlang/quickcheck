@@ -11,6 +11,6 @@
     "property-based-testing",
     "quickcheck"
   ],
-  "source": "src",
-  "description": "Automatic testing of MoonBit programs"
+  "description": "Automatic testing of MoonBit programs",
+  "source": "src"
 }
