@@ -63,3 +63,7 @@ pub fn const[T, U](t : T) -> (U) -> T {
 pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
   fn { (x, y) => f(x, y) }
 }
+
+pub fn flip[M, N, Z](f : (M, N) -> Z) -> (N, M) -> Z {
+  fn(x, y) { f(y, x) }
+}

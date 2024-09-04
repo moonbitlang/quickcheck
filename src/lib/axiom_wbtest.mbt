@@ -70,17 +70,4 @@ impl Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
   { lhs, rhs }
 }
 
-fn flip[M, N, Z](f : (M, N) -> Z) -> (N, M) -> Z {
-  fn(x, y) { f(y, x) }
-}
 
-test {
-  let a = Axiom::new(
-    fn(x) { { lhs: x, rhs: enqueue(empty_queue(), x).front() } },
-  )
-  let prop1 = to_property_parametric(a, flip(enqueue), Eq::op_equal)
-  inspect!(
-    _check_one(Default::default(), with_law(prop1)).outcome,
-    content="OK",
-  )
-}

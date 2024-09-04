@@ -1,3 +1,5 @@
+typealias List[T] = @immut/list.T[T]
+
 struct Printer {
   buf : Buffer
   mut ident : Int
@@ -74,11 +76,11 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
-fn format_name(self: State, ~loc: ArgsLoc = _) -> String {
+fn format_name(self : State, ~loc : ArgsLoc = _) -> String {
   "[\{self.name}] \{loc}"
 }
 
-fn from_config(cfg : Args) -> State {
+fn from_config(cfg : Config) -> State {
   let rs = match cfg.replay {
     Some((rng, _)) => rng
     None => RandomState::new()
@@ -144,14 +146,14 @@ fn compute_size(self : State) -> Int {
 }
 
 fn update_state_from_res(self : State, result : SingleResult) -> Unit {
-    self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
-    self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
-      self.max_discarded_ratio_,
-    )
-    self.max_test_size_ = result.maybe_max_test_size.or(self.max_test_size_)
-    self.max_shrinks_ = result.maybe_max_shrinks.or(self.max_shrinks_)
-    self.expected = result.expect
-  }
+  self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
+  self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
+    self.max_discarded_ratio_,
+  )
+  self.max_test_size_ = result.maybe_max_test_size.or(self.max_test_size_)
+  self.max_shrinks_ = result.maybe_max_shrinks.or(self.max_shrinks_)
+  self.expected = result.expect
+}
 
 fn finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
@@ -184,11 +186,10 @@ fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
   )
 }
 
-fn counts(self: State) -> String {
-  let succs = @chalk.chalk().color(@chalk.Red).render(self.num_success_tests)
-  let disc = @chalk.chalk().color(@chalk.White).render(self.num_discarded_tests)
-  "[\{succs}/\{disc}/\{self.max_success_tests_}]"
+fn counts(self : State) -> String {
+  "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
+
 type ListCompare[T] List[T] derive(Eq)
 
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {

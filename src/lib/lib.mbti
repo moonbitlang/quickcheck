@@ -6,14 +6,6 @@ alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
 
 // Values
-fn _check_one[T : Eq](Config, Property_Old[T]) -> TestResult[T]
-
-fn _check_verbose[T : Eq + Show](Config, Property_Old[T]) -> TestResult[T]
-
-fn _quick_check[T : Arbitrary + Shrink + Eq]((T) -> Bool) -> TestResult[T]
-
-fn _quick_check_verbose[T : Arbitrary + Eq + Shrink + Show]((T) -> Bool) -> TestResult[T]
-
 fn alphabet() -> Gen[Char]
 
 fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
@@ -124,9 +116,9 @@ fn quick_check[P : Testable](P) -> Unit!Failure
 
 fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
 
-fn quick_check_with[P : Testable](Args, P) -> Unit!Failure
+fn quick_check_with[P : Testable](Config, P) -> Unit!Failure
 
-fn quick_check_with_result[P : Testable](Args, P) -> TestSuccess!TestError
+fn quick_check_with_result[P : Testable](Config, P) -> TestSuccess!TestError
 
 fn rejected() -> SingleResult
 
@@ -148,27 +140,13 @@ fn tuple[T, U](Gen[T], Gen[U]) -> Gen[Tuple[T, U]]
 
 fn with_discarded_ratio[P : Testable](Int) -> (P) -> Property
 
-fn with_law[T : Arbitrary + Shrink]((T) -> Bool) -> Property_Old[T]
-
-fn with_law_fe[T : @feat.Enumerable]((T) -> Bool, Int) -> Property_Old[T]
-
-fn with_max_shrink(Int, ~cfg : Config = ..) -> Config
-
 fn with_max_shrinks[P : Testable](Int) -> (P) -> Property
 
 fn with_max_size[P : Testable](Int) -> (P) -> Property
 
 fn with_max_successs[P : Testable](Int) -> (P) -> Property
 
-fn with_max_test(Int, ~cfg : Config = ..) -> Config
-
-fn with_name(String, ~cfg : Config = ..) -> Config
-
-fn with_seed(UInt64, ~cfg : Config = ..) -> Config
-
 // Types and methods
-type Args
-
 type Arrow
 
 type Axiom
@@ -203,11 +181,6 @@ impl Equivalence {
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   is_equal[T : Eq](Self[T]) -> Bool
   new[T](T, T) -> Self[T]
-  to_string[T : Show](Self[T]) -> String
-}
-
-type Forest
-impl Forest {
   to_string[T : Show](Self[T]) -> String
 }
 
@@ -249,11 +222,6 @@ impl ListCompare {
   op_equal[T : Eq](Self[T], Self[T]) -> Bool
 }
 
-type Nat
-impl Nat {
-  to_string(Self) -> String
-}
-
 pub enum Outcome {
   Success
   GaveUp
@@ -281,14 +249,6 @@ impl Property {
   run_prop(Self) -> Gen[@rose.Rose[SingleResult]]
 }
 
-type Property_Old
-impl Property_Old {
-  with_classify[T](Self[T], (T) -> String) -> Self[T]
-  with_filter[T](Self[T], (T) -> Bool) -> Self[T]
-  with_generator[T](Self[T], Gen[T]) -> Self[T]
-  with_shrinker[T](Self[T], (T) -> Iter[T]) -> Self[T]
-}
-
 pub struct Replay {
   pub rand_state : @splitmix.RandomState
   pub size : Int
@@ -299,11 +259,6 @@ impl Replay {
 
 type SingleResult
 impl SingleResult {
-  to_string(Self) -> String
-}
-
-type SingleTree
-impl SingleTree {
   to_string(Self) -> String
 }
 
@@ -326,11 +281,6 @@ impl TestResult {
 }
 
 type TestSuccess
-
-type Tree
-impl Tree {
-  to_string[T : Show](Self[T]) -> String
-}
 
 // Type aliases
 pub typealias RandomState = @splitmix.RandomState
@@ -355,15 +305,7 @@ impl Show for Callback
 
 impl Show for Equivalence
 
-impl Show for Forest
-
 impl Show for Kind
 
-impl Show for Nat
-
 impl Show for SingleResult
-
-impl Show for SingleTree
-
-impl Show for Tree
 

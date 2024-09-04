@@ -11,6 +11,8 @@ fn curry3[A, B, C, D]((A, B, C) -> D) -> (A) -> (B) -> (C) -> D
 
 fn curry4[A, B, C, D, E]((A, B, C, D) -> E) -> (A) -> (B) -> (C) -> (D) -> E
 
+fn flip[M, N, Z]((M, N) -> Z) -> (N, M) -> Z
+
 fn fresh_name() -> String
 
 fn id[T](T) -> T

@@ -1,3 +1,4 @@
+
 test "feat int" {
   let fe : Gen[Int] = feat_random(10)
   inspect!(
@@ -11,6 +12,54 @@ test "feat nat" {
   inspect!(
     fe.samples(size=20),
     content="[Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))), Zero, Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))))), Succ(Succ(Zero)), Succ(Succ(Zero)), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Zero))))]",
+  )
+}
+
+enum SingleTree {
+  Leaf(Bool)
+  Node(Bool, SingleTree)
+} derive(Show)
+
+impl @feat.Enumerable for SingleTree with enumerate() {
+  @feat.consts(
+    @immut/list.of(
+      [
+        @feat.Enumerable::enumerate().fmap(SingleTree::Leaf),
+        @feat.unary(@utils.pair_function(SingleTree::Node)),
+      ],
+    ),
+  )
+}
+
+enum Tree[T] {
+  Leaf(T)
+  Branch(Forest[T])
+} derive(Show)
+
+struct Forest[T] {
+  forest : @immut/list.T[Tree[T]]
+} derive(Show)
+
+impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
+  @feat.pay(
+    fn() { @feat.Enumerable::enumerate().fmap(fn { forest => { forest, } }) },
+  )
+}
+
+impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
+  @feat.pay(
+    fn() {
+      E::enumerate().fmap(Tree::Leaf) +
+      @feat.Enumerable::enumerate().fmap(Tree::Branch)
+    },
+  )
+}
+
+test "feat tree random" {
+  let tg : Gen[Tree[Nat]] = Gen::feat_random(10)
+  inspect!(
+    tg.samples(),
+    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.of([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.of([Branch({forest: @list.of([])})])})]",
   )
 }
 

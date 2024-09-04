@@ -1,21 +1,4 @@
-/// Configuration for initializing a test runner.
-struct Args {
-  replay : (RandomState, Int)?
-  max_success : Int
-  max_discard_ratio : Int
-  max_size : Int
-  max_shrink : Int
-}
 
-impl Default for Args with default() {
-  {
-    replay: None,
-    max_success: 100,
-    max_discard_ratio: 10,
-    max_size: 100,
-    max_shrink: 100,
-  }
-}
 
 type! TestError {
   Fail(
@@ -65,7 +48,7 @@ pub fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable](
   quick_check!(Arrow(f))
 }
 
-pub fn quick_check_with[P : Testable](cfg : Args, prop : P) -> Unit!Failure {
+pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
   fn f(s : String) -> _!Failure {
     fail!("\n\{s}")
   }
@@ -84,7 +67,7 @@ pub fn quick_check_with[P : Testable](cfg : Args, prop : P) -> Unit!Failure {
 }
 
 pub fn quick_check_with_result[P : Testable](
-  cfg : Args,
+  cfg : Config,
   prop : P
 ) -> TestSuccess!TestError {
   run_test!(from_config(cfg), prop.property())
@@ -212,7 +195,7 @@ pub fn find_failure(
         num_tests=self.num_success_tests + 1,
         num_discarded=self.num_discarded_tests,
         coverage=self.collects,
-        output="+++ \{self.counts()} Success! Failed as expected.",
+        output="+++ \{self.counts()} Ok! Failed as expected.",
       )
   }
 }
@@ -258,14 +241,4 @@ pub fn local_min_found(
     st.num_try_shrinks,
     res,
   )
-}
-
-test "quick check" {
-  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
-  quick_check_fn!(prop_rev)
-}
-
-test "success" {
-  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l }
-  quick_check_fn!(prop_rev)
 }
