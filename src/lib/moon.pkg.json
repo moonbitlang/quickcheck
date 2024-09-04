@@ -1,9 +1,5 @@
 {
     "import": [
-      {
-        "path": "Lampese/moonbit-chalk/lib",
-        "alias": "chalk"
-      },
       "CAIMEOX/quickcheck/lib/feat",
       "CAIMEOX/quickcheck/lib/splitmix",
       "CAIMEOX/quickcheck/lib/lazy",

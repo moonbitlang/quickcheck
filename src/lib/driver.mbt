@@ -1,5 +1,3 @@
-
-
 type! TestError {
   Fail(
     ~num_tests : Int,

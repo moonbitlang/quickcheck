@@ -1,4 +1,3 @@
-
 test "feat int" {
   let fe : Gen[Int] = feat_random(10)
   inspect!(

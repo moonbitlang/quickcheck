@@ -161,7 +161,8 @@ pub fn zip_lazy_normal[A, B, C](
   ys : @immut/list.T[B]
 ) -> @immut/list.T[C] {
   match (xs, ys) {
-    (Cons(x, xs), Cons(y, ys)) => Cons(f(x, y), zip_lazy_normal(f, xs.force(), ys))
+    (Cons(x, xs), Cons(y, ys)) =>
+      Cons(f(x, y), zip_lazy_normal(f, xs.force(), ys))
     (_, _) => Nil
   }
 }

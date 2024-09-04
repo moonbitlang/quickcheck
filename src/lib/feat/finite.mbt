@@ -90,7 +90,8 @@ pub fn to_array[T](self : Finite[T]) -> (BigInt, LazyList[T]) {
     self.fCard,
     loop self.fCard, @lazy.Nil {
       0, acc => break acc
-      n, acc => continue n - 1, @lazy.Cons((self.fIndex)(n), @lazy.from_value(acc))
+      n, acc =>
+        continue n - 1, @lazy.Cons((self.fIndex)(n), @lazy.from_value(acc))
     },
   )
 }

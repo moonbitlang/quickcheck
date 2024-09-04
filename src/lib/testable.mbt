@@ -24,23 +24,6 @@ fn promote_rose[T](s : Rose[Gen[T]]) -> Gen[Rose[T]] {
   delay().fmap(fn(m) { s.fmap(m) })
 }
 
-struct SingleResult {
-  ok : Bool?
-  expect : Bool
-  reason : String
-  abort : Bool
-  maybe_num_tests : Int?
-  maybe_discarded_ratio : Int?
-  maybe_max_shrinks : Int?
-  maybe_max_test_size : Int?
-  labels : List[String]
-  classes : List[(String, Bool)]
-  tables : List[(String, String)]
-  test_case : List[String]
-  error : Error
-  callbacks : List[Callback]
-} derive(Show)
-
 struct Property {
   property : Gen[RoseRes]
 }
@@ -107,37 +90,6 @@ pub fn map_total_result[P : Testable](
   f : (SingleResult) -> SingleResult
 ) -> Property {
   map_rose_result(prop, fn { rose => rose.fmap(f) })
-}
-
-impl Default for SingleResult with default() {
-  {
-    ok: None,
-    expect: true,
-    reason: "unknown",
-    abort: false,
-    maybe_num_tests: None,
-    maybe_discarded_ratio: None,
-    maybe_max_shrinks: None,
-    maybe_max_test_size: None,
-    labels: Nil,
-    classes: Nil,
-    tables: Nil,
-    test_case: Nil,
-    error: InternalError("none"),
-    callbacks: Nil,
-  }
-}
-
-pub fn succeed() -> SingleResult {
-  { ..Default::default(), ok: Some(true) }
-}
-
-pub fn failed() -> SingleResult {
-  { ..Default::default(), ok: Some(false) }
-}
-
-pub fn rejected() -> SingleResult {
-  { ..Default::default(), ok: None }
 }
 
 fn lift_bool(b : Bool) -> SingleResult {

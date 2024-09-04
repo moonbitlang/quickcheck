@@ -69,5 +69,3 @@ impl Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
   let rhs = from(z)
   { lhs, rhs }
 }
-
-

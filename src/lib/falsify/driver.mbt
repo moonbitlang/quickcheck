@@ -71,6 +71,7 @@ fn result_is_valid_shrink[T, E](
     TestPassed(a) => Invalid((Some(a), run))
   }
 }
+
 pub fn falsify[T, E](
   opt : Config,
   prop : Property[T, E]

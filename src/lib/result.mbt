@@ -12,14 +12,6 @@ pub fn to_string[T](self : Outcome[T]) -> String {
   }
 }
 
-pub fn to_string_colored[T](self : Outcome[T]) -> String {
-  match self {
-    Fail(_) => @chalk.chalk().color(@chalk.Red).render("FAIL")
-    Success => @chalk.chalk().color(@chalk.Green).render("OK")
-    GaveUp => @chalk.chalk().color(@chalk.Yellow).render("GAVE UP")
-  }
-}
-
 pub fn output[T](self : Outcome[T], logger : Logger) -> Unit {
   logger.write_string(self.to_string())
 }
@@ -33,74 +25,50 @@ pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
   { rand_state, size }
 }
 
-struct LabelRecord[T] {
-  classify : (T) -> String
-  map : Map[String, Int]
+struct SingleResult {
+  ok : Bool?
+  expect : Bool
+  reason : String
+  abort : Bool
+  maybe_num_tests : Int?
+  maybe_discarded_ratio : Int?
+  maybe_max_shrinks : Int?
+  maybe_max_test_size : Int?
+  labels : List[String]
+  classes : List[(String, Bool)]
+  tables : List[(String, String)]
+  test_case : List[String]
+  error : Error
+  callbacks : List[Callback]
+} derive(Show)
+
+pub fn succeed() -> SingleResult {
+  { ..Default::default(), ok: Some(true) }
 }
 
-pub fn LabelRecord::make[T](f : (T) -> String) -> LabelRecord[T] {
-  { classify: f, map: Map::new() }
+pub fn failed() -> SingleResult {
+  { ..Default::default(), ok: Some(false) }
 }
 
-pub fn classify_it[T](self : LabelRecord[T], v : T) -> Unit {
-  let label = (self.classify)(v)
-  self.map[label] = self.map.get(label).map_or(1, fn(x) { x + 1 })
+pub fn rejected() -> SingleResult {
+  { ..Default::default(), ok: None }
 }
 
-pub fn to_string[T : Show](self : LabelRecord[T]) -> Array[String] {
-  let total = self.map.iter().fold(init=0, fn(acc, si) { acc + si.1 })
-    |> Double::from_int
-  self.map
-  .iter()
-  .map(
-    fn(si) {
-      let (k, v) = si
-      let r = Double::from_int(v) / total
-      r.to_string() + ": " + k
-    },
-  )
-  .to_array()
-}
-
-struct TestResult[T] {
-  name : String
-  success_count : Int
-  total_test_count : Int
-  shrink_count : Int
-  outcome : Outcome[T]
-  label : LabelRecord[T]
-  replay : Replay?
-}
-
-pub fn to_string[T : Show](self : TestResult[T]) -> String {
-  let pc : Printer = Default::default()
-  let name = self.name
-  pc.write_string("[\{name}]: " + self.outcome.to_string_colored())
-  pc.ident()
-  match self.outcome {
-    Fail(x) => {
-      let ce = @chalk.chalk().color(@chalk.Red).render(x)
-      let seed = self.replay.unwrap().rand_state
-      let shrink_count = self.shrink_count
-      pc.write_string(
-        "There exist \{ce} (State=\{seed}) such that condition is false (after \{shrink_count} shrink(s))",
-      )
-    }
-    Success => {
-      let test_count = self.success_count
-      let total_count = self.total_test_count
-      pc.write_string("\{test_count}/\{total_count} tests completed")
-    }
-    GaveUp => pc.write_string("Gave up: no tests completed")
+impl Default for SingleResult with default() {
+  {
+    ok: None,
+    expect: true,
+    reason: "unknown",
+    abort: false,
+    maybe_num_tests: None,
+    maybe_discarded_ratio: None,
+    maybe_max_shrinks: None,
+    maybe_max_test_size: None,
+    labels: Nil,
+    classes: Nil,
+    tables: Nil,
+    test_case: Nil,
+    error: InternalError("none"),
+    callbacks: Nil,
   }
-  pc.ident()
-  pc.write_string("Distribution: ")
-  pc.ident()
-  self.label.to_string().map(fn(x) { pc.write_string(x) }) |> ignore
-  pc.unident()
-  pc.buf.to_string()
-}
-
-pub fn output[T : Show](self : TestResult[T], logger : Logger) -> Unit {
-  logger.write_string(self.to_string())
 }

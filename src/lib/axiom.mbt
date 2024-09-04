@@ -56,7 +56,6 @@ pub fn Axiom::run[T](self : Axiom[T], x : T) -> Equivalence[T] {
   (self.run_axiom)(x)
 }
 
-
 pub fn to_property[T, U](
   self : Axiom[T],
   cong : (T) -> U,

@@ -21,9 +21,12 @@ fn convolution[A, B](
 fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go {
     _, @lazy.Nil => @lazy.Nil
-    rev, Cons(x, xs) => { 
+    rev, Cons(x, xs) => {
       let rev1 = @lazy.Cons(x, rev)
-      Cons(rev1, @lazy.from_thunk(fn() { go(@lazy.from_value(rev1), xs.force()) }))
+      Cons(
+        rev1,
+        @lazy.from_thunk(fn() { go(@lazy.from_value(rev1), xs.force()) }),
+      )
     }
   }
 

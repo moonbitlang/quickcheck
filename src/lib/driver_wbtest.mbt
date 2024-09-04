@@ -42,7 +42,6 @@ impl @feat.Enumerable for Nat with enumerate() {
 
 impl Arbitrary for Nat with arbitrary(i, rs) { Gen::feat_random(i).run(i, rs) }
 
-
 fn op_add(self : Nat, other : Nat) -> Nat {
   match self {
     Zero => other

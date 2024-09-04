@@ -35,9 +35,7 @@ impl Arbitrary for String with arbitrary(size, rs) {
   .bind(
     fn(x) {
       list_with_size(x, spawn()).fmap(
-        fn(x) {
-          x.fold(init="", fn(x, acc : Char) { x + acc.to_string() })
-        },
+        fn(x) { x.fold(init="", fn(x, acc : Char) { x + acc.to_string() }) },
       )
     },
   )
