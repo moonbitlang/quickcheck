@@ -189,7 +189,7 @@ fn counts(self : State) -> String {
 type ListCompare[T] List[T] derive(Eq)
 
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
-  match (self.0, other.0) {
+  match (self._, other._) {
     (Cons(x, xs), Cons(y, ys)) => {
       let res = T::compare(x, y)
       if res == 0 {

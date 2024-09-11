@@ -13,7 +13,7 @@ fn constant(UInt) -> SampleTree
 
 fn discard[T, E]() -> Property[T, E]
 
-fn falsify[T, E](Config, Property[T, E]) -> Tuple[@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?]
+fn falsify[T, E](Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
 
 fn from_rng(@splitmix.RandomState) -> SampleTree
 
@@ -29,9 +29,9 @@ fn init_test_run() -> TestRun
 
 fn label[E](String, @list.T[String]) -> Property[Unit, E]
 
-fn mk_property[T, E]((TestRun) -> Gen[Tuple[TestResult[T, E], TestRun]]) -> Property[T, E]
+fn mk_property[T, E]((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
 
-fn new[T]((SampleTree) -> Tuple[T, @lazy.LazyList[SampleTree]]) -> Gen[T]
+fn new[T]((SampleTree) -> (T, @lazy.LazyList[SampleTree])) -> Gen[T]
 
 fn prim() -> Gen[UInt]
 
@@ -39,9 +39,9 @@ fn prim_with((Sample) -> @lazy.LazyList[UInt]) -> Gen[Sample]
 
 fn pure[T](T) -> Gen[T]
 
-fn run_property[T, E](Property[T, E]) -> Gen[Tuple[TestResult[T, E], TestRun]]
+fn run_property[T, E](Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
-fn second[A, B, C]((B) -> C, Tuple[A, B]) -> Tuple[A, C]
+fn second[A, B, C]((B) -> C, (A, B)) -> (A, C)
 
 fn shrink_to_list[T](T, @lazy.LazyList[T]) -> Gen[T]
 
@@ -69,17 +69,17 @@ impl Gen {
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   ifS[T](Self[Bool], Self[T], Self[T]) -> Self[T]
-  run_gen[T](Self[T], SampleTree) -> Tuple[T, @lazy.LazyList[SampleTree]]
+  run_gen[T](Self[T], SampleTree) -> (T, @lazy.LazyList[SampleTree])
   sample[T](Self[T]) -> T
   select[T, U](Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
-  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], Tuple[P, @lazy.LazyList[SampleTree]]) -> ShrinkExplain[P, N]
+  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], (P, @lazy.LazyList[SampleTree])) -> ShrinkExplain[P, N]
 }
 
 type IsValidShrink
 
 type Property
 impl Property {
-  run[T, E](Self[T, E], TestRun) -> Gen[Tuple[TestResult[T, E], TestRun]]
+  run[T, E](Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
 }
 
 type Sample
@@ -91,14 +91,14 @@ type SampleTree
 impl SampleTree {
   map(Self, (UInt) -> UInt) -> Self
   mod(Self, UInt) -> Self
-  view(Self) -> Tuple[Sample, Self, Self]
+  view(Self) -> (Sample, Self, Self)
 }
 
 type ShrinkExplain
 impl ShrinkExplain {
   limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
   shrink_history[P, N](Self[P, N]) -> Array[P]
-  shrink_outcome[P, N](Self[P, N]) -> Tuple[P, @lazy.LazyList[N]?]
+  shrink_outcome[P, N](Self[P, N]) -> (P, @lazy.LazyList[N]?)
   to_string[P : Show, N : Show](Self[P, N]) -> String
 }
 

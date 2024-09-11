@@ -71,7 +71,7 @@ impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
 impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P] with property(
   self
 ) {
-  forall_show(self.0)
+  forall_show(self._)
 }
 
 pub fn map_prop[P : Testable](prop : P, f : (RoseRes) -> RoseRes) -> Property {
@@ -106,8 +106,8 @@ fn lift_option[T : Testable](opt : T?) -> Property {
   }
 }
 
-pub fn map_size[P : Testable](f : (Int) -> Int) -> (P) -> Property {
-  fn(p) { p.property().property.scale(f) |> Property::make }
+pub fn map_size[P : Testable](p : P, f : (Int) -> Int) -> Property {
+  p.property().property.scale(f) |> Property::make
 }
 
 pub fn shrinking[P : Testable, T](
@@ -122,50 +122,34 @@ pub fn shrinking[P : Testable, T](
   promote_rose(props(x0)).fmap(fn(x) { x.join() }) |> Property::make
 }
 
-pub fn callback[P : Testable](cb : Callback) -> (P) -> Property {
-  fn(p) {
-    map_total_result(
-      p,
-      fn(res) { { ..res, callbacks: Cons(cb, res.callbacks) } },
-    )
-  }
+pub fn callback[P : Testable](p : P, cb : Callback) -> Property {
+  map_total_result(p, fn(res) { { ..res, callbacks: Cons(cb, res.callbacks) } })
 }
 
-pub fn label[P : Testable](s : String) -> (P) -> Property {
-  fn(p) {
-    map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
-  }
+pub fn label[P : Testable](p : P, s : String) -> Property {
+  map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
 }
 
-pub fn collect[P : Testable, T : Show](t : T) -> (P) -> Property {
-  label(t.to_string())
+pub fn collect[P : Testable, T : Show](p : P, t : T) -> Property {
+  p |> label(t.to_string())
 }
 
-pub fn classify[P : Testable](cond : Bool, s : String) -> (P) -> Property {
-  fn(p) {
-    map_total_result(
-      p,
-      fn(res) { { ..res, classes: Cons((s, cond), res.classes) } },
-    )
-  }
+pub fn classify[P : Testable](p : P, cond : Bool, s : String) -> Property {
+  map_total_result(
+    p,
+    fn(res) { { ..res, classes: Cons((s, cond), res.classes) } },
+  )
 }
 
-pub fn counterexample[P : Testable](s : String) -> (P) -> Property {
-  fn(p) {
-    let cb = callback(PostFinalFailure(CounterExample, fn(_st, _res) {  }))
-    map_total_result(
-      cb(p),
-      fn(res) { { ..res, test_case: Cons(s, res.test_case) } },
-    )
-  }
+pub fn counterexample[P : Testable](p : P, s : String) -> Property {
+  let cb = callback(p, PostFinalFailure(CounterExample, fn(_st, _res) {  }))
+  map_total_result(cb, fn(res) { { ..res, test_case: Cons(s, res.test_case) } })
 }
 
-pub fn filter[P : Testable](cond : Bool) -> (P) -> Property {
-  fn(p) {
-    match cond {
-      true => p.property()
-      false => Testable::property(Discard)
-    }
+pub fn filter[P : Testable](p : P, cond : Bool) -> Property {
+  match cond {
+    true => p.property()
+    false => Testable::property(Discard)
   }
 }
 
@@ -176,11 +160,12 @@ pub fn forall[T : Testable, A : Arbitrary + Shrink](f : (A) -> T) -> Property {
 pub fn forall_show[T : Testable, A : Arbitrary + Shrink + Show](
   f : (A) -> T
 ) -> Property {
-  forall(fn(x : A) { counterexample(x.to_string())(f(x)) })
+  forall(fn(x : A) { counterexample(f(x), x.to_string()) })
 }
 
-pub fn if_fail[P : Testable](f : () -> Unit) -> (P) -> Property {
+pub fn if_fail[P : Testable](p : P, f : () -> Unit) -> Property {
   callback(
+    p,
     PostTest(
       Nothing,
       fn(_st, res) {
@@ -202,24 +187,18 @@ pub fn expect_fail[P : Testable](p : P) -> Property {
   map_total_result(p, fn(res) { { ..res, expect: false } })
 }
 
-pub fn with_max_successs[P : Testable](n : Int) -> (P) -> Property {
-  fn(p) { map_total_result(p, fn(res) { { ..res, maybe_num_tests: Some(n) } }) }
+pub fn with_max_success[P : Testable](p : P, n : Int) -> Property {
+  map_total_result(p, fn(res) { { ..res, maybe_num_tests: Some(n) } })
 }
 
-pub fn with_discarded_ratio[P : Testable](n : Int) -> (P) -> Property {
-  fn(p) {
-    map_total_result(p, fn(res) { { ..res, maybe_discarded_ratio: Some(n) } })
-  }
+pub fn with_discarded_ratio[P : Testable](p : P, n : Int) -> Property {
+  map_total_result(p, fn(res) { { ..res, maybe_discarded_ratio: Some(n) } })
 }
 
-pub fn with_max_shrinks[P : Testable](n : Int) -> (P) -> Property {
-  fn(p) {
-    map_total_result(p, fn(res) { { ..res, maybe_max_shrinks: Some(n) } })
-  }
+pub fn with_max_shrinks[P : Testable](p : P, n : Int) -> Property {
+  map_total_result(p, fn(res) { { ..res, maybe_max_shrinks: Some(n) } })
 }
 
-pub fn with_max_size[P : Testable](n : Int) -> (P) -> Property {
-  fn(p) {
-    map_total_result(p, fn(res) { { ..res, maybe_max_test_size: Some(n) } })
-  }
+pub fn with_max_size[P : Testable](p : P, n : Int) -> Property {
+  map_total_result(p, fn(res) { { ..res, maybe_max_test_size: Some(n) } })
 }

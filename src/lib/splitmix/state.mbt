@@ -69,7 +69,7 @@ pub fn next_two_uint(self : RandomState) -> (UInt, UInt) {
 }
 
 pub fn next_int(self : RandomState) -> Int {
-  self.next_uint().to_int()
+  self.next_uint().reinterpret_as_int()
 }
 
 test "next_int" {

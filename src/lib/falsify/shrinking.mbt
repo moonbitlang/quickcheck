@@ -113,7 +113,7 @@ pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
 
   fn aux {
     NotShrunk(_) => val
-    Shrunk(i) => xs.index(i.to_int())
+    Shrunk(i) => xs.index(i.reinterpret_as_int())
   }
 
   prim_with(shrinker).fmap(aux)

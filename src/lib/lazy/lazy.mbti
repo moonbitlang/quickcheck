@@ -35,12 +35,12 @@ impl LazyList {
   map[T, U](Self[T], (T) -> U) -> Self[U]
   op_add[T](Self[T], Self[T]) -> Self[T]
   output[T : Show](Self[T], Logger) -> Unit
-  split_at[T](Self[T], Int) -> Tuple[Self[T], Self[T]]
+  split_at[T](Self[T], Int) -> (Self[T], Self[T])
   tail[T](Self[T]) -> Self[T]
   tails[T](Self[T]) -> Self[Self[T]]
   take_while[T](Self[T], (T) -> Bool) -> Self[T]
   to_string[T : Show](Self[T]) -> String
-  unfold[T](Self[T], (Self[T]) -> Tuple[T, Self[T]]?) -> Self[T]
+  unfold[T](Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
 }
 
 type LazyRef

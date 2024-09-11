@@ -8,29 +8,31 @@ alias @moonbitlang/core/immut/list as @list
 // Values
 fn alphabet() -> Gen[Char]
 
-fn associative[A : Eq]((A, A) -> A) -> (Tuple[A, A, A]) -> Bool
+fn associative[A : Eq]((A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn callback[P : Testable](Callback) -> (P) -> Property
+fn callback[P : Testable](P, Callback) -> Property
 
 fn char_range(Char, Char) -> Gen[Char]
 
-fn classify[P : Testable](Bool, String) -> (P) -> Property
+fn classify[P : Testable](P, Bool, String) -> Property
 
-fn collect[P : Testable, T : Show](T) -> (P) -> Property
+fn collect[P : Testable, T : Show](P, T) -> Property
 
-fn commutative[A, B : Eq]((A, A) -> B) -> (Tuple[A, A]) -> Bool
+fn commutative[A, B : Eq]((A, A) -> B) -> ((A, A)) -> Bool
 
-fn counterexample[P : Testable](String) -> (P) -> Property
+fn counterexample[P : Testable](P, String) -> Property
 
-fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
+fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> (Tuple[A, A, A]) -> Bool
+fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
 fn expect_fail[P : Testable](P) -> Property
 
 fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
 
 fn failed() -> SingleResult
+
+fn filter[P : Testable](P, Bool) -> Property
 
 fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
 
@@ -44,15 +46,13 @@ fn forall[T : Testable, A : Arbitrary + Shrink]((A) -> T) -> Property
 
 fn forall_show[T : Testable, A : Arbitrary + Shrink + Show]((A) -> T) -> Property
 
-fn frequency[T](Array[Tuple[Int, Gen[T]]]) -> Gen[T]
+fn frequency[T](Array[(Int, Gen[T])]) -> Gen[T]
 
-fn frequency_list[T](@list.T[Tuple[Int, T]]) -> Gen[T]
+fn frequency_list[T](@list.T[(Int, T)]) -> Gen[T]
 
 fn idempotent[A : Eq]((A) -> A) -> (A) -> Bool
 
-fn if_fail[P : Testable](() -> Unit) -> (P) -> Property
-
-fn implies[P : Testable](Bool) -> (P) -> Property
+fn if_fail[P : Testable](P, () -> Unit) -> Property
 
 fn int_bound(Int) -> Gen[Int]
 
@@ -64,7 +64,7 @@ fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
 
 fn involutory[A : Eq]((A) -> A) -> (A) -> Bool
 
-fn label[P : Testable](String) -> (P) -> Property
+fn label[P : Testable](P, String) -> Property
 
 fn liftA2[A, B, C]((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
 
@@ -76,23 +76,23 @@ fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 
 fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> Tuple[Int, T]
+fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> (Int, T)
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
 
-fn local_min_found(State, SingleResult) -> Tuple[Int, Int, Int, SingleResult]
+fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
 fn map_prop[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
 
 fn map_rose_result[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
 
-fn map_size[P : Testable]((Int) -> Int) -> (P) -> Property
+fn map_size[P : Testable](P, (Int) -> Int) -> Property
 
 fn map_total_result[P : Testable](P, (SingleResult) -> SingleResult) -> Property
 
-fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
+fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> ((A, A)) -> Bool
 
-fn mono_increase[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> (Tuple[A, A]) -> Bool
+fn mono_increase[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> ((A, A)) -> Bool
 
 fn nat() -> Gen[Int]
 
@@ -110,7 +110,7 @@ fn pure[T](T) -> Gen[T]
 
 fn pure_eq[T](T) -> Equivalence[T]
 
-fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[Tuple[T, U, V, W]]
+fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
 fn quick_check[P : Testable](P) -> Unit!Failure
 
@@ -134,17 +134,17 @@ fn succeed() -> SingleResult
 
 fn terminate[P : Testable](P) -> Property
 
-fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[Tuple[T, U, V]]
+fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
-fn tuple[T, U](Gen[T], Gen[U]) -> Gen[Tuple[T, U]]
+fn tuple[T, U](Gen[T], Gen[U]) -> Gen[(T, U)]
 
-fn with_discarded_ratio[P : Testable](Int) -> (P) -> Property
+fn with_discarded_ratio[P : Testable](P, Int) -> Property
 
-fn with_max_shrinks[P : Testable](Int) -> (P) -> Property
+fn with_max_shrinks[P : Testable](P, Int) -> Property
 
-fn with_max_size[P : Testable](Int) -> (P) -> Property
+fn with_max_size[P : Testable](P, Int) -> Property
 
-fn with_max_successs[P : Testable](Int) -> (P) -> Property
+fn with_max_success[P : Testable](P, Int) -> Property
 
 // Types and methods
 type Arrow
@@ -155,8 +155,8 @@ impl Axiom {
   run[T](Self[T], T) -> Equivalence[T]
   to_property[T, U](Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
   to_property_eq[T, U : Eq](Self[T], (T) -> U) -> (T) -> Bool
-  to_property_parametric[T, M, N](Self[T], (T, M) -> N, (N, N) -> Bool) -> (Tuple[T, M]) -> Bool
-  to_property_parametric_eq[T, M, N : Eq](Self[T], (T, M) -> N) -> (Tuple[T, M]) -> Bool
+  to_property_parametric[T, M, N](Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
+  to_property_parametric_eq[T, M, N : Eq](Self[T], (T, M) -> N) -> ((T, M)) -> Bool
 }
 
 type Callback
@@ -210,13 +210,6 @@ impl Kind {
   to_string(Self) -> String
 }
 
-type LabelRecord
-impl LabelRecord {
-  classify_it[T](Self[T], T) -> Unit
-  make[T]((T) -> String) -> Self[T]
-  to_string[T : Show](Self[T]) -> Array[String]
-}
-
 type ListCompare
 impl ListCompare {
   op_equal[T : Eq](Self[T], Self[T]) -> Bool
@@ -230,7 +223,6 @@ pub enum Outcome {
 impl Outcome {
   output[T](Self[T], Logger) -> Unit
   to_string[T](Self[T]) -> String
-  to_string_colored[T](Self[T]) -> String
 }
 
 type Printer
@@ -238,7 +230,6 @@ impl Printer {
   format(Self, String) -> String
   from_buffer(Buffer) -> Self
   ident(Self, ~size : Int = ..) -> Unit
-  to_string(Self) -> String
   unident(Self) -> Unit
   write_string(Self, String) -> Unit
 }
@@ -267,18 +258,12 @@ impl State {
   complete_test(Self, Property) -> TestSuccess!TestError
   find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
   give_up(Self, Property) -> TestSuccess!TestError
-  local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> Tuple[Int, Int, Int, SingleResult]
+  local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
   run_single_test(Self, Property) -> TestSuccess!TestError
   run_test(Self, Property) -> TestSuccess!TestError
 }
 
 type TestError
-
-type TestResult
-impl TestResult {
-  output[T : Show](Self[T], Logger) -> Unit
-  to_string[T : Show](Self[T]) -> String
-}
 
 type TestSuccess
 

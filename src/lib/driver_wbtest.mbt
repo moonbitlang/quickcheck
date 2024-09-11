@@ -26,7 +26,10 @@ test "add comm double" {
 }
 
 test "modify max tests" {
-  quick_check!(with_max_successs(1000)(Arrow(prop_rev)))
+  quick_check!(Arrow(prop_rev) |> with_max_success(1000))
+  // Arrow(prop_rev) |> with_max_successs(1000)
+  // with_max_success(1000)(Arrow(prop_rev))
+  // with_max_success(1000, Arrow(prop_rev))
 }
 
 test "add assoc double (expect fail)" {
@@ -34,16 +37,14 @@ test "add assoc double (expect fail)" {
 }
 
 test "non empty list (with filter)" {
-  let prop_is_non_empty = fn(l : List[Int]) { 
-    filter(l.is_empty().not())(l.is_empty().not())
+  let prop_is_non_empty = fn(l : List[Int]) {
+    l.is_empty().not() |> filter(l.is_empty().not())
   }
   quick_check!(Arrow(prop_is_non_empty))
 }
 
 test "reject all" {
-  let prop_reject = fn(_x: Int) {
-    filter(false)(true)
-  }
+  let prop_reject = fn(_x : Int) { filter(true, false) }
   quick_check!(Arrow(prop_reject))
 }
 

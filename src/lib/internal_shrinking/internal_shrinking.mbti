@@ -12,7 +12,7 @@ impl ShrinkTree {
   draw[T : Show](Self[T], Int) -> @list.T[String]
   from_shinker[T]((T) -> Iter[T], T) -> Self[T]
   from_value[T](T) -> Self[T]
-  get_value[T](Self[T]) -> Tuple[T, Iter[Self[T]]]
+  get_value[T](Self[T]) -> (T, Iter[Self[T]])
   output[T : Show](Self[T], Logger) -> Unit
   smap[T, U](Self[T], (T) -> U) -> Self[U]
   to_string[T : Show](Self[T]) -> String

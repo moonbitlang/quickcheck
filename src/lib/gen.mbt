@@ -333,7 +333,7 @@ pub fn one_of[T](arr : Array[Gen[T]]) -> Gen[T] {
 /// Randomly uses one of the given generators in list
 /// @alert unsafe "Panics if the list is empty"
 pub fn one_of_list[T](lst : @immut/list.T[T]) -> Gen[T] {
-  int_bound(lst.length()).fmap(fn(x) { lst.nth_exn(x) })
+  int_bound(lst.length()).fmap(fn(x) { lst.unsafe_nth(x) })
 }
 
 /// Randomly select one element from an array

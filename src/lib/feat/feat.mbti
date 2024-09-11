@@ -16,7 +16,7 @@ fn fin_app[M, N](Finite[(M) -> N], Finite[M]) -> Finite[N]
 
 fn fin_bind[M, N](Finite[M], (M) -> Finite[N]) -> Finite[N]
 
-fn fin_cart[T, U](Finite[T], Finite[U]) -> Finite[Tuple[T, U]]
+fn fin_cart[T, U](Finite[T], Finite[U]) -> Finite[(T, U)]
 
 fn fin_concat[M](Array[Finite[M]]) -> Finite[M]
 
@@ -34,7 +34,7 @@ fn fin_union[T](Finite[T], Finite[T]) -> Finite[T]
 
 fn pay[T](() -> Enumerate[T]) -> Enumerate[T]
 
-fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[Tuple[T, U]]
+fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
 fn singleton[T](T) -> Enumerate[T]
 
@@ -60,7 +60,7 @@ pub struct Finite {
 impl Finite {
   op_add[T](Self[T], Self[T]) -> Self[T]
   output[T : Show](Self[T], Logger) -> Unit
-  to_array[T](Self[T]) -> Tuple[BigInt, @lazy.LazyList[T]]
+  to_array[T](Self[T]) -> (BigInt, @lazy.LazyList[T])
   to_string[T : Show](Self[T]) -> String
 }
 
@@ -91,5 +91,5 @@ impl Enumerable for Result
 
 impl Enumerable for @list.T
 
-impl Enumerable for Tuple
+impl Enumerable for Tuple(2)
 

@@ -17,7 +17,7 @@ fn fresh_name() -> String
 
 fn id[T](T) -> T
 
-fn pair_function[A, B, C]((A, B) -> C) -> (Tuple[A, B]) -> C
+fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
 
 fn removes[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
 
