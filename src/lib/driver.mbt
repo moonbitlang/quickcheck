@@ -53,7 +53,10 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
 
   try {
     match quick_check_with_result!(cfg, prop) {
-      Success(~output, ..) => println(output)
+      Success(~output, ~coverage, ~num_tests, ..) => {
+        println(output)
+        println(coverage.to_string(num_tests))
+      }
     }
   } catch {
     // TODO: Print coverage

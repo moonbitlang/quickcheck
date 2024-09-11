@@ -27,9 +27,6 @@ test "add comm double" {
 
 test "modify max tests" {
   quick_check!(Arrow(prop_rev) |> with_max_success(1000))
-  // Arrow(prop_rev) |> with_max_successs(1000)
-  // with_max_success(1000)(Arrow(prop_rev))
-  // with_max_success(1000, Arrow(prop_rev))
 }
 
 test "add assoc double (expect fail)" {
@@ -46,6 +43,38 @@ test "non empty list (with filter)" {
 test "reject all" {
   let prop_reject = fn(_x : Int) { filter(true, false) }
   quick_check!(Arrow(prop_reject))
+}
+
+test "label" {
+  quick_check!(
+    fn(x : List[Int]) { Arrow(prop_rev) |> label("length is \{x.length()}") }
+    |> Arrow,
+  )
+}
+
+test "classes" {
+  quick_check_fn!(
+    fn(x : List[Int]) {
+      Arrow(prop_rev)
+      |> classify(x.length() > 5, "long list")
+      |> classify(x.length() <= 5, "short list")
+    },
+  )
+}
+
+test "label + classes" {
+  quick_check_fn!(
+    fn(x : List[String]) {
+      Arrow(prop_rev)
+      |> classify(x.length() > 5, "long list")
+      |> classify(x.length() <= 5, "short list")
+      |> label("length is \{x.length()}")
+    },
+  )
+}
+
+test "abort" {
+  quick_check!(Arrow(prop_rev) |> terminate)
 }
 
 /// Natural Numbers

@@ -36,7 +36,7 @@ struct State {
   // Name of the test
   name : String
   // Printer that collects output of the test
-  static_writer : Printer
+  // static_writer : Printer
   // Top bound of test size (immutable, the argument of the Gen)
   mut max_test_size_ : Int
   // Maximum number of successful tests (immutable)
@@ -83,7 +83,7 @@ fn from_config(cfg : Config) -> State {
   }
   {
     name: @utils.fresh_name(),
-    static_writer: Default::default(),
+    // static_writer: Default::default(),
     max_test_size_: cfg.max_size,
     max_success_tests_: cfg.max_success,
     max_discarded_ratio_: cfg.max_discard_ratio,
@@ -191,7 +191,7 @@ fn counts(self : State) -> String {
   "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
 
-type ListCompare[T] List[T] derive(Eq)
+type ListCompare[T] List[T] derive(Eq, Show)
 
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
   match (self._, other._) {
@@ -219,18 +219,18 @@ struct Coverage {
   classes : Map[String, Int]
 }
 
-pub fn Coverage::new() -> Coverage {
+fn Coverage::new() -> Coverage {
   { labels: @sorted_map.new(), classes: Map::new() }
 }
 
-pub fn label_incr(self : Coverage, key : List[String]) -> Unit {
+fn label_incr(self : Coverage, key : List[String]) -> Unit {
   match self.labels[key] {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
   }
 }
 
-pub fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
+fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
   classes.each(
     fn {
       (s, b) => {
@@ -242,4 +242,44 @@ pub fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
       }
     },
   )
+}
+
+fn label_to_string(self : Coverage, success : Int) -> String {
+  let res = []
+  self.labels.each(
+    fn(list, i) {
+      if list._.is_empty() {
+        return
+      } else {
+        let l = list._.to_array().join(", ")
+        res.push("\{i.to_double() / success.to_double ()} : \{l}")
+      }
+    },
+  )
+  res.join("\n")
+}
+
+fn class_to_string(self : Coverage, success : Int) -> String {
+  let res = []
+  self.classes.each(
+    fn(s, i) { res.push("\{i.to_double() / success.to_double()} : \{s}") },
+  )
+  res.join("\n")
+}
+
+fn to_string(self : Coverage, success : Int) -> String {
+  [
+    if self.labels.size() == 0 {
+      ""
+    } else {
+      self.label_to_string(success)
+    },
+    if self.classes.size() == 0 {
+      ""
+    } else {
+      self.class_to_string(success)
+    },
+  ]
+  .filter(fn(x) { x != "" })
+  .join("\n")
 }

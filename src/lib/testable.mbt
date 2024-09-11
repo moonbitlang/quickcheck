@@ -126,14 +126,17 @@ pub fn callback[P : Testable](p : P, cb : Callback) -> Property {
   map_total_result(p, fn(res) { { ..res, callbacks: Cons(cb, res.callbacks) } })
 }
 
+/// Attaches a label to a test case
 pub fn label[P : Testable](p : P, s : String) -> Property {
   map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
 }
 
+/// Attaches a label (Show) to a test case
 pub fn collect[P : Testable, T : Show](p : P, t : T) -> Property {
   p |> label(t.to_string())
 }
 
+/// Classifies a test case based on a condition
 pub fn classify[P : Testable](p : P, cond : Bool, s : String) -> Property {
   map_total_result(
     p,
@@ -141,11 +144,13 @@ pub fn classify[P : Testable](p : P, cond : Bool, s : String) -> Property {
   )
 }
 
+/// Adds a string to the counterexample if the property fails
 pub fn counterexample[P : Testable](p : P, s : String) -> Property {
   let cb = callback(p, PostFinalFailure(CounterExample, fn(_st, _res) {  }))
   map_total_result(cb, fn(res) { { ..res, test_case: Cons(s, res.test_case) } })
 }
 
+/// Filters a property based on a condition
 pub fn filter[P : Testable](p : P, cond : Bool) -> Property {
   match cond {
     true => p.property()
@@ -153,16 +158,19 @@ pub fn filter[P : Testable](p : P, cond : Bool) -> Property {
   }
 }
 
+/// Run with an explicit generator
 pub fn forall[T : Testable, A : Arbitrary + Shrink](f : (A) -> T) -> Property {
   spawn().bind(fn(x) { shrinking(A::shrink, x, f).property }) |> Property::make
 }
 
+/// Run with an explicit generator and show counterexamples
 pub fn forall_show[T : Testable, A : Arbitrary + Shrink + Show](
   f : (A) -> T
 ) -> Property {
   forall(fn(x : A) { counterexample(f(x), x.to_string()) })
 }
 
+/// Adds a callback that will be called if the property fails
 pub fn if_fail[P : Testable](p : P, f : () -> Unit) -> Property {
   callback(
     p,
@@ -178,7 +186,7 @@ pub fn if_fail[P : Testable](p : P, f : () -> Unit) -> Property {
   )
 }
 
-// Modifies a property to make it terminate after the first test
+/// Modifies a property to make it terminate after the first test
 pub fn terminate[P : Testable](p : P) -> Property {
   map_total_result(p, fn(res) { { ..res, abort: true } })
 }
