@@ -141,6 +141,11 @@ fn compute_size(self : State) -> Int {
   }
 }
 
+fn add_coverages(self : State, res : SingleResult) -> Unit {
+  self.collects.label_incr(res.labels)
+  self.collects.class_incr(res.classes)
+}
+
 fn update_state_from_res(self : State, result : SingleResult) -> Unit {
   self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
   self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
@@ -212,9 +217,29 @@ struct Coverage {
   // and sorted_map instead
   labels : @sorted_map.T[ListCompare[String], Int]
   classes : Map[String, Int]
-  tables : Map[String, Map[String, Int]]
 }
 
 pub fn Coverage::new() -> Coverage {
-  { labels: @sorted_map.new(), classes: Map::new(), tables: Map::new() }
+  { labels: @sorted_map.new(), classes: Map::new() }
+}
+
+pub fn label_incr(self : Coverage, key : List[String]) -> Unit {
+  match self.labels[key] {
+    Some(x) => self.labels[key] = x + 1
+    None => self.labels[key] = 1
+  }
+}
+
+pub fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
+  classes.each(
+    fn {
+      (s, b) => {
+        let i = if b { 1 } else { 0 }
+        match self.classes[s] {
+          Some(x) => self.classes[s] = x + i
+          None => self.classes[s] = i
+        }
+      }
+    },
+  )
 }

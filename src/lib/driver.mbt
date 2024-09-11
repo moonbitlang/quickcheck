@@ -131,15 +131,8 @@ pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
     update_state_from_res(st0, res)
   }
 
-  fn add_coverages(st0 : State) -> Unit {
-    match st0.collects.labels[res.labels] {
-      Some(v) => st0.collects.labels[res.labels] = v + 1
-      None => st0.collects.labels[res.labels] = 1
-    }
-  }
-
   let stc = self.clone()
-  add_coverages(stc) // The failure should not be counted
+  add_coverages(stc, res) // The failure should not be counted.
   callback_post_test(self, res)
   match res {
     { ok: Some(true), .. } =>
