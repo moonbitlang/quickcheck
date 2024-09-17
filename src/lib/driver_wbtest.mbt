@@ -166,6 +166,34 @@ test {
   quick_check!(
     forall(
       spawn(),
+      fn(iarr : (Int, Array[Int])) {
+        let (x, arr) = iarr
+        remove(arr, x).contains(x).not()
+      },
+    ),
+  )
+}
+
+test {
+  fn no_duplicate(x : Array[Int]) -> Bool {
+    @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
+  }
+
+  quick_check!(
+    forall(
+      spawn(),
+      fn(iarr : (Int, Array[Int])) {
+        let (x, arr) = iarr
+        filter(remove(arr, x).contains(x).not(), no_duplicate(arr))
+      },
+    ),
+  )
+}
+
+test {
+  quick_check!(
+    forall(
+      spawn(),
       fn(a : Array[Int]) {
         forall(one_of_array(a), fn(y : Int) { remove(a, y).contains(y).not() })
         |> filter(a.length() != 0)

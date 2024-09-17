@@ -9,7 +9,9 @@ The idea of QuickCheck was originally introduced in John's paper [*QuickCheck: a
 
 ## Beginner's Example
 
-Let's start with something very simple. Suppose that we just wrote a function `reverse` which takes an array as argument and returns its reverse. And we want to test its functionality by writing unit tests:
+### First Look
+
+Let's start with something very simple. Suppose that we just wrote a function `reverse` which takes an array as argument Failure Diagnosisand returns its reverse. And we want to test its functionality by writing unit tests:
 ```moonbit
 test "reverse" {
   inspect!(reverse(([] : Array[Int])), content="[]")
@@ -43,6 +45,8 @@ The result (The three number in the brackets are the number of passed, discarded
 ```
 +++ [100/0/100] Ok, passed!
 ```
+
+### Failure Diagnosis
 
 Now let's see another example: Suppose we wrote a function `remove(arr : Array[Int], x : Int) -> Array[Int]` that takes an array and an element and returns a new array with **all** occurrences of `x` removed. The intuitive implementation is to search for `x` in the array and remove it if found:
 
@@ -109,6 +113,66 @@ The QuickCheck reports a failure with a counterexample in the second line after 
 
 When `x = 0` and `arr = [0, 0]` the property does not hold. The `remove` function should remove all occurrences of `x` in the array, but it only removes the first one. In this example, as in many cases, the randomly generated test case contains junk values that have nothing to do with the test failure itself. When QuickCheck finds a failing test case, it tries to simplify it by applying some shrinking strategies. In fact the failing case is much complex but the shrinking algorithm has simplified it to the minimal case and presented it to us.
 
+### Traits
+
+The `quickcheck` function has the following signature:
+
+```moonbit
+fn quick_check[P : Testable](P) -> Unit!Failure
+```
+
+It takes a value of type that implemented `Testable` as argument and runs the test. 
+
+```moonbit
+type Arrow[A, P] (A) -> P
+impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+```
+
+The `Arrow` type (wrapped function) does implement the `Testable` trait, so we can pass the property function directly to `quick_check`. Note that the argument type has implemented the `Arbitrary` , `Shrink` and `Show` traits. The `Show` is necessary for the `quick_check` function to print the **counterexample** when a test fails. Now we give some brief introduction to other two traits.
+
+`Arbitrary` is a trait that generates random values of a type.  It has a method `arbitrary` that takes a size and a random number generator and  then returns a random value of the type.
+```moonbit
+pub trait Arbitrary {
+  arbitrary(Int, RandomState) -> Self
+}
+```
+
+`Shrink` is a trait that shrinks a value to a simpler one. It has a method `shrink` that takes a value and returns a iter of simpler values (Lazy).
+```moonbit
+pub trait Shrink {
+  shrink(Self) -> Iter[Self]
+}
+```
+
+### Conditional Properties
+
+Before we step further to verify out hypothesis, we present another manner to write tests:
+
+
+
+Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array contains no duplicated elements, then our tests should pass. Use the function `filter` can filter out unwanted test cases:
+```moonbit
+test {
+  fn no_duplicate(x : Array[Int]) -> Bool {
+    @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
+  }
+
+  quick_check!(
+    forall(
+      spawn(),
+      fn(iarr : (Int, Array[Int])) {
+        let (x, arr) = iarr
+        filter(remove(arr, x).contains(x).not(), no_duplicate(arr))
+      },
+    ),
+  )
+}
+```
+
+- The `no_duplicate` function checks whether the input array contains no duplicated elements.
+- If a type `T` is implemented with `Arbitrary` class, we can use `spawn()` to get the generator `Gen[T]`.
+- `forall` is an explicit universal quantification, which uses an explicitly given test case generator.
+- The `filter` combinator filters out the test cases that do not satisfy the condition.
 
 ### Custom Generator
 

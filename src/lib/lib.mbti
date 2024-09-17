@@ -42,9 +42,9 @@ fn flatten_option[T](Gen[T]?) -> Gen[T?]
 
 fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
 
-fn forall[T : Testable, A : Arbitrary + Shrink]((A) -> T) -> Property
+fn forall[T : Testable, A : Show](Gen[A], (A) -> T) -> Property
 
-fn forall_show[T : Testable, A : Arbitrary + Shrink + Show]((A) -> T) -> Property
+fn forall_shrink[T : Testable, A : Show](Gen[A], (A) -> Iter[A], (A) -> T) -> Property
 
 fn frequency[T](Array[(Int, Gen[T])]) -> Gen[T]
 
@@ -75,8 +75,6 @@ fn liftA4[A, B, C, D, E]((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> G
 fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
 
 fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
-
-fn linear_shrink[T](Int, (T) -> Iter[T], (T) -> Bool, ~init : T) -> (Int, T)
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
 
@@ -167,9 +165,6 @@ impl Callback {
 type Config
 
 type Coverage
-impl Coverage {
-  new() -> Self
-}
 
 type Discard
 
@@ -213,6 +208,7 @@ impl Kind {
 type ListCompare
 impl ListCompare {
   op_equal[T : Eq](Self[T], Self[T]) -> Bool
+  to_string[T : Show](Self[T]) -> String
 }
 
 pub enum Outcome {
@@ -291,6 +287,8 @@ impl Show for Callback
 impl Show for Equivalence
 
 impl Show for Kind
+
+impl Show for ListCompare
 
 impl Show for SingleResult
 
