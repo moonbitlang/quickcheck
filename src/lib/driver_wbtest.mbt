@@ -47,8 +47,9 @@ test "reject all" {
 
 test "label" {
   quick_check!(
-    fn(x : List[Int]) { Arrow(prop_rev) |> label("length is \{x.length()}") }
-    |> Arrow,
+    Arrow(
+      fn(x : List[Int]) { Arrow(prop_rev) |> label("length is \{x.length()}") },
+    ),
   )
 }
 
@@ -115,4 +116,60 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 
 test "add comm nat" {
   quick_check_fn!(add_comm_nat)
+}
+
+fn reverse[T](lst : Array[T]) -> Array[T] {
+  lst.rev()
+}
+
+test "reverse" {
+  inspect!(reverse(([] : Array[Int])), content="[]")
+  inspect!(reverse([1, 2, 3]), content="[3, 2, 1]")
+}
+
+test "prop_reverse_identity" {
+  fn prop_reverse_identity(arr : Array[Int]) {
+    reverse(reverse(arr)) == arr
+  }
+
+  quick_check!(Arrow(prop_reverse_identity))
+}
+
+fn remove(arr : Array[Int], x : Int) -> Array[Int] {
+  match arr.search(x) {
+    Some(i) => arr.remove(i) |> ignore
+    None => ()
+  }
+  arr
+}
+
+fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
+  let (x, arr) = iarr
+  remove(arr, x).contains(x).not()
+}
+
+fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
+  let (x, arr) = iarr
+  let len = arr.length()
+  remove(arr, x).length() <= len
+}
+
+test {
+  quick_check!(Arrow(prop_length_is_not_greater))
+}
+
+test {
+  quick_check!(Arrow(prop_remove_not_presence) |> with_max_success(1000))
+}
+
+test {
+  quick_check!(
+    forall(
+      spawn(),
+      fn(a : Array[Int]) {
+        forall(one_of_array(a), fn(y : Int) { remove(a, y).contains(y).not() })
+        |> filter(a.length() != 0)
+      },
+    ),
+  )
 }

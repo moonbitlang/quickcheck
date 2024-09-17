@@ -2,25 +2,6 @@ pub trait Shrink {
   shrink(Self) -> Iter[Self]
 }
 
-// Trivial Shrinker
-pub fn linear_shrink[T](
-  max : Int,
-  shrinker : (T) -> Iter[T],
-  law : (T) -> Bool,
-  ~init : T
-) -> (Int, T) {
-  loop max, init {
-    0, acc => break (max, acc)
-    n, acc => {
-      let i = shrinker(acc).take_while(fn(x) { law(x).not() })
-      match i.to_array().pop() {
-        None => (max - n, acc)
-        Some(ce) => continue n - 1, ce
-      }
-    }
-  }
-}
-
 impl Shrink with shrink(_a) { Iter::empty() }
 
 impl Shrink for Int with shrink(x) {

@@ -71,7 +71,7 @@ impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
 impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P] with property(
   self
 ) {
-  forall_show(self._)
+  forall_shrink(spawn(), A::shrink, self._)
 }
 
 pub fn map_prop[P : Testable](prop : P, f : (RoseRes) -> RoseRes) -> Property {
@@ -159,15 +159,28 @@ pub fn filter[P : Testable](p : P, cond : Bool) -> Property {
 }
 
 /// Run with an explicit generator
-pub fn forall[T : Testable, A : Arbitrary + Shrink](f : (A) -> T) -> Property {
-  spawn().bind(fn(x) { shrinking(A::shrink, x, f).property }) |> Property::make
+pub fn forall[T : Testable, A : Show](gen : Gen[A], f : (A) -> T) -> Property {
+  forall_shrink(gen, fn(_x) { Iter::empty() }, f)
 }
 
-/// Run with an explicit generator and show counterexamples
-pub fn forall_show[T : Testable, A : Arbitrary + Shrink + Show](
+pub fn forall_shrink[T : Testable, A : Show](
+  gen : Gen[A],
+  shrinker : (A) -> Iter[A],
   f : (A) -> T
 ) -> Property {
-  forall(fn(x : A) { counterexample(f(x), x.to_string()) })
+  gen.bind(
+    fn(x) {
+      shrinking(
+        shrinker,
+        x,
+        fn(a : A) {
+          let s = a.to_string()
+          counterexample(f(x), s)
+        },
+      ).property
+    },
+  )
+  |> Property::make
 }
 
 /// Adds a callback that will be called if the property fails
