@@ -1,4 +1,4 @@
-pub typealias RandomState = @splitmix.RandomState
+pub typealias RandomState = @random/splitmix.RandomState
 
 /// The Gen type represents a generator of values of type T.
 struct Gen[T] {
@@ -376,17 +376,17 @@ pub fn nat() -> Gen[Int] {
 
 /// Generates a negative integer
 pub fn neg_int() -> Gen[Int] {
-  Gen::new(fn(_i, rs) { -rs.next_int_abs() })
+  Gen::new(fn(_i, rs) { -rs.next_int().abs() })
 }
 
 /// Generates a numeral char
 pub fn numeral() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 10 + 48) })
+  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int().abs() % 10 + 48) })
 }
 
 /// Generates alphabet
 pub fn alphabet() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int_abs() % 26 + 65) })
+  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int().abs() % 26 + 65) })
 }
 
 /// Generates int within given bound [0, bound)
@@ -394,7 +394,7 @@ pub fn int_bound(bound : Int) -> Gen[Int] {
   if bound == 0 {
     pure(0)
   } else {
-    Gen::new(fn(_i, rs) { rs.next_int_abs() % bound })
+    Gen::new(fn(_i, rs) { rs.next_int().abs() % bound })
   }
 }
 
@@ -411,7 +411,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   Gen::new(
     fn(_i, rs) {
-      let j = rs.next_int_abs() % (hi - lo)
+      let j = rs.next_int().abs() % (hi - lo)
       j + lo
     },
   )

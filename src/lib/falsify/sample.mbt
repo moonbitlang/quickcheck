@@ -24,7 +24,7 @@ pub fn view(self : SampleTree) -> (Sample, SampleTree, SampleTree) {
 
 // Note that SampleTree is implemented Lense
 
-pub typealias RandomState = @splitmix.RandomState
+pub typealias RandomState = @random/splitmix.RandomState
 
 pub fn from_rng(rs : RandomState) -> SampleTree {
   let n = rs.next_uint()
@@ -33,7 +33,7 @@ pub fn from_rng(rs : RandomState) -> SampleTree {
 }
 
 pub fn from_seed(seed : UInt64) -> SampleTree {
-  from_rng(@splitmix.new(~seed))
+  from_rng(@random/splitmix.new(~seed))
 }
 
 pub fn constant(val : UInt) -> SampleTree {
