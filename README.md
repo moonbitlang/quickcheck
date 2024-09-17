@@ -27,6 +27,7 @@ fn prop_reverse_identity(arr : Array[Int]) {
 ```
 
 We may consider the code logically as:
+
 $$
 \forall x: \text{Array[T]}.\space \text{reverse}(\text{reverse}(x)) = x
 $$
@@ -57,11 +58,14 @@ fn remove(arr : Array[Int], x : Int) -> Array[Int] {
 
 We may consider the following properties:
 - If an element was removed from the array, the length of the array should be less than or equal to the original array
+
 $$
 \forall x:\text{T}, a:\text{Array[T]} . \space
 \text{length}(\text{remove}(a,x)) \leq \text{length}(a)
 $$
+
 - If an element was removed from the array, the element should not exist in the array
+
 $$
 \forall x:\text{T}, a:\text{Array[T]} . \space
 x\not\in\text{remove}(a,x)
