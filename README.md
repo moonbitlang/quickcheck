@@ -144,13 +144,77 @@ pub trait Shrink {
 }
 ```
 
+### Generators and Shrinkers
+
+Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
+
+Generators have types of the form `Gen[T`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator):
+```moonbit
+struct Gen[T] {
+  gen : (Int, RandomState) -> T
+}
+```
+
+QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic ones, we can use `Gen::new(f: (Int, RandomState) -> T)` to create a generator from a function and run it by invoking the `run` method:
+```moonbit
+let g : Gen[Int] = Gen::new(..) // Suppose we have a generator for Int
+let x : Int = g.run(100, RandomState::new()) // Generate a random Int at size 100
+```
+
+`Gen[T]` was implemented as functor, applicative and monad which means you can compose it in many ways. 
+```moonbit
+fn pure[T](val : T) -> Gen[T]
+fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U]
+fn ap[T, U](self : Gen[(T) -> U], v : Gen[T]) -> Gen[U]
+fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U]
+```
+
+For instance, you can use the `fmap` method to transform the generated value:
+```moonbit
+let g : Gen[Int] = Gen::new(..)
+let g2 : Gen[Int] = g.fmap(fn(x) { x + 1 })
+let g3 : Gen[String] = g.fmap(fn(x) { x.to_string() })
+```
+
+Or create a dependent generator:
+```moonbit
+let g : Gen[Int] = Gen::new(..)
+let g2 : Gen[Int] = g.bind(fn(x : Int) { 
+  if x == 0 {
+    Gen::pure(100)
+  } else {
+    Gen::pure(200)
+  }
+})
+```
+
+Shrinkers have types of the form `(T) -> Iter[T]`. when given a value, a shrinker produces a sequence of values that are (in some way) simpler than the given value. If QuickCheck finds a set of values that fails a given property, it will try to make that value simpler than the original value by getting the shrinks for the value and trying each one in turn to check that the property is still false. If it is, the smaller value becomes the new counterexample and the shrinking process continues with that value.
+
+## Advanced Topics
+
+### Custom Generator
+
+```moonbit
+test {
+  quick_check!(
+    forall(
+      spawn(),
+      fn(a : Array[Int]) {
+        forall(one_of_array(a), 
+          fn(y : Int) { remove(a, y).contains(y).not() })
+        |> filter(a.length() != 0)
+      },
+    ),
+  )
+}
+```
+
 ### Conditional Properties
 
 Before we step further to verify out hypothesis, we present another manner to write tests:
 
-
-
 Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array contains no duplicated elements, then our tests should pass. Use the function `filter` can filter out unwanted test cases:
+
 ```moonbit
 test {
   fn no_duplicate(x : Array[Int]) -> Bool {
@@ -173,25 +237,6 @@ test {
 - If a type `T` is implemented with `Arbitrary` class, we can use `spawn()` to get the generator `Gen[T]`.
 - `forall` is an explicit universal quantification, which uses an explicitly given test case generator.
 - The `filter` combinator filters out the test cases that do not satisfy the condition.
-
-### Custom Generator
-
-```moonbit
-test {
-  quick_check!(
-    forall(
-      spawn(),
-      fn(a : Array[Int]) {
-        forall(one_of_array(a), 
-          fn(y : Int) { remove(a, y).contains(y).not() })
-        |> filter(a.length() != 0)
-      },
-    ),
-  )
-}
-```
-
-## Advanced Topics
 
 
 ## Application
