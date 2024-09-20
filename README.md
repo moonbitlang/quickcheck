@@ -230,7 +230,7 @@ QuickCheck defines default test data generators and shrinkers for some often use
 quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
 ```
 
-Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[Int]]` from the type of the property function.
+Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.
 ```moonbit
 fn Gen::spawn[T : Arbitrary]() -> Gen[T]
 ```
@@ -280,7 +280,7 @@ test {
     ),
   )
 }
-``` of the time.
+```
 
 - The `no_duplicate` function checks whether the input array contains no duplicated elements.
 - If a type `T` is implemented with `Arbitrary` class, we can use `spawn()` to get the generator `Gen[T]`.
