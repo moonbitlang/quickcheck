@@ -1,4 +1,4 @@
-pub typealias RandomState = @random/splitmix.RandomState
+pub typealias RandomState = @quickcheck/splitmix.RandomState
 
 /// The Gen type represents a generator of values of type T.
 struct Gen[T] {
