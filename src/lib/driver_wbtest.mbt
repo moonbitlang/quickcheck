@@ -201,3 +201,7 @@ test {
     ),
   )
 }
+
+test "explicit universal qualification" {
+  quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
+}

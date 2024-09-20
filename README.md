@@ -144,7 +144,7 @@ pub trait Shrink {
 }
 ```
 
-### Generators and Shrinkers
+### Generators
 
 Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
 
@@ -187,6 +187,55 @@ let g2 : Gen[Int] = g.bind(fn(x : Int) {
   }
 })
 ```
+
+The following documents explains some useful combinators for `Gen[T]`.
+
+#### Choosing between alternatives
+
+A generator may take the form `one_of` which chooses among the generators in the array with equal probability. For example, this generates a random boolean which is true with probability one half:
+
+```moonbit
+let gen_bool : Gen[Bool] = one_of([pure(true), pure(false)])
+```
+
+If you want to control the distribution of results using frequency instead. We have `frequency` which chooses a generator from the array randomly, but weighs the probability of choosing each alternative by the factor given. For example, this generates true in the probability of $4/5$.
+
+```moonbit
+let gen_freq : Gen[Bool] = frequency([(4, pure(true)), (1, pure(false))])
+```
+
+#### Size parameter
+
+We have pointed that test data generators have an size parameter. QuickCheck begins by generating small test cases, and gradually increases the size as testing progresses. Different test data generators interpret the size parameter in different ways: some _ignore_ it, some interprets it as an upper bound on the size of containers. Most generators defined in `Arbitrary` trait depends on the size parameter but most separated generator combinators does not. 
+
+You can obtain the value of the size parameter using `sized` combinator.
+```moonbit
+pub fn sized[T](f : (Int) -> Gen[T]) -> Gen[T]
+```
+
+For example, we can make a trivial generator for a list of integers with a given length:
+```moonbit
+let gen : Gen[Int] = sized(fn { size => pure(size) })
+let arr = Array::makei(20, fn { i => gen.sample(size=i) })
+inspect!(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
+```
+
+The purpose of size control is to ensure that test cases are large enough to reveal errors, while remaining small enough to test fast. Sometimes the default size control does not achieve this. So we have provided some tool functions like `resize` and `scale` (check the document for details) for this purpose.
+
+#### Default Generators
+
+QuickCheck defines default test data generators and shrinkers for some often used types (By trait `Arbitrary` and `Shrink`). You do not need to define or apply these explicitly for every property because QuickCheck can provide a property with appropriate generators and shrinkers for the property's arguments. But if you are required to do so, you can use the `forall` for explicitly universal quantification. 
+
+```moonbit
+quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
+```
+
+Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[Int]]` from the type of the property function.
+```moonbit
+fn Gen::spawn[T : Arbitrary]() -> Gen[T]
+```
+
+### Shrinkers
 
 Shrinkers have types of the form `(T) -> Iter[T]`. when given a value, a shrinker produces a sequence of values that are (in some way) simpler than the given value. If QuickCheck finds a set of values that fails a given property, it will try to make that value simpler than the original value by getting the shrinks for the value and trying each one in turn to check that the property is still false. If it is, the smaller value becomes the new counterexample and the shrinking process continues with that value.
 
@@ -231,7 +280,7 @@ test {
     ),
   )
 }
-```
+``` of the time.
 
 - The `no_duplicate` function checks whether the input array contains no duplicated elements.
 - If a type `T` is implemented with `Arbitrary` class, we can use `spawn()` to get the generator `Gen[T]`.

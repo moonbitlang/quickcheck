@@ -64,7 +64,7 @@ test "feat tree random" {
 
 test "feat tree" {
   let fe : Gen[Tree[Nat]] = feat_random(11)
-  inspect!(fe.sample(), content="Leaf(Zero)")
+  inspect!(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
   let x = (@feat.Enumerable::enumerate() : @feat.Enumerate[SingleTree]).en_index(
     196606, // Magic Number 196607 will cause crash of BigInt 
   )
@@ -116,4 +116,26 @@ test "char range" {
     char_range('a', 'c').samples(size=20),
     content="['a', 'a', 'b', 'a', 'c', 'a', 'b', 'a', 'c', 'b', 'c', 'c', 'a', 'a', 'c', 'b', 'b', 'a', 'b', 'a']",
   )
+}
+
+test "one_of" {
+  let gen_bool : Gen[Bool] = one_of([pure(true), pure(false)])
+  inspect!(
+    gen_bool.samples(size=10),
+    content="[true, true, false, true, false, true, true, true, true, true]",
+  )
+}
+
+test "frequency" {
+  let gen_freq : Gen[Bool] = frequency([(4, pure(true)), (1, pure(false))])
+  inspect!(
+    gen_freq.samples(size=20),
+    content="[true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true]",
+  )
+}
+
+test "sized trivial" {
+  let gen : Gen[Int] = sized(fn { size => pure(size) })
+  let arr = Array::makei(10, fn { i => gen.sample(size=i) })
+  inspect!(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 }

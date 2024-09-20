@@ -27,9 +27,12 @@ pub fn Gen::run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
 }
 
 /// Generate a value from a generator
-pub fn Gen::sample[T](self : Gen[T], ~seed : UInt64 = 37) -> T {
+pub fn Gen::sample[T](
+  self : Gen[T],
+  ~size : Int = 100,
+  ~seed : UInt64 = 37
+) -> T {
   let state = RandomState::new(~seed)
-  let size = state.next_int() % 100
   self.run(size, state)
 }
 
@@ -445,7 +448,7 @@ pub fn array_with_size[T](self : Gen[T], size : Int) -> Gen[Array[T]] {
 }
 
 fn reserved(c : Int) -> Bool {
-  let masked = c.land(0xffff)
+  let masked = c & 0xffff
   [
     c < 0,
     c > 0x10ffff,
