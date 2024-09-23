@@ -48,7 +48,10 @@ test "reject all" {
 test "label" {
   quick_check!(
     Arrow(
-      fn(x : List[Int]) { Arrow(prop_rev) |> label("length is \{x.length()}") },
+      fn(x : List[Int]) {
+        Arrow(prop_rev)
+        |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+      },
     ),
   )
 }
