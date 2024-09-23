@@ -11,7 +11,7 @@ The idea of QuickCheck was originally introduced in John's paper [*QuickCheck: a
 
 ### First Look
 
-Let's start with something very simple. Suppose that we just wrote a function `reverse` which takes an array as argument Failure Diagnosisand returns its reverse. And we want to test its functionality by writing unit tests:
+Let's start with something very simple. Suppose that we just wrote a function `reverse` which takes an array as argument and returns its reverse. We want to test its functionality by writing unit tests:
 ```moonbit
 test "reverse" {
   inspect!(reverse(([] : Array[Int])), content="[]")
@@ -41,14 +41,14 @@ test {
 }
 ```
 
-The result (The three number in the brackets are the number of passed, discarded and total tests):
+The `quick_check` function takes a `Testable` and runs tests, reporting the result (The three number in the brackets are the number of passed, discarded and total tests):
 ```
 +++ [100/0/100] Ok, passed!
 ```
 
 ### Failure Diagnosis
 
-Now let's see another example: Suppose we wrote a function `remove(arr : Array[Int], x : Int) -> Array[Int]` that takes an array and an element and returns a new array with **all** occurrences of `x` removed. The intuitive implementation is to search for `x` in the array and remove it if found:
+Now let's see another example: suppose we wrote a function `remove(arr : Array[Int], x : Int) -> Array[Int]` that takes an array and an element and returns a new array with **all** occurrences of `x` removed. The intuitive implementation is to search for `x` in the array and remove it if found:
 
 ```moonbit
 fn remove(arr : Array[Int], x : Int) -> Array[Int] {
@@ -111,24 +111,24 @@ The QuickCheck reports a failure with a counterexample in the second line after 
 (0, [0, 0])
 ```
 
-When `x = 0` and `arr = [0, 0]` the property does not hold. The `remove` function should remove all occurrences of `x` in the array, but it only removes the first one. In this example, as in many cases, the randomly generated test case contains junk values that have nothing to do with the test failure itself. When QuickCheck finds a failing test case, it tries to simplify it by applying some shrinking strategies. In fact the failing case is much complex but the shrinking algorithm has simplified it to the minimal case and presented it to us.
+When `x = 0` and `arr = [0, 0]` the property does not hold. The `remove` function should remove all occurrences of `x` in the array, but it only removes the first one. In this example, as in many cases, the randomly generated test case contains junk values that have nothing to do with the test failure itself. When QuickCheck finds a failing test case, it tries to simplify it by applying some **shrinking** strategies. In fact the failing case is much complex but the shrinking algorithm has simplified it to the minimal case and presented it to us.
 
 ### Traits
 
-The `quickcheck` function has the following signature:
+Now let's move to the core of QuickCheck. The `quickcheck` function has the following signature:
 
 ```moonbit
 fn quick_check[P : Testable](P) -> Unit!Failure
 ```
 
-It takes a value of type that implemented `Testable` as argument and runs the test. 
+It takes a value of type that implemented `Testable` as argument and runs the test. This is an effectful function that may throw an failure to the MoonBit test driver when a test fails (Or give up). If success, it simply returns `Unit` with the sentence `Ok, passed!` printed to the console.
 
 ```moonbit
 type Arrow[A, P] (A) -> P
 impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 ```
 
-The `Arrow` type (wrapped function) does implement the `Testable` trait, so we can pass the property function directly to `quick_check`. Note that the argument type has implemented the `Arbitrary` , `Shrink` and `Show` traits. The `Show` is necessary for the `quick_check` function to print the **counterexample** when a test fails. Now we give some brief introduction to other two traits.
+The `Arrow` type (wrapped single-valued function) does implement the `Testable` trait, so we can pass the property function directly to `quick_check`. Note that the argument type should have implemented the `Arbitrary` , `Shrink` and `Show` traits. The `Show` is necessary for the `quick_check` function to print the **counterexample** when a test fails, without which the testing is considered useless. The other two traits play important roles in QuickCheck. Now we give some brief introduction to them.
 
 `Arbitrary` is a trait that generates random values of a type.  It has a method `arbitrary` that takes a size and a random number generator and  then returns a random value of the type.
 ```moonbit
@@ -144,11 +144,13 @@ pub trait Shrink {
 }
 ```
 
+Now we given to a more detailed explanation to the underlying structure of `Arbitrary` and its relation to the generators. 
+
 ### Generators
 
 Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
 
-Generators have types of the form `Gen[T`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator):
+Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator):
 ```moonbit
 struct Gen[T] {
   gen : (Int, RandomState) -> T
@@ -237,7 +239,7 @@ fn Gen::spawn[T : Arbitrary]() -> Gen[T]
 
 ### Shrinkers
 
-Shrinkers have types of the form `(T) -> Iter[T]`. when given a value, a shrinker produces a sequence of values that are (in some way) simpler than the given value. If QuickCheck finds a set of values that fails a given property, it will try to make that value simpler than the original value by getting the shrinks for the value and trying each one in turn to check that the property is still false. If it is, the smaller value becomes the new counterexample and the shrinking process continues with that value.
+Shrinkers have types of the form `(T) -> Iter[T]`. When given a value, a shrinker produces a sequence of values that are (in some way) simpler than the given value. If QuickCheck finds a set of values that fails a given property, it will try to make that value simpler than the original value by getting the shrinks for the value and trying each one in turn to check that the property is still false. If it is, the smaller value becomes the new counterexample and the shrinking process continues with that value.
 
 ## Advanced Topics
 
