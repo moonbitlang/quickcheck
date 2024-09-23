@@ -150,7 +150,7 @@ Now we given to a more detailed explanation to the underlying structure of `Arbi
 
 Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
 
-Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator):
+Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
 ```moonbit
 struct Gen[T] {
   gen : (Int, RandomState) -> T
@@ -243,7 +243,15 @@ Shrinkers have types of the form `(T) -> Iter[T]`. When given a value, a shrinke
 
 ## Advanced Topics
 
+### QuickCheck Invalid Case
+
+This section summarizes some common mistakes in using QuickCheck:
+- Testing with external effects: If a property requires an external state, for example, the user's input, the global mutable and etc, you should pass the state as an argument to the property function. Otherwise, the property is not a pure function and the test is not repeatable.
+- Mutable arguments was unexpectedly modified: You should keep the arguments **immutable** in the property function. If you need to modify the arguments, you should make a copy of them.
+
 ### Custom Generator
+
+Recall the `remove` function we want to test before. The QuickCheck do report an error for us, but the generator is quite random and the tuple element `(x, arr): (Int, Array[Int])` is independent. In most cases, the `x` is not in the array, so the test is not very meaningful (falls to the branch `None => ()`). Now we use the `one_of_array` combinator to generate a random element from a generated non-empty array, which makes the test more meaningful.
 
 ```moonbit
 test {
@@ -260,9 +268,21 @@ test {
 }
 ```
 
-### Conditional Properties
+We admit the following facts:
+- The first `spawn` evaluates to a generator of `Array[Int]`.
+- The `forall` function can be nested.
+- There is a `filter` function that filters out the test cases that do not satisfy the condition, non-empty array is required in this case.
+- The `one_of_array` function selects a random element from a non-empty array.
 
-Before we step further to verify out hypothesis, we present another manner to write tests:
+```
+*** [4/33/100] Failed! Falsified.
+[0, 0]
+0
+```
+
+We find that there are 33 cases that do not satisfy the condition, and the counterexample is `[0, 0]` and `0`, which points out the issue clearly. The `one_of_array` function selects a random element from the array, so the `y` is always `0` in this case. The `remove` function only removes the first one, so the property does not hold.
+
+### Conditional Properties
 
 Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array contains no duplicated elements, then our tests should pass. Use the function `filter` can filter out unwanted test cases:
 
@@ -284,11 +304,57 @@ test {
 }
 ```
 
+- Notice that we use `arr.copy()` to make a copy of the array, because the `remove` function may modify the argument array.
 - The `no_duplicate` function checks whether the input array contains no duplicated elements.
-- If a type `T` is implemented with `Arbitrary` class, we can use `spawn()` to get the generator `Gen[T]`.
-- `forall` is an explicit universal quantification, which uses an explicitly given test case generator.
-- The `filter` combinator filters out the test cases that do not satisfy the condition.
+- As discussed above, the `filter` combinator filters out the test cases that do not satisfy the condition.
 
+Running this test, we find that all tests passed. Now we have strong evidence that the `remove` function only removes the first one but not all.
+
+### Classifying Data
+
+We may interest in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
+
+```moonbit
+test "classes" {
+  quick_check_fn!(
+    fn(x : List[Int]) {
+      Arrow(prop_rev)
+      |> classify(x.length() > 5, "long list")
+      |> classify(x.length() <= 5, "short list")
+    },
+  )
+}
+```
+
+The `classify` function takes a boolean and a string, and if the boolean is true, the test case is classified with the string.
+```
++++ [100/0/100] Ok, passed!
+22% : short list
+78% : long list
+```
+
+The `label` function takes a string and classifies the test case with the string.
+```moonbit
+test "label" {
+  quick_check!(
+    Arrow(
+      fn(x : List[Int]) {
+        Arrow(prop_rev)
+        |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+      },
+    ),
+  )
+}
+```
+
+The result is as follows:
+```
++++ [100/0/100] Ok, passed!
+8% : trivial
+92% : non-trivial
+```
+
+The `collect` function is a generalization of `label`. The difference is that the `collect` takes an argument implementing the `Show` trait, and the `label` takes a string directly. The `collect` function is useful when you want to classify the test case with a complex value.
 
 ## Application
 We have applied MoonBit QuickCheck to test the correctness of the MoonBit core. For now we have found several bugs in the core, including:
@@ -301,19 +367,14 @@ We have applied MoonBit QuickCheck to test the correctness of the MoonBit core. 
 
 ## Roadmap and Future Work
 
-### Testing Strategy
-
-- [x] Randomized property test: Run the test for `N` random elements drawn from the argument type.
-  - Similar to Haskell QuickCheck
-- [ ] Exhaustive specialized property test: Run the test for each element of a subset of the argument type.
-  - Similar to SmallCheck and Feat
-
 ### Data Generation
 
 - [x] Functional Enumeration 
-- [ ] Falsify (with free shrinkers)
 - [x] Random Generation
   - Currently use the SplitMix algorithms
+- [ ] Falsify (with free shrinkers)
+  - [x] Basic Implementation
+  - [ ] Test driver adaption 
 
 ### Property Verification
 
@@ -326,8 +387,8 @@ We have applied MoonBit QuickCheck to test the correctness of the MoonBit core. 
 ### Shrinking
 
 - [x] Linear Shrinking
+- [x] Internal Shrinking
 - [ ] Integrated Shrinking 
-- [ ] Internal Shrinking
 
 ## References
 
