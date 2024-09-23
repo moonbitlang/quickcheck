@@ -92,7 +92,9 @@ impl @feat.Enumerable for Nat with enumerate() {
   )
 }
 
-impl Arbitrary for Nat with arbitrary(i, rs) { Gen::feat_random(i).run(i, rs) }
+impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
+  Gen::feat_random(i).run(i, rs)
+}
 
 fn op_add(self : Nat, other : Nat) -> Nat {
   match self {
@@ -162,7 +164,7 @@ test {
   quick_check!(Arrow(prop_remove_not_presence) |> with_max_success(1000))
 }
 
-test {
+test "custom generator" {
   quick_check!(
     forall(
       spawn(),
@@ -174,7 +176,7 @@ test {
   )
 }
 
-test {
+test "no_duplicate" {
   fn no_duplicate(x : Array[Int]) -> Bool {
     @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
   }
@@ -184,13 +186,13 @@ test {
       spawn(),
       fn(iarr : (Int, Array[Int])) {
         let (x, arr) = iarr
-        filter(remove(arr, x).contains(x).not(), no_duplicate(arr))
+        remove(arr.copy(), x).contains(x).not() |> filter(no_duplicate(arr))
       },
     ),
   )
 }
 
-test {
+test "use one_of" {
   quick_check!(
     forall(
       spawn(),

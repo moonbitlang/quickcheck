@@ -40,7 +40,7 @@ pub fn quick_check[P : Testable](prop : P) -> Unit!Failure {
   quick_check_with!(Default::default(), prop)
 }
 
-pub fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable](
+pub fn quick_check_fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable](
   f : (A) -> B
 ) -> Unit!Failure {
   quick_check!(Arrow(f))

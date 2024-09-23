@@ -262,7 +262,9 @@ fn label_to_string(self : Coverage, success : Int) -> String {
 fn class_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.classes.each(
-    fn(s, i) { res.push("\{i.to_double() / success.to_double() * 100}% : \{s}") },
+    fn(s, i) {
+      res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
+    },
   )
   res.join("\n")
 }

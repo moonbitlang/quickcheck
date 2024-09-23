@@ -11,7 +11,7 @@ pub fn Gen::new[T](gen : (Int, RandomState) -> T) -> Gen[T] {
 }
 
 /// Spawn a new generator from an arbitrary instance
-pub fn Gen::spawn[T : Arbitrary]() -> Gen[T] {
+pub fn Gen::spawn[T : @quickcheck.Arbitrary]() -> Gen[T] {
   { gen: T::arbitrary }
 }
 
@@ -445,60 +445,4 @@ pub fn sorted_list[T : Compare](
 
 pub fn array_with_size[T](self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { self.run(i, rs) }) })
-}
-
-fn reserved(c : Int) -> Bool {
-  let masked = c & 0xffff
-  [
-    c < 0,
-    c > 0x10ffff,
-    c >= 0xDC00 && c <= 0xDFFF,
-    c >= 0xD800 && c <= 0xDBFF,
-    masked == 0xFFFE || masked == 0xFFFF,
-  ].fold(fn(x, acc) { acc || x }, init=false)
-}
-
-fn unicode_ascii() -> Gen[Int] {
-  int_range(0, 0x7F)
-}
-
-fn unicode_plane0() -> Gen[Int] {
-  int_range(0, 0x0FFFF)
-}
-
-fn unicode_plane1() -> Gen[Int] {
-  one_of(
-    [
-      int_range(0x10000, 0x10FFF),
-      int_range(0x11000, 0x11FFF),
-      int_range(0x12000, 0x12FFF),
-      int_range(0x13000, 0x13FFF),
-      int_range(0x1D000, 0x1DFFF),
-      int_range(0x1F000, 0x1FFFF),
-    ],
-  )
-}
-
-fn unicode_plane2() -> Gen[Int] {
-  one_of(
-    [
-      int_range(0x20000, 0x20FFF),
-      int_range(0x21000, 0x21FFF),
-      int_range(0x22000, 0x22FFF),
-      int_range(0x23000, 0x23FFF),
-      int_range(0x24000, 0x24FFF),
-      int_range(0x25000, 0x25FFF),
-      int_range(0x26000, 0x26FFF),
-      int_range(0x27000, 0x27FFF),
-      int_range(0x28000, 0x28FFF),
-      int_range(0x29000, 0x29FFF),
-      int_range(0x2A000, 0x2AFFF),
-      int_range(0x2B000, 0x2BFFF),
-      int_range(0x2F000, 0x2FFFF),
-    ],
-  )
-}
-
-fn unicode_plane14() -> Gen[Int] {
-  int_range(0xE0000, 0xE0FFF)
 }

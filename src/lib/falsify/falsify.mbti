@@ -1,8 +1,8 @@
 package CAIMEOX/quickcheck/lib/falsify
 
 alias @CAIMEOX/quickcheck/lib/lazy as @lazy
-alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
+alias @moonbitlang/core/quickcheck/splitmix as @splitmix
 
 // Values
 fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]

@@ -68,9 +68,10 @@ impl[P : Testable] Testable for Gen[P] with property(self) {
 
 impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
 
-impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P] with property(
-  self
-) {
+impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[
+  A,
+  P,
+] with property(self) {
   forall_shrink(spawn(), A::shrink, self._)
 }
 
@@ -89,7 +90,8 @@ pub fn map_total_result[P : Testable](
   prop : P,
   f : (SingleResult) -> SingleResult
 ) -> Property {
-  map_rose_result(prop, fn { rose => rose.fmap(f) })
+  prop.property().property.fmap(fn { rose => rose.fmap(f) }) |> Property::make
+  // map_rose_result(prop, fn { rose => rose.fmap(f) })
 }
 
 fn lift_bool(b : Bool) -> SingleResult {

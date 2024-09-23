@@ -47,13 +47,13 @@ fn op_equal(self : Queue, other : Queue) -> Bool {
   self.to_list() == other.to_list()
 }
 
-impl Arbitrary for Queue with arbitrary(i, rs) {
-  let f : @immut/list.T[Int] = Arbitrary::arbitrary(i, rs)
-  let r : @immut/list.T[Int] = Arbitrary::arbitrary(i, rs)
+impl @quickcheck.Arbitrary for Queue with arbitrary(i, rs) {
+  let f : @immut/list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
+  let r : @immut/list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
   build_queue(f, r)
 }
 
-impl Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
+impl @quickcheck.Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
   fn split(xs : @immut/list.T[Int], i) {
     (xs.take(i), xs.drop(i))
   }
@@ -64,7 +64,7 @@ impl Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
     build_queue(xs1, xs2.rev())
   }
 
-  let z : @immut/list.T[Int] = Arbitrary::arbitrary(i, rs)
+  let z : @immut/list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
   { lhs, rhs }
