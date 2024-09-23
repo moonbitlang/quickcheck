@@ -2,8 +2,9 @@ package CAIMEOX/quickcheck/lib
 
 alias @CAIMEOX/quickcheck/lib/feat as @feat
 alias @CAIMEOX/quickcheck/lib/rose as @rose
-alias @CAIMEOX/quickcheck/lib/splitmix as @splitmix
 alias @moonbitlang/core/immut/list as @list
+alias @moonbitlang/core/quickcheck as @quickcheck
+alias @moonbitlang/core/quickcheck/splitmix as @splitmix
 
 // Values
 fn alphabet() -> Gen[Char]
@@ -112,7 +113,7 @@ fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
 fn quick_check[P : Testable](P) -> Unit!Failure
 
-fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
+fn quick_check_fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
 
 fn quick_check_with[P : Testable](Config, P) -> Unit!Failure
 
@@ -190,10 +191,10 @@ impl Gen {
   new[T]((Int, @splitmix.RandomState) -> T) -> Self[T]
   resize[T](Self[T], Int) -> Self[T]
   run[T](Self[T], Int, @splitmix.RandomState) -> T
-  sample[T](Self[T], ~seed : UInt64 = ..) -> T
+  sample[T](Self[T], ~size : Int = .., ~seed : UInt64 = ..) -> T
   samples[T](Self[T], ~size : Int = .., ~seed : UInt64 = ..) -> Array[T]
   scale[T](Self[T], (Int) -> Int) -> Self[T]
-  spawn[T : Arbitrary]() -> Self[T]
+  spawn[T : @quickcheck.Arbitrary]() -> Self[T]
   such_that[T](Self[T], (T) -> Bool) -> Self[T]
   such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
 }
@@ -267,10 +268,6 @@ type TestSuccess
 pub typealias RandomState = @splitmix.RandomState
 
 // Traits
-pub trait Arbitrary {
-  arbitrary(Int, @splitmix.RandomState) -> Self
-}
-
 pub trait Shrink {
   shrink(Self) -> Iter[Self]
 }

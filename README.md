@@ -277,7 +277,7 @@ test {
       spawn(),
       fn(iarr : (Int, Array[Int])) {
         let (x, arr) = iarr
-        filter(remove(arr, x).contains(x).not(), no_duplicate(arr))
+        filter(remove(arr.copy(), x).contains(x).not(), no_duplicate(arr))
       },
     ),
   )
