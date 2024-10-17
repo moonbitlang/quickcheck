@@ -51,11 +51,11 @@ struct State {
   replay_start_size_ : Int?
 
   // Number of tests that have succeeded (mutable)
-  mut num_success_tests : Int
+  num_success_tests : Int
   // Number of tests that have been discarded (mutable, total)
-  mut num_discarded_tests : Int
+  num_discarded_tests : Int
   // Since last successful test, number of discarded tests (mutable)
-  mut num_recent_discarded_tests : Int
+  num_recent_discarded_tests : Int
 
   // Note that Map provides inner mutability hence we don't need to use mut tag.
 
