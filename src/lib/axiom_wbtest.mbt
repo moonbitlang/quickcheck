@@ -31,7 +31,7 @@ pub fn is_empty(self : Queue) -> Bool {
 }
 
 fn front(self : Queue) -> Int {
-  self.f.last()
+  self.f.last().unwrap()
 }
 
 fn dequeue(self : Queue) -> Queue {

@@ -6,9 +6,9 @@ fn new[T](T, Iter[Rose[T]]) -> Rose[T]
 fn pure[T](T) -> Rose[T]
 
 // Types and methods
-pub struct Rose {
-  pub val : T
-  pub branch : Iter[Rose[T]]
+pub(all) struct Rose {
+  val : T
+  branch : Iter[Rose[T]]
 }
 impl Rose {
   apply[T](Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
@@ -17,11 +17,9 @@ impl Rose {
   join[T](Self[Self[T]]) -> Self[T]
   to_string[T : Show](Self[T]) -> String
 }
+impl[T : Show] Show for Rose[T]
 
 // Type aliases
 
 // Traits
-
-// Extension Methods
-impl Show for Rose
 

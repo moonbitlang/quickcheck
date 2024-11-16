@@ -56,7 +56,7 @@ pub fn apply_while[T](
 
 pub fn id[T](x : T) -> T = "%identity"
 
-pub fn const[T, U](t : T) -> (U) -> T {
+pub fn const_[T, U](t : T) -> (U) -> T {
   fn { _ => t }
 }
 

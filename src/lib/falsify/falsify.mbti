@@ -52,6 +52,7 @@ type Config
 impl Config {
   to_string(Self) -> String
 }
+impl Show for Config
 
 type DriverState
 
@@ -61,6 +62,7 @@ type Failure
 impl Failure {
   to_string[E : Show](Self[E]) -> String
 }
+impl[E : Show] Show for Failure[E]
 
 type Gen
 impl Gen {
@@ -101,16 +103,19 @@ impl ShrinkExplain {
   shrink_outcome[P, N](Self[P, N]) -> (P, @lazy.LazyList[N]?)
   to_string[P : Show, N : Show](Self[P, N]) -> String
 }
+impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
 type ShrinkHistroy
 impl ShrinkHistroy {
   to_string[P : Show, N : Show](Self[P, N]) -> String
 }
+impl[P : Show, N : Show] Show for ShrinkHistroy[P, N]
 
 type Success
 impl Success {
   to_string[T : Show](Self[T]) -> String
 }
+impl[T : Show] Show for Success[T]
 
 type TestResult
 
@@ -118,6 +123,7 @@ type TestRun
 impl TestRun {
   to_string(Self) -> String
 }
+impl Show for TestRun
 
 // Type aliases
 pub typealias LazyList[T] = @lazy.LazyList[T]
@@ -127,17 +133,4 @@ pub typealias List[T] = @list.T[T]
 pub typealias RandomState = @splitmix.RandomState
 
 // Traits
-
-// Extension Methods
-impl Show for Config
-
-impl Show for Failure
-
-impl Show for ShrinkExplain
-
-impl Show for ShrinkHistroy
-
-impl Show for Success
-
-impl Show for TestRun
 

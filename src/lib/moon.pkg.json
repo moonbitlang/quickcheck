@@ -3,6 +3,7 @@
       "CAIMEOX/quickcheck/lib/feat",
       "CAIMEOX/quickcheck/lib/lazy",
       "CAIMEOX/quickcheck/lib/utils",
-      "CAIMEOX/quickcheck/lib/rose"
+      "CAIMEOX/quickcheck/lib/rose",
+      "CAIMEOX/quickcheck/lib/falsify"
     ]
 }

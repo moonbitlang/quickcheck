@@ -1,4 +1,4 @@
-pub typealias List[T] = @immut/list.T[T]
+pub(all) typealias List[T] = @immut/list.T[T]
 
 struct TestRun {
   log : List[String]

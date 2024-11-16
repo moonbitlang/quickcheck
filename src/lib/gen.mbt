@@ -1,4 +1,4 @@
-pub typealias RandomState = @quickcheck/splitmix.RandomState
+pub(all) typealias RandomState = @quickcheck/splitmix.RandomState
 
 /// The Gen type represents a generator of values of type T.
 struct Gen[T] {
@@ -29,20 +29,20 @@ pub fn Gen::run[T](self : Gen[T], i : Int, rs : RandomState) -> T {
 /// Generate a value from a generator
 pub fn Gen::sample[T](
   self : Gen[T],
-  ~size : Int = 100,
-  ~seed : UInt64 = 37
+  size~ : Int = 100,
+  seed~ : UInt64 = 37
 ) -> T {
-  let state = RandomState::new(~seed)
+  let state = RandomState::new(seed~)
   self.run(size, state)
 }
 
 /// Generate an array of samples from a generator
 pub fn Gen::samples[T](
   self : Gen[T],
-  ~size : Int = 10,
-  ~seed : UInt64 = 37
+  size~ : Int = 10,
+  seed~ : UInt64 = 37
 ) -> Array[T] {
-  let state = RandomState::new(~seed)
+  let state = RandomState::new(seed~)
   Array::makei(size, fn(_x) { self.run(size, state) })
 }
 

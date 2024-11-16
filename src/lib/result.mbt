@@ -1,4 +1,4 @@
-pub enum Outcome[T] {
+pub(all) enum Outcome[T] {
   Success
   GaveUp
   Fail(T) // Counterexample
@@ -16,7 +16,7 @@ pub fn output[T](self : Outcome[T], logger : Logger) -> Unit {
   logger.write_string(self.to_string())
 }
 
-pub struct Replay {
+pub(all) struct Replay {
   rand_state : RandomState
   size : Int
 }

@@ -1,4 +1,4 @@
-pub typealias LazyList[T] = @lazy.LazyList[T]
+pub(all) typealias LazyList[T] = @lazy.LazyList[T]
 
 struct Gen[T] {
   run_gen : (SampleTree) -> (T, LazyList[SampleTree])
