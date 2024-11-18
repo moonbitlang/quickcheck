@@ -162,6 +162,7 @@ type Callback
 impl Callback {
   to_string(Self) -> String
 }
+impl Show for Callback
 
 type Config
 
@@ -179,6 +180,7 @@ impl Equivalence {
   new[T](T, T) -> Self[T]
   to_string[T : Show](Self[T]) -> String
 }
+impl[T : Show] Show for Equivalence[T]
 
 type Gen
 impl Gen {
@@ -191,8 +193,8 @@ impl Gen {
   new[T]((Int, @splitmix.RandomState) -> T) -> Self[T]
   resize[T](Self[T], Int) -> Self[T]
   run[T](Self[T], Int, @splitmix.RandomState) -> T
-  sample[T](Self[T], ~size : Int = .., ~seed : UInt64 = ..) -> T
-  samples[T](Self[T], ~size : Int = .., ~seed : UInt64 = ..) -> Array[T]
+  sample[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> T
+  samples[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> Array[T]
   scale[T](Self[T], (Int) -> Int) -> Self[T]
   spawn[T : @quickcheck.Arbitrary]() -> Self[T]
   such_that[T](Self[T], (T) -> Bool) -> Self[T]
@@ -205,14 +207,17 @@ type Kind
 impl Kind {
   to_string(Self) -> String
 }
+impl Show for Kind
 
 type ListCompare
 impl ListCompare {
   op_equal[T : Eq](Self[T], Self[T]) -> Bool
   to_string[T : Show](Self[T]) -> String
 }
+impl[T : Eq] Eq for ListCompare[T]
+impl[T : Show] Show for ListCompare[T]
 
-pub enum Outcome {
+pub(all) enum Outcome {
   Success
   GaveUp
   Fail(T)
@@ -226,7 +231,7 @@ type Printer
 impl Printer {
   format(Self, String) -> String
   from_buffer(Buffer) -> Self
-  ident(Self, ~size : Int = ..) -> Unit
+  ident(Self, size~ : Int = ..) -> Unit
   unident(Self) -> Unit
   write_string(Self, String) -> Unit
 }
@@ -237,9 +242,9 @@ impl Property {
   run_prop(Self) -> Gen[@rose.Rose[SingleResult]]
 }
 
-pub struct Replay {
-  pub rand_state : @splitmix.RandomState
-  pub size : Int
+pub(all) struct Replay {
+  rand_state : @splitmix.RandomState
+  size : Int
 }
 impl Replay {
   new(@splitmix.RandomState, Int) -> Self
@@ -249,6 +254,7 @@ type SingleResult
 impl SingleResult {
   to_string(Self) -> String
 }
+impl Show for SingleResult
 
 type State
 impl State {
@@ -268,24 +274,12 @@ type TestSuccess
 pub typealias RandomState = @splitmix.RandomState
 
 // Traits
-pub trait Shrink {
+pub(open) trait Shrink {
   shrink(Self) -> Iter[Self]
 }
+impl Shrink::shrink
 
-pub trait Testable {
+pub(open) trait Testable {
   property(Self) -> Property
 }
-
-// Extension Methods
-impl Shrink for Shrink
-
-impl Show for Callback
-
-impl Show for Equivalence
-
-impl Show for Kind
-
-impl Show for ListCompare
-
-impl Show for SingleResult
 

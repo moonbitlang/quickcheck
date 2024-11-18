@@ -1,9 +1,9 @@
-pub enum LazyList[T] {
+pub(all) enum LazyList[T] {
   Nil
   Cons(T, LazyRef[LazyList[T]])
 }
 
-pub trait Monoid {
+pub(open) trait Monoid {
   op_add(Self, Self) -> Self
 }
 
@@ -84,17 +84,17 @@ pub fn split_at[T](self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
   }
 }
 
-pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, ~init : U) -> U {
+pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
   match self {
     Nil => init
     Cons(x, xs) => fold_left(xs.force(), f, init=f(init, x))
   }
 }
 
-pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, ~init : U) -> U {
+pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
   match self {
     Nil => init
-    Cons(y, ys) => f(y, ys.force().fold_right(f, ~init))
+    Cons(y, ys) => f(y, ys.force().fold_right(f, init~))
   }
 }
 
@@ -116,8 +116,8 @@ pub fn length[T](self : LazyList[T]) -> Int {
   self.fold_left(fn(acc, _x) { acc + 1 }, init=0)
 }
 
-pub fn sum[X : Monoid](l : LazyList[X], ~init : X) -> X {
-  l.fold_left(Monoid::op_add, ~init)
+pub fn sum[X : Monoid](l : LazyList[X], init~ : X) -> X {
+  l.fold_left(Monoid::op_add, init~)
 }
 
 pub fn zip_with[A, B, C](

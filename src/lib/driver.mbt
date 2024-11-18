@@ -1,38 +1,38 @@
 type! TestError {
   Fail(
-    ~num_tests : Int,
-    ~num_discarded : Int,
-    ~num_shrinks : Int,
-    ~num_shrink_tries : Int,
-    ~num_shrink_final : Int,
-    ~replay_info : Replay,
-    ~reason : String,
-    ~error : Error,
-    ~output : String,
-    ~failing_case : Array[String],
-    ~failing_labels : Array[String],
-    ~failing_classes : @sorted_set.T[String]
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    num_shrinks~ : Int,
+    num_shrink_tries~ : Int,
+    num_shrink_final~ : Int,
+    replay_info~ : Replay,
+    reason~ : String,
+    error~ : Error,
+    output~ : String,
+    failing_case~ : Array[String],
+    failing_labels~ : Array[String],
+    failing_classes~ : @sorted_set.T[String]
   )
   GaveUp(
-    ~num_tests : Int,
-    ~num_discarded : Int,
-    ~coverage : Coverage,
-    ~output : String
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    coverage~ : Coverage,
+    output~ : String
   )
   NoneExpectedFail(
-    ~num_tests : Int,
-    ~num_discarded : Int,
-    ~coverage : Coverage,
-    ~output : String
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    coverage~ : Coverage,
+    output~ : String
   )
 }
 
 enum TestSuccess {
   Success(
-    ~num_tests : Int,
-    ~num_discarded : Int,
-    ~coverage : Coverage,
-    ~output : String
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    coverage~ : Coverage,
+    output~ : String
   )
 }
 
@@ -53,17 +53,17 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
 
   try {
     match quick_check_with_result!(cfg, prop) {
-      Success(~output, ~coverage, ~num_tests, ..) => {
+      Success(output~, coverage~, num_tests~, ..) => {
         println(output)
         println(coverage.to_string(num_tests))
       }
     }
   } catch {
     // TODO: Print coverage
-    GaveUp(~output, ..) => f!(output)
-    Fail(~output, ~failing_case, ..) =>
-      f!(output + "\n" + failing_case.join("\n"))
-    NoneExpectedFail(~output, ..) => f!(output)
+    GaveUp(output~, ..) => f!(output)
+    Fail(output~, failing_case~, ..) =>
+      f!(output + "\n" + String::concat(failing_case, separator="\n"))
+    NoneExpectedFail(output~, ..) => f!(output)
   }
 }
 

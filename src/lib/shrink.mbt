@@ -1,4 +1,4 @@
-pub trait Shrink {
+pub(open) trait Shrink {
   shrink(Self) -> Iter[Self]
 }
 
@@ -64,9 +64,9 @@ test "shrink uint64" {
 
 impl Shrink for Bool with shrink(b) {
   Iter::new(
-    fn(yield) {
+    fn(yield_) {
       match b {
-        true => yield(false)
+        true => yield_(false)
         false => IterEnd
       }
     },

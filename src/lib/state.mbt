@@ -5,13 +5,13 @@ struct Printer {
   mut ident : Int
 }
 
-impl Default for Printer with default() { { buf: Buffer::new(), ident: 0 } }
+impl Default for Printer with default() { { buf: @buffer.new(), ident: 0 } }
 
 pub fn Printer::from_buffer(buf : Buffer) -> Printer {
   { buf, ident: 0 }
 }
 
-pub fn ident(self : Printer, ~size : Int = 2) -> Unit {
+pub fn ident(self : Printer, size~ : Int = 2) -> Unit {
   self.ident += size
 }
 
@@ -51,11 +51,11 @@ struct State {
   replay_start_size_ : Int?
 
   // Number of tests that have succeeded (mutable)
-  mut num_success_tests : Int
+  num_success_tests : Int
   // Number of tests that have been discarded (mutable, total)
-  mut num_discarded_tests : Int
+  num_discarded_tests : Int
   // Since last successful test, number of discarded tests (mutable)
-  mut num_recent_discarded_tests : Int
+  num_recent_discarded_tests : Int
 
   // Note that Map provides inner mutability hence we don't need to use mut tag.
 
@@ -72,7 +72,7 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
-fn format_name(self : State, ~loc : ArgsLoc = _) -> String {
+fn format_name(self : State, loc~ : ArgsLoc = _) -> String {
   "[\{self.name}] \{loc}"
 }
 
@@ -251,12 +251,12 @@ fn label_to_string(self : Coverage, success : Int) -> String {
       if list._.is_empty() {
         return
       } else {
-        let l = list._.to_array().join(", ")
+        let l = String::concat(list._.to_array(), separator=", ")
         res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
       }
     },
   )
-  res.join("\n")
+  String::concat(res, separator="\n")
 }
 
 fn class_to_string(self : Coverage, success : Int) -> String {
@@ -266,22 +266,23 @@ fn class_to_string(self : Coverage, success : Int) -> String {
       res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
     },
   )
-  res.join("\n")
+  String::concat(res, separator="\n")
 }
 
 fn to_string(self : Coverage, success : Int) -> String {
-  [
-    if self.labels.size() == 0 {
-      ""
-    } else {
-      self.label_to_string(success)
-    },
-    if self.classes.size() == 0 {
-      ""
-    } else {
-      self.class_to_string(success)
-    },
-  ]
-  .filter(fn(x) { x != "" })
-  .join("\n")
+  String::concat(
+    [
+      if self.labels.size() == 0 {
+        ""
+      } else {
+        self.label_to_string(success)
+      },
+      if self.classes.size() == 0 {
+        ""
+      } else {
+        self.class_to_string(success)
+      },
+    ].filter(fn(x) { x != "" }),
+    separator="\n",
+  )
 }

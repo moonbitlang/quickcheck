@@ -38,11 +38,11 @@ fn branch[A, B, C](
 }
 
 pub fn ifS[T](self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
-  let const = fn(x) { fn(_y) { x } }
+  let const_ = fn(x) { fn(_y) { x } }
   branch(
     self.fmap(fn(x) { if x { Left(()) } else { Right(()) } }),
-    t.fmap(const),
-    e.fmap(const),
+    t.fmap(const_),
+    e.fmap(const_),
   )
 }
 

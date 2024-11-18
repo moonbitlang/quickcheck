@@ -43,8 +43,8 @@ fn unary[T : Enumerable, U]((T) -> U) -> Enumerate[U]
 fn union[T](Enumerate[T], Enumerate[T]) -> Enumerate[T]
 
 // Types and methods
-pub struct Enumerate {
-  pub parts : @lazy.LazyList[Finite[T]]
+pub(all) struct Enumerate {
+  parts : @lazy.LazyList[Finite[T]]
 }
 impl Enumerate {
   en_index[T](Self[T], BigInt) -> T
@@ -53,9 +53,9 @@ impl Enumerate {
   op_add[T](Self[T], Self[T]) -> Self[T]
 }
 
-pub struct Finite {
-  pub fCard : BigInt
-  pub fIndex : (BigInt) -> T
+pub(all) struct Finite {
+  fCard : BigInt
+  fIndex : (BigInt) -> T
 }
 impl Finite {
   op_add[T](Self[T], Self[T]) -> Self[T]
@@ -68,28 +68,17 @@ impl Finite {
 pub typealias LazyList[T] = @lazy.LazyList[T]
 
 // Traits
-pub trait Enumerable {
+pub(open) trait Enumerable {
   enumerate() -> Enumerate[Self]
 }
-
-// Extension Methods
 impl Enumerable for Unit
-
 impl Enumerable for Bool
-
 impl Enumerable for Int
-
 impl Enumerable for Int64
-
 impl Enumerable for UInt
-
 impl Enumerable for UInt64
-
-impl Enumerable for Option
-
-impl Enumerable for Result
-
-impl Enumerable for @list.T
-
-impl Enumerable for Tuple(2)
+impl[E : Enumerable] Enumerable for E?
+impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E]
+impl[E : Enumerable] Enumerable for @list.T[E]
+impl[A : Enumerable, B : Enumerable] Enumerable for (A, B)
 

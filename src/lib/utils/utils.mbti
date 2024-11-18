@@ -5,7 +5,7 @@ alias @moonbitlang/core/immut/list as @list
 // Values
 fn apply_while[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
 
-fn const[T, U](T) -> (U) -> T
+fn const_[T, U](T) -> (U) -> T
 
 fn curry3[A, B, C, D]((A, B, C) -> D) -> (A) -> (B) -> (C) -> D
 
@@ -26,6 +26,4 @@ fn removes[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
 // Type aliases
 
 // Traits
-
-// Extension Methods
 

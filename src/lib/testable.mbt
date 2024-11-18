@@ -36,7 +36,7 @@ pub fn Property::run_prop(self : Property) -> Gen[RoseRes] {
   self.property
 }
 
-pub trait Testable {
+pub(open) trait Testable {
   property(Self) -> Property
 }
 

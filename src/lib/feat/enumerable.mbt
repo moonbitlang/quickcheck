@@ -1,4 +1,4 @@
-pub trait Enumerable {
+pub(open) trait Enumerable {
   enumerate() -> Enumerate[Self]
 }
 

@@ -1,5 +1,5 @@
 // Rose Tree used for shrinking
-pub struct Rose[T] {
+pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
 } derive(Show)
