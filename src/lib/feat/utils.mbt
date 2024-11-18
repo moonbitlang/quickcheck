@@ -1,4 +1,4 @@
-pub typealias LazyList[T] = @lazy.LazyList[T]
+pub(all) typealias LazyList[T] = @lazy.LazyList[T]
 
 fn sum(a : Array[BigInt]) -> BigInt {
   a.fold(BigInt::op_add, init=0)

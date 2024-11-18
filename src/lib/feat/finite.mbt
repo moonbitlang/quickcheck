@@ -1,4 +1,4 @@
-pub struct Finite[T] {
+pub(all) struct Finite[T] {
   fCard : BigInt
   fIndex : (BigInt) -> T
 }

@@ -1,7 +1,5 @@
 # MoonBit QuickCheck
 
-> :: For the OSPP final submission ::
-
 ## Introduction
 The idea of QuickCheck was originally introduced in John's paper [*QuickCheck: a lightweight tool for random testing of Haskell programs*](https://doi.org/10.1145/351240.351266) and its Haskell derivation QuickCheck, which aimed at simplifying the writing of tests by generating them. The core is to automatically generate tests based on a the signature of the **specification / theorem** (i.e. properties which functions should satisfy) and QuickCheck then tests that the properties hold. The idea spread to other languages and is now implemented in **MoonBit**. Because of the differences in type systems between Haskell and MoonBit, the original idea morphed into something different. There are several differences to this approach:
 

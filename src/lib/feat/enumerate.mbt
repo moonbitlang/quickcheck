@@ -1,4 +1,4 @@
-pub struct Enumerate[T] {
+pub(all) struct Enumerate[T] {
   parts : LazyList[Finite[T]]
 }
 
