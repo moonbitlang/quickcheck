@@ -34,10 +34,11 @@ $$
 \forall x: \text{Array[T]}.\space \text{reverse}(\text{reverse}(x)) = x
 $$
 
-Looks good, now we can use QuickCheck to test this property (Note that we should wrap the function in `Arrow` to make it a `Testable` though implicit conversion not work now):
+Looks good, now we can use QuickCheck to test this property (Note that we wrap the function in `Arrow` to make it a `Testable` though implicit conversion not work now):
 ```moonbit
 test {
-  quick_check!(Arrow(prop_reverse_identity))
+  quick_check_fn!(prop_reverse_identity)
+  // equivalent to quick_check!(Arrow(prop_reverse_identity))
 }
 ```
 
@@ -87,7 +88,7 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
 Run QuickCheck, all tests passed. However, this property is not considered a good property because it is can be fulfilled easily and the test is not very meaningful. Most Bugs may still exist in the function.
 ```
 test {
-  quick_check!(Arrow(prop_length_is_not_greater))
+  quick_check_fn!(prop_length_is_not_greater)
 }
 
 // +++ [100/0/100] Ok, passed!
@@ -101,7 +102,7 @@ fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
 }
 
 test {
-  quick_check!(Arrow(prop_remove_not_presence) |> with_max_success(1000))
+  quick_check_fn!(prop_remove_not_presence) |> with_max_success(1000)
 }
 ```
 
@@ -336,13 +337,11 @@ The `classify` function takes a boolean and a string, and if the boolean is true
 The `label` function takes a string and classifies the test case with the string.
 ```moonbit
 test "label" {
-  quick_check!(
-    Arrow(
-      fn(x : List[Int]) {
-        Arrow(prop_rev)
-        |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
-      },
-    ),
+  quick_check_fn!(
+    fn(x : List[Int]) {
+      Arrow(prop_rev)
+      |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+    }
   )
 }
 ```
