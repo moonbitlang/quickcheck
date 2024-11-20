@@ -1,6 +1,6 @@
 {
   "import": [
-    "CAIMEOX/quickcheck/lib/lazy",
-    "CAIMEOX/quickcheck/lib/utils"
+    "moonbitlang/quickcheck/lib/lazy",
+    "moonbitlang/quickcheck/lib/utils"
   ]
 }
