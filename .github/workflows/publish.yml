@@ -1,0 +1,27 @@
+name: publish-package
+run-name: publish to mooncakes
+on: workflow_dispatch
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+      - name: moon version
+        run: |
+          moon version --all
+          moonrun --version
+      - name: moon check
+        run: |
+          moon check --target all
+      - name: publish
+        run: |
+          rm -r example
+          echo $SECRET > ~/.moon/credentials.json
+          moon publish
+          rm ~/.moon/credentials.json
+        env:
+          SECRET: ${{ secrets.MOONCAKES_MOONBITLANG_TOKEN }}
