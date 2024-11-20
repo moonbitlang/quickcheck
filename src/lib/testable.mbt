@@ -44,31 +44,33 @@ enum Discard {
   Discard
 }
 
-impl Testable for Property with property(self) { self }
+pub impl Testable for Property with property(self) { self }
 
-impl Testable for Discard with property(_self) {
+pub impl Testable for Discard with property(_self) {
   rejected() |> Testable::property
 }
 
-impl Testable for Unit with property(_self) { succeed() |> Testable::property }
+pub impl Testable for Unit with property(_self) {
+  succeed() |> Testable::property
+}
 
-impl Testable for RoseRes with property(self) { { property: pure(self) } }
+pub impl Testable for RoseRes with property(self) { { property: pure(self) } }
 
-impl Testable for SingleResult with property(self) {
+pub impl Testable for SingleResult with property(self) {
   { property: pure(@rose.pure(self)) }
 }
 
-impl Testable for Bool with property(self) {
+pub impl Testable for Bool with property(self) {
   lift_bool(self) |> Testable::property
 }
 
-impl[P : Testable] Testable for Gen[P] with property(self) {
+pub impl[P : Testable] Testable for Gen[P] with property(self) {
   Property::make(self.bind(fn(p) { p.property().property }))
 }
 
-impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
+pub impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
 
-impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[
+pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[
   A,
   P,
 ] with property(self) {
