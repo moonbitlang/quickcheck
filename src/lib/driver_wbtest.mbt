@@ -1,20 +1,23 @@
+///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {
   let (x, y) = xy
   x + y == y + x
 }
 
+///|
 fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
   let (x, y, z) = xyz
   x + y + z == x + (y + z) // Actually does not hold for Double
 }
 
+///|
 fn prop_rev(l : List[Int]) -> Bool {
   l.rev().rev() == l
 }
 
 test "prop reverse (fail)" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
-  quick_check_fn!(prop_rev)
+  quick_check!(prop_rev |> Arrow |> expect_fail)
 }
 
 test "prop reverse" {
@@ -42,7 +45,7 @@ test "non empty list (with filter)" {
 
 test "reject all" {
   let prop_reject = fn(_x : Int) { filter(true, false) }
-  quick_check!(Arrow(prop_reject))
+  quick_check!(Arrow(prop_reject) |> expect_gave_up)
 }
 
 test "label" {
@@ -81,12 +84,13 @@ test "abort" {
   quick_check!(Arrow(prop_rev) |> terminate)
 }
 
-/// Natural Numbers
+///| Natural Numbers
 enum Nat {
   Zero
   Succ(Nat)
 } derive(Show)
 
+///|
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(
     fn() {
@@ -95,10 +99,12 @@ impl @feat.Enumerable for Nat with enumerate() {
   )
 }
 
+///|
 impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
   Gen::feat_random(i).run(i, rs)
 }
 
+///|
 fn op_add(self : Nat, other : Nat) -> Nat {
   match self {
     Zero => other
@@ -106,6 +112,7 @@ fn op_add(self : Nat, other : Nat) -> Nat {
   }
 }
 
+///|
 fn op_equal(self : Nat, other : Nat) -> Bool {
   match (self, other) {
     (Zero, Zero) => true
@@ -114,6 +121,7 @@ fn op_equal(self : Nat, other : Nat) -> Bool {
   }
 }
 
+///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
   let (a, b) = ab
   a + b == b + a
@@ -123,6 +131,7 @@ test "add comm nat" {
   quick_check_fn!(add_comm_nat)
 }
 
+///|
 fn reverse[T](lst : Array[T]) -> Array[T] {
   lst.rev()
 }
@@ -140,6 +149,7 @@ test "prop_reverse_identity" {
   quick_check!(Arrow(prop_reverse_identity))
 }
 
+///|
 fn remove(arr : Array[Int], x : Int) -> Array[Int] {
   match arr.search(x) {
     Some(i) => arr.remove(i) |> ignore
@@ -148,23 +158,27 @@ fn remove(arr : Array[Int], x : Int) -> Array[Int] {
   arr
 }
 
+///|
 fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
   remove(arr, x).contains(x).not()
 }
 
+///|
 fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
   let len = arr.length()
   remove(arr, x).length() <= len
 }
 
-test {
+test "prop length is not greater" {
   quick_check!(Arrow(prop_length_is_not_greater))
 }
 
-test {
-  quick_check!(Arrow(prop_remove_not_presence) |> with_max_success(1000))
+test "prop remove not presence with max success" {
+  quick_check!(
+    Arrow(prop_remove_not_presence) |> with_max_success(1000) |> expect_fail,
+  )
 }
 
 test "custom generator" {
@@ -175,7 +189,8 @@ test "custom generator" {
         let (x, arr) = iarr
         remove(arr, x).contains(x).not()
       },
-    ),
+    )
+    |> expect_fail,
   )
 }
 
@@ -191,7 +206,7 @@ test "no_duplicate" {
         let (x, arr) = iarr
         remove(arr.copy(), x).contains(x).not() |> filter(no_duplicate(arr))
       },
-    ),
+    ) |> expect_gave_up
   )
 }
 
@@ -203,7 +218,8 @@ test "use one_of" {
         forall(one_of_array(a), fn(y : Int) { remove(a, y).contains(y).not() })
         |> filter(a.length() != 0)
       },
-    ),
+    )
+    |> expect_fail,
   )
 }
 

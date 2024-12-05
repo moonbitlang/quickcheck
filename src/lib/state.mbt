@@ -7,7 +7,7 @@ struct Printer {
 
 impl Default for Printer with default() { { buf: @buffer.new(), ident: 0 } }
 
-pub fn Printer::from_buffer(buf : Buffer) -> Printer {
+pub fn Printer::from_buffer(buf : @buffer.T) -> Printer {
   { buf, ident: 0 }
 }
 
@@ -61,7 +61,7 @@ struct State {
 
   collects : Coverage
   // Expected result of the test
-  mut expected : Bool
+  mut expected : Bool?
   // Current random state
   mut random_state : RandomState
   // Number of successful shrinks
@@ -93,7 +93,7 @@ fn from_config(cfg : Config) -> State {
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
     collects: Coverage::new(),
-    expected: true,
+    expected: Some(true),
     random_state: rs,
     num_success_shrinks: 0,
     num_try_shrinks: 0,

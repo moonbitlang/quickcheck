@@ -1,3 +1,4 @@
+///|
 type! TestError {
   Fail(
     num_tests~ : Int,
@@ -27,6 +28,7 @@ type! TestError {
   )
 }
 
+///|
 enum TestSuccess {
   Success(
     num_tests~ : Int,
@@ -36,16 +38,19 @@ enum TestSuccess {
   )
 }
 
+///|
 pub fn quick_check[P : Testable](prop : P) -> Unit!Failure {
   quick_check_with!(Default::default(), prop)
 }
 
+///|
 pub fn quick_check_fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable](
   f : (A) -> B
 ) -> Unit!Failure {
   quick_check!(Arrow(f))
 }
 
+///|
 pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
   fn f(s : String) -> _!Failure {
     fail!("\n\{s}")
@@ -67,6 +72,7 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
   }
 }
 
+///|
 pub fn quick_check_with_result[P : Testable](
   cfg : Config,
   prop : P
@@ -74,6 +80,7 @@ pub fn quick_check_with_result[P : Testable](
   run_test!(from_config(cfg), prop.property())
 }
 
+///|
 pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
   if self.finished_successfully() {
     self.complete_test!(prop)
@@ -84,8 +91,9 @@ pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
   }
 }
 
+///|
 pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
-  if self.expected.not() {
+  if self.expected == Some(false) {
     raise NoneExpectedFail(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
@@ -102,15 +110,26 @@ pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
   }
 }
 
+///|
 pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
-  raise TestError::GaveUp(
-    num_tests=self.num_success_tests,
-    num_discarded=self.num_discarded_tests,
-    coverage=self.collects,
-    output="*** \{self.counts()} Gave up! Passed only \{self.num_success_tests} tests.",
-  )
+  if self.expected == None {
+    Success(
+      num_tests=self.num_success_tests,
+      num_discarded=self.num_discarded_tests,
+      coverage=self.collects,
+      output="+++ \{self.counts()} Ok, gave up!",
+    )
+  } else {
+    raise TestError::GaveUp(
+      num_tests=self.num_success_tests,
+      num_discarded=self.num_discarded_tests,
+      coverage=self.collects,
+      output="*** \{self.counts()} Gave up! Passed only \{self.num_success_tests} tests.",
+    )
+  }
 }
 
+///|
 pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
@@ -162,6 +181,7 @@ pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
   }
 }
 
+///|
 pub fn find_failure(
   self : State,
   res : SingleResult,
@@ -169,7 +189,7 @@ pub fn find_failure(
 ) -> TestSuccess!TestError {
   let (n, tf, lf, ce) = local_min({ ..self, num_try_shrinks: 0 }, res, ts)
   match res.expect {
-    true =>
+    Some(true) | None =>
       raise TestError::Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, self.compute_size()),
@@ -184,7 +204,7 @@ pub fn find_failure(
         failing_labels=ce.labels.to_array(),
         failing_classes=@sorted_set.new(), // TODO: Add classes
       )
-    false =>
+    Some(false) =>
       Success(
         num_tests=self.num_success_tests + 1,
         num_discarded=self.num_discarded_tests,
@@ -194,6 +214,7 @@ pub fn find_failure(
   }
 }
 
+///|
 pub fn local_min(
   self : State,
   res : SingleResult,
@@ -224,6 +245,7 @@ pub fn local_min(
   }
 }
 
+///|
 pub fn local_min_found(
   st : State,
   res : SingleResult

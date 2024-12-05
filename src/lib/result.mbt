@@ -27,7 +27,7 @@ pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
 
 struct SingleResult {
   ok : Bool?
-  expect : Bool
+  expect : Bool?
   reason : String
   abort : Bool
   maybe_num_tests : Int?
@@ -57,7 +57,7 @@ pub fn rejected() -> SingleResult {
 impl Default for SingleResult with default() {
   {
     ok: None,
-    expect: true,
+    expect: Some(true),
     reason: "unknown",
     abort: false,
     maybe_num_tests: None,
