@@ -4,7 +4,7 @@ struct ShrinkTree[T] {
 }
 
 pub fn to_string[T : Show](self : ShrinkTree[T]) -> String {
-  self.draw(100).to_array().join("\n")
+  String::concat(self.draw(100).to_array(), separator = "\n")
 }
 
 pub fn output[T : Show](self : ShrinkTree[T], logger : Logger) -> Unit {
@@ -50,7 +50,7 @@ fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
     .map(fn(x) { x.to_string_with_depth(depth - 1) })
     .filter(fn(x) { x != "" })
     .collect()
-    .join(", ")
+    |> String::concat(separator = ", ")
   "Node(\{s}, [\{child}])"
 }
 
