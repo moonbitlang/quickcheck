@@ -1,4 +1,4 @@
-package CAIMEOX/quickcheck/lib/internal_shrinking
+package moonbitlang/quickcheck/lib/internal_shrinking
 
 alias @moonbitlang/core/immut/list as @list
 
@@ -13,10 +13,9 @@ impl ShrinkTree {
   from_shinker[T]((T) -> Iter[T], T) -> Self[T]
   from_value[T](T) -> Self[T]
   get_value[T](Self[T]) -> (T, Iter[Self[T]])
-  output[T : Show](Self[T], Logger) -> Unit
   smap[T, U](Self[T], (T) -> U) -> Self[U]
-  to_string[T : Show](Self[T]) -> String
 }
+impl[T : Show] Show for ShrinkTree[T]
 
 // Type aliases
 

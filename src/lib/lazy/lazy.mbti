@@ -1,4 +1,4 @@
-package CAIMEOX/quickcheck/lib/lazy
+package moonbitlang/quickcheck/lib/lazy
 
 alias @moonbitlang/core/immut/list as @list
 
@@ -34,14 +34,13 @@ impl LazyList {
   length[T](Self[T]) -> Int
   map[T, U](Self[T], (T) -> U) -> Self[U]
   op_add[T](Self[T], Self[T]) -> Self[T]
-  output[T : Show](Self[T], Logger) -> Unit
   split_at[T](Self[T], Int) -> (Self[T], Self[T])
   tail[T](Self[T]) -> Self[T]
   tails[T](Self[T]) -> Self[Self[T]]
   take_while[T](Self[T], (T) -> Bool) -> Self[T]
-  to_string[T : Show](Self[T]) -> String
   unfold[T](Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
 }
+impl[T : Show] Show for LazyList[T]
 
 type LazyRef
 impl LazyRef {

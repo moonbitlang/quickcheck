@@ -4,16 +4,12 @@ pub(all) enum Outcome[T] {
   Fail(T) // Counterexample
 }
 
-pub fn to_string[T](self : Outcome[T]) -> String {
+pub impl[T] Show for Outcome[T] with output(self, logger) {
   match self {
-    Fail(_) => "FAIL"
-    Success => "OK"
-    GaveUp => "GAVE UP"
+    Fail(_) => logger.write_string("FAIL")
+    Success => logger.write_string("OK")
+    GaveUp => logger.write_string("GAVE UP")
   }
-}
-
-pub fn output[T](self : Outcome[T], logger : Logger) -> Unit {
-  logger.write_string(self.to_string())
 }
 
 pub(all) struct Replay {

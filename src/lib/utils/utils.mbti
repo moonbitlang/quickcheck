@@ -1,4 +1,4 @@
-package CAIMEOX/quickcheck/lib/utils
+package moonbitlang/quickcheck/lib/utils
 
 alias @moonbitlang/core/immut/list as @list
 

@@ -96,12 +96,8 @@ pub fn to_array[T](self : Finite[T]) -> (BigInt, LazyList[T]) {
   )
 }
 
-pub fn to_string[T : Show](self : Finite[T]) -> String {
-  to_array(self).1.to_string()
-}
-
-pub fn output[T : Show](self : Finite[T], logger : Logger) -> Unit {
-  logger.write_string(self.to_string())
+pub impl[T : Show] Show for Finite[T] with output(self, logger) {
+  logger.write_object(to_array(self).1)
 }
 
 pub fn fin_finite(i : BigInt) -> Finite[BigInt] {

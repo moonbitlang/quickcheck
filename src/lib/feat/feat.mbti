@@ -1,7 +1,7 @@
-package CAIMEOX/quickcheck/lib/feat
+package moonbitlang/quickcheck/lib/feat
 
-alias @CAIMEOX/quickcheck/lib/lazy as @lazy
 alias @moonbitlang/core/immut/list as @list
+alias @moonbitlang/quickcheck/lib/lazy as @lazy
 
 // Values
 fn app[T, U](Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
@@ -59,10 +59,9 @@ pub(all) struct Finite {
 }
 impl Finite {
   op_add[T](Self[T], Self[T]) -> Self[T]
-  output[T : Show](Self[T], Logger) -> Unit
   to_array[T](Self[T]) -> (BigInt, @lazy.LazyList[T])
-  to_string[T : Show](Self[T]) -> String
 }
+impl[T : Show] Show for Finite[T]
 
 // Type aliases
 pub typealias LazyList[T] = @lazy.LazyList[T]

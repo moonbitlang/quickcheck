@@ -1,8 +1,8 @@
-package CAIMEOX/quickcheck/lib/falsify
+package moonbitlang/quickcheck/lib/falsify
 
-alias @CAIMEOX/quickcheck/lib/lazy as @lazy
 alias @moonbitlang/core/immut/list as @list
 alias @moonbitlang/core/quickcheck/splitmix as @splitmix
+alias @moonbitlang/quickcheck/lib/lazy as @lazy
 
 // Values
 fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
@@ -49,9 +49,6 @@ fn test_gen[T]((T) -> Bool, Gen[T]) -> Property[T, String]
 
 // Types and methods
 type Config
-impl Config {
-  to_string(Self) -> String
-}
 impl Show for Config
 
 type DriverState
@@ -59,9 +56,6 @@ type DriverState
 type Either
 
 type Failure
-impl Failure {
-  to_string[E : Show](Self[E]) -> String
-}
 impl[E : Show] Show for Failure[E]
 
 type Gen
@@ -101,28 +95,18 @@ impl ShrinkExplain {
   limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
   shrink_history[P, N](Self[P, N]) -> Array[P]
   shrink_outcome[P, N](Self[P, N]) -> (P, @lazy.LazyList[N]?)
-  to_string[P : Show, N : Show](Self[P, N]) -> String
 }
 impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
 type ShrinkHistroy
-impl ShrinkHistroy {
-  to_string[P : Show, N : Show](Self[P, N]) -> String
-}
 impl[P : Show, N : Show] Show for ShrinkHistroy[P, N]
 
 type Success
-impl Success {
-  to_string[T : Show](Self[T]) -> String
-}
 impl[T : Show] Show for Success[T]
 
 type TestResult
 
 type TestRun
-impl TestRun {
-  to_string(Self) -> String
-}
 impl Show for TestRun
 
 // Type aliases

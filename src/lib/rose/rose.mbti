@@ -1,4 +1,4 @@
-package CAIMEOX/quickcheck/lib/rose
+package moonbitlang/quickcheck/lib/rose
 
 // Values
 fn new[T](T, Iter[Rose[T]]) -> Rose[T]
@@ -15,7 +15,6 @@ impl Rose {
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   join[T](Self[Self[T]]) -> Self[T]
-  to_string[T : Show](Self[T]) -> String
 }
 impl[T : Show] Show for Rose[T]
 

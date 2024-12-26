@@ -11,15 +11,17 @@ pub fn default[X : Default]() -> LazyList[X] {
   Nil
 }
 
-pub fn to_string[T : Show](self : LazyList[T]) -> String {
+pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
   match self {
-    Nil => "Nil"
-    Cons(x, xs) => "Cons(" + x.to_string() + ", " + force(xs).to_string() + ")"
+    Nil => logger.write_string("Nil")
+    Cons(x, xs) =>
+      logger
+      ..write_string("Cons(")
+      ..write_object(x)
+      ..write_string(", ")
+      ..write_object(force(xs))
+      .write_char(')')
   }
-}
-
-pub fn output[T : Show](self : LazyList[T], logger : Logger) -> Unit {
-  logger.write_string(self.to_string())
 }
 
 pub fn index[T](self : LazyList[T], i : Int) -> T {

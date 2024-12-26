@@ -38,7 +38,7 @@ test "add assoc double (expect fail)" {
 
 test "non empty list (with filter)" {
   let prop_is_non_empty = fn(l : List[Int]) {
-    l.is_empty().not() |> filter(l.is_empty().not())
+    not(l.is_empty()) |> filter(not(l.is_empty()))
   }
   quick_check!(Arrow(prop_is_non_empty))
 }
@@ -161,7 +161,7 @@ fn remove(arr : Array[Int], x : Int) -> Array[Int] {
 ///|
 fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
-  remove(arr, x).contains(x).not()
+  not(remove(arr, x).contains(x))
 }
 
 ///|
@@ -187,7 +187,7 @@ test "custom generator" {
       spawn(),
       fn(iarr : (Int, Array[Int])) {
         let (x, arr) = iarr
-        remove(arr, x).contains(x).not()
+        not(remove(arr, x).contains(x))
       },
     )
     |> expect_fail,
@@ -204,7 +204,7 @@ test "no_duplicate" {
       spawn(),
       fn(iarr : (Int, Array[Int])) {
         let (x, arr) = iarr
-        remove(arr.copy(), x).contains(x).not() |> filter(no_duplicate(arr))
+        not(remove(arr.copy(), x).contains(x)) |> filter(no_duplicate(arr))
       },
     ) |> expect_gave_up
   )
@@ -215,7 +215,7 @@ test "use one_of" {
     forall(
       spawn(),
       fn(a : Array[Int]) {
-        forall(one_of_array(a), fn(y : Int) { remove(a, y).contains(y).not() })
+        forall(one_of_array(a), fn(y : Int) { not(remove(a, y).contains(y)) })
         |> filter(a.length() != 0)
       },
     )

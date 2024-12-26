@@ -3,12 +3,8 @@ struct ShrinkTree[T] {
   branch : Iter[ShrinkTree[T]]
 }
 
-pub fn to_string[T : Show](self : ShrinkTree[T]) -> String {
-  String::concat(self.draw(100).to_array(), separator = "\n")
-}
-
-pub fn output[T : Show](self : ShrinkTree[T], logger : Logger) -> Unit {
-  logger.write_string(self.to_string())
+pub impl[T : Show] Show for ShrinkTree[T] with output(self, logger) {
+  logger.write_iter(self.draw(100).iter(), sep="\n")
 }
 
 pub fn draw[T : Show](

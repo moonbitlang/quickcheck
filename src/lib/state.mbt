@@ -1,7 +1,7 @@
 typealias List[T] = @immut/list.T[T]
 
 struct Printer {
-  buf : Logger
+  buf : &Logger
   mut ident : Int
 }
 

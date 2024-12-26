@@ -1,10 +1,11 @@
-package CAIMEOX/quickcheck/lib
+package moonbitlang/quickcheck/lib
 
-alias @CAIMEOX/quickcheck/lib/feat as @feat
-alias @CAIMEOX/quickcheck/lib/rose as @rose
+alias @moonbitlang/core/buffer as @buffer
 alias @moonbitlang/core/immut/list as @list
 alias @moonbitlang/core/quickcheck as @quickcheck
 alias @moonbitlang/core/quickcheck/splitmix as @splitmix
+alias @moonbitlang/quickcheck/lib/feat as @feat
+alias @moonbitlang/quickcheck/lib/rose as @rose
 
 // Values
 fn alphabet() -> Gen[Char]
@@ -28,6 +29,8 @@ fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
 fn expect_fail[P : Testable](P) -> Property
+
+fn expect_gave_up[P : Testable](P) -> Property
 
 fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
 
@@ -89,9 +92,9 @@ fn map_size[P : Testable](P, (Int) -> Int) -> Property
 
 fn map_total_result[P : Testable](P, (SingleResult) -> SingleResult) -> Property
 
-fn mono_decrease[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> ((A, A)) -> Bool
+fn mono_decrease[A : Compare, B : Compare]((A) -> B) -> ((A, A)) -> Bool
 
-fn mono_increase[A : Compare + Eq, B : Compare + Eq]((A) -> B) -> ((A, A)) -> Bool
+fn mono_increase[A : Compare, B : Compare]((A) -> B) -> ((A, A)) -> Bool
 
 fn nat() -> Gen[Int]
 
@@ -127,7 +130,7 @@ fn sized[T]((Int) -> Gen[T]) -> Gen[T]
 
 fn small_int() -> Gen[Int]
 
-fn sorted_list[T : Compare + Eq](Int, Gen[T]) -> Gen[@list.T[T]]
+fn sorted_list[T : Compare](Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn succeed() -> SingleResult
 
@@ -147,6 +150,7 @@ fn with_max_success[P : Testable](P, Int) -> Property
 
 // Types and methods
 type Arrow
+impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom
 impl Axiom {
@@ -159,9 +163,6 @@ impl Axiom {
 }
 
 type Callback
-impl Callback {
-  to_string(Self) -> String
-}
 impl Show for Callback
 
 type Config
@@ -169,6 +170,7 @@ type Config
 type Coverage
 
 type Discard
+impl Testable for Discard
 
 type Equivalence
 impl Equivalence {
@@ -178,7 +180,6 @@ impl Equivalence {
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   is_equal[T : Eq](Self[T]) -> Bool
   new[T](T, T) -> Self[T]
-  to_string[T : Show](Self[T]) -> String
 }
 impl[T : Show] Show for Equivalence[T]
 
@@ -200,20 +201,14 @@ impl Gen {
   such_that[T](Self[T], (T) -> Bool) -> Self[T]
   such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
 }
+impl[P : Testable] Testable for Gen[P]
 
 type InternalError
 
 type Kind
-impl Kind {
-  to_string(Self) -> String
-}
 impl Show for Kind
 
 type ListCompare
-impl ListCompare {
-  op_equal[T : Eq](Self[T], Self[T]) -> Bool
-  to_string[T : Show](Self[T]) -> String
-}
 impl[T : Eq] Eq for ListCompare[T]
 impl[T : Show] Show for ListCompare[T]
 
@@ -222,15 +217,12 @@ pub(all) enum Outcome {
   GaveUp
   Fail(T)
 }
-impl Outcome {
-  output[T](Self[T], Logger) -> Unit
-  to_string[T](Self[T]) -> String
-}
+impl[T] Show for Outcome[T]
 
 type Printer
 impl Printer {
   format(Self, String) -> String
-  from_buffer(Buffer) -> Self
+  from_buffer(@buffer.T) -> Self
   ident(Self, size~ : Int = ..) -> Unit
   unident(Self) -> Unit
   write_string(Self, String) -> Unit
@@ -241,6 +233,7 @@ impl Property {
   make(Gen[@rose.Rose[SingleResult]]) -> Self
   run_prop(Self) -> Gen[@rose.Rose[SingleResult]]
 }
+impl Testable for Property
 
 pub(all) struct Replay {
   rand_state : @splitmix.RandomState
@@ -251,10 +244,8 @@ impl Replay {
 }
 
 type SingleResult
-impl SingleResult {
-  to_string(Self) -> String
-}
 impl Show for SingleResult
+impl Testable for SingleResult
 
 type State
 impl State {
@@ -282,4 +273,8 @@ impl Shrink::shrink
 pub(open) trait Testable {
   property(Self) -> Property
 }
+impl Testable for Unit
+impl Testable for Bool
+impl[P : Testable] Testable for P?
+impl Testable for @rose.Rose[SingleResult]
 
