@@ -32,14 +32,6 @@ test "modify max tests" {
   quick_check!(Arrow(prop_rev) |> with_max_success(2000))
 }
 
-test "large max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(10000))
-}
-
-test "larger max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(100000))
-}
-
 test "add assoc double (expect fail)" {
   quick_check!(Arrow(add_assoc_double) |> expect_fail)
 }

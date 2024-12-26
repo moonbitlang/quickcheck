@@ -82,19 +82,23 @@ pub fn quick_check_with_result[P : Testable](
 
 ///|
 pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
-  loop self {
-    state =>
-      match state.run_single_test!(prop) {
-        Ok(s) => s
-        Err(st) =>
-          if st.finished_successfully() {
-            st.complete_test!(prop)
-          } else if st.discarded_too_much() {
-            st.give_up!(prop)
-          } else {
-            continue st
-          }
-      }
+  let mut res = None
+  let mut st = self
+  while res.is_empty() &&
+        not(st.finished_successfully()) &&
+        not(st.discarded_too_much()) {
+    match st.run_single_test!(prop) {
+      Ok(s) => res = Some(s)
+      Err(s) => st = s
+    }
+  } else {
+    if st.finished_successfully() {
+      st.complete_test!(prop)
+    } else if st.discarded_too_much() {
+      st.give_up!(prop)
+    } else {
+      res.unwrap()
+    }
   }
 }
 
@@ -136,7 +140,7 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
   }
 }
 
-///| Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
+///|
 pub fn run_single_test(
   self : State,
   prop : Property
