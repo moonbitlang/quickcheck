@@ -29,7 +29,15 @@ test "add comm double" {
 }
 
 test "modify max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(1000))
+  quick_check!(Arrow(prop_rev) |> with_max_success(2000))
+}
+
+test "large max tests" {
+  quick_check!(Arrow(prop_rev) |> with_max_success(10000))
+}
+
+test "larger max tests" {
+  quick_check!(Arrow(prop_rev) |> with_max_success(100000))
 }
 
 test "add assoc double (expect fail)" {
@@ -50,34 +58,28 @@ test "reject all" {
 
 test "label" {
   quick_check!(
-    Arrow(
-      fn(x : List[Int]) {
-        Arrow(prop_rev)
-        |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
-      },
-    ),
+    Arrow(fn(x : List[Int]) {
+      Arrow(prop_rev)
+      |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+    }),
   )
 }
 
 test "classes" {
-  quick_check_fn!(
-    fn(x : List[Int]) {
-      Arrow(prop_rev)
-      |> classify(x.length() > 5, "long list")
-      |> classify(x.length() <= 5, "short list")
-    },
-  )
+  quick_check_fn!(fn(x : List[Int]) {
+    Arrow(prop_rev)
+    |> classify(x.length() > 5, "long list")
+    |> classify(x.length() <= 5, "short list")
+  })
 }
 
 test "label + classes" {
-  quick_check_fn!(
-    fn(x : List[String]) {
-      Arrow(prop_rev)
-      |> classify(x.length() > 5, "long list")
-      |> classify(x.length() <= 5, "short list")
-      |> label("length is \{x.length()}")
-    },
-  )
+  quick_check_fn!(fn(x : List[String]) {
+    Arrow(prop_rev)
+    |> classify(x.length() > 5, "long list")
+    |> classify(x.length() <= 5, "short list")
+    |> label("length is \{x.length()}")
+  })
 }
 
 test "abort" {
@@ -92,11 +94,9 @@ enum Nat {
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
-  @feat.pay(
-    fn() {
-      @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ)
-    },
-  )
+  @feat.pay(fn() {
+    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ)
+  })
 }
 
 ///|
@@ -177,19 +177,16 @@ test "prop length is not greater" {
 
 test "prop remove not presence with max success" {
   quick_check!(
-    Arrow(prop_remove_not_presence) |> with_max_success(1000) |> expect_fail,
+    Arrow(prop_remove_not_presence) |> with_max_success(10000) |> expect_fail,
   )
 }
 
 test "custom generator" {
   quick_check!(
-    forall(
-      spawn(),
-      fn(iarr : (Int, Array[Int])) {
-        let (x, arr) = iarr
-        not(remove(arr, x).contains(x))
-      },
-    )
+    forall(spawn(), fn(iarr : (Int, Array[Int])) {
+      let (x, arr) = iarr
+      not(remove(arr, x).contains(x))
+    })
     |> expect_fail,
   )
 }
@@ -200,25 +197,20 @@ test "no_duplicate" {
   }
 
   quick_check!(
-    forall(
-      spawn(),
-      fn(iarr : (Int, Array[Int])) {
-        let (x, arr) = iarr
-        not(remove(arr.copy(), x).contains(x)) |> filter(no_duplicate(arr))
-      },
-    ) |> expect_gave_up
+    forall(spawn(), fn(iarr : (Int, Array[Int])) {
+      let (x, arr) = iarr
+      not(remove(arr.copy(), x).contains(x)) |> filter(no_duplicate(arr))
+    })
+    |> expect_gave_up,
   )
 }
 
 test "use one_of" {
   quick_check!(
-    forall(
-      spawn(),
-      fn(a : Array[Int]) {
-        forall(one_of_array(a), fn(y : Int) { not(remove(a, y).contains(y)) })
-        |> filter(a.length() != 0)
-      },
-    )
+    forall(spawn(), fn(a : Array[Int]) {
+      forall(one_of_array(a), fn(y : Int) { not(remove(a, y).contains(y)) })
+      |> filter(a.length() != 0)
+    })
     |> expect_fail,
   )
 }

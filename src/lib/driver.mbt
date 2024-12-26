@@ -82,12 +82,19 @@ pub fn quick_check_with_result[P : Testable](
 
 ///|
 pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
-  if self.finished_successfully() {
-    self.complete_test!(prop)
-  } else if self.discarded_too_much() {
-    self.give_up!(prop)
-  } else {
-    self.run_single_test!(prop)
+  loop self {
+    state =>
+      match state.run_single_test!(prop) {
+        Ok(s) => s
+        Err(st) =>
+          if st.finished_successfully() {
+            st.complete_test!(prop)
+          } else if st.discarded_too_much() {
+            st.give_up!(prop)
+          } else {
+            continue st
+          }
+      }
   }
 }
 
@@ -129,22 +136,25 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
   }
 }
 
-///|
-pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
+///| Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
+pub fn run_single_test(
+  self : State,
+  prop : Property
+) -> Result[TestSuccess, State]!TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let size = self.compute_size()
   let { val: res, branch: ts } = prop.property.run(size, rnd1)
   fn next(
     end_with : (State, Property) -> TestSuccess!TestError,
-    nst : State,
+    next_state : State,
     p : Property
   ) -> _!TestError {
-    update_state(nst)
+    update_state(next_state)
     if res.abort {
-      end_with!(nst, p)
+      end_with!(next_state, p) |> Ok
     } else {
-      run_test!(nst, p)
+      Err(next_state)
     }
   }
 
@@ -167,7 +177,7 @@ pub fn run_single_test(self : State, prop : Property) -> TestSuccess!TestError {
         },
         prop,
       )
-    { ok: Some(false), .. } => self.find_failure!(res, ts)
+    { ok: Some(false), .. } => Ok(self.find_failure!(res, ts))
     { ok: None, .. } =>
       next!(
         give_up,
