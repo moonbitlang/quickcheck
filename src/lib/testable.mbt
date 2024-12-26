@@ -173,10 +173,9 @@ pub fn collect[P : Testable, T : Show](p : P, t : T) -> Property {
 
 ///| Classifies a test case based on a condition
 pub fn classify[P : Testable](p : P, cond : Bool, s : String) -> Property {
-  map_total_result(
-    p,
-    fn(res) { { ..res, classes: Cons((s, cond), res.classes) } },
-  )
+  map_total_result(p, fn(res) {
+    { ..res, classes: Cons((s, cond), res.classes) }
+  })
 }
 
 ///| Adds a string to the counterexample if the property fails
@@ -204,18 +203,12 @@ pub fn forall_shrink[T : Testable, A : Show](
   shrinker : (A) -> Iter[A],
   f : (A) -> T
 ) -> Property {
-  gen.bind(
-    fn(x) {
-      shrinking(
-        shrinker,
-        x,
-        fn(a : A) {
-          let s = a.to_string()
-          counterexample(f(x), s)
-        },
-      ).property
-    },
-  )
+  gen.bind(fn(x) {
+    shrinking(shrinker, x, fn(a : A) {
+      let s = a.to_string()
+      counterexample(f(x), s)
+    }).property
+  })
   |> Property::make
 }
 
@@ -223,15 +216,12 @@ pub fn forall_shrink[T : Testable, A : Show](
 pub fn if_fail[P : Testable](p : P, f : () -> Unit) -> Property {
   callback(
     p,
-    PostTest(
-      Nothing,
-      fn(_st, res) {
-        match res.ok {
-          Some(false) => f()
-          _ => ()
-        }
-      },
-    ),
+    PostTest(Nothing, fn(_st, res) {
+      match res.ok {
+        Some(false) => f()
+        _ => ()
+      }
+    }),
   )
 }
 

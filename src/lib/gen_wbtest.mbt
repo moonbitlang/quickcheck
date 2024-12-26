@@ -14,44 +14,46 @@ test "feat nat" {
   )
 }
 
+///|
 enum SingleTree {
   Leaf(Bool)
   Node(Bool, SingleTree)
 } derive(Show)
 
+///|
 impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
-    @immut/list.of(
-      [
-        @feat.Enumerable::enumerate().fmap(SingleTree::Leaf),
-        @feat.unary(@utils.pair_function(SingleTree::Node)),
-      ],
-    ),
+    @immut/list.of([
+      @feat.Enumerable::enumerate().fmap(SingleTree::Leaf),
+      @feat.unary(@utils.pair_function(SingleTree::Node)),
+    ]),
   )
 }
 
+///|
 enum Tree[T] {
   Leaf(T)
   Branch(Forest[T])
 } derive(Show)
 
+///|
 struct Forest[T] {
   forest : @immut/list.T[Tree[T]]
 } derive(Show)
 
+///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
-  @feat.pay(
-    fn() { @feat.Enumerable::enumerate().fmap(fn { forest => { forest, } }) },
-  )
+  @feat.pay(fn() {
+    @feat.Enumerable::enumerate().fmap(fn { forest => { forest, } })
+  })
 }
 
+///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
-  @feat.pay(
-    fn() {
-      E::enumerate().fmap(Tree::Leaf) +
-      @feat.Enumerable::enumerate().fmap(Tree::Branch)
-    },
-  )
+  @feat.pay(fn() {
+    E::enumerate().fmap(Tree::Leaf) +
+    @feat.Enumerable::enumerate().fmap(Tree::Branch)
+  })
 }
 
 test "feat tree random" {

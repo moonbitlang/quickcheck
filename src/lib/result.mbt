@@ -1,9 +1,11 @@
+///|
 pub(all) enum Outcome[T] {
   Success
   GaveUp
   Fail(T) // Counterexample
 }
 
+///|
 pub impl[T] Show for Outcome[T] with output(self, logger) {
   match self {
     Fail(_) => logger.write_string("FAIL")
@@ -12,15 +14,18 @@ pub impl[T] Show for Outcome[T] with output(self, logger) {
   }
 }
 
+///|
 pub(all) struct Replay {
   rand_state : RandomState
   size : Int
 }
 
+///|
 pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
   { rand_state, size }
 }
 
+///|
 struct SingleResult {
   ok : Bool?
   expect : Bool?
@@ -38,18 +43,22 @@ struct SingleResult {
   callbacks : List[Callback]
 } derive(Show)
 
+///|
 pub fn succeed() -> SingleResult {
   { ..Default::default(), ok: Some(true) }
 }
 
+///|
 pub fn failed() -> SingleResult {
   { ..Default::default(), ok: Some(false) }
 }
 
+///|
 pub fn rejected() -> SingleResult {
   { ..Default::default(), ok: None }
 }
 
+///|
 impl Default for SingleResult with default() {
   {
     ok: None,

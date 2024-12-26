@@ -1,24 +1,31 @@
+///|
 typealias List[T] = @immut/list.T[T]
 
+///|
 struct Printer {
   buf : &Logger
   mut ident : Int
 }
 
+///|
 impl Default for Printer with default() { { buf: @buffer.new(), ident: 0 } }
 
+///|
 pub fn Printer::from_buffer(buf : @buffer.T) -> Printer {
   { buf, ident: 0 }
 }
 
+///|
 pub fn ident(self : Printer, size~ : Int = 2) -> Unit {
   self.ident += size
 }
 
+///|
 pub fn unident(self : Printer) -> Unit {
   self.ident -= 1
 }
 
+///|
 pub fn format(self : Printer, str : String) -> String {
   let mut s = ""
   for i = 0; i < self.ident; i = i + 1 {
@@ -27,11 +34,12 @@ pub fn format(self : Printer, str : String) -> String {
   s + str
 }
 
+///|
 pub fn write_string(self : Printer, str : String) -> Unit {
   self.buf.write_string(self.format(str) + "\n")
 }
 
-/// Internal State of Compiler
+///| Internal State of Compiler
 struct State {
   // Name of the test
   name : String
@@ -72,10 +80,12 @@ struct State {
   mut num_to_try_shrinks : Int
 }
 
+///|
 fn format_name(self : State, loc~ : ArgsLoc = _) -> String {
   "[\{self.name}] \{loc}"
 }
 
+///|
 fn from_config(cfg : Config) -> State {
   let rs = match cfg.replay {
     Some((rng, _)) => rng
@@ -102,11 +112,13 @@ fn from_config(cfg : Config) -> State {
 }
 
 // Deep copy of the state
+///|
 fn clone(self : State) -> State {
   { ..self }
 }
 
 // Computes the test size from the state
+///|
 fn compute_size(self : State) -> Int {
   match self {
     {
@@ -141,11 +153,13 @@ fn compute_size(self : State) -> Int {
   }
 }
 
+///|
 fn add_coverages(self : State, res : SingleResult) -> Unit {
   self.collects.label_incr(res.labels)
   self.collects.class_incr(res.classes)
 }
 
+///|
 fn update_state_from_res(self : State, result : SingleResult) -> Unit {
   self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
   self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
@@ -156,10 +170,12 @@ fn update_state_from_res(self : State, result : SingleResult) -> Unit {
   self.expected = result.expect
 }
 
+///|
 fn finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
 }
 
+///|
 fn discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
@@ -169,30 +185,31 @@ fn discarded_too_much(self : State) -> Bool {
   }
 }
 
+///|
 fn callback_post_test(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(
-    fn {
-      PostTest(_, f) => f(self, res)
-      _ => ()
-    },
-  )
+  res.callbacks.each(fn {
+    PostTest(_, f) => f(self, res)
+    _ => ()
+  })
 }
 
+///|
 fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(
-    fn {
-      PostFinalFailure(_, f) => f(self, res)
-      _ => ()
-    },
-  )
+  res.callbacks.each(fn {
+    PostFinalFailure(_, f) => f(self, res)
+    _ => ()
+  })
 }
 
+///|
 fn counts(self : State) -> String {
   "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
 
+///|
 type ListCompare[T] List[T] derive(Eq, Show)
 
+///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
   match (self._, other._) {
     (Cons(x, xs), Cons(y, ys)) => {
@@ -212,6 +229,7 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 // Labels / Classes / Tables are used to collect statistics of the test
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
+///|
 struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
@@ -219,10 +237,12 @@ struct Coverage {
   classes : Map[String, Int]
 }
 
+///|
 fn Coverage::new() -> Coverage {
   { labels: @sorted_map.new(), classes: Map::new() }
 }
 
+///|
 fn label_incr(self : Coverage, key : List[String]) -> Unit {
   match self.labels[key] {
     Some(x) => self.labels[key] = x + 1
@@ -230,45 +250,43 @@ fn label_incr(self : Coverage, key : List[String]) -> Unit {
   }
 }
 
+///|
 fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
-  classes.each(
-    fn {
-      (s, b) => {
-        let i = if b { 1 } else { 0 }
-        match self.classes[s] {
-          Some(x) => self.classes[s] = x + i
-          None => self.classes[s] = i
-        }
+  classes.each(fn {
+    (s, b) => {
+      let i = if b { 1 } else { 0 }
+      match self.classes[s] {
+        Some(x) => self.classes[s] = x + i
+        None => self.classes[s] = i
       }
-    },
-  )
+    }
+  })
 }
 
+///|
 fn label_to_string(self : Coverage, success : Int) -> String {
   let res = []
-  self.labels.each(
-    fn(list, i) {
-      if list._.is_empty() {
-        return
-      } else {
-        let l = String::concat(list._.to_array(), separator=", ")
-        res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
-      }
-    },
-  )
+  self.labels.each(fn(list, i) {
+    if list._.is_empty() {
+      return
+    } else {
+      let l = String::concat(list._.to_array(), separator=", ")
+      res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
+    }
+  })
   String::concat(res, separator="\n")
 }
 
+///|
 fn class_to_string(self : Coverage, success : Int) -> String {
   let res = []
-  self.classes.each(
-    fn(s, i) {
-      res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
-    },
-  )
+  self.classes.each(fn(s, i) {
+    res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
+  })
   String::concat(res, separator="\n")
 }
 
+///|
 fn to_string(self : Coverage, success : Int) -> String {
   String::concat(
     [

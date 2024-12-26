@@ -253,7 +253,7 @@ impl State {
   find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
   give_up(Self, Property) -> TestSuccess!TestError
   local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
-  run_single_test(Self, Property) -> TestSuccess!TestError
+  run_single_test(Self, Property) -> Result[TestSuccess, Self]!TestError
   run_test(Self, Property) -> TestSuccess!TestError
 }
 

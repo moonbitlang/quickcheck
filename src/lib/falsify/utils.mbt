@@ -1,3 +1,4 @@
+///|
 fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
   match u {
     0 => Nil
@@ -13,6 +14,7 @@ fn deltas(u : UInt) -> @lazy.LazyList[UInt] {
   }
 }
 
+///|
 fn binary(u : UInt) -> @lazy.LazyList[UInt] {
   fn go {
     _, @lazy.Nil => @lazy.Nil
@@ -23,6 +25,7 @@ fn binary(u : UInt) -> @lazy.LazyList[UInt] {
   go(0U, deltas(u))
 }
 
+///|
 pub fn second[A, B, C](f : (B) -> C, v : (A, B)) -> (A, C) {
   let (a, b) = v
   (a, f(b))

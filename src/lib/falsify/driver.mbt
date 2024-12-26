@@ -1,14 +1,17 @@
+///|
 struct Success[T] {
   result : T
   seed : RandomState
   run : TestRun
 } derive(Show)
 
+///|
 struct Failure[E] {
   seed : RandomState
   run : ShrinkExplain[(E, TestRun), TestRun]
 } derive(Show)
 
+///|
 struct Config {
   tests : Int
   max_shrinks : Int
@@ -18,6 +21,7 @@ struct Config {
   expect_failure : Bool
 } derive(Show)
 
+///|
 impl Default for Config with default() {
   {
     tests: 100,
@@ -29,6 +33,7 @@ impl Default for Config with default() {
   }
 }
 
+///|
 struct DriverState[T] {
   rng : RandomState
   success : List[Success[T]]
@@ -37,6 +42,7 @@ struct DriverState[T] {
   total_discard : Int
 }
 
+///|
 fn append_success[T](
   rng : RandomState,
   success : Success[T],
@@ -51,6 +57,7 @@ fn append_success[T](
   }
 }
 
+///|
 pub fn init_state[T](opt : Config) -> DriverState[T] {
   {
     rng: opt.replay.or(RandomState::new()),
@@ -61,6 +68,7 @@ pub fn init_state[T](opt : Config) -> DriverState[T] {
   }
 }
 
+///|
 fn result_is_valid_shrink[T, E](
   ra : (TestResult[T, E], TestRun)
 ) -> IsValidShrink[(E, TestRun), (T?, TestRun)] {
@@ -72,6 +80,7 @@ fn result_is_valid_shrink[T, E](
   }
 }
 
+///|
 pub fn falsify[T, E](
   opt : Config,
   prop : Property[T, E]

@@ -1,9 +1,12 @@
+///|
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self]
 }
 
+///|
 impl Shrink with shrink(_a) { Iter::empty() }
 
+///|
 impl Shrink for Int with shrink(x) {
   @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
@@ -17,6 +20,7 @@ test "shrink int" {
   inspect!(Shrink::shrink(0), content="[]")
 }
 
+///|
 impl Shrink for Int64 with shrink(x) {
   @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
@@ -32,6 +36,7 @@ test "shrink int64" {
   )
 }
 
+///|
 impl Shrink for UInt with shrink(x) {
   @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
@@ -47,6 +52,7 @@ test "shrink uint" {
   )
 }
 
+///|
 impl Shrink for UInt64 with shrink(x) {
   @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
@@ -62,15 +68,14 @@ test "shrink uint64" {
   )
 }
 
+///|
 impl Shrink for Bool with shrink(b) {
-  Iter::new(
-    fn(yield_) {
-      match b {
-        true => yield_(false)
-        false => IterEnd
-      }
-    },
-  )
+  Iter::new(fn(yield_) {
+    match b {
+      true => yield_(false)
+      false => IterEnd
+    }
+  })
 }
 
 test "shrink boolean" {
@@ -78,6 +83,7 @@ test "shrink boolean" {
   inspect!(Shrink::shrink(false), content="[]")
 }
 
+///|
 impl Shrink for Char with shrink(c) {
   let ci = c.to_int()
   if ci == 0 {
@@ -95,6 +101,7 @@ test "shrink char" {
   )
 }
 
+///|
 impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
@@ -110,6 +117,7 @@ test "shrink option" {
   )
 }
 
+///|
 impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
   match x {
     Ok(v) => Shrink::shrink(v).map(Result::Ok)
@@ -127,6 +135,7 @@ test "shrink result" {
   inspect!(Shrink::shrink(x), content="[Ok(false)]")
 }
 
+///|
 impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
   let (a, b) = x
   Shrink::shrink(a)
@@ -142,28 +151,27 @@ test "shrink tuple" {
   )
 }
 
+///|
 impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with shrink(x) {
   let (a, b, c) = x
-  Shrink::shrink((a, (b, c))).map(
-    fn(y) {
-      let (a1, (b1, c1)) = y
-      (a1, b1, c1)
-    },
-  )
+  Shrink::shrink((a, (b, c))).map(fn(y) {
+    let (a1, (b1, c1)) = y
+    (a1, b1, c1)
+  })
 }
 
+///|
 impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D) with shrink(
   x
 ) {
   let (a, b, c, d) = x
-  Shrink::shrink((a, (b, c, d))).map(
-    fn(y) {
-      let (a1, (b1, c1, d1)) = y
-      (a1, b1, c1, d1)
-    },
-  )
+  Shrink::shrink((a, (b, c, d))).map(fn(y) {
+    let (a1, (b1, c1, d1)) = y
+    (a1, b1, c1, d1)
+  })
 }
 
+///|
 impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (
   A,
   B,
@@ -172,14 +180,13 @@ impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (
   E,
 ) with shrink(x) {
   let (a, b, c, d, e) = x
-  Shrink::shrink((a, (b, c, d, e))).map(
-    fn(y) {
-      let (a1, (b1, c1, d1, e1)) = y
-      (a1, b1, c1, d1, e1)
-    },
-  )
+  Shrink::shrink((a, (b, c, d, e))).map(fn(y) {
+    let (a1, (b1, c1, d1, e1)) = y
+    (a1, b1, c1, d1, e1)
+  })
 }
 
+///|
 impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shrink for (
   A,
   B,
@@ -189,12 +196,10 @@ impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shr
   F,
 ) with shrink(x) {
   let (a, b, c, d, e, f) = x
-  Shrink::shrink((a, (b, c, d, e, f))).map(
-    fn(y) {
-      let (a1, (b1, c1, d1, e1, f1)) = y
-      (a1, b1, c1, d1, e1, f1)
-    },
-  )
+  Shrink::shrink((a, (b, c, d, e, f))).map(fn(y) {
+    let (a1, (b1, c1, d1, e1, f1)) = y
+    (a1, b1, c1, d1, e1, f1)
+  })
 }
 
 test "shrink 6-tuple" {
@@ -205,6 +210,7 @@ test "shrink 6-tuple" {
   )
 }
 
+///|
 impl[T : Shrink + Show] Shrink for @immut/list.T[T] with shrink(xs) {
   let n = xs.length()
   fn shr_subterms(lst : @immut/list.T[T]) -> Iter[@immut/list.T[T]] {

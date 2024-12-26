@@ -1,9 +1,12 @@
+///|
 pub(all) typealias LazyList[T] = @lazy.LazyList[T]
 
+///|
 fn sum(a : Array[BigInt]) -> BigInt {
   a.fold(BigInt::op_add, init=0)
 }
 
+///|
 fn convolution[A, B](
   xs : LazyList[Finite[A]],
   ys : LazyList[Finite[B]]
@@ -18,6 +21,7 @@ fn convolution[A, B](
   { fCard: card, fIndex: fx }
 }
 
+///|
 fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go {
     _, @lazy.Nil => @lazy.Nil

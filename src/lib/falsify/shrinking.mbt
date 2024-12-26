@@ -1,14 +1,17 @@
+///|
 enum ShrinkHistroy[P, N] {
   ShrinkTo(P, ShrinkHistroy[P, N])
   ShrinkDone(@lazy.LazyList[N])
   ShrinkStopped
 } derive(Show)
 
+///|
 struct ShrinkExplain[P, N] {
   initial : P
   history : ShrinkHistroy[P, N]
 } derive(Show)
 
+///|
 pub fn limit_steps[P, N](
   self : ShrinkExplain[P, N],
   n : Int?
@@ -26,6 +29,7 @@ pub fn limit_steps[P, N](
   }
 }
 
+///|
 pub fn shrink_history[P, N](self : ShrinkExplain[P, N]) -> Array[P] {
   let arr = [self.initial]
   loop self.history {
@@ -38,6 +42,7 @@ pub fn shrink_history[P, N](self : ShrinkExplain[P, N]) -> Array[P] {
   arr
 }
 
+///|
 pub fn shrink_outcome[P, N](
   self : ShrinkExplain[P, N]
 ) -> (P, @lazy.LazyList[N]?) {
@@ -50,11 +55,13 @@ pub fn shrink_outcome[P, N](
 
 // Shrinking
 
+///|
 enum IsValidShrink[P, N] {
   Valid(P)
   Invalid(N)
 }
 
+///|
 fn either[A, B, C](f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
   fn {
     Ok(x) => f(x)
@@ -62,8 +69,10 @@ fn either[A, B, C](f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
   }
 }
 
+///|
 typealias Ret[T, E] = ((LazyList[T], LazyList[E])) -> (LazyList[T], LazyList[E])
 
+///|
 fn partition_result[T, E](
   val : LazyList[Result[T, E]]
 ) -> (LazyList[T], LazyList[E]) {
@@ -79,6 +88,7 @@ fn partition_result[T, E](
   @lazy.fold_right(val, @tuple.uncurry(r), init=(Nil, Nil))
 }
 
+///|
 pub fn shrink_from[A, P, N](
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
@@ -104,6 +114,7 @@ pub fn shrink_from[A, P, N](
   { initial: p, history: go(shrunk) }
 }
 
+///|
 pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
   fn shrinker {
     Shrunk(_) => @lazy.Nil
@@ -119,7 +130,7 @@ pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
   prim_with(shrinker).fmap(aux)
 }
 
-/// (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
+///| (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
 fn h_fmap[P, M, N](
   self : ShrinkHistroy[P, M],
   f : (M) -> N
@@ -131,6 +142,7 @@ fn h_fmap[P, M, N](
   }
 }
 
+///|
 fn e_fmap[P, M, N](
   self : ShrinkExplain[P, M],
   f : (M) -> N

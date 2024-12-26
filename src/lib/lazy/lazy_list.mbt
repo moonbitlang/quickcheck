@@ -1,16 +1,20 @@
+///|
 pub(all) enum LazyList[T] {
   Nil
   Cons(T, LazyRef[LazyList[T]])
 }
 
+///|
 pub(open) trait Monoid {
   op_add(Self, Self) -> Self
 }
 
+///|
 pub fn default[X : Default]() -> LazyList[X] {
   Nil
 }
 
+///|
 pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
   match self {
     Nil => logger.write_string("Nil")
@@ -24,6 +28,7 @@ pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
   }
 }
 
+///|
 pub fn index[T](self : LazyList[T], i : Int) -> T {
   match (self, i) {
     (Cons(x, _), 0) => x
@@ -32,6 +37,7 @@ pub fn index[T](self : LazyList[T], i : Int) -> T {
   }
 }
 
+///|
 pub fn to_lazy[T](ls : @immut/list.T[T]) -> LazyList[T] {
   match ls {
     Nil => Nil
@@ -39,6 +45,7 @@ pub fn to_lazy[T](ls : @immut/list.T[T]) -> LazyList[T] {
   }
 }
 
+///|
 pub fn tails[T](self : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go(xs) {
     Cons(
@@ -53,6 +60,7 @@ pub fn tails[T](self : LazyList[T]) -> LazyList[LazyList[T]] {
   go(self)
 }
 
+///|
 pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   match self {
     Nil => other
@@ -60,14 +68,17 @@ pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   }
 }
 
+///|
 pub fn op_add[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   self.concat(other)
 }
 
+///|
 pub fn repeat[T](val : T) -> LazyList[T] {
   Cons(val, from_thunk(fn() { repeat(val) }))
 }
 
+///|
 pub fn map[T, U](self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   match self {
     Nil => Nil
@@ -75,6 +86,7 @@ pub fn map[T, U](self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   }
 }
 
+///|
 pub fn split_at[T](self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
   match (self, i) {
     (Cons(_), 0) => (Nil, self)
@@ -86,6 +98,7 @@ pub fn split_at[T](self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
   }
 }
 
+///|
 pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
   match self {
     Nil => init
@@ -93,6 +106,7 @@ pub fn fold_left[T, U](self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
   }
 }
 
+///|
 pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
   match self {
     Nil => init
@@ -100,6 +114,7 @@ pub fn fold_right[T, U](self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
   }
 }
 
+///|
 pub fn head[T](self : LazyList[T]) -> T {
   match self {
     Cons(x, _) => x
@@ -107,6 +122,7 @@ pub fn head[T](self : LazyList[T]) -> T {
   }
 }
 
+///|
 pub fn tail[T](self : LazyList[T]) -> LazyList[T] {
   match self {
     Cons(_, xs) => xs.force()
@@ -114,14 +130,17 @@ pub fn tail[T](self : LazyList[T]) -> LazyList[T] {
   }
 }
 
+///|
 pub fn length[T](self : LazyList[T]) -> Int {
   self.fold_left(fn(acc, _x) { acc + 1 }, init=0)
 }
 
+///|
 pub fn sum[X : Monoid](l : LazyList[X], init~ : X) -> X {
   l.fold_left(Monoid::op_add, init~)
 }
 
+///|
 pub fn zip_with[A, B, C](
   f : (A, B) -> C,
   xs : LazyList[A],
@@ -134,6 +153,7 @@ pub fn zip_with[A, B, C](
   }
 }
 
+///|
 pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
@@ -146,6 +166,7 @@ pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   }
 }
 
+///|
 pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
@@ -153,10 +174,12 @@ pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   }
 }
 
+///|
 pub fn infinite_stream[X : Monoid](start : X, step : X) -> LazyList[X] {
   Cons(start, from_thunk(fn() { infinite_stream(start + step, step) }))
 }
 
+///|
 pub fn zip_lazy_normal[A, B, C](
   f : (A, B) -> C,
   xs : LazyList[A],
@@ -169,6 +192,7 @@ pub fn zip_lazy_normal[A, B, C](
   }
 }
 
+///|
 pub fn zip_plus[T](
   f : (T, T) -> T,
   ls1 : LazyList[T],
@@ -181,6 +205,7 @@ pub fn zip_plus[T](
   }
 }
 
+///|
 pub fn unfold[T](
   self : LazyList[T],
   f : (LazyList[T]) -> (T, LazyList[T])?
