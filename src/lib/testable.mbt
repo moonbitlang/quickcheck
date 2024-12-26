@@ -8,19 +8,13 @@ type Arrow[A, B] (A) -> B
 typealias RoseRes = Rose[SingleResult]
 
 ///|
-typealias TestableArrow[P] = (P) -> Property
-
-///|
-typealias CallbackFn = (State, SingleResult) -> Unit
-
-///|
 typealias Rose[T] = @rose.Rose[T]
 
-///|
+///| TODO: determine the execution of callback by kind
 enum Callback {
   PostTest(Kind, (State, SingleResult) -> Unit)
   PostFinalFailure(Kind, (State, SingleResult) -> Unit)
-} derive(Show)
+}
 
 ///|
 enum Kind {
@@ -34,19 +28,7 @@ fn promote_rose[T](s : Rose[Gen[T]]) -> Gen[Rose[T]] {
 }
 
 ///|
-struct Property {
-  property : Gen[RoseRes]
-}
-
-///|
-pub fn Property::make(property : Gen[RoseRes]) -> Property {
-  { property, }
-}
-
-///|
-pub fn Property::run_prop(self : Property) -> Gen[RoseRes] {
-  self.property
-}
+type Property Gen[RoseRes]
 
 ///|
 pub(open) trait Testable {
@@ -54,9 +36,7 @@ pub(open) trait Testable {
 }
 
 ///|
-enum Discard {
-  Discard
-}
+struct Discard {} derive(Default)
 
 ///|
 pub impl Testable for Property with property(self) { self }
@@ -72,11 +52,11 @@ pub impl Testable for Unit with property(_self) {
 }
 
 ///|
-pub impl Testable for RoseRes with property(self) { { property: pure(self) } }
+pub impl Testable for RoseRes with property(self) { pure(self) }
 
 ///|
 pub impl Testable for SingleResult with property(self) {
-  { property: pure(@rose.pure(self)) }
+  pure(@rose.pure(self))
 }
 
 ///|
@@ -86,7 +66,7 @@ pub impl Testable for Bool with property(self) {
 
 ///|
 pub impl[P : Testable] Testable for Gen[P] with property(self) {
-  Property::make(self.bind(fn(p) { p.property().property }))
+  self.bind(run_prop)
 }
 
 ///|
@@ -101,16 +81,8 @@ pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for A
 }
 
 ///|
-pub fn map_prop[P : Testable](prop : P, f : (RoseRes) -> RoseRes) -> Property {
-  prop.property().property.fmap(f) |> Property::make
-}
-
-///|
-pub fn map_rose_result[P : Testable](
-  prop : P,
-  f : (Rose[SingleResult]) -> Rose[SingleResult]
-) -> Property {
-  map_prop(prop, f)
+pub fn run_prop[P : Testable](prop : P) -> Gen[Rose[SingleResult]] {
+  prop.property()._
 }
 
 ///|
@@ -118,8 +90,7 @@ pub fn map_total_result[P : Testable](
   prop : P,
   f : (SingleResult) -> SingleResult
 ) -> Property {
-  prop.property().property.fmap(fn { rose => rose.fmap(f) }) |> Property::make
-  // map_rose_result(prop, fn { rose => rose.fmap(f) })
+  run_prop(prop).fmap(fn { rose => rose.fmap(f) })
 }
 
 ///|
@@ -140,7 +111,7 @@ fn lift_option[T : Testable](opt : T?) -> Property {
 
 ///|
 pub fn map_size[P : Testable](p : P, f : (Int) -> Int) -> Property {
-  p.property().property.scale(f) |> Property::make
+  run_prop(p).scale(f)
 }
 
 ///|
@@ -150,10 +121,10 @@ pub fn shrinking[P : Testable, T](
   pf : (T) -> P
 ) -> Property {
   fn props(x) -> Rose[Gen[RoseRes]] {
-    @rose.new(pf(x).property().property, shrinker(x).map(props))
+    @rose.new(pf(x) |> run_prop, shrinker(x).map(props))
   }
 
-  promote_rose(props(x0)).fmap(fn(x) { x.join() }) |> Property::make
+  promote_rose(props(x0)).fmap(fn(x) { x.join() })
 }
 
 ///|
@@ -188,7 +159,7 @@ pub fn counterexample[P : Testable](p : P, s : String) -> Property {
 pub fn filter[P : Testable](p : P, cond : Bool) -> Property {
   match cond {
     true => p.property()
-    false => Testable::property(Discard)
+    false => Testable::property(Discard::default())
   }
 }
 
@@ -207,9 +178,8 @@ pub fn forall_shrink[T : Testable, A : Show](
     shrinking(shrinker, x, fn(a : A) {
       let s = a.to_string()
       counterexample(f(x), s)
-    }).property
+    })._
   })
-  |> Property::make
 }
 
 ///| Adds a callback that will be called if the property fails

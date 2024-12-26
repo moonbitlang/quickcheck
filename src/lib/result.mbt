@@ -41,8 +41,7 @@ struct SingleResult {
   test_case : List[String]
   error : Error
   callbacks : List[Callback]
-} derive(Show)
-
+}
 ///|
 pub fn succeed() -> SingleResult {
   { ..Default::default(), ok: Some(true) }

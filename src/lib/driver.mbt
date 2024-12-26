@@ -32,7 +32,6 @@ type! TestError {
 enum TestSuccess {
   Success(
     num_tests~ : Int,
-    num_discarded~ : Int,
     coverage~ : Coverage,
     output~ : String
   )
@@ -110,7 +109,6 @@ pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
   } else {
     Success(
       num_tests=self.num_success_tests,
-      num_discarded=self.num_discarded_tests,
       coverage=self.collects,
       output="+++ \{self.counts()} Ok, passed!",
     )
@@ -122,7 +120,6 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
   if self.expected == None {
     Success(
       num_tests=self.num_success_tests,
-      num_discarded=self.num_discarded_tests,
       coverage=self.collects,
       output="+++ \{self.counts()} Ok, gave up!",
     )
@@ -144,12 +141,12 @@ pub fn run_single_test(
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let size = self.compute_size()
-  let { val: res, branch: ts } = prop.property.run(size, rnd1)
+  let { val: res, branch: ts } = prop._.run(size, rnd1)
   fn next(
     end_with : (State, Property) -> TestSuccess!TestError,
     next_state : State,
     p : Property
-  ) -> _!TestError {
+  ) -> Result[TestSuccess, State]!TestError {
     update_state(next_state)
     if res.abort {
       end_with!(next_state, p) |> Ok
@@ -217,7 +214,6 @@ pub fn find_failure(
     Some(false) =>
       Success(
         num_tests=self.num_success_tests + 1,
-        num_discarded=self.num_discarded_tests,
         coverage=self.collects,
         output="+++ \{self.counts()} Ok! Failed as expected.",
       )
