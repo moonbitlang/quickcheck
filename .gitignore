@@ -1,3 +1,4 @@
 target/
 .mooncakes/
 lib/feat.mbt
+trace.json
