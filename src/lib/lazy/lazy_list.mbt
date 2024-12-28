@@ -16,16 +16,22 @@ pub fn default[X : Default]() -> LazyList[X] {
 
 ///|
 pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
-  match self {
-    Nil => logger.write_string("Nil")
-    Cons(x, xs) =>
-      logger
-      ..write_string("Cons(")
-      ..write_object(x)
-      ..write_string(", ")
-      ..write_object(force(xs))
-      .write_char(')')
+  logger.write_string("[")
+  loop self {
+    Nil => break
+    Cons(x, xs) => {
+      let next = xs.force()
+      logger.write_object(x)
+      match next {
+        Nil => break
+        _ => {
+          logger.write_string(", ")
+          continue next
+        }
+      }
+    }
   }
+  logger.write_string("]")
 }
 
 ///|
@@ -88,13 +94,21 @@ pub fn map[T, U](self : LazyList[T], f : (T) -> U) -> LazyList[U] {
 
 ///|
 pub fn split_at[T](self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
-  match (self, i) {
-    (Cons(_), 0) => (Nil, self)
-    (Cons(x, xs), i) => {
-      let (l, r) = xs.force().split_at(i - 1)
-      (Cons(x, from_thunk(fn() { l })), r)
+  if i <= 0 {
+    (Nil, self)
+  } else {
+    fn split_at_prime(m, xs) {
+      match (m, xs) {
+        (_, Nil) => (Nil, Nil)
+        (1, Cons(x, xs)) => (Cons(x, from_value(Nil)), xs.force())
+        (m, Cons(x, xs)) => {
+          let (xs1, xs2) = split_at_prime(m - 1, xs.force())
+          (Cons(x, xs1 |> from_value), xs2)
+        }
+      }
     }
-    (Nil, _) => (Nil, Nil)
+
+    split_at_prime(i, self)
   }
 }
 
@@ -167,6 +181,30 @@ pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
 }
 
 ///|
+pub fn take[T](self : LazyList[T], n : Int) -> LazyList[T] {
+  if n <= 0 {
+    Nil
+  } else {
+    match self {
+      Nil => Nil
+      Cons(x, xs) => Cons(x, from_value(take(xs.force(), n - 1)))
+    }
+  }
+}
+
+///|
+pub fn drop[T](self : LazyList[T], n : Int) -> LazyList[T] {
+  if n <= 0 {
+    self
+  } else {
+    match self {
+      Nil => Nil
+      Cons(_, xs) => drop(xs.force(), n - 1)
+    }
+  }
+}
+
+///|
 pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
@@ -213,5 +251,13 @@ pub fn unfold[T](
   match f(self) {
     None => Nil
     Some((x, y)) => Cons(x, from_thunk(fn() { y.unfold(f) }))
+  }
+}
+
+///|
+pub fn from_list[T](ls : @immut/list.T[T]) -> LazyList[T] {
+  match ls {
+    Nil => Nil
+    Cons(x, xs) => Cons(x, from_value(from_list(xs)))
   }
 }

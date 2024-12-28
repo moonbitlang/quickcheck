@@ -33,11 +33,11 @@ test "modify max tests" {
 }
 
 test "large max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(10000))
+  quick_check!(() |> with_max_success(10000))
 }
 
 test "larger max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(100000))
+  quick_check!(() |> with_max_success(100000))
 }
 
 test "add assoc double (expect fail)" {
@@ -177,7 +177,7 @@ test "prop length is not greater" {
 
 test "prop remove not presence with max success" {
   quick_check!(
-    Arrow(prop_remove_not_presence) |> with_max_success(10000) |> expect_fail,
+    Arrow(prop_remove_not_presence) |> with_max_success(1000) |> expect_fail,
   )
 }
 

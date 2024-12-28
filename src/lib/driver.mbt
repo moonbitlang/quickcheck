@@ -30,11 +30,7 @@ type! TestError {
 
 ///|
 enum TestSuccess {
-  Success(
-    num_tests~ : Int,
-    coverage~ : Coverage,
-    output~ : String
-  )
+  Success(num_tests~ : Int, coverage~ : Coverage, output~ : String)
 }
 
 ///|
