@@ -77,18 +77,15 @@ pub fn quick_check_with_result[P : Testable](
 
 ///|
 pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
-  loop self {
-    state =>
-      match state.run_single_test!(prop) {
-        Ok(s) => s
-        Err(st) =>
-          if st.finished_successfully() {
-            st.complete_test!(prop)
-          } else if st.discarded_too_much() {
-            st.give_up!(prop)
-          } else {
-            continue st
-          }
+  loop self.run_single_test!(prop) {
+    Ok(res) => res
+    Err(ns) =>
+      if ns.finished_successfully() {
+        ns.complete_test!(prop)
+      } else if ns.discarded_too_much() {
+        ns.give_up!(prop)
+      } else {
+        continue ns.run_single_test!(prop)
       }
   }
 }
@@ -136,8 +133,7 @@ pub fn run_single_test(
 ) -> Result[TestSuccess, State]!TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
-  let size = self.compute_size()
-  let { val: res, branch: ts } = prop._.run(size, rnd1)
+  let { val: res, branch: ts } = prop._.run(self.compute_size(), rnd1)
   fn next(
     end_with : (State, Property) -> TestSuccess!TestError,
     next_state : State,
