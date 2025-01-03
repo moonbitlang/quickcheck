@@ -177,7 +177,7 @@ pub fn forall_shrink[T : Testable, A : Show](
   gen.bind(fn(x) {
     shrinking(shrinker, x, fn(a : A) {
       let s = a.to_string()
-      counterexample(f(x), s)
+      counterexample(f(a), s)
     })._
   })
 }

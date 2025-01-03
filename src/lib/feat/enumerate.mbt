@@ -25,8 +25,7 @@ pub fn singleton[T](val : T) -> Enumerate[T] {
 
 ///|
 pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
-  let fin = self.parts
-  loop fin, idx {
+  loop self.parts, idx {
     Nil, _ => abort("index out of bounds")
     Cons(f, rest), i =>
       if i < f.fCard {

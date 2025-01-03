@@ -14,6 +14,16 @@ test "feat nat" {
   )
 }
 
+test "feat nat index" {
+  let x = [0N, 1, 2, 3, 4, 5, 6].map(fn(x) {
+    (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat]).en_index(x)
+  })
+  inspect!(
+    x,
+    content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Zero))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))]",
+  )
+}
+
 ///|
 enum SingleTree {
   Leaf(Bool)
@@ -74,6 +84,13 @@ test "feat tree" {
     x,
     content="Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Leaf(true)))))))))))))))))",
   )
+}
+
+test "index large" {
+  let eTree : @feat.Enumerate[SingleTree] = @feat.Enumerable::enumerate()
+  for i = 100000N; i > 0; i = i - 1 {
+    eTree.en_index(i) |> ignore
+  }
 }
 
 test "nat" {
