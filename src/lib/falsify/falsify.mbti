@@ -2,12 +2,11 @@ package moonbitlang/quickcheck/lib/falsify
 
 alias @moonbitlang/core/immut/list as @list
 alias @moonbitlang/core/quickcheck/splitmix as @splitmix
-alias @moonbitlang/quickcheck/lib/lazy as @lazy
 
 // Values
 fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
 
-fn combine_shrunk(Sample, SampleTree, SampleTree, @lazy.LazyList[SampleTree], @lazy.LazyList[SampleTree]) -> @lazy.LazyList[SampleTree]
+fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
 
 fn constant(UInt) -> SampleTree
 
@@ -31,11 +30,11 @@ fn label[E](String, @list.T[String]) -> Property[Unit, E]
 
 fn mk_property[T, E]((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
 
-fn new[T]((SampleTree) -> (T, @lazy.LazyList[SampleTree])) -> Gen[T]
+fn new[T]((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
 
 fn prim() -> Gen[UInt]
 
-fn prim_with((Sample) -> @lazy.LazyList[UInt]) -> Gen[Sample]
+fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
 
 fn pure[T](T) -> Gen[T]
 
@@ -43,7 +42,7 @@ fn run_property[T, E](Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
 fn second[A, B, C]((B) -> C, (A, B)) -> (A, C)
 
-fn shrink_to_list[T](T, @lazy.LazyList[T]) -> Gen[T]
+fn shrink_to_list[T](T, Iter[T]) -> Gen[T]
 
 fn test_gen[T]((T) -> Bool, Gen[T]) -> Property[T, String]
 
@@ -65,10 +64,10 @@ impl Gen {
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
   ifS[T](Self[Bool], Self[T], Self[T]) -> Self[T]
-  run_gen[T](Self[T], SampleTree) -> (T, @lazy.LazyList[SampleTree])
+  run_gen[T](Self[T], SampleTree) -> (T, Iter[SampleTree])
   sample[T](Self[T]) -> T
   select[T, U](Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
-  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], (P, @lazy.LazyList[SampleTree])) -> ShrinkExplain[P, N]
+  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
 }
 
 type IsValidShrink
@@ -94,12 +93,12 @@ type ShrinkExplain
 impl ShrinkExplain {
   limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
   shrink_history[P, N](Self[P, N]) -> Array[P]
-  shrink_outcome[P, N](Self[P, N]) -> (P, @lazy.LazyList[N]?)
+  shrink_outcome[P, N](Self[P, N]) -> (P, Iter[N]?)
 }
 impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
-type ShrinkHistroy
-impl[P : Show, N : Show] Show for ShrinkHistroy[P, N]
+type ShrinkHistory
+impl[P : Show, N : Show] Show for ShrinkHistory[P, N]
 
 type Success
 impl[T : Show] Show for Success[T]
@@ -110,8 +109,6 @@ type TestRun
 impl Show for TestRun
 
 // Type aliases
-pub typealias LazyList[T] = @lazy.LazyList[T]
-
 pub typealias List[T] = @list.T[T]
 
 pub typealias RandomState = @splitmix.RandomState

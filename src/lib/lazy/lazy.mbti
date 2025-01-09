@@ -5,6 +5,8 @@ alias @moonbitlang/core/immut/list as @list
 // Values
 fn default[X : Default]() -> LazyList[X]
 
+fn from_list[T](@list.T[T]) -> LazyList[T]
+
 fn infinite_stream[X : Monoid](X, X) -> LazyList[X]
 
 fn repeat[T](T) -> LazyList[T]
@@ -26,6 +28,7 @@ pub(all) enum LazyList {
 }
 impl LazyList {
   concat[T](Self[T], Self[T]) -> Self[T]
+  drop[T](Self[T], Int) -> Self[T]
   drop_while[T](Self[T], (T) -> Bool) -> Self[T]
   fold_left[T, U](Self[T], (U, T) -> U, init~ : U) -> U
   fold_right[T, U](Self[T], (T, U) -> U, init~ : U) -> U
@@ -37,6 +40,7 @@ impl LazyList {
   split_at[T](Self[T], Int) -> (Self[T], Self[T])
   tail[T](Self[T]) -> Self[T]
   tails[T](Self[T]) -> Self[Self[T]]
+  take[T](Self[T], Int) -> Self[T]
   take_while[T](Self[T], (T) -> Bool) -> Self[T]
   unfold[T](Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
 }

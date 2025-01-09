@@ -84,10 +84,6 @@ fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
-fn map_prop[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
-
-fn map_rose_result[P : Testable](P, (@rose.Rose[SingleResult]) -> @rose.Rose[SingleResult]) -> Property
-
 fn map_size[P : Testable](P, (Int) -> Int) -> Property
 
 fn map_total_result[P : Testable](P, (SingleResult) -> SingleResult) -> Property
@@ -124,6 +120,8 @@ fn quick_check_with_result[P : Testable](Config, P) -> TestSuccess!TestError
 
 fn rejected() -> SingleResult
 
+fn run_prop[P : Testable](P) -> Gen[@rose.Rose[SingleResult]]
+
 fn shrinking[P : Testable, T]((T) -> Iter[T], T, (T) -> P) -> Property
 
 fn sized[T]((Int) -> Gen[T]) -> Gen[T]
@@ -149,7 +147,7 @@ fn with_max_size[P : Testable](P, Int) -> Property
 fn with_max_success[P : Testable](P, Int) -> Property
 
 // Types and methods
-type Arrow
+pub type Arrow (A) -> B
 impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom
@@ -163,14 +161,22 @@ impl Axiom {
 }
 
 type Callback
-impl Show for Callback
 
 type Config
 
 type Coverage
 
 type Discard
+impl Default for Discard
 impl Testable for Discard
+
+type Dyn
+
+type DynMap
+impl DynMap {
+  insert[T : Dynamic](Self, T) -> Unit
+  query[T : Dynamic](Self) -> T?
+}
 
 type Equivalence
 impl Equivalence {
@@ -203,6 +209,8 @@ impl Gen {
 }
 impl[P : Testable] Testable for Gen[P]
 
+type IntE
+
 type InternalError
 
 type Kind
@@ -229,10 +237,6 @@ impl Printer {
 }
 
 type Property
-impl Property {
-  make(Gen[@rose.Rose[SingleResult]]) -> Self
-  run_prop(Self) -> Gen[@rose.Rose[SingleResult]]
-}
 impl Testable for Property
 
 pub(all) struct Replay {
@@ -243,8 +247,9 @@ impl Replay {
   new(@splitmix.RandomState, Int) -> Self
 }
 
+type ShowE
+
 type SingleResult
-impl Show for SingleResult
 impl Testable for SingleResult
 
 type State
@@ -257,18 +262,34 @@ impl State {
   run_test(Self, Property) -> TestSuccess!TestError
 }
 
+type StringE
+
 type TestError
 
 type TestSuccess
+
+type TypeRep
+impl Eq for TypeRep
+impl Hash for TypeRep
+
+type UIntE
+
+type UnitE
 
 // Type aliases
 pub typealias RandomState = @splitmix.RandomState
 
 // Traits
+trait Dynamic
+
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self]
 }
 impl Shrink::shrink
+
+pub(open) trait SumTuple {
+  sumOf(Self) -> Int
+}
 
 pub(open) trait Testable {
   property(Self) -> Property
@@ -277,4 +298,6 @@ impl Testable for Unit
 impl Testable for Bool
 impl[P : Testable] Testable for P?
 impl Testable for @rose.Rose[SingleResult]
+
+trait Unfold
 
