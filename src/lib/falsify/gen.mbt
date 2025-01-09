@@ -1,18 +1,17 @@
 ///|
-pub(all) typealias LazyList[T] = @lazy.LazyList[T]
 
 ///|
 struct Gen[T] {
-  run_gen : (SampleTree) -> (T, LazyList[SampleTree])
+  run_gen : (SampleTree) -> (T, Iter[SampleTree])
 }
 
 ///|
-pub fn new[T](g : (SampleTree) -> (T, LazyList[SampleTree])) -> Gen[T] {
+pub fn new[T](g : (SampleTree) -> (T, Iter[SampleTree])) -> Gen[T] {
   { run_gen: g }
 }
 
 ///|
-pub fn run_gen[T](self : Gen[T], x : SampleTree) -> (T, LazyList[SampleTree]) {
+pub fn run_gen[T](self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
   (self.run_gen)(x)
 }
 
@@ -26,7 +25,7 @@ pub fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U] {
 
 ///|
 pub fn pure[T](v : T) -> Gen[T] {
-  new(fn(_x) { (v, Nil) })
+  new(fn(_x) { (v, Iter::empty()) })
 }
 
 ///|
@@ -34,30 +33,32 @@ pub fn combine_shrunk(
   s : Sample,
   l : SampleTree,
   r : SampleTree,
-  ls : @lazy.LazyList[SampleTree],
-  rs : @lazy.LazyList[SampleTree]
-) -> @lazy.LazyList[SampleTree] {
-  fn shortcut(st : @lazy.LazyList[SampleTree]) -> @lazy.LazyList[SampleTree] {
-    match st {
-      Nil => Nil
-      ts => Cons(Minimal, @lazy.from_value(ts))
+  ls : Iter[SampleTree],
+  rs : Iter[SampleTree]
+) -> Iter[SampleTree] {
+  fn shortcut(st : Iter[SampleTree]) -> Iter[SampleTree] {
+    match st.head() {
+      None => Iter::empty()
+      _ => st.prepend(Minimal)
     }
   }
 
   fn unless_minimal(
     st : SampleTree,
-    l : @lazy.LazyList[SampleTree]
-  ) -> @lazy.LazyList[SampleTree] {
+    l : Iter[SampleTree]
+  ) -> Iter[SampleTree] {
     match (st, l) {
-      (Minimal, _) => Nil
+      (Minimal, _) => Iter::empty()
       (_, ts) => ts
     }
   }
 
   unless_minimal(l, ls)
-  .map(fn(l1) { SampleTree(s, fn() { l1 }, fn() { r }) })
+  .map(fn(l1) { SampleTree(s, @lazy.from_value(l1), @lazy.from_value(r)) })
   .concat(
-    unless_minimal(r, rs).map(fn(r1) { SampleTree(s, fn() { l }, fn() { r1 }) }),
+    unless_minimal(r, rs).map(fn(r1) {
+      SampleTree(s, @lazy.from_value(l), @lazy.from_value(r))
+    }),
   )
   |> shortcut
 }
@@ -78,10 +79,15 @@ pub fn ap[T, U](self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
 }
 
 ///|
-pub fn prim_with(f : (Sample) -> @lazy.LazyList[UInt]) -> Gen[Sample] {
+pub fn prim_with(f : (Sample) -> Iter[UInt]) -> Gen[Sample] {
   new(fn(x) {
     let (s, l, r) = x.view()
-    (s, f(s).map(fn(s1) { SampleTree(Shrunk(s1), fn() { l }, fn() { r }) }))
+    (
+      s,
+      f(s).map(fn(s1) {
+        SampleTree(Shrunk(s1), @lazy.from_value(l), @lazy.from_value(r))
+      }),
+    )
   })
 }
 

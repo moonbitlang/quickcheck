@@ -1,14 +1,14 @@
 ///|
-enum ShrinkHistroy[P, N] {
-  ShrinkTo(P, ShrinkHistroy[P, N])
-  ShrinkDone(@lazy.LazyList[N])
+enum ShrinkHistory[P, N] {
+  ShrinkTo(P, ShrinkHistory[P, N])
+  ShrinkDone(Iter[N])
   ShrinkStopped
 } derive(Show)
 
 ///|
 struct ShrinkExplain[P, N] {
   initial : P
-  history : ShrinkHistroy[P, N]
+  history : ShrinkHistory[P, N]
 } derive(Show)
 
 ///|
@@ -43,9 +43,7 @@ pub fn shrink_history[P, N](self : ShrinkExplain[P, N]) -> Array[P] {
 }
 
 ///|
-pub fn shrink_outcome[P, N](
-  self : ShrinkExplain[P, N]
-) -> (P, @lazy.LazyList[N]?) {
+pub fn shrink_outcome[P, N](self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
   loop self.initial, self.history {
     _, ShrinkTo(p, h) => continue p, h
     p, ShrinkDone(ns) => (p, Some(ns))
@@ -70,36 +68,35 @@ fn either[A, B, C](f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
 }
 
 ///|
-typealias Ret[T, E] = ((LazyList[T], LazyList[E])) -> (LazyList[T], LazyList[E])
+typealias Ret[T, E] = ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 
 ///|
-fn partition_result[T, E](
-  val : LazyList[Result[T, E]]
-) -> (LazyList[T], LazyList[E]) {
+fn partition_result[T, E](val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   fn left(a : T) -> Ret[T, E] {
-    fn { (l, r) => (@lazy.Cons(a, @lazy.from_value(l)), r) }
+    fn { (l, r) => (l.prepend(a), r) }
   }
 
   fn right(a : E) -> Ret[T, E] {
-    fn { (l, r) => (l, @lazy.Cons(a, @lazy.from_value(r))) }
+    fn { (l, r) => (l, r.prepend(a)) }
   }
 
   let r = either(left, right)
-  @lazy.fold_right(val, @tuple.uncurry(r), init=(Nil, Nil))
+  Iter::fold(val, fn(x, y) { r(y)(x) }, init=(Iter::empty(), Iter::empty()))
 }
 
 ///|
 pub fn shrink_from[A, P, N](
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
-  ps : (P, LazyList[SampleTree])
+  ps : (P, Iter[SampleTree])
 ) -> ShrinkExplain[P, N] {
   let (p, shrunk) = ps
-  fn go(shrunk : @lazy.LazyList[SampleTree]) -> ShrinkHistroy[P, N] {
+  fn go(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
     let candidates = shrunk.map(fn(x) { self.run_gen(x) |> consider })
-    match partition_result(candidates) {
-      (Nil, rej) => ShrinkDone(rej)
-      (Cons((p, shrunk), _), _) => ShrinkTo(p, go(shrunk))
+    let res = partition_result(candidates)
+    match res.0.head() {
+      None => ShrinkDone(res.1)
+      Some((p, shrunk)) => ShrinkTo(p, go(shrunk))
     }
   }
 
@@ -115,16 +112,16 @@ pub fn shrink_from[A, P, N](
 }
 
 ///|
-pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
+pub fn shrink_to_list[T](val : T, xs : Iter[T]) -> Gen[T] {
   fn shrinker {
-    Shrunk(_) => @lazy.Nil
-    NotShrunk(_) =>
-      @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
+    Shrunk(_) => Iter::empty()
+    NotShrunk(_) => abort("todo")
+    // @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
   }
 
   fn aux {
     NotShrunk(_) => val
-    Shrunk(i) => xs.index(i.reinterpret_as_int())
+    Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()
   }
 
   prim_with(shrinker).fmap(aux)
@@ -132,9 +129,9 @@ pub fn shrink_to_list[T](val : T, xs : @lazy.LazyList[T]) -> Gen[T] {
 
 ///| (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
 fn h_fmap[P, M, N](
-  self : ShrinkHistroy[P, M],
+  self : ShrinkHistory[P, M],
   f : (M) -> N
-) -> ShrinkHistroy[P, N] {
+) -> ShrinkHistory[P, N] {
   match self {
     ShrinkStopped => ShrinkStopped
     ShrinkDone(x) => ShrinkDone(x.map(f))

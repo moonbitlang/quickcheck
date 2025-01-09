@@ -23,7 +23,7 @@ pub fn select[T, U](self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
         let (f1, rs) = self.run_gen(r)
         (f1(a), combine_shrunk(s, l, r, ls, rs))
       }
-      Right(b) => (b, combine_shrunk(s, l, r, ls, Nil))
+      Right(b) => (b, combine_shrunk(s, l, r, ls, Iter::empty()))
     }
   })
 }

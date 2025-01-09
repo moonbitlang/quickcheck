@@ -1,6 +1,6 @@
 ///|
 enum SampleTree {
-  SampleTree(Sample, () -> SampleTree, () -> SampleTree)
+  SampleTree(Sample, @lazy.LazyRef[SampleTree], @lazy.LazyRef[SampleTree])
   Minimal
 }
 
@@ -22,7 +22,7 @@ pub fn sample_value(self : Sample) -> UInt {
 pub fn view(self : SampleTree) -> (Sample, SampleTree, SampleTree) {
   match self {
     Minimal => (Shrunk(0), Minimal, Minimal)
-    SampleTree(x, l, r) => (x, l(), r())
+    SampleTree(x, l, r) => (x, l.force(), r.force())
   }
 }
 
@@ -35,7 +35,11 @@ pub(all) typealias RandomState = @quickcheck/splitmix.RandomState
 pub fn from_rng(rs : RandomState) -> SampleTree {
   let n = rs.next_uint()
   let l = rs.split()
-  SampleTree(NotShrunk(n), fn() { from_rng(l) }, fn() { from_rng(rs) })
+  SampleTree(
+    NotShrunk(n),
+    from_rng(l) |> @lazy.from_value,
+    from_rng(rs) |> @lazy.from_value,
+  )
 }
 
 ///|
@@ -45,7 +49,11 @@ pub fn from_seed(seed : UInt64) -> SampleTree {
 
 ///|
 pub fn constant(val : UInt) -> SampleTree {
-  SampleTree(NotShrunk(val), fn() { constant(val) }, fn() { constant(val) })
+  SampleTree(
+    NotShrunk(val),
+    constant(val) |> @lazy.from_value,
+    constant(val) |> @lazy.from_value,
+  )
 }
 
 ///|
@@ -60,7 +68,11 @@ pub fn map(self : SampleTree, f : (UInt) -> UInt) -> SampleTree {
   match self {
     Minimal => Minimal
     SampleTree(x, l, r) =>
-      SampleTree(map_shrunk(x), fn() { l().map(f) }, fn() { r().map(f) })
+      SampleTree(
+        map_shrunk(x),
+        l.force().map(f) |> @lazy.from_value,
+        r.force().map(f) |> @lazy.from_value,
+      )
   }
 }
 
