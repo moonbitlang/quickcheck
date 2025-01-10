@@ -1,9 +1,0 @@
-{
-    "import": [
-      "moonbitlang/quickcheck/lib/feat",
-      "moonbitlang/quickcheck/lib/lazy",
-      "moonbitlang/quickcheck/lib/utils",
-      "moonbitlang/quickcheck/lib/rose",
-      "moonbitlang/quickcheck/lib/falsify"
-    ]
-}

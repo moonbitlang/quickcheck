@@ -42,6 +42,7 @@ struct SingleResult {
   error : Error
   callbacks : List[Callback]
 }
+
 ///|
 pub fn succeed() -> SingleResult {
   { ..Default::default(), ok: Some(true) }

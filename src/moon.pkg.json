@@ -1,0 +1,9 @@
+{
+    "import": [
+      "moonbitlang/quickcheck/feat",
+      "moonbitlang/quickcheck/lazy",
+      "moonbitlang/quickcheck/utils",
+      "moonbitlang/quickcheck/rose",
+      "moonbitlang/quickcheck/falsify"
+    ]
+}
