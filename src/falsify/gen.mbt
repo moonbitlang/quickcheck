@@ -43,10 +43,7 @@ pub fn combine_shrunk(
     }
   }
 
-  fn unless_minimal(
-    st : SampleTree,
-    l : Iter[SampleTree]
-  ) -> Iter[SampleTree] {
+  fn unless_minimal(st : SampleTree, l : Iter[SampleTree]) -> Iter[SampleTree] {
     match (st, l) {
       (Minimal, _) => Iter::empty()
       (_, ts) => ts
