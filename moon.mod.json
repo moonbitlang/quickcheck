@@ -1,6 +1,10 @@
 {
   "name": "moonbitlang/quickcheck",
   "version": "0.8.2",
+  "deps": {
+    "illusory0x0/base": "0.1.0",
+    "moonbitlang/x": "0.4.17"
+  },
   "readme": "README.md",
   "repository": "https://github.com/moonbitlang/quickcheck",
   "license": "Apache-2.0",
