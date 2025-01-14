@@ -1,4 +1,4 @@
-package moonbitlang/quickcheck/lib/internal_shrinking
+package moonbitlang/quickcheck/internal_shrinking
 
 alias @moonbitlang/core/immut/list as @list
 

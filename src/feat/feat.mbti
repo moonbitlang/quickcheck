@@ -1,7 +1,7 @@
-package moonbitlang/quickcheck/lib/feat
+package moonbitlang/quickcheck/feat
 
 alias @moonbitlang/core/immut/list as @list
-alias @moonbitlang/quickcheck/lib/lazy as @lazy
+alias @moonbitlang/quickcheck/lazy as @lazy
 
 // Values
 fn app[T, U](Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]

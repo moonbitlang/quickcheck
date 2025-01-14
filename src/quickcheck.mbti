@@ -1,11 +1,10 @@
-package moonbitlang/quickcheck/lib
+package moonbitlang/quickcheck
 
 alias @moonbitlang/core/buffer as @buffer
 alias @moonbitlang/core/immut/list as @list
-alias @moonbitlang/core/quickcheck as @quickcheck
 alias @moonbitlang/core/quickcheck/splitmix as @splitmix
-alias @moonbitlang/quickcheck/lib/feat as @feat
-alias @moonbitlang/quickcheck/lib/rose as @rose
+alias @moonbitlang/quickcheck/feat as @feat
+alias @moonbitlang/quickcheck/rose as @rose
 
 // Values
 fn alphabet() -> Gen[Char]
@@ -112,7 +111,7 @@ fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
 fn quick_check[P : Testable](P) -> Unit!Failure
 
-fn quick_check_fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
+fn quick_check_fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
 
 fn quick_check_with[P : Testable](Config, P) -> Unit!Failure
 
@@ -148,7 +147,7 @@ fn with_max_success[P : Testable](P, Int) -> Property
 
 // Types and methods
 pub type Arrow (A) -> B
-impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom
 impl Axiom {
@@ -169,14 +168,6 @@ type Coverage
 type Discard
 impl Default for Discard
 impl Testable for Discard
-
-type Dyn
-
-type DynMap
-impl DynMap {
-  insert[T : Dynamic](Self, T) -> Unit
-  query[T : Dynamic](Self) -> T?
-}
 
 type Equivalence
 impl Equivalence {
@@ -203,13 +194,11 @@ impl Gen {
   sample[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> T
   samples[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> Array[T]
   scale[T](Self[T], (Int) -> Int) -> Self[T]
-  spawn[T : @quickcheck.Arbitrary]() -> Self[T]
+  spawn[T : @moonbitlang/core/quickcheck.Arbitrary]() -> Self[T]
   such_that[T](Self[T], (T) -> Bool) -> Self[T]
   such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
 }
 impl[P : Testable] Testable for Gen[P]
-
-type IntE
 
 type InternalError
 
@@ -247,8 +236,6 @@ impl Replay {
   new(@splitmix.RandomState, Int) -> Self
 }
 
-type ShowE
-
 type SingleResult
 impl Testable for SingleResult
 
@@ -262,34 +249,18 @@ impl State {
   run_test(Self, Property) -> TestSuccess!TestError
 }
 
-type StringE
-
 type TestError
 
 type TestSuccess
-
-type TypeRep
-impl Eq for TypeRep
-impl Hash for TypeRep
-
-type UIntE
-
-type UnitE
 
 // Type aliases
 pub typealias RandomState = @splitmix.RandomState
 
 // Traits
-trait Dynamic
-
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self]
 }
 impl Shrink::shrink
-
-pub(open) trait SumTuple {
-  sumOf(Self) -> Int
-}
 
 pub(open) trait Testable {
   property(Self) -> Property
@@ -298,6 +269,4 @@ impl Testable for Unit
 impl Testable for Bool
 impl[P : Testable] Testable for P?
 impl Testable for @rose.Rose[SingleResult]
-
-trait Unfold
 

@@ -1,4 +1,4 @@
-package moonbitlang/quickcheck/lib/lazy
+package moonbitlang/quickcheck/lazy
 
 alias @moonbitlang/core/immut/list as @list
 
