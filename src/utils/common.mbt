@@ -9,20 +9,6 @@ pub fn fresh_name() -> String {
   "test-" + counter.to_string()
 }
 
-// Curry a function of arity 3
-///|
-pub fn curry3[A, B, C, D](f : (A, B, C) -> D) -> (A) -> (B) -> (C) -> D {
-  fn { a => fn { b => fn { c => f(a, b, c) } } }
-}
-
-// Curry a function of arity 4
-///|
-pub fn curry4[A, B, C, D, E](
-  f : (A, B, C, D) -> E
-) -> (A) -> (B) -> (C) -> (D) -> E {
-  fn { a => fn { b => fn { c => fn { d => f(a, b, c, d) } } } }
-}
-
 ///|
 pub fn removes[T](
   k : Int,
