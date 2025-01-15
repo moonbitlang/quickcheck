@@ -1,5 +1,5 @@
 ///|
-struct Equivalence[T] {
+pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
 } derive(Show)

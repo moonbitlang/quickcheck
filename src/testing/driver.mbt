@@ -1,4 +1,10 @@
 ///|
+typealias List[T] = @immut/list.T[T]
+
+///|
+typealias Arrow[A, B] = @qc.Arrow[A, B]
+
+///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {
   let (x, y) = xy
   x + y == y + x
@@ -17,73 +23,73 @@ fn prop_rev(l : List[Int]) -> Bool {
 
 test "prop reverse (fail)" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
-  quick_check!(prop_rev |> Arrow |> expect_fail)
+  @qc.quick_check!(prop_rev |> @qc.Arrow |> @qc.expect_fail)
 }
 
 test "prop reverse" {
-  quick_check_fn!(prop_rev)
+  @qc.quick_check_fn!(prop_rev)
 }
 
 test "add comm double" {
-  quick_check_fn!(add_comm_double)
+  @qc.quick_check_fn!(add_comm_double)
 }
 
 test "modify max tests" {
-  quick_check!(Arrow(prop_rev) |> with_max_success(2000))
+  @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.with_max_success(2000))
 }
 
 test "large max tests" {
-  quick_check!(() |> with_max_success(10000))
+  @qc.quick_check!(() |> @qc.with_max_success(10000))
 }
 
 test "larger max tests" {
-  quick_check!(() |> with_max_success(100000))
+  @qc.quick_check!(() |> @qc.with_max_success(100000))
 }
 
 test "add assoc double (expect fail)" {
-  quick_check!(Arrow(add_assoc_double) |> expect_fail)
+  @qc.quick_check!(@qc.Arrow(add_assoc_double) |> @qc.expect_fail)
 }
 
 test "non empty list (with filter)" {
   let prop_is_non_empty = fn(l : List[Int]) {
-    not(l.is_empty()) |> filter(not(l.is_empty()))
+    not(l.is_empty()) |> @qc.filter(not(l.is_empty()))
   }
-  quick_check!(Arrow(prop_is_non_empty))
+  @qc.quick_check!(@qc.Arrow(prop_is_non_empty))
 }
 
 test "reject all" {
-  let prop_reject = fn(_x : Int) { filter(true, false) }
-  quick_check!(Arrow(prop_reject) |> expect_gave_up)
+  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  @qc.quick_check!(@qc.Arrow(prop_reject) |> @qc.expect_gave_up)
 }
 
 test "label" {
-  quick_check!(
-    Arrow(fn(x : List[Int]) {
-      Arrow(prop_rev)
-      |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+  @qc.quick_check!(
+    @qc.Arrow(fn(x : List[Int]) {
+      @qc.Arrow(prop_rev)
+      |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
     }),
   )
 }
 
 test "classes" {
-  quick_check_fn!(fn(x : List[Int]) {
-    Arrow(prop_rev)
-    |> classify(x.length() > 5, "long list")
-    |> classify(x.length() <= 5, "short list")
+  @qc.quick_check_fn!(fn(x : List[Int]) {
+    @qc.Arrow(prop_rev)
+    |> @qc.classify(x.length() > 5, "long list")
+    |> @qc.classify(x.length() <= 5, "short list")
   })
 }
 
 test "label + classes" {
-  quick_check_fn!(fn(x : List[String]) {
-    Arrow(prop_rev)
-    |> classify(x.length() > 5, "long list")
-    |> classify(x.length() <= 5, "short list")
-    |> label("length is \{x.length()}")
+  @qc.quick_check_fn!(fn(x : List[String]) {
+    @qc.Arrow(prop_rev)
+    |> @qc.classify(x.length() > 5, "long list")
+    |> @qc.classify(x.length() <= 5, "short list")
+    |> @qc.label("length is \{x.length()}")
   })
 }
 
 test "abort" {
-  quick_check!(Arrow(prop_rev) |> terminate)
+  @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.terminate)
 }
 
 ///| Natural Numbers
@@ -101,7 +107,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 
 ///|
 impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
-  Gen::feat_random(i).run(i, rs)
+  @qc.feat_random(i).run(i, rs)
 }
 
 ///|
@@ -128,7 +134,7 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 }
 
 test "add comm nat" {
-  quick_check_fn!(add_comm_nat)
+  @qc.quick_check_fn!(add_comm_nat)
 }
 
 ///|
@@ -146,7 +152,7 @@ test "prop_reverse_identity" {
     reverse(reverse(arr)) == arr
   }
 
-  quick_check!(Arrow(prop_reverse_identity))
+  @qc.quick_check!(@qc.Arrow(prop_reverse_identity))
 }
 
 ///|
@@ -172,22 +178,24 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
 }
 
 test "prop length is not greater" {
-  quick_check!(Arrow(prop_length_is_not_greater))
+  @qc.quick_check!(@qc.Arrow(prop_length_is_not_greater))
 }
 
 test "prop remove not presence with max success" {
-  quick_check!(
-    Arrow(prop_remove_not_presence) |> with_max_success(1000) |> expect_fail,
+  @qc.quick_check!(
+    @qc.Arrow(prop_remove_not_presence)
+    |> @qc.with_max_success(1000)
+    |> @qc.expect_fail,
   )
 }
 
 test "custom generator" {
-  quick_check!(
-    forall(spawn(), fn(iarr : (Int, Array[Int])) {
-      let (x, arr) = iarr
+  @qc.quick_check!(
+    @qc.forall(@qc.spawn(), fn(i_arr : (Int, Array[Int])) {
+      let (x, arr) = i_arr
       not(remove(arr, x).contains(x))
     })
-    |> expect_fail,
+    |> @qc.expect_fail,
   )
 }
 
@@ -196,25 +204,29 @@ test "no_duplicate" {
     @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
   }
 
-  quick_check!(
-    forall(spawn(), fn(iarr : (Int, Array[Int])) {
+  @qc.quick_check!(
+    @qc.forall(@qc.spawn(), fn(iarr : (Int, Array[Int])) {
       let (x, arr) = iarr
-      not(remove(arr.copy(), x).contains(x)) |> filter(no_duplicate(arr))
+      not(remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
     })
-    |> expect_gave_up,
+    |> @qc.expect_gave_up,
   )
 }
 
 test "use one_of" {
-  quick_check!(
-    forall(spawn(), fn(a : Array[Int]) {
-      forall(one_of_array(a), fn(y : Int) { not(remove(a, y).contains(y)) })
-      |> filter(a.length() != 0)
+  @qc.quick_check!(
+    @qc.forall(@qc.spawn(), fn(a : Array[Int]) {
+      @qc.forall(@qc.one_of_array(a), fn(y : Int) {
+        not(remove(a, y).contains(y))
+      })
+      |> @qc.filter(a.length() != 0)
     })
-    |> expect_fail,
+    |> @qc.expect_fail,
   )
 }
 
 test "explicit universal qualification" {
-  quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
+  @qc.quick_check!(
+    @qc.forall(@qc.spawn(), fn(x : List[Int]) { x.rev().rev() == x }),
+  )
 }

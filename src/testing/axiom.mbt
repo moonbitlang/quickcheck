@@ -64,13 +64,16 @@ impl @quickcheck.Arbitrary for Queue with arbitrary(i, rs) {
 }
 
 ///|
-impl @quickcheck.Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
+type EqQueue @qc.Equivalence[Queue]
+
+///|
+impl @quickcheck.Arbitrary for EqQueue with arbitrary(i, rs) {
   fn split(xs : @immut/list.T[Int], i) {
     (xs.take(i), xs.drop(i))
   }
 
   fn from(xs : @immut/list.T[Int]) {
-    let n = int_bound(xs.length() - 1).run(i, rs)
+    let n = @qc.int_bound(xs.length() - 1).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }
@@ -78,5 +81,5 @@ impl @quickcheck.Arbitrary for Equivalence[Queue] with arbitrary(i, rs) {
   let z : @immut/list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
-  { lhs, rhs }
+  EqQueue({ lhs, rhs })
 }
