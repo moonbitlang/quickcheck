@@ -23,6 +23,7 @@ jobs:
 
             - name: moon check
               run: |
+                moon install
                 moon check --target all --deny-warn
             - name: moon test
               run: |
