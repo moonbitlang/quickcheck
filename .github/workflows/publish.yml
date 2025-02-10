@@ -4,7 +4,15 @@ on: workflow_dispatch
 jobs:
   publish:
     runs-on: ubuntu-latest
-    steps:  
+    strategy:
+      matrix:
+        node-version: [19.x]
+    steps:
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org
       - uses: actions/checkout@v4
       - name: install
         run: |
@@ -20,6 +28,7 @@ jobs:
           moon check --target all
       - name: publish
         run: |
+          node ./rm_deps.js
           echo $SECRET > ~/.moon/credentials.json
           moon publish
           rm ~/.moon/credentials.json
