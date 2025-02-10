@@ -24,11 +24,10 @@ jobs:
           moonrun --version
       - name: moon check
         run: |
-          moon install
+          node ./rm_deps.js
           moon check --target all
       - name: publish
         run: |
-          node ./rm_deps.js
           echo $SECRET > ~/.moon/credentials.json
           moon publish
           rm ~/.moon/credentials.json
