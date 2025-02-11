@@ -1,5 +1,5 @@
 test "feat int" {
-  let fe : @qc.Gen[Int] = @qc.feat_random(10)
+  let fe : @qc.Gen[Int] = @qc.Gen::feat_random(10)
   inspect!(
     fe.samples(size=50),
     content="[-3, 2, 3, -1, 2, -1, -4, 5, 0, 2, -4, 2, -2, -2, -5, 2, -3, 0, 1, 0, 1, -4, -2, -1, 2, -2, -2, -4, 0, 1, 0, 3, 0, 2, 3, 0, -2, -2, 1, -1, -1, -4, -1, 0, -2, -4, 0, 0, -2, -1]",
@@ -7,7 +7,7 @@ test "feat int" {
 }
 
 test "feat nat" {
-  let fe : @qc.Gen[Nat] = @qc.feat_random(21)
+  let fe : @qc.Gen[Nat] = @qc.Gen::feat_random(21)
   inspect!(
     fe.samples(size=20),
     content="[Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))), Zero, Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))))), Succ(Succ(Zero)), Succ(Succ(Zero)), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Zero))))]",
@@ -72,7 +72,7 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
 }
 
 test "feat tree random" {
-  let tg : @qc.Gen[Tree[Nat]] = @qc.feat_random(10)
+  let tg : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(10)
   inspect!(
     tg.samples(),
     content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.of([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.of([Branch({forest: @list.of([])})])})]",
@@ -80,7 +80,7 @@ test "feat tree random" {
 }
 
 test "feat tree" {
-  let fe : @qc.Gen[Tree[Nat]] = @qc.feat_random(11)
+  let fe : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(11)
   inspect!(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
   let x = (@feat.Enumerable::enumerate() : @feat.Enumerate[SingleTree]).en_index(
     196606, // Magic Number 196607 will cause crash of BigInt 

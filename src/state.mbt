@@ -89,7 +89,7 @@ fn format_name(self : State, loc~ : ArgsLoc = _) -> String {
 fn from_config(cfg : Config) -> State {
   let rs = match cfg.replay {
     Some((rng, _)) => rng
-    None => RandomState::new()
+    None => @quickcheck/splitmix.new()
   }
   {
     name: @utils.fresh_name(),

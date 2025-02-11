@@ -29,10 +29,12 @@ fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
       let rev1 = @lazy.Cons(x, rev)
       Cons(
         rev1,
-        @lazy.from_thunk(fn() { go(@lazy.from_value(rev1), xs.force()) }),
+        @lazy.LazyRef::from_thunk(fn() {
+          go(@lazy.LazyRef::from_value(rev1), xs.force())
+        }),
       )
     }
   }
 
-  go(@lazy.from_value(Nil), l)
+  go(@lazy.LazyRef::from_value(Nil), l)
 }

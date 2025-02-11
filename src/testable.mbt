@@ -77,7 +77,7 @@ pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for A
   A,
   P,
 ] with property(self) {
-  forall_shrink(spawn(), A::shrink, self._)
+  forall_shrink(Gen::spawn(), A::shrink, self._)
 }
 
 ///|

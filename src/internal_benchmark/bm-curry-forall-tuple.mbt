@@ -6,8 +6,10 @@ fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
 }
 
 ///|
-let test_forall : @qc.Property = @qc.forall(@qc.spawn(), fn(x : Array[Int]) {
-  @qc.forall(@qc.spawn(), fn(y : Array[Int]) { prop_symmetry(x, y) })
+let test_forall : @qc.Property = @qc.forall(@qc.Gen::spawn(), fn(
+  x : Array[Int]
+) {
+  @qc.forall(@qc.Gen::spawn(), fn(y : Array[Int]) { prop_symmetry(x, y) })
 })
 
 ///|
@@ -22,18 +24,22 @@ let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = fn(p) {
   }
   |> @qc.Arrow
 
+///|
 test "forall" {
   @qc.quick_check!(test_forall)
 }
 
+///|
 test "curry" {
   @qc.quick_check!(test_curry)
 }
 
+///|
 test "tuple" {
   @qc.quick_check!(test_tuple)
 }
 
+///|
 test {
   let crit = @bm.Criterion::new()
   crit.add(

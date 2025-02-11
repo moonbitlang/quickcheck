@@ -20,7 +20,7 @@ pub fn default[T]() -> Enumerate[T] {
 
 ///|
 pub fn singleton[T](val : T) -> Enumerate[T] {
-  { parts: Cons(fin_pure(val), @lazy.from_value(Nil)) }
+  { parts: Cons(fin_pure(val), @lazy.LazyRef::from_value(Nil)) }
 }
 
 ///|
@@ -53,7 +53,7 @@ pub fn fmap[T, U](self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
 
 ///|
 pub fn pay[T](f : () -> Enumerate[T]) -> Enumerate[T] {
-  { parts: Cons(fin_empty(), @lazy.from_thunk(fn() { f().parts })) }
+  { parts: Cons(fin_empty(), @lazy.LazyRef::from_thunk(fn() { f().parts })) }
 }
 
 ///|

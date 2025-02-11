@@ -30,7 +30,7 @@ pub fn fin_union[T](f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
 }
 
 ///|
-pub fn op_add[T](self : Finite[T], other : Finite[T]) -> Finite[T] {
+pub fn Finite::op_add[T](self : Finite[T], other : Finite[T]) -> Finite[T] {
   fin_union(self, other)
 }
 
@@ -104,7 +104,8 @@ pub fn to_array[T](self : Finite[T]) -> (BigInt, LazyList[T]) {
     loop self.fCard, @lazy.Nil {
       0, acc => break acc
       n, acc =>
-        continue n - 1, @lazy.Cons((self.fIndex)(n), @lazy.from_value(acc))
+        continue n - 1,
+          @lazy.Cons((self.fIndex)(n), @lazy.LazyRef::from_value(acc))
     },
   )
 }

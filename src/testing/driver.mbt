@@ -107,7 +107,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 
 ///|
 impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
-  @qc.feat_random(i).run(i, rs)
+  @qc.Gen::feat_random(i).run(i, rs)
 }
 
 ///|
@@ -119,7 +119,7 @@ fn op_add(self : Nat, other : Nat) -> Nat {
 }
 
 ///|
-fn op_equal(self : Nat, other : Nat) -> Bool {
+fn Nat::op_equal(self : Nat, other : Nat) -> Bool {
   match (self, other) {
     (Zero, Zero) => true
     (Succ(a), Succ(b)) => a == b
@@ -191,7 +191,7 @@ test "prop remove not presence with max success" {
 
 test "custom generator" {
   @qc.quick_check!(
-    @qc.forall(@qc.spawn(), fn(i_arr : (Int, Array[Int])) {
+    @qc.forall(@qc.Gen::spawn(), fn(i_arr : (Int, Array[Int])) {
       let (x, arr) = i_arr
       not(remove(arr, x).contains(x))
     })
@@ -205,7 +205,7 @@ test "no_duplicate" {
   }
 
   @qc.quick_check!(
-    @qc.forall(@qc.spawn(), fn(iarr : (Int, Array[Int])) {
+    @qc.forall(@qc.Gen::spawn(), fn(iarr : (Int, Array[Int])) {
       let (x, arr) = iarr
       not(remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
     })
@@ -215,7 +215,7 @@ test "no_duplicate" {
 
 test "use one_of" {
   @qc.quick_check!(
-    @qc.forall(@qc.spawn(), fn(a : Array[Int]) {
+    @qc.forall(@qc.Gen::spawn(), fn(a : Array[Int]) {
       @qc.forall(@qc.one_of_array(a), fn(y : Int) {
         not(remove(a, y).contains(y))
       })
@@ -227,6 +227,6 @@ test "use one_of" {
 
 test "explicit universal qualification" {
   @qc.quick_check!(
-    @qc.forall(@qc.spawn(), fn(x : List[Int]) { x.rev().rev() == x }),
+    @qc.forall(@qc.Gen::spawn(), fn(x : List[Int]) { x.rev().rev() == x }),
   )
 }

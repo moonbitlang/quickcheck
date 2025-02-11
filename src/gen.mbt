@@ -33,7 +33,7 @@ pub fn Gen::sample[T](
   size~ : Int = 100,
   seed~ : UInt64 = 37
 ) -> T {
-  let state = RandomState::new(seed~)
+  let state = @quickcheck/splitmix.new(seed~)
   self.run(size, state)
 }
 
@@ -43,7 +43,7 @@ pub fn Gen::samples[T](
   size~ : Int = 10,
   seed~ : UInt64 = 37
 ) -> Array[T] {
-  let state = RandomState::new(seed~)
+  let state = @quickcheck/splitmix.new(seed~)
   Array::makei(size, fn(_x) { self.run(size, state) })
 }
 

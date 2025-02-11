@@ -23,7 +23,10 @@ pub fn removes_list[T](
       Nil
     } else {
       let xs_take = xs.take(k)
-      Cons(xs_drop, removes_list(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }))
+      Cons(
+        xs_drop,
+        removes_list(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }),
+      )
     }
   }
 }
