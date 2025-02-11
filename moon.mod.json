@@ -1,6 +1,6 @@
 {
   "name": "moonbitlang/quickcheck",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "deps": {
     "illusory0x0/base": "0.1.0",
     "moonbitlang/x": "0.4.17"

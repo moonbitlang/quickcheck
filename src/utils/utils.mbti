@@ -3,13 +3,11 @@ package moonbitlang/quickcheck/utils
 alias @moonbitlang/core/immut/list as @list
 
 // Values
-fn apply_while[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
+fn apply_while_array[T](T, (T) -> T, (T) -> Bool) -> Array[T]
+
+fn apply_while_list[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
 
 fn const_[T, U](T) -> (U) -> T
-
-fn curry3[A, B, C, D]((A, B, C) -> D) -> (A) -> (B) -> (C) -> D
-
-fn curry4[A, B, C, D, E]((A, B, C, D) -> E) -> (A) -> (B) -> (C) -> (D) -> E
 
 fn flip[M, N, Z]((M, N) -> Z) -> (N, M) -> Z
 
@@ -19,7 +17,9 @@ fn id[T](T) -> T
 
 fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
 
-fn removes[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
+fn removes_array[T](Int, Int, Array[T]) -> Array[Array[T]]
+
+fn removes_list[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
 
 // Types and methods
 

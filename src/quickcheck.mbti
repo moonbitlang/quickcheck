@@ -169,7 +169,10 @@ type Discard
 impl Default for Discard
 impl Testable for Discard
 
-type Equivalence
+pub(all) struct Equivalence {
+  lhs : T
+  rhs : T
+}
 impl Equivalence {
   ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]

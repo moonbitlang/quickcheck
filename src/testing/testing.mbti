@@ -1,0 +1,34 @@
+package moonbitlang/quickcheck/testing
+
+// Values
+fn empty_queue() -> Queue
+
+fn enqueue(Queue, Int) -> Queue
+
+fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
+
+// Types and methods
+type EqQueue
+
+type Forest
+impl[T : Show] Show for Forest[T]
+
+type Nat
+impl Show for Nat
+
+type Queue
+impl Queue {
+  is_empty(Self) -> Bool
+}
+impl Show for Queue
+
+type SingleTree
+impl Show for SingleTree
+
+type Tree
+impl[T : Show] Show for Tree[T]
+
+// Type aliases
+
+// Traits
+
