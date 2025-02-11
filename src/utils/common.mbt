@@ -10,7 +10,7 @@ pub fn fresh_name() -> String {
 }
 
 ///|
-pub fn removes[T](
+pub fn removes_list[T](
   k : Int,
   n : Int,
   xs : @immut/list.T[T]
@@ -23,13 +23,27 @@ pub fn removes[T](
       Nil
     } else {
       let xs_take = xs.take(k)
-      Cons(xs_drop, removes(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }))
+      Cons(xs_drop, removes_list(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }))
     }
   }
 }
 
 ///|
-pub fn apply_while[T](
+pub fn removes_array[T](k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
+  if k > n {
+    []
+  } else {
+    let (xs2, xs1) = xs.split_at(k)
+    if xs1.is_empty() {
+      []
+    } else {
+      [xs1, ..removes_array(k, n - k, xs1).map(fn(x) { xs2 + x })]
+    }
+  }
+}
+
+///|
+pub fn apply_while_list[T](
   x : T,
   f : (T) -> T,
   cond : (T) -> Bool
@@ -39,6 +53,24 @@ pub fn apply_while[T](
       let next = f(acc)
       if cond(next) {
         continue next, Cons(next, lst)
+      } else {
+        break lst
+      }
+    }
+  }
+}
+
+///|
+pub fn apply_while_array[T](
+  x : T,
+  f : (T) -> T,
+  cond : (T) -> Bool
+) -> Array[T] {
+  loop x, [] {
+    acc, lst => {
+      let next = f(acc)
+      if cond(next) {
+        continue next, [next, ..lst]
       } else {
         break lst
       }

@@ -8,13 +8,14 @@ impl Shrink with shrink(_a) { Iter::empty() }
 
 ///|
 impl Shrink for Int with shrink(x) {
-  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
   .filter(fn(u) { u != x })
 }
 
+///|
 test "shrink int" {
   inspect!(Shrink::shrink(100), content="[99, 97, 94, 88, 75, 50, 0]")
   inspect!(Shrink::shrink(0), content="[]")
@@ -22,13 +23,14 @@ test "shrink int" {
 
 ///|
 impl Shrink for Int64 with shrink(x) {
-  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
   .filter(fn(u) { u != x })
 }
 
+///|
 test "shrink int64" {
   inspect!(
     Shrink::shrink(10000L),
@@ -38,13 +40,14 @@ test "shrink int64" {
 
 ///|
 impl Shrink for UInt with shrink(x) {
-  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
   .filter(fn(u) { u != x })
 }
 
+///|
 test "shrink uint" {
   inspect!(
     Shrink::shrink(37000U),
@@ -54,13 +57,14 @@ test "shrink uint" {
 
 ///|
 impl Shrink for UInt64 with shrink(x) {
-  @utils.apply_while(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
   .append(0)
   .filter(fn(u) { u != x })
 }
 
+///|
 test "shrink uint64" {
   inspect!(
     Shrink::shrink((42000 : UInt64)),
@@ -78,6 +82,7 @@ impl Shrink for Bool with shrink(b) {
   })
 }
 
+///|
 test "shrink boolean" {
   inspect!(Shrink::shrink(true), content="[false]")
   inspect!(Shrink::shrink(false), content="[]")
@@ -94,6 +99,7 @@ impl Shrink for Char with shrink(c) {
   }
 }
 
+///|
 test "shrink char" {
   inspect!(
     Shrink::shrink('测'),
@@ -109,6 +115,7 @@ impl[T : Shrink] Shrink for T? with shrink(x) {
   }
 }
 
+///|
 test "shrink option" {
   inspect!(Shrink::shrink((None : Unit?)), content="[]")
   inspect!(
@@ -125,6 +132,7 @@ impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
   }
 }
 
+///|
 test "shrink result" {
   let b : Result[Bool, Int] = Err(100)
   let x : Result[Bool, Int] = Ok(true)
@@ -143,6 +151,7 @@ impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
   .concat(Shrink::shrink(b).map(fn(b1) { (a, b1) }))
 }
 
+///|
 test "shrink tuple" {
   let x = (120, true)
   inspect!(
@@ -202,6 +211,7 @@ impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shr
   })
 }
 
+///|
 test "shrink 6-tuple" {
   let x = (20, 'A', 30U, true, true, true)
   inspect!(
@@ -213,28 +223,89 @@ test "shrink 6-tuple" {
 ///|
 impl[T : Shrink + Show] Shrink for @immut/list.T[T] with shrink(xs) {
   let n = xs.length()
-  fn shr_subterms(lst : @immut/list.T[T]) -> Iter[@immut/list.T[T]] {
+  fn shr_sub_terms(lst : @immut/list.T[T]) {
     match lst {
       Nil => Iter::empty()
       Cons(x, xs) =>
         T::shrink(x)
-        .map(fn(x_) { @immut/list.T::Cons(x_, xs) })
-        .concat(shr_subterms(xs).map(fn(xs_) { Cons(x, xs_) }))
+        .map(fn(x_) { @immut/list.Cons(x_, xs) })
+        .concat(shr_sub_terms(xs).map(fn(xs_) { Cons(x, xs_) }))
     }
   }
 
-  @utils.apply_while(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { @utils.removes(k, n, xs) })
+  @utils.apply_while_list(n, fn(x) { x / 2 }, fn(x) { x > 0 })
+  .map(fn(k) { @utils.removes_list(k, n, xs) })
   .flatten()
   .iter()
-  .concat(shr_subterms(xs))
+  .concat(shr_sub_terms(xs))
 }
 
+///|
 test "shrink int list" {
   let il : @immut/list.T[Int] = @immut/list.of([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
   inspect!(
     s,
     content="[@list.of([2, 3, 4, 5, 6]), @list.of([1, 3, 4, 5, 6]), @list.of([1, 2, 4, 5, 6]), @list.of([1, 2, 3, 5, 6]), @list.of([1, 2, 3, 4, 6]), @list.of([4, 5, 6]), @list.of([0, 2, 3, 4, 5, 6]), @list.of([1, 1, 3, 4, 5, 6]), @list.of([1, 0, 3, 4, 5, 6]), @list.of([1, 2, 2, 4, 5, 6]), @list.of([1, 2, 0, 4, 5, 6]), @list.of([1, 2, 3, 3, 5, 6]), @list.of([1, 2, 3, 2, 5, 6]), @list.of([1, 2, 3, 0, 5, 6]), @list.of([1, 2, 3, 4, 4, 6]), @list.of([1, 2, 3, 4, 3, 6]), @list.of([1, 2, 3, 4, 0, 6]), @list.of([1, 2, 3, 4, 5, 5]), @list.of([1, 2, 3, 4, 5, 3]), @list.of([1, 2, 3, 4, 5, 0])]",
+  )
+}
+
+///|
+impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
+  let view = xs[:]
+  let n = view.length()
+  fn shr_sub_terms(arr : ArrayView[X]) {
+    match arr {
+      [] => Iter::empty()
+      [x, .. xs] =>
+        X::shrink(x)
+        .map(fn(x_) { [x_, ..xs] })
+        .concat(shr_sub_terms(xs).map(fn(xs_) { [x, ..xs_] }))
+    }
+  }
+
+  @utils.apply_while_array(n, fn(x) { x / 2 }, fn(x) { x > 0 })
+  .map(fn(k) { @utils.removes_array(k, n, xs) })
+  .flatten()
+  .iter()
+  .concat(shr_sub_terms(view))
+}
+
+///|
+test "shrink array" {
+  let ar = [1, 2, 3, 4, 5, 6]
+  let s = Shrink::shrink(ar)
+  inspect!(
+    s,
+    content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [4, 5, 6], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
+  )
+}
+
+///|
+impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
+  let arr = xs.to_array()
+  let its : Array[_] = Array::makei(arr.length(), fn(x) {
+    X::shrink(arr[x])
+    .map(fn(y) {
+      let cp = arr.copy()
+      cp[x] = y
+      cp.iter()
+    })
+    .to_array()
+  }).flatten()
+  let rms : Array[Iter[X]] = arr.mapi(fn(i, _) {
+    let a = arr.copy()
+    a.remove(i) |> ignore
+    a.iter()
+  })
+  rms.iter().concat(its.iter())
+}
+
+///|
+test "shrink iter" {
+  let it = [1, 2, 3, 4, 5, 6].iter()
+  inspect!(
+    it.shrink(),
+    content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [1, 2, 3, 4, 5], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
   )
 }
