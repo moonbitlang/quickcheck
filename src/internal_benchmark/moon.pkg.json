@@ -7,9 +7,6 @@
     {
       "path": "moonbitlang/x/benchmark",
       "alias": "bm"
-    },
-    {
-      "path": "illusory0x0/base/unsafe"
     }
   ]
 }
