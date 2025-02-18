@@ -57,8 +57,8 @@ pub fn tails[T](self : LazyList[T]) -> LazyList[LazyList[T]] {
     Cons(
       xs,
       match xs {
-        Nil => from_value(Nil)
-        Cons(_, xs1) => from_thunk(fn() { go(force(xs1)) })
+        Nil => LazyRef::from_value(Nil)
+        Cons(_, xs1) => LazyRef::from_thunk(fn() { go(force(xs1)) })
       },
     )
   }
@@ -70,7 +70,7 @@ pub fn tails[T](self : LazyList[T]) -> LazyList[LazyList[T]] {
 pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   match self {
     Nil => other
-    Cons(x, xs) => Cons(x, from_thunk(fn() { concat(force(xs), other) }))
+    Cons(x, xs) => Cons(x, LazyRef::from_thunk(fn() { concat(force(xs), other) }))
   }
 }
 
@@ -81,14 +81,14 @@ pub fn op_add[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
 
 ///|
 pub fn repeat[T](val : T) -> LazyList[T] {
-  Cons(val, from_thunk(fn() { repeat(val) }))
+  Cons(val, LazyRef::from_thunk(fn() { repeat(val) }))
 }
 
 ///|
 pub fn map[T, U](self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   match self {
     Nil => Nil
-    Cons(x, xs) => Cons(f(x), from_thunk(fn() { map(xs.force(), f) }))
+    Cons(x, xs) => Cons(f(x), LazyRef::from_thunk(fn() { map(xs.force(), f) }))
   }
 }
 
@@ -100,10 +100,10 @@ pub fn split_at[T](self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
     fn split_at_prime(m, xs) {
       match (m, xs) {
         (_, Nil) => (Nil, Nil)
-        (1, Cons(x, xs)) => (Cons(x, from_value(Nil)), xs.force())
+        (1, Cons(x, xs)) => (Cons(x, LazyRef::from_value(Nil)), xs.force())
         (m, Cons(x, xs)) => {
           let (xs1, xs2) = split_at_prime(m - 1, xs.force())
-          (Cons(x, xs1 |> from_value), xs2)
+          (Cons(x, xs1 |> LazyRef::from_value), xs2)
         }
       }
     }
@@ -162,7 +162,7 @@ pub fn zip_with[A, B, C](
 ) -> LazyList[C] {
   match (xs, ys) {
     (Cons(x, xs), Cons(y, ys)) =>
-      Cons(f(x, y), from_thunk(fn() { zip_with(f, xs.force(), ys.force()) }))
+      Cons(f(x, y), LazyRef::from_thunk(fn() { zip_with(f, xs.force(), ys.force()) }))
     (_, _) => Nil
   }
 }
@@ -173,7 +173,7 @@ pub fn take_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
     Nil => Nil
     Cons(x, xs) =>
       if p(x) {
-        Cons(x, from_thunk(fn() { take_while(xs.force(), p) }))
+        Cons(x, LazyRef::from_thunk(fn() { take_while(xs.force(), p) }))
       } else {
         Nil
       }
@@ -187,7 +187,7 @@ pub fn take[T](self : LazyList[T], n : Int) -> LazyList[T] {
   } else {
     match self {
       Nil => Nil
-      Cons(x, xs) => Cons(x, from_value(take(xs.force(), n - 1)))
+      Cons(x, xs) => Cons(x, LazyRef::from_value(take(xs.force(), n - 1)))
     }
   }
 }
@@ -214,7 +214,7 @@ pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
 
 ///|
 pub fn infinite_stream[X : Monoid](start : X, step : X) -> LazyList[X] {
-  Cons(start, from_thunk(fn() { infinite_stream(start + step, step) }))
+  Cons(start, LazyRef::from_thunk(fn() { infinite_stream(start + step, step) }))
 }
 
 ///|
@@ -238,7 +238,7 @@ pub fn zip_plus[T](
 ) -> LazyList[T] {
   match (ls1, ls2) {
     (Cons(x, xs), Cons(y, ys)) =>
-      Cons(f(x, y), from_thunk(fn() { zip_plus(f, xs.force(), ys.force()) }))
+      Cons(f(x, y), LazyRef::from_thunk(fn() { zip_plus(f, xs.force(), ys.force()) }))
     (xs, ys) => xs.concat(ys)
   }
 }
@@ -250,7 +250,7 @@ pub fn unfold[T](
 ) -> LazyList[T] {
   match f(self) {
     None => Nil
-    Some((x, y)) => Cons(x, from_thunk(fn() { y.unfold(f) }))
+    Some((x, y)) => Cons(x, LazyRef::from_thunk(fn() { y.unfold(f) }))
   }
 }
 
@@ -258,6 +258,6 @@ pub fn unfold[T](
 pub fn from_list[T](ls : @immut/list.T[T]) -> LazyList[T] {
   match ls {
     Nil => Nil
-    Cons(x, xs) => Cons(x, from_value(from_list(xs)))
+    Cons(x, xs) => Cons(x, LazyRef::from_value(from_list(xs)))
   }
 }

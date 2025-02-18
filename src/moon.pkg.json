@@ -4,5 +4,6 @@
     "moonbitlang/quickcheck/lazy",
     "moonbitlang/quickcheck/utils",
     "moonbitlang/quickcheck/rose"
-  ]
+  ],
+  "warn-list": "-1-2-3-5-6-7-8"
 }
