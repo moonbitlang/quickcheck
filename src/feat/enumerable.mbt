@@ -66,4 +66,6 @@ pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E] with enumer
 }
 
 ///|
-pub impl Enumerable for Unit with enumerate() { singleton(()) }
+pub impl Enumerable for Unit with enumerate() {
+  singleton(())
+}

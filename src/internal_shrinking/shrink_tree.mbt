@@ -20,7 +20,7 @@ pub fn draw[T : Show](
   fn shift(first : String, other : String, x : @immut/list.T[String]) {
     @lazy.zip_lazy_normal(
       String::op_add,
-      @lazy.Cons(first, @lazy.from_value(@lazy.repeat(other))),
+      @lazy.Cons(first, @lazy.LazyRef::from_value(@lazy.repeat(other))),
       x,
     )
   }

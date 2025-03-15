@@ -37,8 +37,8 @@ pub fn from_rng(rs : RandomState) -> SampleTree {
   let l = rs.split()
   SampleTree(
     NotShrunk(n),
-    from_rng(l) |> @lazy.from_value,
-    from_rng(rs) |> @lazy.from_value,
+    from_rng(l) |> @lazy.LazyRef::from_value,
+    from_rng(rs) |> @lazy.LazyRef::from_value,
   )
 }
 
@@ -51,8 +51,8 @@ pub fn from_seed(seed : UInt64) -> SampleTree {
 pub fn constant(val : UInt) -> SampleTree {
   SampleTree(
     NotShrunk(val),
-    constant(val) |> @lazy.from_value,
-    constant(val) |> @lazy.from_value,
+    constant(val) |> @lazy.LazyRef::from_value,
+    constant(val) |> @lazy.LazyRef::from_value,
   )
 }
 
@@ -70,8 +70,8 @@ pub fn map(self : SampleTree, f : (UInt) -> UInt) -> SampleTree {
     SampleTree(x, l, r) =>
       SampleTree(
         map_shrunk(x),
-        l.force().map(f) |> @lazy.from_value,
-        r.force().map(f) |> @lazy.from_value,
+        l.force().map(f) |> @lazy.LazyRef::from_value,
+        r.force().map(f) |> @lazy.LazyRef::from_value,
       )
   }
 }

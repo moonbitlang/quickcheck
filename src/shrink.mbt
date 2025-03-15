@@ -4,7 +4,9 @@ pub(open) trait Shrink {
 }
 
 ///|
-impl Shrink with shrink(_a) { Iter::empty() }
+impl Shrink with shrink(_a) {
+  Iter::empty()
+}
 
 ///|
 impl Shrink for Int with shrink(x) {

@@ -9,7 +9,13 @@ alias @moonbitlang/quickcheck/rose as @rose
 // Values
 fn alphabet() -> Gen[Char]
 
+fn ap[T, U](Gen[(T) -> U], Gen[T]) -> Gen[U]
+
+fn array_with_size[T](Gen[T], Int) -> Gen[Array[T]]
+
 fn associative[A : Eq]((A, A) -> A) -> ((A, A, A)) -> Bool
+
+fn bind[T, U](Gen[T], (T) -> Gen[U]) -> Gen[U]
 
 fn callback[P : Testable](P, Callback) -> Property
 
@@ -21,11 +27,15 @@ fn collect[P : Testable, T : Show](P, T) -> Property
 
 fn commutative[A, B : Eq]((A, A) -> B) -> ((A, A)) -> Bool
 
+fn complete_test(State, Property) -> TestSuccess!TestError
+
 fn counterexample[P : Testable](P, String) -> Property
 
 fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
 fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
+
+fn equal_by[T](Equivalence[T], (T, T) -> Bool) -> Bool
 
 fn expect_fail[P : Testable](P) -> Property
 
@@ -37,6 +47,8 @@ fn failed() -> SingleResult
 
 fn filter[P : Testable](P, Bool) -> Property
 
+fn find_failure(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
+
 fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
 
 fn flatten_list[T](@list.T[Gen[T]]) -> Gen[@list.T[T]]
@@ -45,15 +57,23 @@ fn flatten_option[T](Gen[T]?) -> Gen[T?]
 
 fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
 
+fn fmap[T, U](Gen[T], (T) -> U) -> Gen[U]
+
 fn forall[T : Testable, A : Show](Gen[A], (A) -> T) -> Property
 
 fn forall_shrink[T : Testable, A : Show](Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+
+fn format(Printer, String) -> String
 
 fn frequency[T](Array[(Int, Gen[T])]) -> Gen[T]
 
 fn frequency_list[T](@list.T[(Int, T)]) -> Gen[T]
 
+fn give_up(State, Property) -> TestSuccess!TestError
+
 fn idempotent[A : Eq]((A) -> A) -> (A) -> Bool
+
+fn ident(Printer, size~ : Int = ..) -> Unit
 
 fn if_fail[P : Testable](P, () -> Unit) -> Property
 
@@ -66,6 +86,10 @@ fn integer_bound(BigInt) -> Gen[BigInt]
 fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
 
 fn involutory[A : Eq]((A) -> A) -> (A) -> Bool
+
+fn is_equal[T : Eq](Equivalence[T]) -> Bool
+
+fn join[T](Gen[Gen[T]]) -> Gen[T]
 
 fn label[P : Testable](P, String) -> Property
 
@@ -80,6 +104,8 @@ fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
 fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
+
+fn local_min(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
 
 fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
@@ -119,7 +145,15 @@ fn quick_check_with_result[P : Testable](Config, P) -> TestSuccess!TestError
 
 fn rejected() -> SingleResult
 
+fn resize[T](Gen[T], Int) -> Gen[T]
+
 fn run_prop[P : Testable](P) -> Gen[@rose.Rose[SingleResult]]
+
+fn run_single_test(State, Property) -> Result[TestSuccess, State]!TestError
+
+fn run_test(State, Property) -> TestSuccess!TestError
+
+fn scale[T](Gen[T], (Int) -> Int) -> Gen[T]
 
 fn shrinking[P : Testable, T]((T) -> Iter[T], T, (T) -> P) -> Property
 
@@ -131,11 +165,25 @@ fn sorted_list[T : Compare](Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn succeed() -> SingleResult
 
+fn such_that[T](Gen[T], (T) -> Bool) -> Gen[T]
+
+fn such_that_maybe[T](Gen[T], (T) -> Bool) -> Gen[T?]
+
 fn terminate[P : Testable](P) -> Property
+
+fn to_property[T, U](Axiom[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
+
+fn to_property_eq[T, U : Eq](Axiom[T], (T) -> U) -> (T) -> Bool
+
+fn to_property_parametric[T, M, N](Axiom[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
+
+fn to_property_parametric_eq[T, M, N : Eq](Axiom[T], (T, M) -> N) -> ((T, M)) -> Bool
 
 fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
 fn tuple[T, U](Gen[T], Gen[U]) -> Gen[(T, U)]
+
+fn unident(Printer) -> Unit
 
 fn with_discarded_ratio[P : Testable](P, Int) -> Property
 
@@ -145,11 +193,13 @@ fn with_max_size[P : Testable](P, Int) -> Property
 
 fn with_max_success[P : Testable](P, Int) -> Property
 
+fn write_string(Printer, String) -> Unit
+
 // Types and methods
-pub type Arrow (A) -> B
+pub type Arrow[A, B] (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
-type Axiom
+type Axiom[T]
 impl Axiom {
   new[T]((T) -> Equivalence[T]) -> Self[T]
   run[T](Self[T], T) -> Equivalence[T]
@@ -169,7 +219,7 @@ type Discard
 impl Default for Discard
 impl Testable for Discard
 
-pub(all) struct Equivalence {
+pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
 }
@@ -183,7 +233,7 @@ impl Equivalence {
 }
 impl[T : Show] Show for Equivalence[T]
 
-type Gen
+type Gen[T]
 impl Gen {
   ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
   array_with_size[T](Self[T], Int) -> Self[Array[T]]
@@ -208,11 +258,11 @@ type InternalError
 type Kind
 impl Show for Kind
 
-type ListCompare
+type ListCompare[T]
 impl[T : Eq] Eq for ListCompare[T]
 impl[T : Show] Show for ListCompare[T]
 
-pub(all) enum Outcome {
+pub(all) enum Outcome[T] {
   Success
   GaveUp
   Fail(T)

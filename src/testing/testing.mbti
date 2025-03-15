@@ -5,12 +5,14 @@ fn empty_queue() -> Queue
 
 fn enqueue(Queue, Int) -> Queue
 
+fn is_empty(Queue) -> Bool
+
 fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
 
 // Types and methods
 type EqQueue
 
-type Forest
+type Forest[T]
 impl[T : Show] Show for Forest[T]
 
 type Nat
@@ -25,7 +27,7 @@ impl Show for Queue
 type SingleTree
 impl Show for SingleTree
 
-type Tree
+type Tree[T]
 impl[T : Show] Show for Tree[T]
 
 // Type aliases
