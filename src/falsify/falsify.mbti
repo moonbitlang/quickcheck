@@ -4,6 +4,12 @@ alias @moonbitlang/core/immut/list as @list
 alias @moonbitlang/core/quickcheck/splitmix as @splitmix
 
 // Values
+fn ap[T, U](Gen[(T) -> U], Gen[T]) -> Gen[U]
+
+fn apS[A, B](Gen[(A) -> B], Gen[A]) -> Gen[B]
+
+fn bind[T, U](Gen[T], (T) -> Gen[U]) -> Gen[U]
+
 fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
 
 fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
@@ -14,11 +20,15 @@ fn discard[T, E]() -> Property[T, E]
 
 fn falsify[T, E](Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
 
+fn fmap[T, U](Gen[T], (T) -> U) -> Gen[U]
+
 fn from_rng(@splitmix.RandomState) -> SampleTree
 
 fn from_seed(UInt64) -> SampleTree
 
 fn gen[T, E]((T) -> String?, Gen[T]) -> Property[T, E]
+
+fn ifS[T](Gen[Bool], Gen[T], Gen[T]) -> Gen[T]
 
 fn info(String) -> Property[Unit, String]
 
@@ -28,7 +38,13 @@ fn init_test_run() -> TestRun
 
 fn label[E](String, @list.T[String]) -> Property[Unit, E]
 
+fn limit_steps[P, N](ShrinkExplain[P, N], Int?) -> ShrinkExplain[P, N]
+
+fn map(SampleTree, (UInt) -> UInt) -> SampleTree
+
 fn mk_property[T, E]((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
+
+fn mod(SampleTree, UInt) -> SampleTree
 
 fn new[T]((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
 
@@ -38,26 +54,42 @@ fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
 
 fn pure[T](T) -> Gen[T]
 
+fn run_gen[T](Gen[T], SampleTree) -> (T, Iter[SampleTree])
+
 fn run_property[T, E](Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
+fn sample[T](Gen[T]) -> T
+
+fn sample_value(Sample) -> UInt
+
 fn second[A, B, C]((B) -> C, (A, B)) -> (A, C)
+
+fn select[T, U](Gen[(T) -> U], Gen[Either[T, U]]) -> Gen[U]
+
+fn shrink_from[A, P, N](Gen[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
+
+fn shrink_history[P, N](ShrinkExplain[P, N]) -> Array[P]
+
+fn shrink_outcome[P, N](ShrinkExplain[P, N]) -> (P, Iter[N]?)
 
 fn shrink_to_list[T](T, Iter[T]) -> Gen[T]
 
 fn test_gen[T]((T) -> Bool, Gen[T]) -> Property[T, String]
 
+fn view(SampleTree) -> (Sample, SampleTree, SampleTree)
+
 // Types and methods
 type Config
 impl Show for Config
 
-type DriverState
+type DriverState[T]
 
-type Either
+type Either[L, R]
 
-type Failure
+type Failure[E]
 impl[E : Show] Show for Failure[E]
 
-type Gen
+type Gen[T]
 impl Gen {
   ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
   apS[A, B](Self[(A) -> B], Self[A]) -> Self[B]
@@ -70,9 +102,9 @@ impl Gen {
   shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
 }
 
-type IsValidShrink
+type IsValidShrink[P, N]
 
-type Property
+type Property[T, E]
 impl Property {
   run[T, E](Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
 }
@@ -89,7 +121,7 @@ impl SampleTree {
   view(Self) -> (Sample, Self, Self)
 }
 
-type ShrinkExplain
+type ShrinkExplain[P, N]
 impl ShrinkExplain {
   limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
   shrink_history[P, N](Self[P, N]) -> Array[P]
@@ -97,13 +129,13 @@ impl ShrinkExplain {
 }
 impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
-type ShrinkHistory
+type ShrinkHistory[P, N]
 impl[P : Show, N : Show] Show for ShrinkHistory[P, N]
 
-type Success
+type Success[T]
 impl[T : Show] Show for Success[T]
 
-type TestResult
+type TestResult[T, E]
 
 type TestRun
 impl Show for TestRun

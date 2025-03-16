@@ -1,3 +1,4 @@
+///|
 test "feat int" {
   let fe : @qc.Gen[Int] = @qc.Gen::feat_random(10)
   inspect!(
@@ -6,6 +7,7 @@ test "feat int" {
   )
 }
 
+///|
 test "feat nat" {
   let fe : @qc.Gen[Nat] = @qc.Gen::feat_random(21)
   inspect!(
@@ -14,6 +16,7 @@ test "feat nat" {
   )
 }
 
+///|
 test "feat nat index" {
   let x = [0N, 1, 2, 3, 4, 5, 6].map(fn(x) {
     (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat]).en_index(x)
@@ -71,6 +74,7 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
   })
 }
 
+///|
 test "feat tree random" {
   let tg : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(10)
   inspect!(
@@ -79,6 +83,7 @@ test "feat tree random" {
   )
 }
 
+///|
 test "feat tree" {
   let fe : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(11)
   inspect!(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
@@ -91,6 +96,7 @@ test "feat tree" {
   )
 }
 
+///|
 test "index large" {
   let eTree : @feat.Enumerate[SingleTree] = @feat.Enumerable::enumerate()
   for i = 100000N; i > 0; i = i - 1 {
@@ -98,6 +104,7 @@ test "index large" {
   }
 }
 
+///|
 test "nat" {
   inspect!(
     @qc.nat().samples(size=50),
@@ -105,6 +112,7 @@ test "nat" {
   )
 }
 
+///|
 test "small int" {
   inspect!(
     @qc.small_int().samples(size=50),
@@ -112,6 +120,7 @@ test "small int" {
   )
 }
 
+///|
 test "frequency int" {
   inspect!(
     @qc.frequency([(4, @qc.pure(42)), (1, @qc.pure(37)), (3, @qc.pure(114))]).samples(
@@ -121,6 +130,7 @@ test "frequency int" {
   )
 }
 
+///|
 test "one of" {
   inspect!(
     @qc.one_of([1, 2, 3, 4].map(@qc.pure)).samples(size=50),
@@ -128,6 +138,7 @@ test "one of" {
   )
 }
 
+///|
 test "one of array" {
   inspect!(
     @qc.one_of_array(["a", "b", "c"]).samples(size=50),
@@ -137,6 +148,7 @@ test "one of array" {
   )
 }
 
+///|
 test "char range" {
   inspect!(
     @qc.char_range('a', 'c').samples(size=20),
@@ -144,6 +156,7 @@ test "char range" {
   )
 }
 
+///|
 test "one_of" {
   let gen_bool : @qc.Gen[Bool] = @qc.one_of([@qc.pure(true), @qc.pure(false)])
   inspect!(
@@ -152,6 +165,7 @@ test "one_of" {
   )
 }
 
+///|
 test "frequency" {
   let gen_freq : @qc.Gen[Bool] = @qc.frequency([
     (4, @qc.pure(true)),
@@ -163,6 +177,7 @@ test "frequency" {
   )
 }
 
+///|
 test "sized trivial" {
   let gen : @qc.Gen[Int] = @qc.sized(@qc.pure)
   let arr = Array::makei(10, fn { i => gen.sample(size=i) })

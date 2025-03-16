@@ -8,7 +8,9 @@ struct Printer {
 }
 
 ///|
-impl Default for Printer with default() { { buf: @buffer.new(), ident: 0 } }
+impl Default for Printer with default() {
+  { buf: @buffer.new(), ident: 0 }
+}
 
 ///|
 pub fn Printer::from_buffer(buf : @buffer.T) -> Printer {

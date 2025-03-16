@@ -3,10 +3,18 @@ package moonbitlang/quickcheck/internal_shrinking
 alias @moonbitlang/core/immut/list as @list
 
 // Values
+fn bind[T, U](ShrinkTree[T], (T) -> ShrinkTree[U]) -> ShrinkTree[U]
+
+fn draw[T : Show](ShrinkTree[T], Int) -> @list.T[String]
+
+fn get_value[T](ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]])
+
 fn join[T](ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T]
 
+fn smap[T, U](ShrinkTree[T], (T) -> U) -> ShrinkTree[U]
+
 // Types and methods
-type ShrinkTree
+type ShrinkTree[T]
 impl ShrinkTree {
   bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
   draw[T : Show](Self[T], Int) -> @list.T[String]

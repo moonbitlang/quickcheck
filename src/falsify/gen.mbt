@@ -51,10 +51,12 @@ pub fn combine_shrunk(
   }
 
   unless_minimal(l, ls)
-  .map(fn(l1) { SampleTree(s, @lazy.from_value(l1), @lazy.from_value(r)) })
+  .map(fn(l1) {
+    SampleTree(s, @lazy.LazyRef::from_value(l1), @lazy.LazyRef::from_value(r))
+  })
   .concat(
     unless_minimal(r, rs).map(fn(r1) {
-      SampleTree(s, @lazy.from_value(l), @lazy.from_value(r))
+      SampleTree(s, @lazy.LazyRef::from_value(l), @lazy.LazyRef::from_value(r))
     }),
   )
   |> shortcut
@@ -82,7 +84,11 @@ pub fn prim_with(f : (Sample) -> Iter[UInt]) -> Gen[Sample] {
     (
       s,
       f(s).map(fn(s1) {
-        SampleTree(Shrunk(s1), @lazy.from_value(l), @lazy.from_value(r))
+        SampleTree(
+          Shrunk(s1),
+          @lazy.LazyRef::from_value(l),
+          @lazy.LazyRef::from_value(r),
+        )
       }),
     )
   })

@@ -12,6 +12,10 @@ fn default[T]() -> Enumerate[T]
 
 fn empty[T]() -> Enumerate[T]
 
+fn en_index[T](Enumerate[T], BigInt) -> T
+
+fn eval[T](Enumerate[T]) -> @lazy.LazyList[Finite[T]]
+
 fn fin_app[M, N](Finite[(M) -> N], Finite[M]) -> Finite[N]
 
 fn fin_bind[M, N](Finite[M], (M) -> Finite[N]) -> Finite[N]
@@ -32,18 +36,24 @@ fn fin_pure[T](T) -> Finite[T]
 
 fn fin_union[T](Finite[T], Finite[T]) -> Finite[T]
 
+fn fmap[T, U](Enumerate[T], (T) -> U) -> Enumerate[U]
+
+fn op_add[T](Enumerate[T], Enumerate[T]) -> Enumerate[T]
+
 fn pay[T](() -> Enumerate[T]) -> Enumerate[T]
 
 fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
 fn singleton[T](T) -> Enumerate[T]
 
+fn to_array[T](Finite[T]) -> (BigInt, @lazy.LazyList[T])
+
 fn unary[T : Enumerable, U]((T) -> U) -> Enumerate[U]
 
 fn union[T](Enumerate[T], Enumerate[T]) -> Enumerate[T]
 
 // Types and methods
-pub(all) struct Enumerate {
+pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
 }
 impl Enumerate {
@@ -53,7 +63,7 @@ impl Enumerate {
   op_add[T](Self[T], Self[T]) -> Self[T]
 }
 
-pub(all) struct Finite {
+pub(all) struct Finite[T] {
   fCard : BigInt
   fIndex : (BigInt) -> T
 }

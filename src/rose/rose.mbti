@@ -1,12 +1,20 @@
 package moonbitlang/quickcheck/rose
 
 // Values
+fn apply[T](Rose[T], (T, Iter[Rose[T]]) -> Rose[T]) -> Rose[T]
+
+fn bind[T, U](Rose[T], (T) -> Rose[U]) -> Rose[U]
+
+fn fmap[T, U](Rose[T], (T) -> U) -> Rose[U]
+
+fn join[T](Rose[Rose[T]]) -> Rose[T]
+
 fn new[T](T, Iter[Rose[T]]) -> Rose[T]
 
 fn pure[T](T) -> Rose[T]
 
 // Types and methods
-pub(all) struct Rose {
+pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
 }

@@ -21,35 +21,43 @@ fn prop_rev(l : List[Int]) -> Bool {
   l.rev().rev() == l
 }
 
+///|
 test "prop reverse (fail)" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
   @qc.quick_check!(prop_rev |> @qc.Arrow |> @qc.expect_fail)
 }
 
+///|
 test "prop reverse" {
   @qc.quick_check_fn!(prop_rev)
 }
 
+///|
 test "add comm double" {
   @qc.quick_check_fn!(add_comm_double)
 }
 
+///|
 test "modify max tests" {
   @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.with_max_success(2000))
 }
 
+///|
 test "large max tests" {
   @qc.quick_check!(() |> @qc.with_max_success(10000))
 }
 
+///|
 test "larger max tests" {
   @qc.quick_check!(() |> @qc.with_max_success(100000))
 }
 
+///|
 test "add assoc double (expect fail)" {
   @qc.quick_check!(@qc.Arrow(add_assoc_double) |> @qc.expect_fail)
 }
 
+///|
 test "non empty list (with filter)" {
   let prop_is_non_empty = fn(l : List[Int]) {
     not(l.is_empty()) |> @qc.filter(not(l.is_empty()))
@@ -57,11 +65,13 @@ test "non empty list (with filter)" {
   @qc.quick_check!(@qc.Arrow(prop_is_non_empty))
 }
 
+///|
 test "reject all" {
   let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
   @qc.quick_check!(@qc.Arrow(prop_reject) |> @qc.expect_gave_up)
 }
 
+///|
 test "label" {
   @qc.quick_check!(
     @qc.Arrow(fn(x : List[Int]) {
@@ -71,6 +81,7 @@ test "label" {
   )
 }
 
+///|
 test "classes" {
   @qc.quick_check_fn!(fn(x : List[Int]) {
     @qc.Arrow(prop_rev)
@@ -79,6 +90,7 @@ test "classes" {
   })
 }
 
+///|
 test "label + classes" {
   @qc.quick_check_fn!(fn(x : List[String]) {
     @qc.Arrow(prop_rev)
@@ -88,6 +100,7 @@ test "label + classes" {
   })
 }
 
+///|
 test "abort" {
   @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.terminate)
 }
@@ -133,6 +146,7 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
   a + b == b + a
 }
 
+///|
 test "add comm nat" {
   @qc.quick_check_fn!(add_comm_nat)
 }
@@ -142,11 +156,13 @@ fn reverse[T](lst : Array[T]) -> Array[T] {
   lst.rev()
 }
 
+///|
 test "reverse" {
   inspect!(reverse(([] : Array[Int])), content="[]")
   inspect!(reverse([1, 2, 3]), content="[3, 2, 1]")
 }
 
+///|
 test "prop_reverse_identity" {
   fn prop_reverse_identity(arr : Array[Int]) {
     reverse(reverse(arr)) == arr
@@ -177,10 +193,12 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
   remove(arr, x).length() <= len
 }
 
+///|
 test "prop length is not greater" {
   @qc.quick_check!(@qc.Arrow(prop_length_is_not_greater))
 }
 
+///|
 test "prop remove not presence with max success" {
   @qc.quick_check!(
     @qc.Arrow(prop_remove_not_presence)
@@ -189,6 +207,7 @@ test "prop remove not presence with max success" {
   )
 }
 
+///|
 test "custom generator" {
   @qc.quick_check!(
     @qc.forall(@qc.Gen::spawn(), fn(i_arr : (Int, Array[Int])) {
@@ -199,9 +218,10 @@ test "custom generator" {
   )
 }
 
+///|
 test "no_duplicate" {
   fn no_duplicate(x : Array[Int]) -> Bool {
-    @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
+    @sorted_set.from_iter(x.iter()).size() == x.length()
   }
 
   @qc.quick_check!(
@@ -213,6 +233,7 @@ test "no_duplicate" {
   )
 }
 
+///|
 test "use one_of" {
   @qc.quick_check!(
     @qc.forall(@qc.Gen::spawn(), fn(a : Array[Int]) {
@@ -225,6 +246,7 @@ test "use one_of" {
   )
 }
 
+///|
 test "explicit universal qualification" {
   @qc.quick_check!(
     @qc.forall(@qc.Gen::spawn(), fn(x : List[Int]) { x.rev().rev() == x }),

@@ -39,7 +39,9 @@ pub(open) trait Testable {
 struct Discard {} derive(Default)
 
 ///|
-pub impl Testable for Property with property(self) { self }
+pub impl Testable for Property with property(self) {
+  self
+}
 
 ///|
 pub impl Testable for Discard with property(_self) {
@@ -52,7 +54,9 @@ pub impl Testable for Unit with property(_self) {
 }
 
 ///|
-pub impl Testable for RoseRes with property(self) { pure(self) }
+pub impl Testable for RoseRes with property(self) {
+  pure(self)
+}
 
 ///|
 pub impl Testable for SingleResult with property(self) {
@@ -70,7 +74,9 @@ pub impl[P : Testable] Testable for Gen[P] with property(self) {
 }
 
 ///|
-pub impl[P : Testable] Testable for P? with property(self) { lift_option(self) }
+pub impl[P : Testable] Testable for P? with property(self) {
+  lift_option(self)
+}
 
 ///|
 pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[

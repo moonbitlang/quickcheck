@@ -70,7 +70,8 @@ pub fn tails[T](self : LazyList[T]) -> LazyList[LazyList[T]] {
 pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   match self {
     Nil => other
-    Cons(x, xs) => Cons(x, LazyRef::from_thunk(fn() { concat(force(xs), other) }))
+    Cons(x, xs) =>
+      Cons(x, LazyRef::from_thunk(fn() { concat(force(xs), other) }))
   }
 }
 
@@ -162,7 +163,10 @@ pub fn zip_with[A, B, C](
 ) -> LazyList[C] {
   match (xs, ys) {
     (Cons(x, xs), Cons(y, ys)) =>
-      Cons(f(x, y), LazyRef::from_thunk(fn() { zip_with(f, xs.force(), ys.force()) }))
+      Cons(
+        f(x, y),
+        LazyRef::from_thunk(fn() { zip_with(f, xs.force(), ys.force()) }),
+      )
     (_, _) => Nil
   }
 }
@@ -238,7 +242,10 @@ pub fn zip_plus[T](
 ) -> LazyList[T] {
   match (ls1, ls2) {
     (Cons(x, xs), Cons(y, ys)) =>
-      Cons(f(x, y), LazyRef::from_thunk(fn() { zip_plus(f, xs.force(), ys.force()) }))
+      Cons(
+        f(x, y),
+        LazyRef::from_thunk(fn() { zip_plus(f, xs.force(), ys.force()) }),
+      )
     (xs, ys) => xs.concat(ys)
   }
 }
