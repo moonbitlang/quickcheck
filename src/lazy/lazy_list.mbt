@@ -75,9 +75,12 @@ pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   }
 }
 
-///|
-pub fn op_add[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
+pub impl[T] Monoid for LazyList[T] with op_add(self,other) {
   self.concat(other)
+}
+
+pub impl Monoid for BigInt with op_add(self,other) {
+  self + other
 }
 
 ///|
@@ -154,7 +157,6 @@ pub fn length[T](self : LazyList[T]) -> Int {
 pub fn sum[X : Monoid](l : LazyList[X], init~ : X) -> X {
   l.fold_left(Monoid::op_add, init~)
 }
-
 ///|
 pub fn zip_with[A, B, C](
   f : (A, B) -> C,

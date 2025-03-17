@@ -10,7 +10,7 @@ struct TestRun {
 
 ///|
 pub fn init_test_run() -> TestRun {
-  { log: Nil, deterministic: true, labels: @immut/hashmap.T::new() }
+  { log: Nil, deterministic: true, labels: @immut/hashmap.new() }
 }
 
 ///|

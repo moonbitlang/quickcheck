@@ -1,5 +1,5 @@
 ///|
-enum ShrinkHistory[P, N] {
+priv enum ShrinkHistory[P, N] {
   ShrinkTo(P, ShrinkHistory[P, N])
   ShrinkDone(Iter[N])
   ShrinkStopped
