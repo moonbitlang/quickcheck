@@ -55,7 +55,7 @@ pub fn combine_shrunk(
     SampleTree(s, @lazy.LazyRef::from_value(l1), @lazy.LazyRef::from_value(r))
   })
   .concat(
-    unless_minimal(r, rs).map(fn(r1) {
+    unless_minimal(r, rs).map(fn(_r1) {
       SampleTree(s, @lazy.LazyRef::from_value(l), @lazy.LazyRef::from_value(r))
     }),
   )

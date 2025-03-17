@@ -60,7 +60,7 @@ fn append_success[T](
 ///|
 pub fn init_state[T](opt : Config) -> DriverState[T] {
   {
-    rng: opt.replay.or(RandomState::new()),
+    rng: opt.replay.or(@quickcheck/splitmix.new()),
     success: Nil,
     todo: opt.tests,
     discarded: 0,

@@ -209,7 +209,7 @@ fn counts(self : State) -> String {
 }
 
 ///|
-type ListCompare[T] List[T] derive(Eq, Show)
+priv type ListCompare[T] List[T] derive(Eq, Show)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
@@ -232,7 +232,7 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 ///|
-struct Coverage {
+priv struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
   labels : @sorted_map.T[ListCompare[String], Int]

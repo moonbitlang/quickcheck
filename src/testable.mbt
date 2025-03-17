@@ -1,5 +1,5 @@
 ///|
-type! InternalError String
+priv type! InternalError String
 
 ///|
 pub type Arrow[A, B] (A) -> B
@@ -17,7 +17,7 @@ enum Callback {
 }
 
 ///|
-enum Kind {
+priv enum Kind {
   CounterExample
   Nothing
 } derive(Show)

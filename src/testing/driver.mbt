@@ -106,7 +106,7 @@ test "abort" {
 }
 
 ///| Natural Numbers
-enum Nat {
+priv enum Nat {
   Zero
   Succ(Nat)
 } derive(Show)
@@ -131,14 +131,14 @@ fn op_add(self : Nat, other : Nat) -> Nat {
   }
 }
 
-///|
-fn Nat::op_equal(self : Nat, other : Nat) -> Bool {
+impl Eq for Nat with op_equal(self,other) {
   match (self, other) {
     (Zero, Zero) => true
     (Succ(a), Succ(b)) => a == b
     _ => false
   }
 }
+
 
 ///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {

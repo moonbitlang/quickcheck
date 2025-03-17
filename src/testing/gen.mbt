@@ -28,7 +28,7 @@ test "feat nat index" {
 }
 
 ///|
-enum SingleTree {
+priv enum SingleTree {
   Leaf(Bool)
   Node(Bool, SingleTree)
 } derive(Show)
@@ -49,13 +49,13 @@ pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
 }
 
 ///|
-enum Tree[T] {
+priv enum Tree[T] {
   Leaf(T)
   Branch(Forest[T])
 } derive(Show)
 
 ///|
-struct Forest[T] {
+priv struct Forest[T] {
   forest : @immut/list.T[Tree[T]]
 } derive(Show)
 
