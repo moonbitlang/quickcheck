@@ -131,14 +131,14 @@ fn op_add(self : Nat, other : Nat) -> Nat {
   }
 }
 
-impl Eq for Nat with op_equal(self,other) {
+///|
+impl Eq for Nat with op_equal(self, other) {
   match (self, other) {
     (Zero, Zero) => true
     (Succ(a), Succ(b)) => a == b
     _ => false
   }
 }
-
 
 ///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {

@@ -50,7 +50,7 @@ fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
     .map(fn(x) { x.to_string_with_depth(depth - 1) })
     .filter(fn(x) { x != "" })
     .collect()
-    |> String::concat(separator=", ")
+    |> @string.concat(separator=", ")
   "Node(\{s}, [\{child}])"
 }
 

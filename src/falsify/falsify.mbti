@@ -129,9 +129,6 @@ impl ShrinkExplain {
 }
 impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
-type ShrinkHistory[P, N]
-impl[P : Show, N : Show] Show for ShrinkHistory[P, N]
-
 type Success[T]
 impl[T : Show] Show for Success[T]
 

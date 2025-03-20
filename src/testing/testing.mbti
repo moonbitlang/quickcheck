@@ -10,25 +10,11 @@ fn is_empty(Queue) -> Bool
 fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
 
 // Types and methods
-type EqQueue
-
-type Forest[T]
-impl[T : Show] Show for Forest[T]
-
-type Nat
-impl Show for Nat
-
 type Queue
 impl Queue {
   is_empty(Self) -> Bool
 }
 impl Show for Queue
-
-type SingleTree
-impl Show for SingleTree
-
-type Tree[T]
-impl[T : Show] Show for Tree[T]
 
 // Type aliases
 

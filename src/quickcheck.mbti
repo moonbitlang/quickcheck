@@ -213,8 +213,6 @@ type Callback
 
 type Config
 
-type Coverage
-
 type Discard
 impl Default for Discard
 impl Testable for Discard
@@ -252,15 +250,6 @@ impl Gen {
   such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
 }
 impl[P : Testable] Testable for Gen[P]
-
-type InternalError
-
-type Kind
-impl Show for Kind
-
-type ListCompare[T]
-impl[T : Eq] Eq for ListCompare[T]
-impl[T : Show] Show for ListCompare[T]
 
 pub(all) enum Outcome[T] {
   Success

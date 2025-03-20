@@ -23,19 +23,17 @@ fn head[T](LazyList[T]) -> T
 
 fn index[T](LazyList[T], Int) -> T
 
-fn infinite_stream[X : Monoid](X, X) -> LazyList[X]
+fn infinite_stream[X : Add](X, X) -> LazyList[X]
 
 fn length[T](LazyList[T]) -> Int
 
 fn map[T, U](LazyList[T], (T) -> U) -> LazyList[U]
 
-fn op_add[T](LazyList[T], LazyList[T]) -> LazyList[T]
-
 fn repeat[T](T) -> LazyList[T]
 
 fn split_at[T](LazyList[T], Int) -> (LazyList[T], LazyList[T])
 
-fn sum[X : Monoid](LazyList[X], init~ : X) -> X
+fn sum[X : Add](LazyList[X], init~ : X) -> X
 
 fn tail[T](LazyList[T]) -> LazyList[T]
 
@@ -70,7 +68,6 @@ impl LazyList {
   index[T](Self[T], Int) -> T
   length[T](Self[T]) -> Int
   map[T, U](Self[T], (T) -> U) -> Self[U]
-  op_add[T](Self[T], Self[T]) -> Self[T]
   split_at[T](Self[T], Int) -> (Self[T], Self[T])
   tail[T](Self[T]) -> Self[T]
   tails[T](Self[T]) -> Self[Self[T]]
@@ -78,6 +75,7 @@ impl LazyList {
   take_while[T](Self[T], (T) -> Bool) -> Self[T]
   unfold[T](Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
 }
+impl[T] Add for LazyList[T]
 impl[T : Show] Show for LazyList[T]
 
 type LazyRef[T]
@@ -88,9 +86,7 @@ impl LazyRef {
 }
 
 // Type aliases
+pub traitalias Monoid = Add
 
 // Traits
-pub(open) trait Monoid {
-  op_add(Self, Self) -> Self
-}
 

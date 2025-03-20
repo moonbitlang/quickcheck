@@ -272,11 +272,11 @@ fn label_to_string(self : Coverage, success : Int) -> String {
     if list._.is_empty() {
       return
     } else {
-      let l = String::concat(list._.to_array(), separator=", ")
+      let l = @string.concat(list._.to_array(), separator=", ")
       res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
     }
   })
-  String::concat(res, separator="\n")
+  @string.concat(res, separator="\n")
 }
 
 ///|
@@ -285,12 +285,12 @@ fn class_to_string(self : Coverage, success : Int) -> String {
   self.classes.each(fn(s, i) {
     res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
   })
-  String::concat(res, separator="\n")
+  @string.concat(res, separator="\n")
 }
 
 ///|
 fn to_string(self : Coverage, success : Int) -> String {
-  String::concat(
+  @string.concat(
     [
       if self.labels.size() == 0 {
         ""

@@ -53,7 +53,7 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
 
   try {
     match quick_check_with_result!(cfg, prop) {
-      Success(output~, coverage~, num_tests~, ..) => {
+      Success(output~, coverage~, num_tests~) => {
         println(output)
         println(coverage.to_string(num_tests))
       }
@@ -62,7 +62,7 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
     // TODO: Print coverage
     GaveUp(output~, ..) => f!(output)
     Fail(output~, failing_case~, ..) =>
-      f!(output + "\n" + String::concat(failing_case, separator="\n"))
+      f!(output + "\n" + @string.concat(failing_case, separator="\n"))
     NoneExpectedFail(output~, ..) => f!(output)
   }
 }
