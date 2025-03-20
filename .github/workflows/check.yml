@@ -1,31 +1,168 @@
+name: check
+
 on:
-    schedule:
-        - cron: '0 10 * * 2'
+  schedule:
+    - cron: '0 10 * * 2'
+
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
-    build:
-        strategy:
-            matrix:
-                os: [ubuntu-latest, macos-latest, windows-latest]
-        runs-on: ${{ matrix.os }}
-        steps:
-            - uses: actions/checkout@v4
-            - name: install
-              if: ${{ matrix.os != 'windows-latest' }}
-              run: |
-                curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
-                echo "$HOME/.moon/bin" >> $GITHUB_PATH
-            - name: install-windows
-              if: ${{ matrix.os == 'windows-latest' }}
-              run: |
-                Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
-                "C:\Users\runneradmin\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+  check:
+    strategy:
+      matrix:
+        os:
+          - name: ubuntu-latest
+            version: stable
+          - name: macos-latest
+            version: stable
+          - name: macos-13
+            version: stable
+          - name: windows-latest
+            version: stable
 
-            - name: moon check
-              run: |
-                moon update
-                moon install
-                moon check --target all --deny-warn
-            - name: moon test
-              run: |
-                moon test --target all
+          # bleeding check 
+          # 1. install latest toolchain 
+          # 2. install latest core library from github.com
+          - name: ubuntu-latest
+            version: bleeding
+          - name: macos-latest
+            version: bleeding
+          - name: macos-13
+            version: bleeding
+          - name: windows-latest
+            version: bleeding
+
+      fail-fast: false
+    runs-on: ${{ matrix.os.name }}
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install stable version on unix
+        if: ${{ matrix.os.name != 'windows-latest' && matrix.os.version == 'stable' }}
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+
+      - name: install stable version on windows
+        if: ${{ matrix.os.name == 'windows-latest' && matrix.os.version == 'stable' }}
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+          
+      - name: install bleeding version on unix
+        if: ${{ matrix.os.name != 'windows-latest' && matrix.os.version == 'bleeding' }}
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s bleeding
+        # passing bleeding as argument to unix.sh
+
+      - name: install bleeding version on windows
+        env:
+          MOONBIT_INSTALL_VERSION: bleeding
+        # set global env variable for powershell.ps1
+        if: ${{ matrix.os.name == 'windows-latest' && matrix.os.version == 'bleeding' }}
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+
+      - name: add env path on unix
+        if: ${{ matrix.os.name != 'windows-latest' }}
+        run: |
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: add env path on windows
+        if: ${{ matrix.os.name == 'windows-latest' }}
+        run: |
+          "C:\Users\runneradmin\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+      
+      - name: moon version
+        run: |
+          moon version --all
+          moonrun --version
+      
+      - name: remove dev deps
+        run: |
+          node ./rm_deps.js
+
+      - name: install module dependencies
+        run: |
+          moon update
+          moon install
+
+      - name: moon check
+        run: moon check --deny-warn
+
+      - name: moon info
+        run: |
+          moon info --target wasm,wasm-gc,js,native
+          git diff --exit-code
+
+      - name: format diff
+        run: |
+          moon fmt --block-style
+          git diff --exit-code
+
+      - name: Setup MSVC
+        if: ${{ matrix.os.name == 'windows-latest' }}
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set ulimit on unix
+        if: ${{ matrix.os.name != 'windows-latest' }}
+        run: |
+          ulimit -s 8176
+
+      - name: moon test
+        run: |
+          moon test --target all,native
+          moon test --target all,native --release
+
+      - name: moon test with dedup_wasm
+        if: ${{ matrix.os.name != 'windows-latest' }}
+        env: 
+          MOONC_INTERNAL_PARAMS: dedup_wasm = 1 |
+
+        run: |
+          moon clean
+          ulimit -s 8176
+          moon test --target wasm,wasm-gc
+          moon test --target wasm,wasm-gc --release 
+
+      - name: moon test --doc
+        run: |
+          moon test --doc
+
+  moon-json-format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: check `moon.*.json` format
+        shell: bash
+        run: |
+          _passed=0;
+          for f in $(find . -type f -name "moon.*.json"); do
+            if ! jq '.' $f > /dev/null; then
+              echo $f;
+              _passed=1;
+            fi
+          done
+          (exit $_passed)
+
+  typo-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      FORCE_COLOR: 1
+      TYPOS_VERSION: v1.19.0
+    steps:
+      - name: download typos
+        run: curl -LsSf https://github.com/crate-ci/typos/releases/download/$TYPOS_VERSION/typos-$TYPOS_VERSION-x86_64-unknown-linux-musl.tar.gz | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: check typos
+        run: typos
