@@ -2,7 +2,7 @@
 priv type! InternalError String
 
 ///|
-pub type Arrow[A, B] (A) -> B
+pub(all) type Arrow[A, B] (A) -> B
 
 ///|
 typealias RoseRes = Rose[SingleResult]
