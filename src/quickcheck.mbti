@@ -196,7 +196,7 @@ fn with_max_success[P : Testable](P, Int) -> Property
 fn write_string(Printer, String) -> Unit
 
 // Types and methods
-pub type Arrow[A, B] (A) -> B
+pub(all) type Arrow[A, B] (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom[T]
