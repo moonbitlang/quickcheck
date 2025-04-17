@@ -36,6 +36,16 @@ jobs:
           - name: windows-latest
             version: bleeding
 
+          # pre-release check
+          - name: ubuntu-latest
+            version: pre-release
+          - name: macos-latest
+            version: pre-release
+          - name: macos-13
+            version: pre-release
+          - name: windows-latest
+            version: pre-release
+
       fail-fast: false
     runs-on: ${{ matrix.os.name }}
     continue-on-error: false
@@ -63,6 +73,20 @@ jobs:
           MOONBIT_INSTALL_VERSION: bleeding
         # set global env variable for powershell.ps1
         if: ${{ matrix.os.name == 'windows-latest' && matrix.os.version == 'bleeding' }}
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
+
+      - name: install pre-release version on unix
+        if: ${{ matrix.os.name != 'windows-latest' && matrix.os.version == 'pre-release' }}
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s pre-release
+        # passing pre-release as argument to unix.sh
+
+      - name: install pre-release version on windows
+        env:
+          MOONBIT_INSTALL_VERSION: pre-release
+        # set global env variable for powershell.ps1
+        if: ${{ matrix.os.name == 'windows-latest' && matrix.os.version == 'pre-release' }}
         run: |
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; irm https://cli.moonbitlang.com/install/powershell.ps1 | iex
 
@@ -100,7 +124,7 @@ jobs:
 
       - name: format diff
         run: |
-          moon fmt --block-style
+          moon fmt
           git diff --exit-code
 
       - name: Setup MSVC
@@ -149,20 +173,16 @@ jobs:
           done
           (exit $_passed)
 
-  typo-check:
+  check-typos:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      FORCE_COLOR: 1
-      TYPOS_VERSION: v1.19.0
+
     steps:
-      - name: download typos
-        run: curl -LsSf https://github.com/crate-ci/typos/releases/download/$TYPOS_VERSION/typos-$TYPOS_VERSION-x86_64-unknown-linux-musl.tar.gz | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: check typos
-        run: typos
+    - name: AutoCorrect
+      uses: huacnlee/autocorrect-action@v2
+
+    - name: typos-action
+      uses: crate-ci/typos@v1.31.1
