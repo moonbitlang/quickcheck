@@ -104,10 +104,6 @@ jobs:
         run: |
           moon version --all
           moonrun --version
-      
-      - name: remove dev deps
-        run: |
-          node ./rm_deps.js
 
       - name: install module dependencies
         run: |

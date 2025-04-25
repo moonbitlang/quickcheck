@@ -1,7 +1,9 @@
-package moonbitlang/quickcheck/falsify
+package "moonbitlang/quickcheck/falsify"
 
-alias @moonbitlang/core/immut/list as @list
-alias @moonbitlang/core/quickcheck/splitmix as @splitmix
+import(
+  "moonbitlang/core/immut/list"
+  "moonbitlang/core/quickcheck/splitmix"
+)
 
 // Values
 fn ap[T, U](Gen[(T) -> U], Gen[T]) -> Gen[U]

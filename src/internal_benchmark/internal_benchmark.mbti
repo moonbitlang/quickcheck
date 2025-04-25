@@ -1,4 +1,4 @@
-package moonbitlang/quickcheck/internal_benchmark
+package "moonbitlang/quickcheck/internal_benchmark"
 
 // Values
 

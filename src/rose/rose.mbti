@@ -1,4 +1,4 @@
-package moonbitlang/quickcheck/rose
+package "moonbitlang/quickcheck/rose"
 
 // Values
 fn apply[T](Rose[T], (T, Iter[Rose[T]]) -> Rose[T]) -> Rose[T]

@@ -1,4 +1,4 @@
-package moonbitlang/quickcheck/testing
+package "moonbitlang/quickcheck/testing"
 
 // Values
 fn empty_queue() -> Queue

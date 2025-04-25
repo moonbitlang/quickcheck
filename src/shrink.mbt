@@ -1,6 +1,6 @@
 ///|
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self]
+  shrink(Self) -> Iter[Self] = _
 }
 
 ///|
