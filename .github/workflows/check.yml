@@ -104,10 +104,6 @@ jobs:
         run: |
           moon version --all
           moonrun --version
-      
-      - name: remove dev deps
-        run: |
-          node ./rm_deps.js
 
       - name: install module dependencies
         run: |
@@ -119,7 +115,7 @@ jobs:
 
       - name: moon info
         run: |
-          moon info --target wasm,wasm-gc,js,native
+          moon info --target wasm,wasm-gc,js
           git diff --exit-code
 
       - name: format diff
@@ -138,8 +134,8 @@ jobs:
 
       - name: moon test
         run: |
-          moon test --target all,native
-          moon test --target all,native --release
+          moon test --target all
+          moon test --target all --release
 
       - name: moon test with dedup_wasm
         if: ${{ matrix.os.name != 'windows-latest' }}

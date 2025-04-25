@@ -1,6 +1,8 @@
-package moonbitlang/quickcheck/utils
+package "moonbitlang/quickcheck/utils"
 
-alias @moonbitlang/core/immut/list as @list
+import(
+  "moonbitlang/core/immut/list"
+)
 
 // Values
 fn apply_while_array[T](T, (T) -> T, (T) -> Bool) -> Array[T]

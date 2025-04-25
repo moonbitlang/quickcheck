@@ -124,7 +124,7 @@ impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
 }
 
 ///|
-fn op_add(self : Nat, other : Nat) -> Nat {
+impl Add for Nat with op_add(self, other) {
   match self {
     Zero => other
     Succ(n) => Succ(n.op_add(other))

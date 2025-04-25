@@ -1,6 +1,8 @@
-package moonbitlang/quickcheck/internal_shrinking
+package "moonbitlang/quickcheck/internal_shrinking"
 
-alias @moonbitlang/core/immut/list as @list
+import(
+  "moonbitlang/core/immut/list"
+)
 
 // Values
 fn bind[T, U](ShrinkTree[T], (T) -> ShrinkTree[U]) -> ShrinkTree[U]

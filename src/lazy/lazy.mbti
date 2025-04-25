@@ -1,6 +1,8 @@
-package moonbitlang/quickcheck/lazy
+package "moonbitlang/quickcheck/lazy"
 
-alias @moonbitlang/core/immut/list as @list
+import(
+  "moonbitlang/core/immut/list"
+)
 
 // Values
 fn concat[T](LazyList[T], LazyList[T]) -> LazyList[T]

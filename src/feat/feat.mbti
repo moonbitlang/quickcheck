@@ -1,7 +1,9 @@
-package moonbitlang/quickcheck/feat
+package "moonbitlang/quickcheck/feat"
 
-alias @moonbitlang/core/immut/list as @list
-alias @moonbitlang/quickcheck/lazy as @lazy
+import(
+  "moonbitlang/core/immut/list"
+  "moonbitlang/quickcheck/lazy"
+)
 
 // Values
 fn app[T, U](Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
@@ -38,8 +40,6 @@ fn fin_union[T](Finite[T], Finite[T]) -> Finite[T]
 
 fn fmap[T, U](Enumerate[T], (T) -> U) -> Enumerate[U]
 
-fn op_add[T](Enumerate[T], Enumerate[T]) -> Enumerate[T]
-
 fn pay[T](() -> Enumerate[T]) -> Enumerate[T]
 
 fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
@@ -60,8 +60,8 @@ impl Enumerate {
   en_index[T](Self[T], BigInt) -> T
   eval[T](Self[T]) -> @lazy.LazyList[Finite[T]]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
-  op_add[T](Self[T], Self[T]) -> Self[T]
 }
+impl[T] Add for Enumerate[T]
 
 pub(all) struct Finite[T] {
   fCard : BigInt

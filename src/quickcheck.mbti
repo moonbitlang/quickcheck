@@ -1,10 +1,12 @@
-package moonbitlang/quickcheck
+package "moonbitlang/quickcheck"
 
-alias @moonbitlang/core/buffer as @buffer
-alias @moonbitlang/core/immut/list as @list
-alias @moonbitlang/core/quickcheck/splitmix as @splitmix
-alias @moonbitlang/quickcheck/feat as @feat
-alias @moonbitlang/quickcheck/rose as @rose
+import(
+  "moonbitlang/core/buffer"
+  "moonbitlang/core/immut/list"
+  "moonbitlang/core/quickcheck/splitmix"
+  "moonbitlang/quickcheck/feat"
+  "moonbitlang/quickcheck/rose"
+)
 
 // Values
 fn alphabet() -> Gen[Char]
@@ -300,9 +302,8 @@ pub typealias RandomState = @splitmix.RandomState
 
 // Traits
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self]
+  shrink(Self) -> Iter[Self] = _
 }
-impl Shrink::shrink
 
 pub(open) trait Testable {
   property(Self) -> Property
