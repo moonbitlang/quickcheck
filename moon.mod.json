@@ -2,7 +2,7 @@
   "name": "moonbitlang/quickcheck",
   "version": "0.8.8",
   "deps": {
-    "moonbitlang/x": "0.4.23"
+    "moonbitlang/x": "0.4.26"
   },
   "readme": "README.md",
   "repository": "https://github.com/moonbitlang/quickcheck",

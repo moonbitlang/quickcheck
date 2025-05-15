@@ -1,6 +1,7 @@
 package "moonbitlang/quickcheck/feat"
 
 import(
+  "moonbitlang/core/bigint"
   "moonbitlang/core/immut/list"
   "moonbitlang/quickcheck/lazy"
 )
@@ -14,7 +15,7 @@ fn default[T]() -> Enumerate[T]
 
 fn empty[T]() -> Enumerate[T]
 
-fn en_index[T](Enumerate[T], BigInt) -> T
+fn en_index[T](Enumerate[T], @bigint.BigInt) -> T
 
 fn eval[T](Enumerate[T]) -> @lazy.LazyList[Finite[T]]
 
@@ -28,7 +29,7 @@ fn fin_concat[M](Array[Finite[M]]) -> Finite[M]
 
 fn fin_empty[T]() -> Finite[T]
 
-fn fin_finite(BigInt) -> Finite[BigInt]
+fn fin_finite(@bigint.BigInt) -> Finite[@bigint.BigInt]
 
 fn fin_fmap[T, U]((T) -> U, Finite[T]) -> Finite[U]
 
@@ -46,7 +47,7 @@ fn product[T, U](Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
 fn singleton[T](T) -> Enumerate[T]
 
-fn to_array[T](Finite[T]) -> (BigInt, @lazy.LazyList[T])
+fn to_array[T](Finite[T]) -> (@bigint.BigInt, @lazy.LazyList[T])
 
 fn unary[T : Enumerable, U]((T) -> U) -> Enumerate[U]
 
@@ -57,19 +58,19 @@ pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
 }
 impl Enumerate {
-  en_index[T](Self[T], BigInt) -> T
+  en_index[T](Self[T], @bigint.BigInt) -> T
   eval[T](Self[T]) -> @lazy.LazyList[Finite[T]]
   fmap[T, U](Self[T], (T) -> U) -> Self[U]
 }
 impl[T] Add for Enumerate[T]
 
 pub(all) struct Finite[T] {
-  fCard : BigInt
-  fIndex : (BigInt) -> T
+  fCard : @bigint.BigInt
+  fIndex : (@bigint.BigInt) -> T
 }
 impl Finite {
   op_add[T](Self[T], Self[T]) -> Self[T]
-  to_array[T](Self[T]) -> (BigInt, @lazy.LazyList[T])
+  to_array[T](Self[T]) -> (@bigint.BigInt, @lazy.LazyList[T])
 }
 impl[T : Show] Show for Finite[T]
 

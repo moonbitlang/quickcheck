@@ -96,7 +96,7 @@ impl Shrink for Char with shrink(c) {
   if ci == 0 {
     return Iter::empty()
   } else {
-    let (cl, ch) = (Char::from_int(ci - 1), Char::from_int(ci + 1))
+    let (cl, ch) = (Int::unsafe_to_char(ci - 1), Int::unsafe_to_char(ci + 1))
     [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '].iter()
   }
 }
@@ -113,7 +113,7 @@ test "shrink char" {
 impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
-    Some(v) => Iter::append(Shrink::shrink(v).map(Option::Some), None)
+    Some(v) => Iter::append(Shrink::shrink(v).map(Option::Some(_)), None)
   }
 }
 
@@ -129,8 +129,8 @@ test "shrink option" {
 ///|
 impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
   match x {
-    Ok(v) => Shrink::shrink(v).map(Result::Ok)
-    Err(e) => Shrink::shrink(e).map(Result::Err)
+    Ok(v) => Shrink::shrink(v).map(Result::Ok(_))
+    Err(e) => Shrink::shrink(e).map(Result::Err(_))
   }
 }
 

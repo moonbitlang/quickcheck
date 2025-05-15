@@ -67,7 +67,7 @@ pub fn label[E](label : String, vals : List[String]) -> Property[Unit, E] {
   }
 
   mk_property(fn(r) {
-    let set = r.labels[label]
+    let set = r.labels.get(label)
     pure(
       (TestPassed(()), { ..r, labels: r.labels.add(label, add_values(set)) }),
     )
