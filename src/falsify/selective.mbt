@@ -34,7 +34,7 @@ fn branch[A, B, C](
   l : Gen[(A) -> C],
   r : Gen[(B) -> C]
 ) -> Gen[C] {
-  let left = self.fmap(fn(x) { x.fmap(Either::Left) })
+  let left = self.fmap(fn(x) { x.fmap(Either::Left(_)) })
   let right = l.fmap(fn(g) { fn(x) { Right(g(x)) } })
   select(r, select(right, left))
 }
@@ -51,5 +51,5 @@ pub fn ifS[T](self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
 
 ///|
 pub fn apS[A, B](self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
-  x.fmap(fn(y) { fn(g) { g(y) } }).select(self.fmap(Either::Left))
+  x.fmap(fn(y) { fn(g) { g(y) } }).select(self.fmap(Either::Left(_)))
 }

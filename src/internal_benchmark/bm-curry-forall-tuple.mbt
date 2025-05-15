@@ -73,7 +73,7 @@ test {
     }),
   )
   let r = crit.run()
-  println(r["forall"])
-  println(r["curry"])
-  println(r["tuple"])
+  println(r.get("forall"))
+  println(r.get("curry"))
+  println(r.get("tuple"))
 }

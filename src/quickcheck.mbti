@@ -1,6 +1,7 @@
 package "moonbitlang/quickcheck"
 
 import(
+  "moonbitlang/core/bigint"
   "moonbitlang/core/buffer"
   "moonbitlang/core/immut/list"
   "moonbitlang/core/quickcheck/splitmix"
@@ -83,7 +84,7 @@ fn int_bound(Int) -> Gen[Int]
 
 fn int_range(Int, Int) -> Gen[Int]
 
-fn integer_bound(BigInt) -> Gen[BigInt]
+fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
 
 fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
 

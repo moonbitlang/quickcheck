@@ -114,7 +114,7 @@ priv enum Nat {
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(fn() {
-    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ)
+    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ(_))
   })
 }
 

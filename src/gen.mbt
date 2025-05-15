@@ -281,7 +281,7 @@ pub fn frequency_list[T](lst : @immut/list.T[(Int, T)]) -> Gen[T] {
 pub fn flatten_list[T](lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
   match lst {
     Nil => pure(Nil)
-    Cons(x, xs) => liftA2(@immut/list.T::Cons, x, flatten_list(xs))
+    Cons(x, xs) => liftA2(@immut/list.T::Cons(_, _), x, flatten_list(xs))
   }
 }
 
@@ -294,14 +294,14 @@ pub fn flatten_array[T](arr : Array[Gen[T]]) -> Gen[Array[T]] {
 pub fn flatten_option[T](opt : Gen[T]?) -> Gen[T?] {
   match opt {
     None => pure(None)
-    Some(x) => x.fmap(Option::Some)
+    Some(x) => x.fmap(Option::Some(_))
   }
 }
 
 ///| Generate a result of a generator or return the pure error
 pub fn flatten_result[T, E](res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
   match res {
-    Ok(x) => x.fmap(Result::Ok)
+    Ok(x) => x.fmap(Result::Ok(_))
     Err(e) => pure(Err(e))
   }
 }
@@ -359,12 +359,12 @@ pub fn neg_int() -> Gen[Int] {
 
 ///| Generates a numeral char
 pub fn numeral() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int().abs() % 10 + 48) })
+  Gen::new(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 10 + 48) })
 }
 
 ///| Generates alphabet
 pub fn alphabet() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Char::from_int(rs.next_int().abs() % 26 + 65) })
+  Gen::new(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 26 + 65) })
 }
 
 ///| Generates int within given bound [0, bound)
@@ -395,7 +395,7 @@ pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
 
 ///| Generate char within given range [lo, hi]
 pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
-  int_range(lo.to_int(), hi.to_int() + 1).fmap(Char::from_int)
+  int_range(lo.to_int(), hi.to_int() + 1).fmap(Int::unsafe_to_char)
 }
 
 ///|
@@ -405,7 +405,7 @@ pub fn list_with_size[T](size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
       if n <= 0 {
         break acc
       } else {
-        continue n - 1, liftA2(@immut/list.T::Cons, gen, acc)
+        continue n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc)
       }
   }
 }

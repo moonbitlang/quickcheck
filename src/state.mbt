@@ -246,7 +246,7 @@ fn Coverage::new() -> Coverage {
 
 ///|
 fn label_incr(self : Coverage, key : List[String]) -> Unit {
-  match self.labels[key] {
+  match self.labels.get(key) {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
   }
@@ -257,7 +257,7 @@ fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
   classes.each(fn {
     (s, b) => {
       let i = if b { 1 } else { 0 }
-      match self.classes[s] {
+      match self.classes.get(s) {
         Some(x) => self.classes[s] = x + i
         None => self.classes[s] = i
       }

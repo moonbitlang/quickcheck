@@ -41,7 +41,7 @@ pub impl[E : Enumerable] Enumerable for @immut/list.T[E] with enumerate() {
   consts(
     @immut/list.of([
       singleton(Nil),
-      unary(@utils.pair_function(@immut/list.Cons)),
+      unary(@utils.pair_function(@immut/list.Cons(_, _))),
     ]),
   )
 }
@@ -53,7 +53,7 @@ pub impl[A : Enumerable, B : Enumerable] Enumerable for (A, B) with enumerate() 
 
 ///|
 pub impl[E : Enumerable] Enumerable for E? with enumerate() {
-  pay(fn() { singleton(None) + E::enumerate().fmap(Option::Some) })
+  pay(fn() { singleton(None) + E::enumerate().fmap(Option::Some(_)) })
 }
 
 ///|
@@ -61,7 +61,7 @@ pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E] with enumer
 
 ) {
   pay(fn() {
-    E::enumerate().fmap(Result::Err) + T::enumerate().fmap(Result::Ok)
+    E::enumerate().fmap(Result::Err(_)) + T::enumerate().fmap(Result::Ok(_))
   })
 }
 
