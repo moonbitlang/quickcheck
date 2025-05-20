@@ -3,10 +3,6 @@
     {
       "path": "moonbitlang/quickcheck",
       "alias": "qc"
-    },
-    {
-      "path": "moonbitlang/x/benchmark",
-      "alias": "bm"
     }
   ]
 }

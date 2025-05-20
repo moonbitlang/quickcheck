@@ -1,6 +1,5 @@
 ///|
 /// 
-/// 
 fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
   x == y == (y == x)
 }
@@ -28,52 +27,16 @@ let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = fn(p) {
   |> @qc.Arrow
 
 ///|
-test "forall" {
-  @qc.quick_check!(test_forall)
+test (b : @bench.T) {
+  b.bench(name="forall", fn() { b.keep(@qc.quick_check?(test_forall)) })
 }
 
 ///|
-test "curry" {
-  @qc.quick_check!(test_curry)
+test (b : @bench.T) {
+  b.bench(name="curry", fn() { b.keep(@qc.quick_check?(test_curry)) })
 }
 
 ///|
-test "tuple" {
-  @qc.quick_check!(test_tuple)
-}
-
-///|
-test {
-  let crit = @bm.Criterion::new()
-  crit.add(
-    @bm.Task::new("forall", fn() {
-      try {
-        @qc.quick_check!(test_forall)
-      } catch {
-        _ => ()
-      }
-    }),
-  )
-  crit.add(
-    @bm.Task::new("curry", fn() {
-      try {
-        @qc.quick_check!(test_curry)
-      } catch {
-        _ => ()
-      }
-    }),
-  )
-  crit.add(
-    @bm.Task::new("tuple", fn() {
-      try {
-        @qc.quick_check!(test_tuple)
-      } catch {
-        _ => ()
-      }
-    }),
-  )
-  let r = crit.run()
-  println(r.get("forall"))
-  println(r.get("curry"))
-  println(r.get("tuple"))
+test (b : @bench.T) {
+  b.bench(name="tuple", fn() { b.keep(@qc.quick_check?(test_tuple)) })
 }
