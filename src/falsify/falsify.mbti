@@ -6,77 +6,77 @@ import(
 )
 
 // Values
-fn ap[T, U](Gen[(T) -> U], Gen[T]) -> Gen[U]
+fn[T, U] ap(Gen[(T) -> U], Gen[T]) -> Gen[U]
 
-fn apS[A, B](Gen[(A) -> B], Gen[A]) -> Gen[B]
+fn[A, B] apS(Gen[(A) -> B], Gen[A]) -> Gen[B]
 
-fn bind[T, U](Gen[T], (T) -> Gen[U]) -> Gen[U]
+fn[T, U] bind(Gen[T], (T) -> Gen[U]) -> Gen[U]
 
-fn collect[T : Show, E](String, @list.T[T]) -> Property[Unit, E]
+fn[T : Show, E] collect(String, @list.T[T]) -> Property[Unit, E]
 
 fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
 
 fn constant(UInt) -> SampleTree
 
-fn discard[T, E]() -> Property[T, E]
+fn[T, E] discard() -> Property[T, E]
 
-fn falsify[T, E](Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
+fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
 
-fn fmap[T, U](Gen[T], (T) -> U) -> Gen[U]
+fn[T, U] fmap(Gen[T], (T) -> U) -> Gen[U]
 
 fn from_rng(@splitmix.RandomState) -> SampleTree
 
 fn from_seed(UInt64) -> SampleTree
 
-fn gen[T, E]((T) -> String?, Gen[T]) -> Property[T, E]
+fn[T, E] gen((T) -> String?, Gen[T]) -> Property[T, E]
 
-fn ifS[T](Gen[Bool], Gen[T], Gen[T]) -> Gen[T]
+fn[T] ifS(Gen[Bool], Gen[T], Gen[T]) -> Gen[T]
 
 fn info(String) -> Property[Unit, String]
 
-fn init_state[T](Config) -> DriverState[T]
+fn[T] init_state(Config) -> DriverState[T]
 
 fn init_test_run() -> TestRun
 
-fn label[E](String, @list.T[String]) -> Property[Unit, E]
+fn[E] label(String, @list.T[String]) -> Property[Unit, E]
 
-fn limit_steps[P, N](ShrinkExplain[P, N], Int?) -> ShrinkExplain[P, N]
+fn[P, N] limit_steps(ShrinkExplain[P, N], Int?) -> ShrinkExplain[P, N]
 
 fn map(SampleTree, (UInt) -> UInt) -> SampleTree
 
-fn mk_property[T, E]((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
+fn[T, E] mk_property((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
 
 fn mod(SampleTree, UInt) -> SampleTree
 
-fn new[T]((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
+fn[T] new((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
 
 fn prim() -> Gen[UInt]
 
 fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
 
-fn pure[T](T) -> Gen[T]
+fn[T] pure(T) -> Gen[T]
 
-fn run_gen[T](Gen[T], SampleTree) -> (T, Iter[SampleTree])
+fn[T] run_gen(Gen[T], SampleTree) -> (T, Iter[SampleTree])
 
-fn run_property[T, E](Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
+fn[T, E] run_property(Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
-fn sample[T](Gen[T]) -> T
+fn[T] sample(Gen[T]) -> T
 
 fn sample_value(Sample) -> UInt
 
-fn second[A, B, C]((B) -> C, (A, B)) -> (A, C)
+fn[A, B, C] second((B) -> C, (A, B)) -> (A, C)
 
-fn select[T, U](Gen[(T) -> U], Gen[Either[T, U]]) -> Gen[U]
+fn[T, U] select(Gen[(T) -> U], Gen[Either[T, U]]) -> Gen[U]
 
-fn shrink_from[A, P, N](Gen[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
+fn[A, P, N] shrink_from(Gen[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
 
-fn shrink_history[P, N](ShrinkExplain[P, N]) -> Array[P]
+fn[P, N] shrink_history(ShrinkExplain[P, N]) -> Array[P]
 
-fn shrink_outcome[P, N](ShrinkExplain[P, N]) -> (P, Iter[N]?)
+fn[P, N] shrink_outcome(ShrinkExplain[P, N]) -> (P, Iter[N]?)
 
-fn shrink_to_list[T](T, Iter[T]) -> Gen[T]
+fn[T] shrink_to_list(T, Iter[T]) -> Gen[T]
 
-fn test_gen[T]((T) -> Bool, Gen[T]) -> Property[T, String]
+fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
 
 fn view(SampleTree) -> (Sample, SampleTree, SampleTree)
 

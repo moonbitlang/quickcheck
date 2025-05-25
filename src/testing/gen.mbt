@@ -44,7 +44,7 @@ impl @feat.Enumerable for SingleTree with enumerate() {
 }
 
 ///|
-pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
+pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
   fn { (x, y) => f(x, y) }
 }
 

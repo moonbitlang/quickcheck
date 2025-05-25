@@ -5,23 +5,23 @@ import(
 )
 
 // Values
-fn apply_while_array[T](T, (T) -> T, (T) -> Bool) -> Array[T]
+fn[T] apply_while_array(T, (T) -> T, (T) -> Bool) -> Array[T]
 
-fn apply_while_list[T](T, (T) -> T, (T) -> Bool) -> @list.T[T]
+fn[T] apply_while_list(T, (T) -> T, (T) -> Bool) -> @list.T[T]
 
-fn const_[T, U](T) -> (U) -> T
+fn[T, U] const_(T) -> (U) -> T
 
-fn flip[M, N, Z]((M, N) -> Z) -> (N, M) -> Z
+fn[M, N, Z] flip((M, N) -> Z) -> (N, M) -> Z
 
 fn fresh_name() -> String
 
-fn id[T](T) -> T
+fn[T] id(T) -> T
 
-fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
+fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
-fn removes_array[T](Int, Int, Array[T]) -> Array[Array[T]]
+fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
 
-fn removes_list[T](Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
+fn[T] removes_list(Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
 
 // Types and methods
 

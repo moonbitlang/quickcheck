@@ -12,73 +12,73 @@ import(
 // Values
 fn alphabet() -> Gen[Char]
 
-fn ap[T, U](Gen[(T) -> U], Gen[T]) -> Gen[U]
+fn[T, U] ap(Gen[(T) -> U], Gen[T]) -> Gen[U]
 
-fn array_with_size[T](Gen[T], Int) -> Gen[Array[T]]
+fn[T] array_with_size(Gen[T], Int) -> Gen[Array[T]]
 
-fn associative[A : Eq]((A, A) -> A) -> ((A, A, A)) -> Bool
+fn[A : Eq] associative((A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn bind[T, U](Gen[T], (T) -> Gen[U]) -> Gen[U]
+fn[T, U] bind(Gen[T], (T) -> Gen[U]) -> Gen[U]
 
-fn callback[P : Testable](P, Callback) -> Property
+fn[P : Testable] callback(P, Callback) -> Property
 
 fn char_range(Char, Char) -> Gen[Char]
 
-fn classify[P : Testable](P, Bool, String) -> Property
+fn[P : Testable] classify(P, Bool, String) -> Property
 
-fn collect[P : Testable, T : Show](P, T) -> Property
+fn[P : Testable, T : Show] collect(P, T) -> Property
 
-fn commutative[A, B : Eq]((A, A) -> B) -> ((A, A)) -> Bool
+fn[A, B : Eq] commutative((A, A) -> B) -> ((A, A)) -> Bool
 
 fn complete_test(State, Property) -> TestSuccess!TestError
 
-fn counterexample[P : Testable](P, String) -> Property
+fn[P : Testable] counterexample(P, String) -> Property
 
-fn distributive_left[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
+fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn distributive_right[A : Eq]((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
+fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn equal_by[T](Equivalence[T], (T, T) -> Bool) -> Bool
+fn[T] equal_by(Equivalence[T], (T, T) -> Bool) -> Bool
 
-fn expect_fail[P : Testable](P) -> Property
+fn[P : Testable] expect_fail(P) -> Property
 
-fn expect_gave_up[P : Testable](P) -> Property
+fn[P : Testable] expect_gave_up(P) -> Property
 
-fn ext_equal[A, B : Eq]((A) -> B, (A) -> B) -> (A) -> Bool
+fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
 
 fn failed() -> SingleResult
 
-fn filter[P : Testable](P, Bool) -> Property
+fn[P : Testable] filter(P, Bool) -> Property
 
 fn find_failure(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
 
-fn flatten_array[T](Array[Gen[T]]) -> Gen[Array[T]]
+fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
 
-fn flatten_list[T](@list.T[Gen[T]]) -> Gen[@list.T[T]]
+fn[T] flatten_list(@list.T[Gen[T]]) -> Gen[@list.T[T]]
 
-fn flatten_option[T](Gen[T]?) -> Gen[T?]
+fn[T] flatten_option(Gen[T]?) -> Gen[T?]
 
-fn flatten_result[T, E](Result[Gen[T], E]) -> Gen[Result[T, E]]
+fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
 
-fn fmap[T, U](Gen[T], (T) -> U) -> Gen[U]
+fn[T, U] fmap(Gen[T], (T) -> U) -> Gen[U]
 
-fn forall[T : Testable, A : Show](Gen[A], (A) -> T) -> Property
+fn[T : Testable, A : Show] forall(Gen[A], (A) -> T) -> Property
 
-fn forall_shrink[T : Testable, A : Show](Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Property
 
 fn format(Printer, String) -> String
 
-fn frequency[T](Array[(Int, Gen[T])]) -> Gen[T]
+fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
 
-fn frequency_list[T](@list.T[(Int, T)]) -> Gen[T]
+fn[T] frequency_list(@list.T[(Int, T)]) -> Gen[T]
 
 fn give_up(State, Property) -> TestSuccess!TestError
 
-fn idempotent[A : Eq]((A) -> A) -> (A) -> Bool
+fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
 
 fn ident(Printer, size~ : Int = ..) -> Unit
 
-fn if_fail[P : Testable](P, () -> Unit) -> Property
+fn[P : Testable] if_fail(P, () -> Unit) -> Property
 
 fn int_bound(Int) -> Gen[Int]
 
@@ -86,39 +86,39 @@ fn int_range(Int, Int) -> Gen[Int]
 
 fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
 
-fn inverse[A : Eq, B]((A) -> B, (B) -> A) -> (A) -> Bool
+fn[A : Eq, B] inverse((A) -> B, (B) -> A) -> (A) -> Bool
 
-fn involutory[A : Eq]((A) -> A) -> (A) -> Bool
+fn[A : Eq] involutory((A) -> A) -> (A) -> Bool
 
-fn is_equal[T : Eq](Equivalence[T]) -> Bool
+fn[T : Eq] is_equal(Equivalence[T]) -> Bool
 
-fn join[T](Gen[Gen[T]]) -> Gen[T]
+fn[T] join(Gen[Gen[T]]) -> Gen[T]
 
-fn label[P : Testable](P, String) -> Property
+fn[P : Testable] label(P, String) -> Property
 
-fn liftA2[A, B, C]((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
+fn[A, B, C] liftA2((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
 
-fn liftA3[A, B, C, D]((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
+fn[A, B, C, D] liftA3((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
 
-fn liftA4[A, B, C, D, E]((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
+fn[A, B, C, D, E] liftA4((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
 
-fn liftA5[A, B, C, D, E, F]((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
+fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
 
-fn liftA6[A, B, C, D, E, F, G]((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
+fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-fn list_with_size[T](Int, Gen[T]) -> Gen[@list.T[T]]
+fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn local_min(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
 
 fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
-fn map_size[P : Testable](P, (Int) -> Int) -> Property
+fn[P : Testable] map_size(P, (Int) -> Int) -> Property
 
-fn map_total_result[P : Testable](P, (SingleResult) -> SingleResult) -> Property
+fn[P : Testable] map_total_result(P, (SingleResult) -> SingleResult) -> Property
 
-fn mono_decrease[A : Compare, B : Compare]((A) -> B) -> ((A, A)) -> Bool
+fn[A : Compare, B : Compare] mono_decrease((A) -> B) -> ((A, A)) -> Bool
 
-fn mono_increase[A : Compare, B : Compare]((A) -> B) -> ((A, A)) -> Bool
+fn[A : Compare, B : Compare] mono_increase((A) -> B) -> ((A, A)) -> Bool
 
 fn nat() -> Gen[Int]
 
@@ -126,75 +126,75 @@ fn neg_int() -> Gen[Int]
 
 fn numeral() -> Gen[Char]
 
-fn one_of[T](Array[Gen[T]]) -> Gen[T]
+fn[T] one_of(Array[Gen[T]]) -> Gen[T]
 
-fn one_of_array[T](Array[T]) -> Gen[T]
+fn[T] one_of_array(Array[T]) -> Gen[T]
 
-fn one_of_list[T](@list.T[T]) -> Gen[T]
+fn[T] one_of_list(@list.T[T]) -> Gen[T]
 
-fn pure[T](T) -> Gen[T]
+fn[T] pure(T) -> Gen[T]
 
-fn pure_eq[T](T) -> Equivalence[T]
+fn[T] pure_eq(T) -> Equivalence[T]
 
-fn quad[T, U, V, W](Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
+fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
-fn quick_check[P : Testable](P) -> Unit!Failure
+fn[P : Testable] quick_check(P) -> Unit!Failure
 
-fn quick_check_fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable]((A) -> B) -> Unit!Failure
+fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B) -> Unit!Failure
 
-fn quick_check_with[P : Testable](Config, P) -> Unit!Failure
+fn[P : Testable] quick_check_with(Config, P) -> Unit!Failure
 
-fn quick_check_with_result[P : Testable](Config, P) -> TestSuccess!TestError
+fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess!TestError
 
 fn rejected() -> SingleResult
 
-fn resize[T](Gen[T], Int) -> Gen[T]
+fn[T] resize(Gen[T], Int) -> Gen[T]
 
-fn run_prop[P : Testable](P) -> Gen[@rose.Rose[SingleResult]]
+fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 
 fn run_single_test(State, Property) -> Result[TestSuccess, State]!TestError
 
 fn run_test(State, Property) -> TestSuccess!TestError
 
-fn scale[T](Gen[T], (Int) -> Int) -> Gen[T]
+fn[T] scale(Gen[T], (Int) -> Int) -> Gen[T]
 
-fn shrinking[P : Testable, T]((T) -> Iter[T], T, (T) -> P) -> Property
+fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
-fn sized[T]((Int) -> Gen[T]) -> Gen[T]
+fn[T] sized((Int) -> Gen[T]) -> Gen[T]
 
 fn small_int() -> Gen[Int]
 
-fn sorted_list[T : Compare](Int, Gen[T]) -> Gen[@list.T[T]]
+fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn succeed() -> SingleResult
 
-fn such_that[T](Gen[T], (T) -> Bool) -> Gen[T]
+fn[T] such_that(Gen[T], (T) -> Bool) -> Gen[T]
 
-fn such_that_maybe[T](Gen[T], (T) -> Bool) -> Gen[T?]
+fn[T] such_that_maybe(Gen[T], (T) -> Bool) -> Gen[T?]
 
-fn terminate[P : Testable](P) -> Property
+fn[P : Testable] terminate(P) -> Property
 
-fn to_property[T, U](Axiom[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
+fn[T, U] to_property(Axiom[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
 
-fn to_property_eq[T, U : Eq](Axiom[T], (T) -> U) -> (T) -> Bool
+fn[T, U : Eq] to_property_eq(Axiom[T], (T) -> U) -> (T) -> Bool
 
-fn to_property_parametric[T, M, N](Axiom[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
+fn[T, M, N] to_property_parametric(Axiom[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
 
-fn to_property_parametric_eq[T, M, N : Eq](Axiom[T], (T, M) -> N) -> ((T, M)) -> Bool
+fn[T, M, N : Eq] to_property_parametric_eq(Axiom[T], (T, M) -> N) -> ((T, M)) -> Bool
 
-fn triple[T, U, V](Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
+fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
-fn tuple[T, U](Gen[T], Gen[U]) -> Gen[(T, U)]
+fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
 
 fn unident(Printer) -> Unit
 
-fn with_discarded_ratio[P : Testable](P, Int) -> Property
+fn[P : Testable] with_discarded_ratio(P, Int) -> Property
 
-fn with_max_shrinks[P : Testable](P, Int) -> Property
+fn[P : Testable] with_max_shrinks(P, Int) -> Property
 
-fn with_max_size[P : Testable](P, Int) -> Property
+fn[P : Testable] with_max_size(P, Int) -> Property
 
-fn with_max_success[P : Testable](P, Int) -> Property
+fn[P : Testable] with_max_success(P, Int) -> Property
 
 fn write_string(Printer, String) -> Unit
 

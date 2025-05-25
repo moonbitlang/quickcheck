@@ -10,17 +10,17 @@ struct LazyRef[T] {
 }
 
 ///|
-pub fn LazyRef::from_value[T](val : T) -> LazyRef[T] {
+pub fn[T] LazyRef::from_value(val : T) -> LazyRef[T] {
   { body: Value(val) }
 }
 
 ///|
-pub fn LazyRef::from_thunk[T](f : () -> T) -> LazyRef[T] {
+pub fn[T] LazyRef::from_thunk(f : () -> T) -> LazyRef[T] {
   { body: Thunk(f) }
 }
 
 ///|
-pub fn force[T](self : LazyRef[T]) -> T {
+pub fn[T] force(self : LazyRef[T]) -> T {
   match self.body {
     Value(v) => v
     Thunk(f) => {

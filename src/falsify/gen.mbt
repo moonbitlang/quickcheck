@@ -6,17 +6,17 @@ struct Gen[T] {
 }
 
 ///|
-pub fn new[T](g : (SampleTree) -> (T, Iter[SampleTree])) -> Gen[T] {
+pub fn[T] new(g : (SampleTree) -> (T, Iter[SampleTree])) -> Gen[T] {
   { run_gen: g }
 }
 
 ///|
-pub fn run_gen[T](self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
+pub fn[T] run_gen(self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
   (self.run_gen)(x)
 }
 
 ///|
-pub fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U] {
+pub fn[T, U] fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
   new(fn(x) {
     let (v, rest) = self.run_gen(x)
     (f(v), rest)
@@ -24,7 +24,7 @@ pub fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U] {
 }
 
 ///|
-pub fn pure[T](v : T) -> Gen[T] {
+pub fn[T] pure(v : T) -> Gen[T] {
   new(fn(_x) { (v, Iter::empty()) })
 }
 
@@ -63,7 +63,7 @@ pub fn combine_shrunk(
 }
 
 ///|
-pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
+pub fn[T, U] bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   new(fn(st) {
     let (s, l, r) = st.view()
     let (a, ls) = self.run_gen(l)
@@ -73,7 +73,7 @@ pub fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 }
 
 ///|
-pub fn ap[T, U](self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
+pub fn[T, U] ap(self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
   self.bind(fn(f) { g.bind(fn(x) { pure(f(x)) }) })
 }
 

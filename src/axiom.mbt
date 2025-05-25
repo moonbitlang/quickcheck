@@ -5,12 +5,12 @@ pub(all) struct Equivalence[T] {
 } derive(Show)
 
 ///|
-pub fn Equivalence::new[T](lhs : T, rhs : T) -> Equivalence[T] {
+pub fn[T] Equivalence::new(lhs : T, rhs : T) -> Equivalence[T] {
   { lhs, rhs }
 }
 
 ///|
-pub fn Equivalence::fmap[T, U](
+pub fn[T, U] Equivalence::fmap(
   self : Equivalence[T],
   f : (T) -> U
 ) -> Equivalence[U] {
@@ -18,7 +18,7 @@ pub fn Equivalence::fmap[T, U](
 }
 
 ///|
-pub fn Equivalence::bind[T, U](
+pub fn[T, U] Equivalence::bind(
   self : Equivalence[T],
   f : (T) -> Equivalence[U]
 ) -> Equivalence[U] {
@@ -28,7 +28,7 @@ pub fn Equivalence::bind[T, U](
 }
 
 ///|
-pub fn Equivalence::ap[T, U](
+pub fn[T, U] Equivalence::ap(
   self : Equivalence[(T) -> U],
   other : Equivalence[T]
 ) -> Equivalence[U] {
@@ -38,17 +38,17 @@ pub fn Equivalence::ap[T, U](
 }
 
 ///|
-pub fn pure_eq[T](x : T) -> Equivalence[T] {
+pub fn[T] pure_eq(x : T) -> Equivalence[T] {
   { lhs: x, rhs: x }
 }
 
 ///|
-pub fn is_equal[T : Eq](self : Equivalence[T]) -> Bool {
+pub fn[T : Eq] is_equal(self : Equivalence[T]) -> Bool {
   self.lhs == self.rhs
 }
 
 ///|
-pub fn equal_by[T](self : Equivalence[T], eq : (T, T) -> Bool) -> Bool {
+pub fn[T] equal_by(self : Equivalence[T], eq : (T, T) -> Bool) -> Bool {
   eq(self.lhs, self.rhs)
 }
 
@@ -58,17 +58,17 @@ struct Axiom[T] {
 }
 
 ///|
-pub fn Axiom::new[T](run_axiom : (T) -> Equivalence[T]) -> Axiom[T] {
+pub fn[T] Axiom::new(run_axiom : (T) -> Equivalence[T]) -> Axiom[T] {
   { run_axiom, }
 }
 
 ///|
-pub fn Axiom::run[T](self : Axiom[T], x : T) -> Equivalence[T] {
+pub fn[T] Axiom::run(self : Axiom[T], x : T) -> Equivalence[T] {
   (self.run_axiom)(x)
 }
 
 ///|
-pub fn to_property[T, U](
+pub fn[T, U] to_property(
   self : Axiom[T],
   cong : (T) -> U,
   eq : (U, U) -> Bool
@@ -77,7 +77,7 @@ pub fn to_property[T, U](
 }
 
 ///|
-pub fn to_property_eq[T, U : Eq](
+pub fn[T, U : Eq] to_property_eq(
   self : Axiom[T],
   cong : (T) -> U
 ) -> (T) -> Bool {
@@ -85,7 +85,7 @@ pub fn to_property_eq[T, U : Eq](
 }
 
 ///|
-pub fn to_property_parametric[T, M, N](
+pub fn[T, M, N] to_property_parametric(
   self : Axiom[T],
   cong : (T, M) -> N,
   eq : (N, N) -> Bool
@@ -94,7 +94,7 @@ pub fn to_property_parametric[T, M, N](
 }
 
 ///|
-pub fn to_property_parametric_eq[T, M, N : Eq](
+pub fn[T, M, N : Eq] to_property_parametric_eq(
   self : Axiom[T],
   cong : (T, M) -> N
 ) -> ((T, M)) -> Bool {

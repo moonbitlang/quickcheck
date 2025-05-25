@@ -6,7 +6,7 @@ enum Either[L, R] {
 }
 
 ///|
-fn Either::fmap[L, R, S](self : Either[L, R], f : (R) -> S) -> Either[L, S] {
+fn[L, R, S] Either::fmap(self : Either[L, R], f : (R) -> S) -> Either[L, S] {
   match self {
     Right(r) => Right(f(r))
     Left(l) => Left(l)
@@ -14,7 +14,7 @@ fn Either::fmap[L, R, S](self : Either[L, R], f : (R) -> S) -> Either[L, S] {
 }
 
 ///|
-pub fn select[T, U](self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
+pub fn[T, U] select(self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
   new(fn(st) {
     let (s, l, r) = st.view()
     let (ma, ls) = e.run_gen(l)
@@ -29,7 +29,7 @@ pub fn select[T, U](self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
 }
 
 ///|
-fn branch[A, B, C](
+fn[A, B, C] branch(
   self : Gen[Either[A, B]],
   l : Gen[(A) -> C],
   r : Gen[(B) -> C]
@@ -40,7 +40,7 @@ fn branch[A, B, C](
 }
 
 ///|
-pub fn ifS[T](self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
+pub fn[T] ifS(self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
   let const_ = fn(x) { fn(_y) { x } }
   branch(
     self.fmap(fn(x) { if x { Left(()) } else { Right(()) } }),
@@ -50,6 +50,6 @@ pub fn ifS[T](self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
 }
 
 ///|
-pub fn apS[A, B](self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
+pub fn[A, B] apS(self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
   x.fmap(fn(y) { fn(g) { g(y) } }).select(self.fmap(Either::Left(_)))
 }

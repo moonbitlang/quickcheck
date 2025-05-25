@@ -5,55 +5,55 @@ import(
 )
 
 // Values
-fn concat[T](LazyList[T], LazyList[T]) -> LazyList[T]
+fn[T] concat(LazyList[T], LazyList[T]) -> LazyList[T]
 
-fn default[X : Default]() -> LazyList[X]
+fn[X : Default] default() -> LazyList[X]
 
-fn drop[T](LazyList[T], Int) -> LazyList[T]
+fn[T] drop(LazyList[T], Int) -> LazyList[T]
 
-fn drop_while[T](LazyList[T], (T) -> Bool) -> LazyList[T]
+fn[T] drop_while(LazyList[T], (T) -> Bool) -> LazyList[T]
 
-fn fold_left[T, U](LazyList[T], (U, T) -> U, init~ : U) -> U
+fn[T, U] fold_left(LazyList[T], (U, T) -> U, init~ : U) -> U
 
-fn fold_right[T, U](LazyList[T], (T, U) -> U, init~ : U) -> U
+fn[T, U] fold_right(LazyList[T], (T, U) -> U, init~ : U) -> U
 
-fn force[T](LazyRef[T]) -> T
+fn[T] force(LazyRef[T]) -> T
 
-fn from_list[T](@list.T[T]) -> LazyList[T]
+fn[T] from_list(@list.T[T]) -> LazyList[T]
 
-fn head[T](LazyList[T]) -> T
+fn[T] head(LazyList[T]) -> T
 
-fn index[T](LazyList[T], Int) -> T
+fn[T] index(LazyList[T], Int) -> T
 
-fn infinite_stream[X : Add](X, X) -> LazyList[X]
+fn[X : Add] infinite_stream(X, X) -> LazyList[X]
 
-fn length[T](LazyList[T]) -> Int
+fn[T] length(LazyList[T]) -> Int
 
-fn map[T, U](LazyList[T], (T) -> U) -> LazyList[U]
+fn[T, U] map(LazyList[T], (T) -> U) -> LazyList[U]
 
-fn repeat[T](T) -> LazyList[T]
+fn[T] repeat(T) -> LazyList[T]
 
-fn split_at[T](LazyList[T], Int) -> (LazyList[T], LazyList[T])
+fn[T] split_at(LazyList[T], Int) -> (LazyList[T], LazyList[T])
 
-fn sum[X : Add](LazyList[X], init~ : X) -> X
+fn[X : Add] sum(LazyList[X], init~ : X) -> X
 
-fn tail[T](LazyList[T]) -> LazyList[T]
+fn[T] tail(LazyList[T]) -> LazyList[T]
 
-fn tails[T](LazyList[T]) -> LazyList[LazyList[T]]
+fn[T] tails(LazyList[T]) -> LazyList[LazyList[T]]
 
-fn take[T](LazyList[T], Int) -> LazyList[T]
+fn[T] take(LazyList[T], Int) -> LazyList[T]
 
-fn take_while[T](LazyList[T], (T) -> Bool) -> LazyList[T]
+fn[T] take_while(LazyList[T], (T) -> Bool) -> LazyList[T]
 
-fn to_lazy[T](@list.T[T]) -> LazyList[T]
+fn[T] to_lazy(@list.T[T]) -> LazyList[T]
 
-fn unfold[T](LazyList[T], (LazyList[T]) -> (T, LazyList[T])?) -> LazyList[T]
+fn[T] unfold(LazyList[T], (LazyList[T]) -> (T, LazyList[T])?) -> LazyList[T]
 
-fn zip_lazy_normal[A, B, C]((A, B) -> C, LazyList[A], @list.T[B]) -> @list.T[C]
+fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.T[B]) -> @list.T[C]
 
-fn zip_plus[T]((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
+fn[T] zip_plus((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
 
-fn zip_with[A, B, C]((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
+fn[A, B, C] zip_with((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
 
 // Types and methods
 pub(all) enum LazyList[T] {
@@ -88,7 +88,6 @@ impl LazyRef {
 }
 
 // Type aliases
-pub traitalias Monoid = Add
 
 // Traits
 

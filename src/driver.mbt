@@ -34,19 +34,19 @@ enum TestSuccess {
 }
 
 ///|
-pub fn quick_check[P : Testable](prop : P) -> Unit!Failure {
+pub fn[P : Testable] quick_check(prop : P) -> Unit!Failure {
   quick_check_with!(Default::default(), prop)
 }
 
 ///|
-pub fn quick_check_fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable](
+pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   f : (A) -> B
 ) -> Unit!Failure {
   quick_check!(Arrow(f))
 }
 
 ///|
-pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
+pub fn[P : Testable] quick_check_with(cfg : Config, prop : P) -> Unit!Failure {
   fn f(s : String) -> _!Failure {
     fail!("\n\{s}")
   }
@@ -68,7 +68,7 @@ pub fn quick_check_with[P : Testable](cfg : Config, prop : P) -> Unit!Failure {
 }
 
 ///|
-pub fn quick_check_with_result[P : Testable](
+pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P
 ) -> TestSuccess!TestError {

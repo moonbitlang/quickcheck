@@ -27,7 +27,7 @@ fn binary(u : UInt) -> Iter[UInt] {
 }
 
 ///|
-pub fn second[A, B, C](f : (B) -> C, v : (A, B)) -> (A, C) {
+pub fn[A, B, C] second(f : (B) -> C, v : (A, B)) -> (A, C) {
   let (a, b) = v
   (a, f(b))
 }

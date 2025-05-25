@@ -152,7 +152,7 @@ test "add comm nat" {
 }
 
 ///|
-fn reverse[T](lst : Array[T]) -> Array[T] {
+fn[T] reverse(lst : Array[T]) -> Array[T] {
   lst.rev()
 }
 

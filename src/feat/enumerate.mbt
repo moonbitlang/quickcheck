@@ -4,27 +4,27 @@ pub(all) struct Enumerate[T] {
 }
 
 ///|
-pub fn eval[T](self : Enumerate[T]) -> LazyList[Finite[T]] {
+pub fn[T] eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
   self.parts
 }
 
 ///|
-pub fn empty[T]() -> Enumerate[T] {
+pub fn[T] empty() -> Enumerate[T] {
   { parts: Nil }
 }
 
 ///|
-pub fn default[T]() -> Enumerate[T] {
+pub fn[T] default() -> Enumerate[T] {
   empty()
 }
 
 ///|
-pub fn singleton[T](val : T) -> Enumerate[T] {
+pub fn[T] singleton(val : T) -> Enumerate[T] {
   { parts: Cons(fin_pure(val), @lazy.LazyRef::from_value(Nil)) }
 }
 
 ///|
-pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
+pub fn[T] en_index(self : Enumerate[T], idx : BigInt) -> T {
   loop self.parts, idx {
     Nil, _ => abort("index out of bounds")
     Cons(f, rest), i =>
@@ -37,7 +37,7 @@ pub fn en_index[T](self : Enumerate[T], idx : BigInt) -> T {
 }
 
 ///|
-pub fn union[T](e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
+pub fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
   { parts: @lazy.zip_plus(fin_union, e1.parts, e2.parts) }
 }
 
@@ -47,22 +47,22 @@ pub impl[T] Add for Enumerate[T] with op_add(self, other) {
 }
 
 ///|
-pub fn fmap[T, U](self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
+pub fn[T, U] fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
   { parts: self.parts.map(fn { x => fin_fmap(f, x) }) }
 }
 
 ///|
-pub fn pay[T](f : () -> Enumerate[T]) -> Enumerate[T] {
+pub fn[T] pay(f : () -> Enumerate[T]) -> Enumerate[T] {
   { parts: Cons(fin_empty(), @lazy.LazyRef::from_thunk(fn() { f().parts })) }
 }
 
 ///|
-pub fn product[T, U](e1 : Enumerate[T], e2 : Enumerate[U]) -> Enumerate[(T, U)] {
+pub fn[T, U] product(e1 : Enumerate[T], e2 : Enumerate[U]) -> Enumerate[(T, U)] {
   { parts: prod_helper(e1.parts, reversals(e2.parts)) }
 }
 
 ///|
-fn prod_helper[T, U](
+fn[T, U] prod_helper(
   xs : LazyList[Finite[T]],
   rys : LazyList[LazyList[Finite[U]]]
 ) -> LazyList[Finite[(T, U)]] {
@@ -70,16 +70,16 @@ fn prod_helper[T, U](
 }
 
 ///|
-pub fn app[T, U](f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
+pub fn[T, U] app(f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
   product(f, e).fmap(fn { (ff, x) => ff(x) })
 }
 
 ///|
-pub fn consts[T](ls : @immut/list.T[Enumerate[T]]) -> Enumerate[T] {
+pub fn[T] consts(ls : @immut/list.T[Enumerate[T]]) -> Enumerate[T] {
   pay(fn() { ls.fold(union, init=empty()) })
 }
 
 ///|
-pub fn unary[T : Enumerable, U](f : (T) -> U) -> Enumerate[U] {
+pub fn[T : Enumerable, U] unary(f : (T) -> U) -> Enumerate[U] {
   T::enumerate().fmap(f)
 }

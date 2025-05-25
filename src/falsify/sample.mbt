@@ -82,7 +82,7 @@ pub fn mod(self : SampleTree, u : UInt) -> SampleTree {
 }
 
 ///|
-pub fn sample[T](self : Gen[T]) -> T {
+pub fn[T] sample(self : Gen[T]) -> T {
   let s = @quickcheck/splitmix.new()
   let (x, _shrunk) = self.run_gen(from_rng(s))
   x

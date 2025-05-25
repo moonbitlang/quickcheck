@@ -7,7 +7,7 @@ fn sum(a : Array[BigInt]) -> BigInt {
 }
 
 ///|
-fn convolution[A, B](
+fn[A, B] convolution(
   xs : LazyList[Finite[A]],
   ys : LazyList[Finite[B]]
 ) -> Finite[(A, B)] {
@@ -22,7 +22,7 @@ fn convolution[A, B](
 }
 
 ///|
-fn reversals[T](l : LazyList[T]) -> LazyList[LazyList[T]] {
+fn[T] reversals(l : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go {
     _, @lazy.Nil => @lazy.Nil
     rev, Cons(x, xs) => {

@@ -5,15 +5,15 @@ import(
 )
 
 // Values
-fn bind[T, U](ShrinkTree[T], (T) -> ShrinkTree[U]) -> ShrinkTree[U]
+fn[T, U] bind(ShrinkTree[T], (T) -> ShrinkTree[U]) -> ShrinkTree[U]
 
-fn draw[T : Show](ShrinkTree[T], Int) -> @list.T[String]
+fn[T : Show] draw(ShrinkTree[T], Int) -> @list.T[String]
 
-fn get_value[T](ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]])
+fn[T] get_value(ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]])
 
-fn join[T](ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T]
+fn[T] join(ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T]
 
-fn smap[T, U](ShrinkTree[T], (T) -> U) -> ShrinkTree[U]
+fn[T, U] smap(ShrinkTree[T], (T) -> U) -> ShrinkTree[U]
 
 // Types and methods
 type ShrinkTree[T]

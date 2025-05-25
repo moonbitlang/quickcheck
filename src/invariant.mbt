@@ -1,49 +1,49 @@
 ///| Extensional equality for function.
-pub fn ext_equal[A, B : Eq](f : (A) -> B, g : (A) -> B) -> (A) -> Bool {
+pub fn[A, B : Eq] ext_equal(f : (A) -> B, g : (A) -> B) -> (A) -> Bool {
   fn { x => f(x) == g(x) }
 }
 
 ///| Idempotent function.
-pub fn idempotent[A : Eq](f : (A) -> A) -> (A) -> Bool {
+pub fn[A : Eq] idempotent(f : (A) -> A) -> (A) -> Bool {
   fn { x => f(f(x)) == f(x) }
 }
 
 ///| Involutory function.
-pub fn involutory[A : Eq](f : (A) -> A) -> (A) -> Bool {
+pub fn[A : Eq] involutory(f : (A) -> A) -> (A) -> Bool {
   fn { x => f(f(x)) == x }
 }
 
 ///| Inverse function.
-pub fn inverse[A : Eq, B](f : (A) -> B, g : (B) -> A) -> (A) -> Bool {
+pub fn[A : Eq, B] inverse(f : (A) -> B, g : (B) -> A) -> (A) -> Bool {
   fn { x => g(f(x)) == x }
 }
 
 ///| Monotonic increasing function.
-pub fn mono_increase[A : Compare, B : Compare](
+pub fn[A : Compare, B : Compare] mono_increase(
   f : (A) -> B
 ) -> ((A, A)) -> Bool {
   fn { (x, y) => x <= y && f(x) <= f(y) }
 }
 
 ///| Monotonic decreasing function.
-pub fn mono_decrease[A : Compare, B : Compare](
+pub fn[A : Compare, B : Compare] mono_decrease(
   f : (A) -> B
 ) -> ((A, A)) -> Bool {
   fn { (x, y) => x <= y && f(x) >= f(y) }
 }
 
 ///| Commutative binary operation.
-pub fn commutative[A, B : Eq](f : (A, A) -> B) -> ((A, A)) -> Bool {
+pub fn[A, B : Eq] commutative(f : (A, A) -> B) -> ((A, A)) -> Bool {
   fn { (x, y) => f(x, y) == f(y, x) }
 }
 
 ///| Associative binary operation.
-pub fn associative[A : Eq](f : (A, A) -> A) -> ((A, A, A)) -> Bool {
+pub fn[A : Eq] associative(f : (A, A) -> A) -> ((A, A, A)) -> Bool {
   fn { (x, y, z) => f(f(x, y), z) == f(x, f(y, z)) }
 }
 
 ///| Distributive binary operation over left
-pub fn distributive_left[A : Eq](
+pub fn[A : Eq] distributive_left(
   f : (A, A) -> A,
   g : (A, A) -> A
 ) -> ((A, A, A)) -> Bool {
@@ -51,7 +51,7 @@ pub fn distributive_left[A : Eq](
 }
 
 ///| Distributive binary operation over right
-pub fn distributive_right[A : Eq](
+pub fn[A : Eq] distributive_right(
   f : (A, A) -> A,
   g : (A, A) -> A
 ) -> ((A, A, A)) -> Bool {

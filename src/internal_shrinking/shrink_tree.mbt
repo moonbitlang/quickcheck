@@ -10,7 +10,7 @@ pub impl[T : Show] Show for ShrinkTree[T] with output(self, logger) {
 }
 
 ///|
-pub fn draw[T : Show](
+pub fn[T : Show] draw(
   self : ShrinkTree[T],
   depth : Int
 ) -> @immut/list.T[String] {
@@ -41,7 +41,7 @@ pub fn draw[T : Show](
 }
 
 ///|
-fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
+fn[T : Show] to_string_with_depth(self : ShrinkTree[T], depth : Int) -> String {
   if depth == 0 {
     return ""
   }
@@ -55,12 +55,12 @@ fn to_string_with_depth[T : Show](self : ShrinkTree[T], depth : Int) -> String {
 }
 
 ///|
-pub fn ShrinkTree::from_value[T](x : T) -> ShrinkTree[T] {
+pub fn[T] ShrinkTree::from_value(x : T) -> ShrinkTree[T] {
   { leaf: x, branch: Iter::empty() }
 }
 
 ///|
-pub fn ShrinkTree::from_shinker[T](
+pub fn[T] ShrinkTree::from_shinker(
   shrink : (T) -> Iter[T],
   x : T
 ) -> ShrinkTree[T] {
@@ -72,12 +72,12 @@ pub fn ShrinkTree::from_shinker[T](
 }
 
 ///|
-pub fn smap[T, U](self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
+pub fn[T, U] smap(self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
   { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { smap(x, f) }) }
 }
 
 ///|
-pub fn join[T](tr : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
+pub fn[T] join(tr : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
   let x = tr.leaf.leaf
   let ts = tr.branch
     .map(join)
@@ -90,7 +90,7 @@ pub fn join[T](tr : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
 }
 
 ///|
-pub fn bind[T, U](
+pub fn[T, U] bind(
   self : ShrinkTree[T],
   f : (T) -> ShrinkTree[U]
 ) -> ShrinkTree[U] {
@@ -98,7 +98,7 @@ pub fn bind[T, U](
 }
 
 ///|
-pub fn get_value[T](self : ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]]) {
+pub fn[T] get_value(self : ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]]) {
   let { leaf, branch } = self
   (leaf, branch)
 }

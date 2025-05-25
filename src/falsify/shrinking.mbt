@@ -12,7 +12,7 @@ struct ShrinkExplain[P, N] {
 } derive(Show)
 
 ///|
-pub fn limit_steps[P, N](
+pub fn[P, N] limit_steps(
   self : ShrinkExplain[P, N],
   n : Int?
 ) -> ShrinkExplain[P, N] {
@@ -30,7 +30,7 @@ pub fn limit_steps[P, N](
 }
 
 ///|
-pub fn shrink_history[P, N](self : ShrinkExplain[P, N]) -> Array[P] {
+pub fn[P, N] shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
   let arr = [self.initial]
   loop self.history {
     ShrinkTo(x, xs) => {
@@ -43,7 +43,7 @@ pub fn shrink_history[P, N](self : ShrinkExplain[P, N]) -> Array[P] {
 }
 
 ///|
-pub fn shrink_outcome[P, N](self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
+pub fn[P, N] shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
   loop self.initial, self.history {
     _, ShrinkTo(p, h) => continue p, h
     p, ShrinkDone(ns) => (p, Some(ns))
@@ -60,7 +60,7 @@ enum IsValidShrink[P, N] {
 }
 
 ///|
-fn either[A, B, C](f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
+fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
   fn {
     Ok(x) => f(x)
     Err(y) => g(y)
@@ -71,7 +71,7 @@ fn either[A, B, C](f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
 typealias Ret[T, E] = ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 
 ///|
-fn partition_result[T, E](val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
+fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   fn left(a : T) -> Ret[T, E] {
     fn { (l, r) => (l.prepend(a), r) }
   }
@@ -85,7 +85,7 @@ fn partition_result[T, E](val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
 }
 
 ///|
-pub fn shrink_from[A, P, N](
+pub fn[A, P, N] shrink_from(
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
   ps : (P, Iter[SampleTree])
@@ -112,7 +112,7 @@ pub fn shrink_from[A, P, N](
 }
 
 ///|
-pub fn shrink_to_list[T](val : T, xs : Iter[T]) -> Gen[T] {
+pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
   fn shrinker {
     Shrunk(_) => Iter::empty()
     NotShrunk(_) => abort("todo")
@@ -128,7 +128,7 @@ pub fn shrink_to_list[T](val : T, xs : Iter[T]) -> Gen[T] {
 }
 
 ///| (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
-fn h_fmap[P, M, N](
+fn[P, M, N] h_fmap(
   self : ShrinkHistory[P, M],
   f : (M) -> N
 ) -> ShrinkHistory[P, N] {
@@ -140,7 +140,7 @@ fn h_fmap[P, M, N](
 }
 
 ///|
-fn e_fmap[P, M, N](
+fn[P, M, N] e_fmap(
   self : ShrinkExplain[P, M],
   f : (M) -> N
 ) -> ShrinkExplain[P, N] {

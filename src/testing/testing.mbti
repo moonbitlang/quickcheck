@@ -7,7 +7,7 @@ fn enqueue(Queue, Int) -> Queue
 
 fn is_empty(Queue) -> Bool
 
-fn pair_function[A, B, C]((A, B) -> C) -> ((A, B)) -> C
+fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 // Types and methods
 type Queue

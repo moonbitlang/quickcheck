@@ -10,7 +10,7 @@ pub fn fresh_name() -> String {
 }
 
 ///|
-pub fn removes_list[T](
+pub fn[T] removes_list(
   k : Int,
   n : Int,
   xs : @immut/list.T[T]
@@ -32,7 +32,7 @@ pub fn removes_list[T](
 }
 
 ///|
-pub fn removes_array[T](k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
+pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
   if k > n {
     []
   } else {
@@ -46,7 +46,7 @@ pub fn removes_array[T](k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
 }
 
 ///|
-pub fn apply_while_list[T](
+pub fn[T] apply_while_list(
   x : T,
   f : (T) -> T,
   cond : (T) -> Bool
@@ -64,7 +64,7 @@ pub fn apply_while_list[T](
 }
 
 ///|
-pub fn apply_while_array[T](
+pub fn[T] apply_while_array(
   x : T,
   f : (T) -> T,
   cond : (T) -> Bool
@@ -82,19 +82,19 @@ pub fn apply_while_array[T](
 }
 
 ///|
-pub fn id[T](x : T) -> T = "%identity"
+pub fn[T] id(x : T) -> T = "%identity"
 
 ///|
-pub fn const_[T, U](t : T) -> (U) -> T {
+pub fn[T, U] const_(t : T) -> (U) -> T {
   fn { _ => t }
 }
 
 ///|
-pub fn pair_function[A, B, C](f : (A, B) -> C) -> ((A, B)) -> C {
+pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
   fn { (x, y) => f(x, y) }
 }
 
 ///|
-pub fn flip[M, N, Z](f : (M, N) -> Z) -> (N, M) -> Z {
+pub fn[M, N, Z] flip(f : (M, N) -> Z) -> (N, M) -> Z {
   fn(x, y) { f(y, x) }
 }

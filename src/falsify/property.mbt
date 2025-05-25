@@ -26,7 +26,7 @@ struct Property[T, E] {
 }
 
 ///|
-pub fn Property::run[T, E](
+pub fn[T, E] Property::run(
   self : Property[T, E],
   tr : TestRun
 ) -> Gen[(TestResult[T, E], TestRun)] {
@@ -34,21 +34,21 @@ pub fn Property::run[T, E](
 }
 
 ///|
-pub fn mk_property[T, E](
+pub fn[T, E] mk_property(
   run : (TestRun) -> Gen[(TestResult[T, E], TestRun)]
 ) -> Property[T, E] {
   { run, }
 }
 
 ///|
-pub fn run_property[T, E](
+pub fn[T, E] run_property(
   p : Property[T, E]
 ) -> Gen[(TestResult[T, E], TestRun)] {
   p.run(init_test_run())
 }
 
 ///|
-pub fn discard[T, E]() -> Property[T, E] {
+pub fn[T, E] discard() -> Property[T, E] {
   mk_property(fn(run) { pure((TestDiscarded, run)) })
 }
 
@@ -60,7 +60,7 @@ pub fn info(msg : String) -> Property[Unit, String] {
 }
 
 ///|
-pub fn label[E](label : String, vals : List[String]) -> Property[Unit, E] {
+pub fn[E] label(label : String, vals : List[String]) -> Property[Unit, E] {
   fn add_values(x : @sorted_set.T[String]?) -> @sorted_set.T[String] {
     let s = x.or(@sorted_set.new())
     s.union(@sorted_set.from_iter(vals.iter()))
@@ -75,13 +75,13 @@ pub fn label[E](label : String, vals : List[String]) -> Property[Unit, E] {
 }
 
 ///|
-pub fn collect[T : Show, E](l : String, ls : List[T]) -> Property[Unit, E] {
+pub fn[T : Show, E] collect(l : String, ls : List[T]) -> Property[Unit, E] {
   label(l, ls.map(Show::to_string))
 }
 
 // Running Generators
 ///|
-pub fn gen[T, E](f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
+pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
   fn aux(run : TestRun) -> (T) -> (TestResult[T, E], TestRun) {
     fn {
       x =>
@@ -96,7 +96,7 @@ pub fn gen[T, E](f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
 }
 
 ///|
-pub fn test_gen[T](f : (T) -> Bool, gen : Gen[T]) -> Property[T, String] {
+pub fn[T] test_gen(f : (T) -> Bool, gen : Gen[T]) -> Property[T, String] {
   fn aux(run : TestRun) {
     fn(a) {
       (

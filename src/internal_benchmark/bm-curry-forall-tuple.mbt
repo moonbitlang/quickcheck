@@ -12,7 +12,7 @@ let test_forall : @qc.Property = @qc.forall(@qc.Gen::spawn(), fn(
 })
 
 ///|
-fn coerce[A, B](x : A) -> B = "%identity"
+fn[A, B] coerce(x : A) -> B = "%identity"
 
 ///|
 let test_curry : @qc.Arrow[Array[Int], @qc.Arrow[Array[Int], Bool]] = prop_symmetry

@@ -43,7 +43,7 @@ struct DriverState[T] {
 }
 
 ///|
-fn append_success[T](
+fn[T] append_success(
   rng : RandomState,
   success : Success[T],
   acc : DriverState[T]
@@ -58,7 +58,7 @@ fn append_success[T](
 }
 
 ///|
-pub fn init_state[T](opt : Config) -> DriverState[T] {
+pub fn[T] init_state(opt : Config) -> DriverState[T] {
   {
     rng: opt.replay.or(@quickcheck/splitmix.new()),
     success: Nil,
@@ -69,7 +69,7 @@ pub fn init_state[T](opt : Config) -> DriverState[T] {
 }
 
 ///|
-fn result_is_valid_shrink[T, E](
+fn[T, E] result_is_valid_shrink(
   ra : (TestResult[T, E], TestRun)
 ) -> IsValidShrink[(E, TestRun), (T?, TestRun)] {
   let (res, run) = ra
@@ -81,7 +81,7 @@ fn result_is_valid_shrink[T, E](
 }
 
 ///|
-pub fn falsify[T, E](
+pub fn[T, E] falsify(
   opt : Config,
   prop : Property[T, E]
 ) -> (RandomState, List[Success[T]], Int, Failure[E]?) {
