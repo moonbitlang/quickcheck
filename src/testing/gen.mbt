@@ -87,9 +87,7 @@ test "feat tree random" {
 test "feat tree" {
   let fe : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(11)
   inspect!(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
-  let x = (@feat.Enumerable::enumerate() : @feat.Enumerate[SingleTree]).en_index(
-    196606, // Magic Number 196607 will cause crash of BigInt 
-  )
+  let x : SingleTree = @feat.Enumerable::enumerate().en_index(196606)
   inspect!(
     x,
     content="Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Leaf(true)))))))))))))))))",
