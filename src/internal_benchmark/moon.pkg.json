@@ -3,6 +3,10 @@
     {
       "path": "moonbitlang/quickcheck",
       "alias": "qc"
+    },
+    {
+      "path": "moonbitlang/quickcheck/feat",
+      "alias": "feat"
     }
   ]
 }
