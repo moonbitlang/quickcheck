@@ -5,9 +5,6 @@ pub(all) enum LazyList[T] {
 }
 
 ///|
-pub traitalias Monoid = Add
-
-///|
 pub fn default[X : Default]() -> LazyList[X] {
   Nil
 }
@@ -74,7 +71,7 @@ pub fn concat[T](self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
 }
 
 ///|
-pub impl[T] Monoid for LazyList[T] with op_add(self, other) {
+pub impl[T] Add for LazyList[T] with op_add(self, other) {
   self.concat(other)
 }
 
@@ -149,8 +146,8 @@ pub fn length[T](self : LazyList[T]) -> Int {
 }
 
 ///|
-pub fn sum[X : Monoid](l : LazyList[X], init~ : X) -> X {
-  l.fold_left(Monoid::op_add, init~)
+pub fn sum[X : Add](l : LazyList[X], init~ : X) -> X {
+  l.fold_left(Add::op_add, init~)
 }
 
 ///|
@@ -215,7 +212,7 @@ pub fn drop_while[T](self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
 }
 
 ///|
-pub fn infinite_stream[X : Monoid](start : X, step : X) -> LazyList[X] {
+pub fn infinite_stream[X : Add](start : X, step : X) -> LazyList[X] {
   Cons(start, LazyRef::from_thunk(fn() { infinite_stream(start + step, step) }))
 }
 
