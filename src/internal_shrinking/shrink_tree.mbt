@@ -25,13 +25,13 @@ pub fn[T : Show] draw(
     )
   }
 
-  fn draw_sub(l) {
+  fn draw_sub(l : @immut/list.T[ShrinkTree[T]]) {
     match l {
       @immut/list.Nil => @immut/list.Nil
-      Cons(t, Nil) => Cons("│", shift("└─ ", "   ", draw(t, depth - 1)))
+      Cons(t, Nil) => Cons("│", shift("└─ ", "   ", t.draw(depth - 1)))
       Cons(t, ts) =>
-        @immut/list.concat(
-          Cons("│", shift("├─ ", "│  ", draw(t, depth - 1))),
+        @immut/list.T::concat(
+          Cons("│", shift("├─ ", "│  ", t.draw(depth - 1))),
           draw_sub(ts),
         )
     }
@@ -50,7 +50,7 @@ fn[T : Show] to_string_with_depth(self : ShrinkTree[T], depth : Int) -> String {
     .map(fn(x) { x.to_string_with_depth(depth - 1) })
     .filter(fn(x) { x != "" })
     .collect()
-    |> @string.concat(separator=", ")
+    .join(", ")
   "Node(\{s}, [\{child}])"
 }
 
@@ -73,16 +73,16 @@ pub fn[T] ShrinkTree::from_shinker(
 
 ///|
 pub fn[T, U] smap(self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
-  { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { smap(x, f) }) }
+  { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { x.smap(f) }) }
 }
 
 ///|
-pub fn[T] join(tr : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
-  let x = tr.leaf.leaf
-  let ts = tr.branch
-    .map(join)
+pub fn[T] join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
+  let x = self.leaf.leaf
+  let ts = self.branch
+    .map(_.join())
     .concat(
-      match tr.leaf {
+      match self.leaf {
         { branch: ts, .. } => ts
       },
     )
@@ -94,7 +94,7 @@ pub fn[T, U] bind(
   self : ShrinkTree[T],
   f : (T) -> ShrinkTree[U]
 ) -> ShrinkTree[U] {
-  self.smap(f) |> join
+  self.smap(f).join()
 }
 
 ///|

@@ -13,7 +13,7 @@ impl Shrink for Int with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
-  .append(0)
+  .concat(Iter::singleton(0))
   .filter(fn(u) { u != x })
 }
 
@@ -28,7 +28,7 @@ impl Shrink for Int64 with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
   .map(fn(i) { x - i })
   .iter()
-  .append(0)
+  .concat(Iter::singleton(0))
   .filter(fn(u) { u != x })
 }
 
@@ -45,7 +45,7 @@ impl Shrink for UInt with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
-  .append(0)
+  .concat(Iter::singleton(0))
   .filter(fn(u) { u != x })
 }
 
@@ -62,7 +62,7 @@ impl Shrink for UInt64 with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
   .map(fn(i) { x - i })
   .iter()
-  .append(0)
+  .concat(Iter::singleton(0))
   .filter(fn(u) { u != x })
 }
 
@@ -113,7 +113,8 @@ test "shrink char" {
 impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
-    Some(v) => Iter::append(Shrink::shrink(v).map(Option::Some(_)), None)
+    Some(v) =>
+      Shrink::shrink(v).map(Option::Some(_)).concat(Iter::singleton(None))
   }
 }
 

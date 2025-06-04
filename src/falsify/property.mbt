@@ -83,12 +83,11 @@ pub fn[T : Show, E] collect(l : String, ls : List[T]) -> Property[Unit, E] {
 ///|
 pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
   fn aux(run : TestRun) -> (T) -> (TestResult[T, E], TestRun) {
-    fn {
-      x =>
-        match f(x) {
-          None => (TestPassed(x), { ..run, deterministic: false })
-          Some(msg) => (TestPassed(x), { ..run, log: Cons(msg, run.log) })
-        }
+    fn(x) {
+      match f(x) {
+        None => (TestPassed(x), { ..run, deterministic: false })
+        Some(msg) => (TestPassed(x), { ..run, log: Cons(msg, run.log) })
+      }
     }
   }
 

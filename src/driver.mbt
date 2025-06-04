@@ -62,7 +62,7 @@ pub fn[P : Testable] quick_check_with(cfg : Config, prop : P) -> Unit!Failure {
     // TODO: Print coverage
     GaveUp(output~, ..) => f!(output)
     Fail(output~, failing_case~, ..) =>
-      f!(output + "\n" + @string.concat(failing_case, separator="\n"))
+      f!(output + "\n" + failing_case.join("\n"))
     NoneExpectedFail(output~, ..) => f!(output)
   }
 }
@@ -72,7 +72,7 @@ pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P
 ) -> TestSuccess!TestError {
-  run_test!(from_config(cfg), prop.property())
+  from_config(cfg).run_test(prop.property())
 }
 
 ///|
@@ -149,16 +149,16 @@ pub fn run_single_test(
 
   fn update_state(st0) {
     self.random_state = rnd2
-    update_state_from_res(st0, res)
+    st0.update_state_from_res(res)
   }
 
   let stc = self.clone()
-  add_coverages(stc, res) // The failure should not be counted.
-  callback_post_test(self, res)
+  stc.add_coverages(res) // The failure should not be counted.
+  self.callback_post_test(res)
   match res {
     { ok: Some(true), .. } =>
       next!(
-        complete_test,
+        State::complete_test,
         {
           ..stc,
           num_success_tests: self.num_success_tests + 1,
@@ -169,7 +169,7 @@ pub fn run_single_test(
     { ok: Some(false), .. } => Ok(self.find_failure!(res, ts))
     { ok: None, .. } =>
       next!(
-        give_up,
+        State::give_up,
         {
           ..self,
           num_discarded_tests: self.num_discarded_tests + 1,
@@ -186,7 +186,7 @@ pub fn find_failure(
   res : SingleResult,
   ts : Iter[Rose[SingleResult]]
 ) -> TestSuccess!TestError {
-  let (n, tf, lf, ce) = local_min({ ..self, num_try_shrinks: 0 }, res, ts)
+  let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   match res.expect {
     Some(true) | None =>
       raise TestError::Fail(
@@ -229,12 +229,12 @@ pub fn local_min(
           Some(false) => {
             self.num_success_shrinks += 1
             self.num_try_shrinks = 0
-            local_min(self, val, branch)
+            self.local_min(val, branch)
           }
           _ => {
             self.num_to_try_shrinks += 1
             self.num_try_shrinks += 1
-            local_min(self, res, ts.drop(1))
+            self.local_min(res, ts.drop(1))
           }
         }
       }

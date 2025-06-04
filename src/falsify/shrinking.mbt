@@ -73,11 +73,11 @@ typealias Ret[T, E] = ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 ///|
 fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   fn left(a : T) -> Ret[T, E] {
-    fn { (l, r) => (l.prepend(a), r) }
+    fn { (l, r) => (Iter::concat(Iter::singleton(a), l), r) }
   }
 
   fn right(a : E) -> Ret[T, E] {
-    fn { (l, r) => (l, r.prepend(a)) }
+    fn { (l, r) => (l, Iter::concat(Iter::singleton(a), r)) }
   }
 
   let r = either(left, right)

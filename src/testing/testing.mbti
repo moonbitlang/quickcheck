@@ -11,9 +11,7 @@ fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 // Types and methods
 type Queue
-impl Queue {
-  is_empty(Self) -> Bool
-}
+fn Queue::is_empty(Self) -> Bool
 impl Show for Queue
 
 // Type aliases

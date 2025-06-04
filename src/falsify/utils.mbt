@@ -6,9 +6,9 @@ fn deltas(u : UInt) -> Iter[UInt] {
     n => {
       let mid = n / 2
       if n % 2 == 0 {
-        deltas(mid).prepend(mid)
+        Iter::concat(Iter::singleton(mid), deltas(mid))
       } else {
-        deltas(mid).prepend(mid + 1)
+        Iter::concat(Iter::singleton(mid + 1), deltas(mid))
       }
     }
   }

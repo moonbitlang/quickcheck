@@ -78,7 +78,7 @@ pub fn map(self : SampleTree, f : (UInt) -> UInt) -> SampleTree {
 
 ///|
 pub fn mod(self : SampleTree, u : UInt) -> SampleTree {
-  map(self, fn(x) { x % u })
+  self.map(fn(x) { x % u })
 }
 
 ///|
