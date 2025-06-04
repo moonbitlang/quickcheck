@@ -39,7 +39,7 @@ pub fn combine_shrunk(
   fn shortcut(st : Iter[SampleTree]) -> Iter[SampleTree] {
     match st.head() {
       None => Iter::empty()
-      _ => st.prepend(Minimal)
+      _ => Iter::concat(Iter::singleton(Minimal), st)
     }
   }
 
@@ -96,5 +96,5 @@ pub fn prim_with(f : (Sample) -> Iter[UInt]) -> Gen[Sample] {
 
 ///|
 pub fn prim() -> Gen[UInt] {
-  prim_with(fn(s) { sample_value(s) |> binary }).fmap(sample_value)
+  prim_with(fn(s) { s.sample_value() |> binary() }).fmap(Sample::sample_value)
 }

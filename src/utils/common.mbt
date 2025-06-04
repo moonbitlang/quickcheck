@@ -5,7 +5,7 @@ let global_counter : Ref[Int] = @ref.new(0)
 ///|
 pub fn fresh_name() -> String {
   let counter = global_counter.val
-  @ref.update(global_counter, fn(x) { x + 1 })
+  global_counter.update(fn(x) { x + 1 })
   "test-" + counter.to_string()
 }
 

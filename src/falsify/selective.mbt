@@ -36,17 +36,15 @@ fn[A, B, C] branch(
 ) -> Gen[C] {
   let left = self.fmap(fn(x) { x.fmap(Either::Left(_)) })
   let right = l.fmap(fn(g) { fn(x) { Right(g(x)) } })
-  select(r, select(right, left))
+  r.select(right.select(left))
 }
 
 ///|
 pub fn[T] ifS(self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
   let const_ = fn(x) { fn(_y) { x } }
-  branch(
-    self.fmap(fn(x) { if x { Left(()) } else { Right(()) } }),
-    t.fmap(const_),
-    e.fmap(const_),
-  )
+  self
+  .fmap(fn(x) { if x { Left(()) } else { Right(()) } })
+  .branch(t.fmap(const_), e.fmap(const_))
 }
 
 ///|

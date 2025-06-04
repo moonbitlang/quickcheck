@@ -107,15 +107,11 @@ pub fn[T, E] falsify(
           }
         }
         TestFailed(e) => {
-          let sf = shrink_from(
-            run_property(prop),
+          let sf = run_property(prop).shrink_from(
             result_is_valid_shrink,
             ((e, run), shrunk),
           )
-          let explain = limit_steps(
-            sf.e_fmap(@tuple.snd),
-            Some(opt.max_shrinks),
-          )
+          let explain = sf.e_fmap(@tuple.snd).limit_steps(Some(opt.max_shrinks))
           let failure = { seed: acc.rng.clone(), run: explain }
           (acc.success, acc.total_discard, Some(failure))
         }

@@ -203,7 +203,7 @@ pub fn[T] scale(self : Gen[T], f : (Int) -> Int) -> Gen[T] {
 
 ///| Resize a generator to a specific value
 pub fn[T] resize(self : Gen[T], size : Int) -> Gen[T] {
-  scale(self, fn(_n) { size })
+  self.scale(fn(_n) { size })
 }
 
 ///| Attempt to generate a value that satisfies a predicate
@@ -415,7 +415,7 @@ pub fn[T : Compare] sorted_list(
   size : Int,
   gen : Gen[T]
 ) -> Gen[@immut/list.T[T]] {
-  list_with_size(size, gen).fmap(@immut/list.sort)
+  list_with_size(size, gen).fmap(@immut/list.T::sort)
 }
 
 ///|
