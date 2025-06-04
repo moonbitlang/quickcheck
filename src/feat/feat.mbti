@@ -57,21 +57,17 @@ fn[T] union(Enumerate[T], Enumerate[T]) -> Enumerate[T]
 pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
 }
-impl Enumerate {
-  en_index[T](Self[T], @bigint.BigInt) -> T
-  eval[T](Self[T]) -> @lazy.LazyList[Finite[T]]
-  fmap[T, U](Self[T], (T) -> U) -> Self[U]
-}
+fn[T] Enumerate::en_index(Self[T], @bigint.BigInt) -> T
+fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
+fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
 impl[T] Add for Enumerate[T]
 
 pub(all) struct Finite[T] {
   fCard : @bigint.BigInt
   fIndex : (@bigint.BigInt) -> T
 }
-impl Finite {
-  op_add[T](Self[T], Self[T]) -> Self[T]
-  to_array[T](Self[T]) -> (@bigint.BigInt, @list.T[T])
-}
+fn[T] Finite::op_add(Self[T], Self[T]) -> Self[T]
+fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.T[T])
 impl[T : Show] Show for Finite[T]
 
 // Type aliases

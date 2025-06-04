@@ -92,43 +92,33 @@ type Failure[E]
 impl[E : Show] Show for Failure[E]
 
 type Gen[T]
-impl Gen {
-  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
-  apS[A, B](Self[(A) -> B], Self[A]) -> Self[B]
-  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
-  fmap[T, U](Self[T], (T) -> U) -> Self[U]
-  ifS[T](Self[Bool], Self[T], Self[T]) -> Self[T]
-  run_gen[T](Self[T], SampleTree) -> (T, Iter[SampleTree])
-  sample[T](Self[T]) -> T
-  select[T, U](Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
-  shrink_from[A, P, N](Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
-}
+fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
+fn[A, B] Gen::apS(Self[(A) -> B], Self[A]) -> Self[B]
+fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
+fn[T] Gen::ifS(Self[Bool], Self[T], Self[T]) -> Self[T]
+fn[T] Gen::run_gen(Self[T], SampleTree) -> (T, Iter[SampleTree])
+fn[T] Gen::sample(Self[T]) -> T
+fn[T, U] Gen::select(Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
+fn[A, P, N] Gen::shrink_from(Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
 
 type IsValidShrink[P, N]
 
 type Property[T, E]
-impl Property {
-  run[T, E](Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
-}
+fn[T, E] Property::run(Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
 
 type Sample
-impl Sample {
-  sample_value(Self) -> UInt
-}
+fn Sample::sample_value(Self) -> UInt
 
 type SampleTree
-impl SampleTree {
-  map(Self, (UInt) -> UInt) -> Self
-  mod(Self, UInt) -> Self
-  view(Self) -> (Sample, Self, Self)
-}
+fn SampleTree::map(Self, (UInt) -> UInt) -> Self
+fn SampleTree::mod(Self, UInt) -> Self
+fn SampleTree::view(Self) -> (Sample, Self, Self)
 
 type ShrinkExplain[P, N]
-impl ShrinkExplain {
-  limit_steps[P, N](Self[P, N], Int?) -> Self[P, N]
-  shrink_history[P, N](Self[P, N]) -> Array[P]
-  shrink_outcome[P, N](Self[P, N]) -> (P, Iter[N]?)
-}
+fn[P, N] ShrinkExplain::limit_steps(Self[P, N], Int?) -> Self[P, N]
+fn[P, N] ShrinkExplain::shrink_history(Self[P, N]) -> Array[P]
+fn[P, N] ShrinkExplain::shrink_outcome(Self[P, N]) -> (P, Iter[N]?)
 impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
 type Success[T]

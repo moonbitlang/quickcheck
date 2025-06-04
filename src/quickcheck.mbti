@@ -203,14 +203,12 @@ pub(all) type Arrow[A, B] (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom[T]
-impl Axiom {
-  new[T]((T) -> Equivalence[T]) -> Self[T]
-  run[T](Self[T], T) -> Equivalence[T]
-  to_property[T, U](Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
-  to_property_eq[T, U : Eq](Self[T], (T) -> U) -> (T) -> Bool
-  to_property_parametric[T, M, N](Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
-  to_property_parametric_eq[T, M, N : Eq](Self[T], (T, M) -> N) -> ((T, M)) -> Bool
-}
+fn[T] Axiom::new((T) -> Equivalence[T]) -> Self[T]
+fn[T] Axiom::run(Self[T], T) -> Equivalence[T]
+fn[T, U] Axiom::to_property(Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
+fn[T, U : Eq] Axiom::to_property_eq(Self[T], (T) -> U) -> (T) -> Bool
+fn[T, M, N] Axiom::to_property_parametric(Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
+fn[T, M, N : Eq] Axiom::to_property_parametric_eq(Self[T], (T, M) -> N) -> ((T, M)) -> Bool
 
 type Callback
 
@@ -224,34 +222,30 @@ pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
 }
-impl Equivalence {
-  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
-  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
-  equal_by[T](Self[T], (T, T) -> Bool) -> Bool
-  fmap[T, U](Self[T], (T) -> U) -> Self[U]
-  is_equal[T : Eq](Self[T]) -> Bool
-  new[T](T, T) -> Self[T]
-}
+fn[T, U] Equivalence::ap(Self[(T) -> U], Self[T]) -> Self[U]
+fn[T, U] Equivalence::bind(Self[T], (T) -> Self[U]) -> Self[U]
+fn[T] Equivalence::equal_by(Self[T], (T, T) -> Bool) -> Bool
+fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
+fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
+fn[T] Equivalence::new(T, T) -> Self[T]
 impl[T : Show] Show for Equivalence[T]
 
 type Gen[T]
-impl Gen {
-  ap[T, U](Self[(T) -> U], Self[T]) -> Self[U]
-  array_with_size[T](Self[T], Int) -> Self[Array[T]]
-  bind[T, U](Self[T], (T) -> Self[U]) -> Self[U]
-  feat_random[T : @feat.Enumerable](Int) -> Self[T]
-  fmap[T, U](Self[T], (T) -> U) -> Self[U]
-  join[T](Self[Self[T]]) -> Self[T]
-  new[T]((Int, @splitmix.RandomState) -> T) -> Self[T]
-  resize[T](Self[T], Int) -> Self[T]
-  run[T](Self[T], Int, @splitmix.RandomState) -> T
-  sample[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> T
-  samples[T](Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> Array[T]
-  scale[T](Self[T], (Int) -> Int) -> Self[T]
-  spawn[T : @moonbitlang/core/quickcheck.Arbitrary]() -> Self[T]
-  such_that[T](Self[T], (T) -> Bool) -> Self[T]
-  such_that_maybe[T](Self[T], (T) -> Bool) -> Self[T?]
-}
+fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
+fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
+fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+fn[T : @feat.Enumerable] Gen::feat_random(Int) -> Self[T]
+fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
+fn[T] Gen::join(Self[Self[T]]) -> Self[T]
+fn[T] Gen::new((Int, @splitmix.RandomState) -> T) -> Self[T]
+fn[T] Gen::resize(Self[T], Int) -> Self[T]
+fn[T] Gen::run(Self[T], Int, @splitmix.RandomState) -> T
+fn[T] Gen::sample(Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> T
+fn[T] Gen::samples(Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> Array[T]
+fn[T] Gen::scale(Self[T], (Int) -> Int) -> Self[T]
+fn[T : @moonbitlang/core/quickcheck.Arbitrary] Gen::spawn() -> Self[T]
+fn[T] Gen::such_that(Self[T], (T) -> Bool) -> Self[T]
+fn[T] Gen::such_that_maybe(Self[T], (T) -> Bool) -> Self[T?]
 impl[P : Testable] Testable for Gen[P]
 
 pub(all) enum Outcome[T] {
@@ -262,13 +256,11 @@ pub(all) enum Outcome[T] {
 impl[T] Show for Outcome[T]
 
 type Printer
-impl Printer {
-  format(Self, String) -> String
-  from_buffer(@buffer.T) -> Self
-  ident(Self, size~ : Int = ..) -> Unit
-  unident(Self) -> Unit
-  write_string(Self, String) -> Unit
-}
+fn Printer::format(Self, String) -> String
+fn Printer::from_buffer(@buffer.T) -> Self
+fn Printer::ident(Self, size~ : Int = ..) -> Unit
+fn Printer::unident(Self) -> Unit
+fn Printer::write_string(Self, String) -> Unit
 
 type Property
 impl Testable for Property
@@ -277,22 +269,18 @@ pub(all) struct Replay {
   rand_state : @splitmix.RandomState
   size : Int
 }
-impl Replay {
-  new(@splitmix.RandomState, Int) -> Self
-}
+fn Replay::new(@splitmix.RandomState, Int) -> Self
 
 type SingleResult
 impl Testable for SingleResult
 
 type State
-impl State {
-  complete_test(Self, Property) -> TestSuccess!TestError
-  find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
-  give_up(Self, Property) -> TestSuccess!TestError
-  local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
-  run_single_test(Self, Property) -> Result[TestSuccess, Self]!TestError
-  run_test(Self, Property) -> TestSuccess!TestError
-}
+fn State::complete_test(Self, Property) -> TestSuccess!TestError
+fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
+fn State::give_up(Self, Property) -> TestSuccess!TestError
+fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
+fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self]!TestError
+fn State::run_test(Self, Property) -> TestSuccess!TestError
 
 type TestError
 
