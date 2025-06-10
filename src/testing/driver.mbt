@@ -1,8 +1,8 @@
 ///|
-typealias List[T] = @immut/list.T[T]
+typealias @immut/list.T as List
 
 ///|
-typealias Arrow[A, B] = @qc.Arrow[A, B]
+typealias @qc.Arrow
 
 ///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {
@@ -73,10 +73,10 @@ test "reject all" {
 
 ///|
 test "label" {
+  let ar : @qc.Arrow[@immut/list.T[Int], Bool] = @qc.Arrow(prop_rev)
   @qc.quick_check!(
     @qc.Arrow(fn(x : List[Int]) {
-      @qc.Arrow(prop_rev)
-      |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
+      @qc.label(ar, if x.is_empty() { "trivial" } else { "non-trivial" })
     }),
   )
 }

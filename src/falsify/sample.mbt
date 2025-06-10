@@ -29,7 +29,7 @@ pub fn view(self : SampleTree) -> (Sample, SampleTree, SampleTree) {
 // Note that SampleTree is implemented Lense
 
 ///|
-pub(all) typealias RandomState = @quickcheck/splitmix.RandomState
+pub typealias @quickcheck/splitmix.RandomState
 
 ///|
 pub fn from_rng(rs : RandomState) -> SampleTree {

@@ -1,5 +1,5 @@
 ///|
-type! TestError {
+suberror TestError {
   Fail(
     num_tests~ : Int,
     num_discarded~ : Int,

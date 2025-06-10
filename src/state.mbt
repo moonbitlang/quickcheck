@@ -1,5 +1,5 @@
 ///|
-typealias List[T] = @immut/list.T[T]
+typealias @immut/list.T as List
 
 ///|
 struct Printer {

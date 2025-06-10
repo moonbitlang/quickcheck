@@ -119,6 +119,10 @@ impl[T : Shrink] Shrink for T? with shrink(x) {
 }
 
 ///|
+///|
+impl Shrink for Unit
+
+///|
 test "shrink option" {
   inspect!(Shrink::shrink((None : Unit?)), content="[]")
   inspect!(

@@ -68,7 +68,7 @@ fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
 }
 
 ///|
-typealias Ret[T, E] = ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
+priv type Ret[T, E] ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 
 ///|
 fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {

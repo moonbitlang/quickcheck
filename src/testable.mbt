@@ -1,5 +1,5 @@
 ///|
-priv type! InternalError String
+priv suberror InternalError String
 
 ///|
 pub(all) type Arrow[A, B] (A) -> B
@@ -8,7 +8,7 @@ pub(all) type Arrow[A, B] (A) -> B
 typealias RoseRes = Rose[SingleResult]
 
 ///|
-typealias Rose[T] = @rose.Rose[T]
+typealias @rose.Rose
 
 ///| TODO: determine the execution of callback by kind
 enum Callback {
@@ -45,12 +45,12 @@ pub impl Testable for Property with property(self) {
 
 ///|
 pub impl Testable for Discard with property(_self) {
-  rejected() |> Testable::property
+  rejected().property()
 }
 
 ///|
 pub impl Testable for Unit with property(_self) {
-  succeed() |> Testable::property
+  succeed().property()
 }
 
 ///|
@@ -65,7 +65,7 @@ pub impl Testable for SingleResult with property(self) {
 
 ///|
 pub impl Testable for Bool with property(self) {
-  lift_bool(self) |> Testable::property
+  lift_bool(self).property()
 }
 
 ///|
@@ -110,7 +110,7 @@ fn lift_bool(b : Bool) -> SingleResult {
 ///|
 fn[T : Testable] lift_option(opt : T?) -> Property {
   match opt {
-    None => rejected() |> Testable::property
+    None => rejected().property()
     Some(x) => x.property()
   }
 }
@@ -165,7 +165,7 @@ pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
 pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
   match cond {
     true => p.property()
-    false => Testable::property(Discard::default())
+    false => Discard::default().property()
   }
 }
 
