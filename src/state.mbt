@@ -71,7 +71,7 @@ struct State {
 
   collects : Coverage
   // Expected result of the test
-  mut expected : Bool?
+  mut expected : Expected
   // Current random state
   mut random_state : RandomState
   // Number of successful shrinks
@@ -105,7 +105,7 @@ fn from_config(cfg : Config) -> State {
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
     collects: Coverage::new(),
-    expected: Some(true),
+    expected: Success,
     random_state: rs,
     num_success_shrinks: 0,
     num_try_shrinks: 0,

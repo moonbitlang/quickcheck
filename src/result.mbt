@@ -5,6 +5,12 @@ pub(all) enum Outcome[T] {
   Fail(T) // Counterexample
 }
 
+pub(all) enum Expected {
+  Fail
+  Success
+  GaveUp
+}
+
 ///|
 pub impl[T] Show for Outcome[T] with output(self, logger) {
   match self {
@@ -28,7 +34,7 @@ pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
 ///|
 struct SingleResult {
   ok : Bool?
-  expect : Bool?
+  expect : Expected
   reason : String
   abort : Bool
   maybe_num_tests : Int?
@@ -62,7 +68,7 @@ pub fn rejected() -> SingleResult {
 impl Default for SingleResult with default() {
   {
     ok: None,
-    expect: Some(true),
+    expect: Success,
     reason: "unknown",
     abort: false,
     maybe_num_tests: None,

@@ -34,15 +34,49 @@ enum TestSuccess {
 }
 
 ///|
-pub fn[P : Testable] quick_check(prop : P) -> Unit!Failure {
+pub fn[P : Testable] quick_check(
+  prop : P,
+  max_shrinks? : Int,
+  max_success? : Int,
+  max_size? : Int,
+  discard_ratio? : Int,
+  expect~ : Expected = Success,
+  abort~ : Bool = false
+) -> Unit!Failure {
+  let prop = map_total_result(prop, fn {
+    res =>
+      {
+        ..res,
+        maybe_num_tests: max_success,
+        maybe_max_test_size: max_size,
+        maybe_max_shrinks: max_shrinks,
+        maybe_discarded_ratio: discard_ratio,
+        expect,
+        abort,
+      }
+  })
   quick_check_with!(Default::default(), prop)
 }
 
 ///|
 pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
-  f : (A) -> B
+  f : (A) -> B,
+  max_shrinks? : Int,
+  max_success? : Int,
+  max_size? : Int,
+  discard_ratio? : Int,
+  expect~ : Expected = Success,
+  abort~ : Bool = false
 ) -> Unit!Failure {
-  quick_check!(Arrow(f))
+  quick_check!(
+    Arrow(f),
+    max_shrinks?,
+    max_success?,
+    max_size?,
+    discard_ratio?,
+    expect~,
+    abort~,
+  )
 }
 
 ///|
@@ -92,7 +126,7 @@ pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
 
 ///|
 pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
-  if self.expected == Some(false) {
+  if self.expected is Fail {
     raise NoneExpectedFail(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
@@ -110,7 +144,7 @@ pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
 
 ///|
 pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
-  if self.expected == None {
+  if self.expected is GaveUp {
     Success(
       num_tests=self.num_success_tests,
       coverage=self.collects,
@@ -188,7 +222,7 @@ pub fn find_failure(
 ) -> TestSuccess!TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   match res.expect {
-    Some(true) | None =>
+    Success | GaveUp =>
       raise TestError::Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, self.compute_size()),
@@ -203,7 +237,7 @@ pub fn find_failure(
         failing_labels=ce.labels.to_array(),
         failing_classes=@sorted_set.new(), // TODO: Add classes
       )
-    Some(false) =>
+    Fail =>
       Success(
         num_tests=self.num_success_tests + 1,
         coverage=self.collects,

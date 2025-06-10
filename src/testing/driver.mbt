@@ -24,7 +24,7 @@ fn prop_rev(l : List[Int]) -> Bool {
 ///|
 test "prop reverse (fail)" {
   let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
-  @qc.quick_check!(prop_rev |> @qc.Arrow |> @qc.expect_fail)
+  @qc.quick_check!(prop_rev |> @qc.Arrow, expect=Fail)
 }
 
 ///|
@@ -39,22 +39,22 @@ test "add comm double" {
 
 ///|
 test "modify max tests" {
-  @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.with_max_success(2000))
+  @qc.quick_check!(@qc.Arrow(prop_rev), max_success=1000)
 }
 
 ///|
 test "large max tests" {
-  @qc.quick_check!(() |> @qc.with_max_success(10000))
+  @qc.quick_check!((), max_success=2000)
 }
 
 ///|
 test "larger max tests" {
-  @qc.quick_check!(() |> @qc.with_max_success(100000))
+  @qc.quick_check!((), max_success=10000)
 }
 
 ///|
 test "add assoc double (expect fail)" {
-  @qc.quick_check!(@qc.Arrow(add_assoc_double) |> @qc.expect_fail)
+  @qc.quick_check!(@qc.Arrow(add_assoc_double), expect=Fail)
 }
 
 ///|
@@ -68,7 +68,7 @@ test "non empty list (with filter)" {
 ///|
 test "reject all" {
   let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
-  @qc.quick_check!(@qc.Arrow(prop_reject) |> @qc.expect_gave_up)
+  @qc.quick_check!(@qc.Arrow(prop_reject), expect=GaveUp)
 }
 
 ///|
@@ -102,7 +102,7 @@ test "label + classes" {
 
 ///|
 test "abort" {
-  @qc.quick_check!(@qc.Arrow(prop_rev) |> @qc.terminate)
+  @qc.quick_check!(@qc.Arrow(prop_rev), abort=true)
 }
 
 ///| Natural Numbers
@@ -201,9 +201,9 @@ test "prop length is not greater" {
 ///|
 test "prop remove not presence with max success" {
   @qc.quick_check!(
-    @qc.Arrow(prop_remove_not_presence)
-    |> @qc.with_max_success(1000)
-    |> @qc.expect_fail,
+    @qc.Arrow(prop_remove_not_presence),
+    max_success=1000,
+    expect=Fail,
   )
 }
 
@@ -213,8 +213,8 @@ test "custom generator" {
     @qc.forall(@qc.Gen::spawn(), fn(i_arr : (Int, Array[Int])) {
       let (x, arr) = i_arr
       not(remove(arr, x).contains(x))
-    })
-    |> @qc.expect_fail,
+    }),
+    expect=Fail,
   )
 }
 
@@ -228,8 +228,8 @@ test "no_duplicate" {
     @qc.forall(@qc.Gen::spawn(), fn(iarr : (Int, Array[Int])) {
       let (x, arr) = iarr
       not(remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
-    })
-    |> @qc.expect_gave_up,
+    }),
+    expect=GaveUp,
   )
 }
 
@@ -241,8 +241,8 @@ test "use one_of" {
         not(remove(a, y).contains(y))
       })
       |> @qc.filter(a.length() != 0)
-    })
-    |> @qc.expect_fail,
+    }),
+    expect=Fail,
   )
 }
 
