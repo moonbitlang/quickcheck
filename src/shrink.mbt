@@ -228,7 +228,7 @@ test "shrink 6-tuple" {
 }
 
 ///|
-impl[T : Shrink + Show] Shrink for @immut/list.T[T] with shrink(xs) {
+impl[T : Shrink] Shrink for @immut/list.T[T] with shrink(xs) {
   let n = xs.length()
   fn shr_sub_terms(lst : @immut/list.T[T]) {
     match lst {
