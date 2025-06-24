@@ -5,7 +5,7 @@ priv suberror InternalError String
 pub(all) type Arrow[A, B] (A) -> B
 
 ///|
-typealias RoseRes = Rose[SingleResult]
+typealias Rose[SingleResult] as RoseRes
 
 ///|
 typealias @rose.Rose
@@ -83,12 +83,12 @@ pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for A
   A,
   P,
 ] with property(self) {
-  forall_shrink(Gen::spawn(), A::shrink, self._)
+  forall_shrink(Gen::spawn(), A::shrink, self.inner())
 }
 
 ///|
 pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
-  prop.property()._
+  prop.property().inner()
 }
 
 ///|
@@ -184,7 +184,7 @@ pub fn[T : Testable, A : Show] forall_shrink(
     shrinking(shrinker, x, fn(a : A) {
       let s = a.to_string()
       counterexample(f(a), s)
-    })._
+    }).inner()
   })
 }
 

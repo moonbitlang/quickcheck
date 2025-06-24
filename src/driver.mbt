@@ -42,7 +42,7 @@ pub fn[P : Testable] quick_check(
   discard_ratio? : Int,
   expect~ : Expected = Success,
   abort~ : Bool = false
-) -> Unit!Failure {
+) -> Unit raise Failure {
   let prop = map_total_result(prop, fn {
     res =>
       {
@@ -55,7 +55,7 @@ pub fn[P : Testable] quick_check(
         abort,
       }
   })
-  quick_check_with!(Default::default(), prop)
+  quick_check_with(Default::default(), prop)
 }
 
 ///|
@@ -67,8 +67,8 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   discard_ratio? : Int,
   expect~ : Expected = Success,
   abort~ : Bool = false
-) -> Unit!Failure {
-  quick_check!(
+) -> Unit raise Failure {
+  quick_check(
     Arrow(f),
     max_shrinks?,
     max_success?,
@@ -80,13 +80,16 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 }
 
 ///|
-pub fn[P : Testable] quick_check_with(cfg : Config, prop : P) -> Unit!Failure {
-  fn f(s : String) -> _!Failure {
-    fail!("\n\{s}")
+pub fn[P : Testable] quick_check_with(
+  cfg : Config,
+  prop : P
+) -> Unit raise Failure {
+  fn f(s : String) -> _ raise Failure {
+    fail("\n\{s}")
   }
 
   try {
-    match quick_check_with_result!(cfg, prop) {
+    match quick_check_with_result(cfg, prop) {
       Success(output~, coverage~, num_tests~) => {
         println(output)
         println(coverage.to_string(num_tests))
@@ -94,10 +97,10 @@ pub fn[P : Testable] quick_check_with(cfg : Config, prop : P) -> Unit!Failure {
     }
   } catch {
     // TODO: Print coverage
-    GaveUp(output~, ..) => f!(output)
+    GaveUp(output~, ..) => f(output)
     Fail(output~, failing_case~, ..) =>
-      f!(output + "\n" + failing_case.join("\n"))
-    NoneExpectedFail(output~, ..) => f!(output)
+      f(output + "\n" + failing_case.join("\n"))
+    NoneExpectedFail(output~, ..) => f(output)
   }
 }
 
@@ -105,27 +108,30 @@ pub fn[P : Testable] quick_check_with(cfg : Config, prop : P) -> Unit!Failure {
 pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P
-) -> TestSuccess!TestError {
+) -> TestSuccess raise TestError {
   from_config(cfg).run_test(prop.property())
 }
 
 ///|
-pub fn run_test(self : State, prop : Property) -> TestSuccess!TestError {
-  loop self.run_single_test!(prop) {
+pub fn run_test(self : State, prop : Property) -> TestSuccess raise TestError {
+  loop self.run_single_test(prop) {
     Ok(res) => res
     Err(ns) =>
       if ns.finished_successfully() {
-        ns.complete_test!(prop)
+        ns.complete_test(prop)
       } else if ns.discarded_too_much() {
-        ns.give_up!(prop)
+        ns.give_up(prop)
       } else {
-        continue ns.run_single_test!(prop)
+        continue ns.run_single_test(prop)
       }
   }
 }
 
 ///|
-pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
+pub fn complete_test(
+  self : State,
+  _prop : Property
+) -> TestSuccess raise TestError {
   if self.expected is Fail {
     raise NoneExpectedFail(
       num_tests=self.num_success_tests,
@@ -143,7 +149,7 @@ pub fn complete_test(self : State, _prop : Property) -> TestSuccess!TestError {
 }
 
 ///|
-pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
+pub fn give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
   if self.expected is GaveUp {
     Success(
       num_tests=self.num_success_tests,
@@ -164,18 +170,18 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess!TestError {
 pub fn run_single_test(
   self : State,
   prop : Property
-) -> Result[TestSuccess, State]!TestError {
+) -> Result[TestSuccess, State] raise TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
-  let { val: res, branch: ts } = prop._.run(self.compute_size(), rnd1)
+  let { val: res, branch: ts } = prop.inner().run(self.compute_size(), rnd1)
   fn next(
-    end_with : (State, Property) -> TestSuccess!TestError,
+    end_with : (State, Property) -> TestSuccess raise TestError,
     next_state : State,
     p : Property
-  ) -> Result[TestSuccess, State]!TestError {
+  ) -> Result[TestSuccess, State] raise TestError {
     update_state(next_state)
     if res.abort {
-      end_with!(next_state, p) |> Ok
+      end_with(next_state, p) |> Ok
     } else {
       Err(next_state)
     }
@@ -191,7 +197,7 @@ pub fn run_single_test(
   self.callback_post_test(res)
   match res {
     { ok: Some(true), .. } =>
-      next!(
+      next(
         State::complete_test,
         {
           ..stc,
@@ -200,9 +206,9 @@ pub fn run_single_test(
         },
         prop,
       )
-    { ok: Some(false), .. } => Ok(self.find_failure!(res, ts))
+    { ok: Some(false), .. } => Ok(self.find_failure(res, ts))
     { ok: None, .. } =>
-      next!(
+      next(
         State::give_up,
         {
           ..self,
@@ -219,7 +225,7 @@ pub fn find_failure(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]]
-) -> TestSuccess!TestError {
+) -> TestSuccess raise TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   match res.expect {
     Success | GaveUp =>

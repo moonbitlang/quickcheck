@@ -19,8 +19,8 @@ impl Shrink for Int with shrink(x) {
 
 ///|
 test "shrink int" {
-  inspect!(Shrink::shrink(100), content="[99, 97, 94, 88, 75, 50, 0]")
-  inspect!(Shrink::shrink(0), content="[]")
+  inspect(Shrink::shrink(100), content="[99, 97, 94, 88, 75, 50, 0]")
+  inspect(Shrink::shrink(0), content="[]")
 }
 
 ///|
@@ -34,7 +34,7 @@ impl Shrink for Int64 with shrink(x) {
 
 ///|
 test "shrink int64" {
-  inspect!(
+  inspect(
     Shrink::shrink(10000L),
     content="[9999, 9998, 9996, 9991, 9981, 9961, 9922, 9844, 9688, 9375, 8750, 7500, 5000, 0]",
   )
@@ -51,7 +51,7 @@ impl Shrink for UInt with shrink(x) {
 
 ///|
 test "shrink uint" {
-  inspect!(
+  inspect(
     Shrink::shrink(37000U),
     content="[36999, 36998, 36996, 36991, 36982, 36964, 36928, 36856, 36711, 36422, 35844, 34688, 32375, 27750, 18500, 0]",
   )
@@ -68,7 +68,7 @@ impl Shrink for UInt64 with shrink(x) {
 
 ///|
 test "shrink uint64" {
-  inspect!(
+  inspect(
     Shrink::shrink((42000 : UInt64)),
     content="[41999, 41998, 41995, 41990, 41980, 41959, 41918, 41836, 41672, 41344, 40688, 39375, 36750, 31500, 21000, 0]",
   )
@@ -86,8 +86,8 @@ impl Shrink for Bool with shrink(b) {
 
 ///|
 test "shrink boolean" {
-  inspect!(Shrink::shrink(true), content="[false]")
-  inspect!(Shrink::shrink(false), content="[]")
+  inspect(Shrink::shrink(true), content="[false]")
+  inspect(Shrink::shrink(false), content="[]")
 }
 
 ///|
@@ -103,7 +103,7 @@ impl Shrink for Char with shrink(c) {
 
 ///|
 test "shrink char" {
-  inspect!(
+  inspect(
     Shrink::shrink('测'),
     content="['浊', '浌', 'a', 'A', '1', '\\n', '\\t', '\\b', '\\\\', '\\'', '\\r', ' ']",
   )
@@ -119,13 +119,14 @@ impl[T : Shrink] Shrink for T? with shrink(x) {
 }
 
 ///|
+
 ///|
 impl Shrink for Unit
 
 ///|
 test "shrink option" {
-  inspect!(Shrink::shrink((None : Unit?)), content="[]")
-  inspect!(
+  inspect(Shrink::shrink((None : Unit?)), content="[]")
+  inspect(
     Shrink::shrink(Some(1000)),
     content="[Some(999), Some(997), Some(993), Some(985), Some(969), Some(938), Some(875), Some(750), Some(500), Some(0), None]",
   )
@@ -143,11 +144,11 @@ impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
 test "shrink result" {
   let b : Result[Bool, Int] = Err(100)
   let x : Result[Bool, Int] = Ok(true)
-  inspect!(
+  inspect(
     Shrink::shrink(b),
     content="[Err(99), Err(97), Err(94), Err(88), Err(75), Err(50), Err(0)]",
   )
-  inspect!(Shrink::shrink(x), content="[Ok(false)]")
+  inspect(Shrink::shrink(x), content="[Ok(false)]")
 }
 
 ///|
@@ -161,7 +162,7 @@ impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
 ///|
 test "shrink tuple" {
   let x = (120, true)
-  inspect!(
+  inspect(
     Shrink::shrink(x),
     content="[(119, true), (117, true), (113, true), (105, true), (90, true), (60, true), (0, true), (120, false)]",
   )
@@ -221,7 +222,7 @@ impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shr
 ///|
 test "shrink 6-tuple" {
   let x = (20, 'A', 30U, true, true, true)
-  inspect!(
+  inspect(
     Shrink::shrink(x),
     content="[(19, 'A', 30, true, true, true), (18, 'A', 30, true, true, true), (15, 'A', 30, true, true, true), (10, 'A', 30, true, true, true), (0, 'A', 30, true, true, true), (20, '@', 30, true, true, true), (20, 'B', 30, true, true, true), (20, 'a', 30, true, true, true), (20, 'A', 30, true, true, true), (20, '1', 30, true, true, true), (20, '\\n', 30, true, true, true), (20, '\\t', 30, true, true, true), (20, '\\b', 30, true, true, true), (20, '\\\\', 30, true, true, true), (20, '\\'', 30, true, true, true), (20, '\\r', 30, true, true, true), (20, ' ', 30, true, true, true), (20, 'A', 29, true, true, true), (20, 'A', 27, true, true, true), (20, 'A', 23, true, true, true), (20, 'A', 15, true, true, true), (20, 'A', 0, true, true, true), (20, 'A', 30, false, true, true), (20, 'A', 30, true, false, true), (20, 'A', 30, true, true, false)]",
   )
@@ -251,7 +252,7 @@ impl[T : Shrink] Shrink for @immut/list.T[T] with shrink(xs) {
 test "shrink int list" {
   let il : @immut/list.T[Int] = @immut/list.of([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
-  inspect!(
+  inspect(
     s,
     content="[@list.of([2, 3, 4, 5, 6]), @list.of([1, 3, 4, 5, 6]), @list.of([1, 2, 4, 5, 6]), @list.of([1, 2, 3, 5, 6]), @list.of([1, 2, 3, 4, 6]), @list.of([4, 5, 6]), @list.of([0, 2, 3, 4, 5, 6]), @list.of([1, 1, 3, 4, 5, 6]), @list.of([1, 0, 3, 4, 5, 6]), @list.of([1, 2, 2, 4, 5, 6]), @list.of([1, 2, 0, 4, 5, 6]), @list.of([1, 2, 3, 3, 5, 6]), @list.of([1, 2, 3, 2, 5, 6]), @list.of([1, 2, 3, 0, 5, 6]), @list.of([1, 2, 3, 4, 4, 6]), @list.of([1, 2, 3, 4, 3, 6]), @list.of([1, 2, 3, 4, 0, 6]), @list.of([1, 2, 3, 4, 5, 5]), @list.of([1, 2, 3, 4, 5, 3]), @list.of([1, 2, 3, 4, 5, 0])]",
   )
@@ -282,7 +283,7 @@ impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
 test "shrink array" {
   let ar = [1, 2, 3, 4, 5, 6]
   let s = Shrink::shrink(ar)
-  inspect!(
+  inspect(
     s,
     content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [4, 5, 6], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
   )
@@ -311,7 +312,7 @@ impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
 ///|
 test "shrink iter" {
   let it = [1, 2, 3, 4, 5, 6].iter()
-  inspect!(
+  inspect(
     Shrink::shrink(it),
     content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [1, 2, 3, 4, 5], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
   )

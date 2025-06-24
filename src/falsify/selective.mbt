@@ -1,4 +1,5 @@
 // Selective Applicative Functor
+
 ///|
 enum Either[L, R] {
   Left(L)
