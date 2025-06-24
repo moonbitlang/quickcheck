@@ -1,5 +1,3 @@
 {
-  "import": [
-    "moonbitlang/quickcheck/lazy"
-  ]
+  "import": ["moonbitlang/quickcheck/lazy"]
 }
