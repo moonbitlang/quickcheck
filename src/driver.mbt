@@ -173,7 +173,7 @@ pub fn run_single_test(
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let { val: res, branch: ts } = prop.inner().run(self.compute_size(), rnd1)
-  fn next(
+  letrec next = fn(
     end_with : (State, Property) -> TestSuccess raise TestError,
     next_state : State,
     p : Property
@@ -185,8 +185,7 @@ pub fn run_single_test(
       Err(next_state)
     }
   }
-
-  fn update_state(st0) {
+  and update_state = fn(st0) {
     self.random_state = rnd2
     st0.update_state_from_res(res)
   }
