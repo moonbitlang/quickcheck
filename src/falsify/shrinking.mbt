@@ -46,10 +46,10 @@ pub fn[P, N] shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
 
 ///|
 pub fn[P, N] shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
-  loop self.initial, self.history {
-    _, ShrinkTo(p, h) => continue p, h
-    p, ShrinkDone(ns) => (p, Some(ns))
-    p, ShrinkStopped => (p, None)
+  loop (self.initial, self.history) {
+    (_, ShrinkTo(p, h)) => continue (p, h)
+    (p, ShrinkDone(ns)) => (p, Some(ns))
+    (p, ShrinkStopped) => (p, None)
   }
 }
 

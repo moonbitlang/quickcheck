@@ -52,11 +52,11 @@ pub fn[T] apply_while_list(
   f : (T) -> T,
   cond : (T) -> Bool
 ) -> @immut/list.T[T] {
-  loop x, @immut/list.T::Nil {
-    acc, lst => {
+  loop (x, @immut/list.T::Nil) {
+    (acc, lst) => {
       let next = f(acc)
       if cond(next) {
-        continue next, Cons(next, lst)
+        continue (next, Cons(next, lst))
       } else {
         break lst
       }
@@ -70,11 +70,11 @@ pub fn[T] apply_while_array(
   f : (T) -> T,
   cond : (T) -> Bool
 ) -> Array[T] {
-  loop x, [] {
-    acc, lst => {
+  loop (x, []) {
+    (acc, lst) => {
       let next = f(acc)
       if cond(next) {
-        continue next, [next, ..lst]
+        continue (next, [next, ..lst])
       } else {
         break lst
       }

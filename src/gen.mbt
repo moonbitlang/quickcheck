@@ -49,13 +49,13 @@ pub fn[T] Gen::samples(
 
 ///| Helper function for feat_random
 fn[T] feat_helper(enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
-  loop enumerate.parts, size {
-    @lazy.Nil, _ => abort("uniform: empty enumeration")
-    parts, bound => {
+  loop (enumerate.parts, size) {
+    (@lazy.Nil, _) => abort("uniform: empty enumeration")
+    (parts, bound) => {
       let (incl, rest) = parts.split_at(bound)
       let fin = @feat.fin_mconcat(incl)
       match fin.fCard {
-        0 => continue rest, 1
+        0 => continue (rest, 1)
         _ => break integer_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })
       }
     }
@@ -401,12 +401,12 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 
 ///|
 pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
-  loop size, pure(@immut/list.Nil) {
-    n, acc =>
+  loop (size, pure(@immut/list.Nil)) {
+    (n, acc) =>
       if n <= 0 {
         break acc
       } else {
-        continue n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc)
+        continue (n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc))
       }
   }
 }
