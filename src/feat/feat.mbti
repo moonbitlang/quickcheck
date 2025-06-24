@@ -15,10 +15,6 @@ fn[T] default() -> Enumerate[T]
 
 fn[T] empty() -> Enumerate[T]
 
-fn[T] en_index(Enumerate[T], @bigint.BigInt) -> T
-
-fn[T] eval(Enumerate[T]) -> @lazy.LazyList[Finite[T]]
-
 fn[M, N] fin_app(Finite[(M) -> N], Finite[M]) -> Finite[N]
 
 fn[M, N] fin_bind(Finite[M], (M) -> Finite[N]) -> Finite[N]
@@ -39,15 +35,11 @@ fn[T] fin_pure(T) -> Finite[T]
 
 fn[T] fin_union(Finite[T], Finite[T]) -> Finite[T]
 
-fn[T, U] fmap(Enumerate[T], (T) -> U) -> Enumerate[U]
-
 fn[T] pay(() -> Enumerate[T]) -> Enumerate[T]
 
 fn[T, U] product(Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
 fn[T] singleton(T) -> Enumerate[T]
-
-fn[T] to_array(Finite[T]) -> (@bigint.BigInt, @list.T[T])
 
 fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 
@@ -71,7 +63,7 @@ fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.T[T])
 impl[T : Show] Show for Finite[T]
 
 // Type aliases
-pub typealias LazyList[T] = @lazy.LazyList[T]
+pub typealias @lazy.LazyList as LazyList
 
 // Traits
 pub(open) trait Enumerable {

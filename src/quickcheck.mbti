@@ -12,13 +12,7 @@ import(
 // Values
 fn alphabet() -> Gen[Char]
 
-fn[T, U] ap(Gen[(T) -> U], Gen[T]) -> Gen[U]
-
-fn[T] array_with_size(Gen[T], Int) -> Gen[Array[T]]
-
 fn[A : Eq] associative((A, A) -> A) -> ((A, A, A)) -> Bool
-
-fn[T, U] bind(Gen[T], (T) -> Gen[U]) -> Gen[U]
 
 fn[P : Testable] callback(P, Callback) -> Property
 
@@ -30,18 +24,16 @@ fn[P : Testable, T : Show] collect(P, T) -> Property
 
 fn[A, B : Eq] commutative((A, A) -> B) -> ((A, A)) -> Bool
 
-fn complete_test(State, Property) -> TestSuccess!TestError
-
 fn[P : Testable] counterexample(P, String) -> Property
 
 fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
 fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn[T] equal_by(Equivalence[T], (T, T) -> Bool) -> Bool
-
+#deprecated
 fn[P : Testable] expect_fail(P) -> Property
 
+#deprecated
 fn[P : Testable] expect_gave_up(P) -> Property
 
 fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
@@ -49,8 +41,6 @@ fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
 fn failed() -> SingleResult
 
 fn[P : Testable] filter(P, Bool) -> Property
-
-fn find_failure(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
 
 fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
 
@@ -60,23 +50,15 @@ fn[T] flatten_option(Gen[T]?) -> Gen[T?]
 
 fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
 
-fn[T, U] fmap(Gen[T], (T) -> U) -> Gen[U]
-
 fn[T : Testable, A : Show] forall(Gen[A], (A) -> T) -> Property
 
 fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Property
-
-fn format(Printer, String) -> String
 
 fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
 
 fn[T] frequency_list(@list.T[(Int, T)]) -> Gen[T]
 
-fn give_up(State, Property) -> TestSuccess!TestError
-
 fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
-
-fn ident(Printer, size~ : Int = ..) -> Unit
 
 fn[P : Testable] if_fail(P, () -> Unit) -> Property
 
@@ -89,10 +71,6 @@ fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
 fn[A : Eq, B] inverse((A) -> B, (B) -> A) -> (A) -> Bool
 
 fn[A : Eq] involutory((A) -> A) -> (A) -> Bool
-
-fn[T : Eq] is_equal(Equivalence[T]) -> Bool
-
-fn[T] join(Gen[Gen[T]]) -> Gen[T]
 
 fn[P : Testable] label(P, String) -> Property
 
@@ -107,8 +85,6 @@ fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
 fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.T[T]]
-
-fn local_min(State, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
 
 fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
@@ -138,25 +114,17 @@ fn[T] pure_eq(T) -> Equivalence[T]
 
 fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
-fn[P : Testable] quick_check(P) -> Unit!Failure
+fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect~ : Expected = .., abort~ : Bool = ..) -> Unit raise Failure
 
-fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B) -> Unit!Failure
+fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect~ : Expected = .., abort~ : Bool = ..) -> Unit raise Failure
 
-fn[P : Testable] quick_check_with(Config, P) -> Unit!Failure
+fn[P : Testable] quick_check_with(Config, P) -> Unit raise Failure
 
-fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess!TestError
+fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
 
 fn rejected() -> SingleResult
 
-fn[T] resize(Gen[T], Int) -> Gen[T]
-
 fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
-
-fn run_single_test(State, Property) -> Result[TestSuccess, State]!TestError
-
-fn run_test(State, Property) -> TestSuccess!TestError
-
-fn[T] scale(Gen[T], (Int) -> Int) -> Gen[T]
 
 fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
@@ -168,38 +136,28 @@ fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.T[T]]
 
 fn succeed() -> SingleResult
 
-fn[T] such_that(Gen[T], (T) -> Bool) -> Gen[T]
-
-fn[T] such_that_maybe(Gen[T], (T) -> Bool) -> Gen[T?]
-
+#deprecated
 fn[P : Testable] terminate(P) -> Property
-
-fn[T, U] to_property(Axiom[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
-
-fn[T, U : Eq] to_property_eq(Axiom[T], (T) -> U) -> (T) -> Bool
-
-fn[T, M, N] to_property_parametric(Axiom[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
-
-fn[T, M, N : Eq] to_property_parametric_eq(Axiom[T], (T, M) -> N) -> ((T, M)) -> Bool
 
 fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
 fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
 
-fn unident(Printer) -> Unit
-
+#deprecated
 fn[P : Testable] with_discarded_ratio(P, Int) -> Property
 
+#deprecated
 fn[P : Testable] with_max_shrinks(P, Int) -> Property
 
+#deprecated
 fn[P : Testable] with_max_size(P, Int) -> Property
 
+#deprecated
 fn[P : Testable] with_max_success(P, Int) -> Property
-
-fn write_string(Printer, String) -> Unit
 
 // Types and methods
 pub(all) type Arrow[A, B] (A) -> B
+fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom[T]
@@ -229,6 +187,12 @@ fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
 fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
 fn[T] Equivalence::new(T, T) -> Self[T]
 impl[T : Show] Show for Equivalence[T]
+
+pub(all) enum Expected {
+  Fail
+  Success
+  GaveUp
+}
 
 type Gen[T]
 fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
@@ -275,24 +239,43 @@ type SingleResult
 impl Testable for SingleResult
 
 type State
-fn State::complete_test(Self, Property) -> TestSuccess!TestError
-fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess!TestError
-fn State::give_up(Self, Property) -> TestSuccess!TestError
+fn State::complete_test(Self, Property) -> TestSuccess raise TestError
+fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
+fn State::give_up(Self, Property) -> TestSuccess raise TestError
 fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
-fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self]!TestError
-fn State::run_test(Self, Property) -> TestSuccess!TestError
+fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
+fn State::run_test(Self, Property) -> TestSuccess raise TestError
 
 type TestError
 
 type TestSuccess
 
 // Type aliases
-pub typealias RandomState = @splitmix.RandomState
+pub typealias @splitmix.RandomState as RandomState
 
 // Traits
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self] = _
+  shrink(Self) -> Iter[Self]
 }
+impl Shrink for Unit
+impl Shrink for Bool
+impl Shrink for Char
+impl Shrink for Int
+impl Shrink for Int64
+impl Shrink for UInt
+impl Shrink for UInt64
+impl Shrink for Double
+impl Shrink for String
+impl[T : Shrink] Shrink for T?
+impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
+impl[X : Shrink] Shrink for Array[X]
+impl[X : Shrink] Shrink for Iter[X]
+impl[T : Shrink] Shrink for @list.T[T]
+impl[A : Shrink, B : Shrink] Shrink for (A, B)
+impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (A, B, C, D, E)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shrink for (A, B, C, D, E, F)
 
 pub(open) trait Testable {
   property(Self) -> Property
