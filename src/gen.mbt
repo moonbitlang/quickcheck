@@ -209,21 +209,20 @@ pub fn[T] resize(self : Gen[T], size : Int) -> Gen[T] {
 ///| Attempt to generate a value that satisfies a predicate
 /// If failures reach the maximum size, return None
 pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
-  fn attempt {
-    m, n =>
-      if m > n {
-        pure(None)
-      } else {
-        self
-        .resize(m)
-        .bind(fn(x) {
-          if pred(x) {
-            x |> Some |> pure
-          } else {
-            attempt(m + 1, n)
-          }
-        })
-      }
+  fn attempt(m, n) {
+    if m > n {
+      pure(None)
+    } else {
+      self
+      .resize(m)
+      .bind(fn(x) {
+        if pred(x) {
+          x |> Some |> pure
+        } else {
+          attempt(m + 1, n)
+        }
+      })
+    }
   }
 
   sized(fn(n) { attempt(n, 2 * n) })
@@ -233,9 +232,11 @@ pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
 pub fn[T] such_that(self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
   self
   .such_that_maybe(pred)
-  .bind(fn {
-    None => sized(fn { n => self.such_that(pred).resize(n + 1) })
-    Some(x) => pure(x)
+  .bind(fn(y) {
+    match y {
+      None => sized(n => self.such_that(pred).resize(n + 1))
+      Some(x) => pure(x)
+    }
   })
 }
 

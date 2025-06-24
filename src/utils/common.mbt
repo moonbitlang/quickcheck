@@ -87,12 +87,15 @@ pub fn[T] id(x : T) -> T = "%identity"
 
 ///|
 pub fn[T, U] const_(t : T) -> (U) -> T {
-  fn { _ => t }
+  _ => t
 }
 
 ///|
 pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
-  fn { (x, y) => f(x, y) }
+  fn(pair) {
+    let (x, y) = pair
+    f(x, y)
+  }
 }
 
 ///|

@@ -96,7 +96,7 @@ pub fn[P : Testable] map_total_result(
   prop : P,
   f : (SingleResult) -> SingleResult
 ) -> Property {
-  run_prop(prop).fmap(fn { rose => rose.fmap(f) })
+  run_prop(prop).fmap(_.fmap(f))
 }
 
 ///|

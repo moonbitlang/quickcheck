@@ -16,11 +16,13 @@ pub fn[P, N] limit_steps(
   self : ShrinkExplain[P, N],
   n : Int?
 ) -> ShrinkExplain[P, N] {
-  fn go {
-    0, ShrinkTo(_) => ShrinkStopped
-    n, ShrinkTo(x, xs) => ShrinkTo(x, go(n - 1, xs))
-    _, ShrinkDone(xs) => ShrinkDone(xs)
-    _, ShrinkStopped => ShrinkStopped
+  fn go(x, y) {
+    match (x, y) {
+      (0, ShrinkTo(_)) => ShrinkStopped
+      (n, ShrinkTo(x, xs)) => ShrinkTo(x, go(n - 1, xs))
+      (_, ShrinkDone(xs)) => ShrinkDone(xs)
+      (_, ShrinkStopped) => ShrinkStopped
+    }
   }
 
   match n {
@@ -61,9 +63,11 @@ enum IsValidShrink[P, N] {
 
 ///|
 fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
-  fn {
-    Ok(x) => f(x)
-    Err(y) => g(y)
+  fn(val) {
+    match val {
+      Ok(x) => f(x)
+      Err(y) => g(y)
+    }
   }
 }
 
@@ -73,11 +77,17 @@ priv type Ret[T, E] ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 ///|
 fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   fn left(a : T) -> Ret[T, E] {
-    fn { (l, r) => (Iter::concat(Iter::singleton(a), l), r) }
+    fn(pair) {
+      let (l, r) = pair
+      (Iter::concat(Iter::singleton(a), l), r)
+    }
   }
 
   fn right(a : E) -> Ret[T, E] {
-    fn { (l, r) => (l, Iter::concat(Iter::singleton(a), r)) }
+    fn(pair) {
+      let (l, r) = pair
+      (l, Iter::concat(Iter::singleton(a), r))
+    }
   }
 
   let r = either(left, right)
@@ -113,15 +123,19 @@ pub fn[A, P, N] shrink_from(
 
 ///|
 pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
-  fn shrinker {
-    Shrunk(_) => Iter::empty()
-    NotShrunk(_) => abort("todo")
+  fn shrinker(x) {
+    match x {
+      Shrunk(_) => Iter::empty()
+      NotShrunk(_) => abort("todo")
+    }
     // @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
   }
 
-  fn aux {
-    NotShrunk(_) => val
-    Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()
+  fn aux(x) {
+    match x {
+      NotShrunk(_) => val
+      Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()
+    }
   }
 
   prim_with(shrinker).fmap(aux)
