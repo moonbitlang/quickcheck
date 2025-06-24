@@ -112,6 +112,11 @@ priv enum Nat {
 } derive(Show)
 
 ///|
+impl @qc.Shrink for Nat with shrink(_) {
+  Iter::empty()
+}
+
+///|
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(fn() {
     @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ(_))
