@@ -6,12 +6,6 @@ import(
 )
 
 // Values
-fn[T, U] ap(Gen[(T) -> U], Gen[T]) -> Gen[U]
-
-fn[A, B] apS(Gen[(A) -> B], Gen[A]) -> Gen[B]
-
-fn[T, U] bind(Gen[T], (T) -> Gen[U]) -> Gen[U]
-
 fn[T : Show, E] collect(String, @list.T[T]) -> Property[Unit, E]
 
 fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
@@ -22,15 +16,11 @@ fn[T, E] discard() -> Property[T, E]
 
 fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
 
-fn[T, U] fmap(Gen[T], (T) -> U) -> Gen[U]
-
 fn from_rng(@splitmix.RandomState) -> SampleTree
 
 fn from_seed(UInt64) -> SampleTree
 
 fn[T, E] gen((T) -> String?, Gen[T]) -> Property[T, E]
-
-fn[T] ifS(Gen[Bool], Gen[T], Gen[T]) -> Gen[T]
 
 fn info(String) -> Property[Unit, String]
 
@@ -40,13 +30,7 @@ fn init_test_run() -> TestRun
 
 fn[E] label(String, @list.T[String]) -> Property[Unit, E]
 
-fn[P, N] limit_steps(ShrinkExplain[P, N], Int?) -> ShrinkExplain[P, N]
-
-fn map(SampleTree, (UInt) -> UInt) -> SampleTree
-
 fn[T, E] mk_property((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
-
-fn mod(SampleTree, UInt) -> SampleTree
 
 fn[T] new((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
 
@@ -56,29 +40,13 @@ fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
 
 fn[T] pure(T) -> Gen[T]
 
-fn[T] run_gen(Gen[T], SampleTree) -> (T, Iter[SampleTree])
-
 fn[T, E] run_property(Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
-fn[T] sample(Gen[T]) -> T
-
-fn sample_value(Sample) -> UInt
-
 fn[A, B, C] second((B) -> C, (A, B)) -> (A, C)
-
-fn[T, U] select(Gen[(T) -> U], Gen[Either[T, U]]) -> Gen[U]
-
-fn[A, P, N] shrink_from(Gen[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
-
-fn[P, N] shrink_history(ShrinkExplain[P, N]) -> Array[P]
-
-fn[P, N] shrink_outcome(ShrinkExplain[P, N]) -> (P, Iter[N]?)
 
 fn[T] shrink_to_list(T, Iter[T]) -> Gen[T]
 
 fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
-
-fn view(SampleTree) -> (Sample, SampleTree, SampleTree)
 
 // Types and methods
 type Config
@@ -130,9 +98,9 @@ type TestRun
 impl Show for TestRun
 
 // Type aliases
-pub typealias List[T] = @list.T[T]
+pub typealias @list.T as List
 
-pub typealias RandomState = @splitmix.RandomState
+pub typealias @splitmix.RandomState as RandomState
 
 // Traits
 

@@ -5,8 +5,6 @@ fn empty_queue() -> Queue
 
 fn enqueue(Queue, Int) -> Queue
 
-fn is_empty(Queue) -> Bool
-
 fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 // Types and methods
