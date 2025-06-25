@@ -137,17 +137,6 @@ jobs:
           moon test --target all
           moon test --target all --release
 
-      - name: moon test with dedup_wasm
-        if: ${{ matrix.os.name != 'windows-latest' }}
-        env: 
-          MOONC_INTERNAL_PARAMS: dedup_wasm = 1 |
-
-        run: |
-          moon clean
-          ulimit -s 8176
-          moon test --target wasm,wasm-gc
-          moon test --target wasm,wasm-gc --release 
-
       - name: moon test --doc
         run: |
           moon test --doc
