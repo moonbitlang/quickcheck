@@ -143,6 +143,9 @@ impl Eq for Nat with op_equal(self, other) {
 }
 
 ///|
+impl @qc.Shrink for Nat
+
+///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
   let (a, b) = ab
   a + b == b + a
