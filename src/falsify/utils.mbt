@@ -19,7 +19,7 @@ fn binary(u : UInt) -> Iter[UInt] {
   fn go(n : UInt, xs : Iter[_]) {
     match xs.head() {
       None => Iter::empty()
-      Some(x) => go(n + x, xs.drop(1)).prepend(n)
+      Some(x) => Iter::singleton(n) + go(n + x, xs.drop(1))
     }
   }
 

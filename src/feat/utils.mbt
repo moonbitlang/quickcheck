@@ -23,18 +23,23 @@ fn[A, B] convolution(
 
 ///|
 fn[T] reversals(l : LazyList[T]) -> LazyList[LazyList[T]] {
-  fn go {
-    _, @lazy.Nil => @lazy.Nil
-    rev, Cons(x, xs) => {
-      let rev1 = @lazy.Cons(x, rev)
-      Cons(
-        rev1,
-        @lazy.LazyRef::from_thunk(fn() {
-          go(@lazy.LazyRef::from_value(rev1), xs.force())
-        }),
-      )
+  fn go(
+    rev : @lazy.LazyRef[LazyList[T]],
+    xs : LazyList[T]
+  ) -> LazyList[LazyList[T]] {
+    match (rev, xs) {
+      (_, @lazy.Nil) => @lazy.Nil
+      (rev, @lazy.Cons(x, xs)) => {
+        let rev1 = @lazy.Cons(x, rev)
+        @lazy.Cons(
+          rev1,
+          @lazy.LazyRef::from_thunk(fn() {
+            go(@lazy.LazyRef::from_value(rev1), xs.force())
+          }),
+        )
+      }
     }
   }
 
-  go(@lazy.LazyRef::from_value(Nil), l)
+  go(@lazy.LazyRef::from_value(@lazy.Nil), l)
 }

@@ -15,8 +15,9 @@ let test_forall : @qc.Property = @qc.forall(@qc.Gen::spawn(), fn(
 fn[A, B] coerce(x : A) -> B = "%identity"
 
 ///|
-let test_curry : @qc.Arrow[Array[Int], @qc.Arrow[Array[Int], Bool]] = prop_symmetry
-  |> @tuple.curry
+let test_curry : @qc.Arrow[Array[Int], @qc.Arrow[Array[Int], Bool]] = (fn(a) {
+    fn(b) { prop_symmetry(a, b) }
+  })
   |> coerce
 
 ///|
@@ -28,15 +29,15 @@ let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = (fn(p) {
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="forall", fn() { b.keep(@qc.quick_check?(test_forall)) })
+  b.bench(name="forall", fn() { b.keep(try? @qc.quick_check(test_forall)) })
 }
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="curry", fn() { b.keep(@qc.quick_check?(test_curry)) })
+  b.bench(name="curry", fn() { b.keep(try? @qc.quick_check(test_curry)) })
 }
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="tuple", fn() { b.keep(@qc.quick_check?(test_tuple)) })
+  b.bench(name="tuple", fn() { b.keep(try? @qc.quick_check(test_tuple)) })
 }

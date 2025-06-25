@@ -52,11 +52,11 @@ pub fn[T] apply_while_list(
   f : (T) -> T,
   cond : (T) -> Bool
 ) -> @immut/list.T[T] {
-  loop x, @immut/list.T::Nil {
-    acc, lst => {
+  loop (x, @immut/list.T::Nil) {
+    (acc, lst) => {
       let next = f(acc)
       if cond(next) {
-        continue next, Cons(next, lst)
+        continue (next, Cons(next, lst))
       } else {
         break lst
       }
@@ -70,11 +70,11 @@ pub fn[T] apply_while_array(
   f : (T) -> T,
   cond : (T) -> Bool
 ) -> Array[T] {
-  loop x, [] {
-    acc, lst => {
+  loop (x, []) {
+    (acc, lst) => {
       let next = f(acc)
       if cond(next) {
-        continue next, [next, ..lst]
+        continue (next, [next, ..lst])
       } else {
         break lst
       }
@@ -87,12 +87,12 @@ pub fn[T] id(x : T) -> T = "%identity"
 
 ///|
 pub fn[T, U] const_(t : T) -> (U) -> T {
-  fn { _ => t }
+  fn(_) { t }
 }
 
 ///|
 pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
-  fn { (x, y) => f(x, y) }
+  tuple => f(tuple.0, tuple.1)
 }
 
 ///|

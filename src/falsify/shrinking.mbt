@@ -16,11 +16,13 @@ pub fn[P, N] limit_steps(
   self : ShrinkExplain[P, N],
   n : Int?
 ) -> ShrinkExplain[P, N] {
-  fn go {
-    0, ShrinkTo(_) => ShrinkStopped
-    n, ShrinkTo(x, xs) => ShrinkTo(x, go(n - 1, xs))
-    _, ShrinkDone(xs) => ShrinkDone(xs)
-    _, ShrinkStopped => ShrinkStopped
+  fn go(n : Int, history : ShrinkHistory[P, N]) -> ShrinkHistory[P, N] {
+    match (n, history) {
+      (0, ShrinkTo(_, _)) => ShrinkStopped
+      (n, ShrinkTo(x, xs)) => ShrinkTo(x, go(n - 1, xs))
+      (_, ShrinkDone(xs)) => ShrinkDone(xs)
+      (_, ShrinkStopped) => ShrinkStopped
+    }
   }
 
   match n {
@@ -44,10 +46,10 @@ pub fn[P, N] shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
 
 ///|
 pub fn[P, N] shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
-  loop self.initial, self.history {
-    _, ShrinkTo(p, h) => continue p, h
-    p, ShrinkDone(ns) => (p, Some(ns))
-    p, ShrinkStopped => (p, None)
+  loop (self.initial, self.history) {
+    (_, ShrinkTo(p, h)) => continue (p, h)
+    (p, ShrinkDone(ns)) => (p, Some(ns))
+    (p, ShrinkStopped) => (p, None)
   }
 }
 
@@ -61,27 +63,38 @@ enum IsValidShrink[P, N] {
 
 ///|
 fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
-  fn {
-    Ok(x) => f(x)
-    Err(y) => g(y)
+  fn(result : Result[A, B]) -> C {
+    match result {
+      Ok(x) => f(x)
+      Err(y) => g(y)
+    }
   }
 }
 
 ///|
-priv type Ret[T, E] ((Iter[T], Iter[E])) -> (Iter[T], Iter[E])
 
 ///|
 fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
-  fn left(a : T) -> Ret[T, E] {
-    fn { (l, r) => (Iter::concat(Iter::singleton(a), l), r) }
+  fn left(a : T) -> ((Iter[T], Iter[E])) -> (Iter[T], Iter[E]) {
+    fn(p) {
+      let (l, r) = p
+      (Iter::concat(Iter::singleton(a), l), r)
+    }
   }
 
-  fn right(a : E) -> Ret[T, E] {
-    fn { (l, r) => (l, Iter::concat(Iter::singleton(a), r)) }
+  fn right(a : E) -> ((Iter[T], Iter[E])) -> (Iter[T], Iter[E]) {
+    fn(p) {
+      let (l, r) = p
+      (l, Iter::concat(Iter::singleton(a), r))
+    }
   }
 
   let r = either(left, right)
-  Iter::fold(val, fn(x, y) { r(y)(x) }, init=(Iter::empty(), Iter::empty()))
+  Iter::fold(
+    val,
+    fn(acc, item) { r(item)(acc) },
+    init=(Iter::empty(), Iter::empty()),
+  )
 }
 
 ///|
@@ -91,7 +104,7 @@ pub fn[A, P, N] shrink_from(
   ps : (P, Iter[SampleTree])
 ) -> ShrinkExplain[P, N] {
   let (p, shrunk) = ps
-  fn go(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
+  letrec go = fn(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
     let candidates = shrunk.map(fn(x) { self.run_gen(x) |> consider })
     let res = partition_result(candidates)
     match res.0.head() {
@@ -99,8 +112,7 @@ pub fn[A, P, N] shrink_from(
       Some((p, shrunk)) => ShrinkTo(p, go(shrunk))
     }
   }
-
-  fn consider(ak) {
+  and consider = fn(ak) {
     let (a, shrunk) = ak
     match prop(a) {
       Valid(p) => Ok((p, shrunk))
@@ -113,17 +125,19 @@ pub fn[A, P, N] shrink_from(
 
 ///|
 pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
-  fn shrinker {
-    Shrunk(_) => Iter::empty()
-    NotShrunk(_) => abort("todo")
-    // @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
+  let shrinker = fn(s) {
+    match s {
+      Shrunk(_) => Iter::empty()
+      NotShrunk(_) => abort("todo")
+      // @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
+    }
   }
-
-  fn aux {
-    NotShrunk(_) => val
-    Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()
+  let aux = fn(s) {
+    match s {
+      NotShrunk(_) => val
+      Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()
+    }
   }
-
   prim_with(shrinker).fmap(aux)
 }
 
