@@ -5,49 +5,17 @@ import(
 )
 
 // Values
-fn[T] concat(LazyList[T], LazyList[T]) -> LazyList[T]
-
 fn[X : Default] default() -> LazyList[X]
-
-fn[T] drop(LazyList[T], Int) -> LazyList[T]
-
-fn[T] drop_while(LazyList[T], (T) -> Bool) -> LazyList[T]
-
-fn[T, U] fold_left(LazyList[T], (U, T) -> U, init~ : U) -> U
-
-fn[T, U] fold_right(LazyList[T], (T, U) -> U, init~ : U) -> U
-
-fn[T] force(LazyRef[T]) -> T
 
 fn[T] from_list(@list.T[T]) -> LazyList[T]
 
-fn[T] head(LazyList[T]) -> T
-
-fn[T] index(LazyList[T], Int) -> T
-
 fn[X : Add] infinite_stream(X, X) -> LazyList[X]
-
-fn[T] length(LazyList[T]) -> Int
-
-fn[T, U] map(LazyList[T], (T) -> U) -> LazyList[U]
 
 fn[T] repeat(T) -> LazyList[T]
 
-fn[T] split_at(LazyList[T], Int) -> (LazyList[T], LazyList[T])
-
 fn[X : Add] sum(LazyList[X], init~ : X) -> X
 
-fn[T] tail(LazyList[T]) -> LazyList[T]
-
-fn[T] tails(LazyList[T]) -> LazyList[LazyList[T]]
-
-fn[T] take(LazyList[T], Int) -> LazyList[T]
-
-fn[T] take_while(LazyList[T], (T) -> Bool) -> LazyList[T]
-
 fn[T] to_lazy(@list.T[T]) -> LazyList[T]
-
-fn[T] unfold(LazyList[T], (LazyList[T]) -> (T, LazyList[T])?) -> LazyList[T]
 
 fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.T[B]) -> @list.T[C]
 
