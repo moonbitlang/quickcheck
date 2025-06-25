@@ -104,19 +104,20 @@ pub fn[A, P, N] shrink_from(
   ps : (P, Iter[SampleTree])
 ) -> ShrinkExplain[P, N] {
   let (p, shrunk) = ps
-  letrec go = fn(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
+  fn consider(ak) {
+    let (a, shrunk) = ak
+    match prop(a) {
+      Valid(p) => Ok((p, shrunk))
+      Invalid(n) => Err(n)
+    }
+  }
+
+  fn go(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
     let candidates = shrunk.map(fn(x) { self.run_gen(x) |> consider })
     let res = partition_result(candidates)
     match res.0.head() {
       None => ShrinkDone(res.1)
       Some((p, shrunk)) => ShrinkTo(p, go(shrunk))
-    }
-  }
-  and consider = fn(ak) {
-    let (a, shrunk) = ak
-    match prop(a) {
-      Valid(p) => Ok((p, shrunk))
-      Invalid(n) => Err(n)
     }
   }
 
