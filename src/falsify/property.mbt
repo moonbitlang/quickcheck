@@ -80,6 +80,7 @@ pub fn[T : Show, E] collect(l : String, ls : List[T]) -> Property[Unit, E] {
 }
 
 // Running Generators
+
 ///|
 pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
   fn aux(run : TestRun) -> (T) -> (TestResult[T, E], TestRun) {

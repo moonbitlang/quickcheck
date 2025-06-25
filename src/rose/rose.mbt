@@ -1,4 +1,5 @@
 // Rose Tree used for shrinking
+
 ///|
 pub(all) struct Rose[T] {
   val : T

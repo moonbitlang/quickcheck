@@ -49,13 +49,13 @@ pub fn[T] Gen::samples(
 
 ///| Helper function for feat_random
 fn[T] feat_helper(enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
-  loop enumerate.parts, size {
-    @lazy.Nil, _ => abort("uniform: empty enumeration")
-    parts, bound => {
+  loop (enumerate.parts, size) {
+    (@lazy.Nil, _) => abort("uniform: empty enumeration")
+    (parts, bound) => {
       let (incl, rest) = parts.split_at(bound)
       let fin = @feat.fin_mconcat(incl)
       match fin.fCard {
-        0 => continue rest, 1
+        0 => continue (rest, 1)
         _ => break integer_bound(fin.fCard).fmap(fn(i) { (fin.fIndex)(i) })
       }
     }
@@ -209,21 +209,20 @@ pub fn[T] resize(self : Gen[T], size : Int) -> Gen[T] {
 ///| Attempt to generate a value that satisfies a predicate
 /// If failures reach the maximum size, return None
 pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
-  fn attempt {
-    m, n =>
-      if m > n {
-        pure(None)
-      } else {
-        self
-        .resize(m)
-        .bind(fn(x) {
-          if pred(x) {
-            x |> Some |> pure
-          } else {
-            attempt(m + 1, n)
-          }
-        })
-      }
+  fn attempt(m, n) {
+    if m > n {
+      pure(None)
+    } else {
+      self
+      .resize(m)
+      .bind(fn(x) {
+        if pred(x) {
+          x |> Some |> pure
+        } else {
+          attempt(m + 1, n)
+        }
+      })
+    }
   }
 
   sized(fn(n) { attempt(n, 2 * n) })
@@ -233,9 +232,11 @@ pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
 pub fn[T] such_that(self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
   self
   .such_that_maybe(pred)
-  .bind(fn {
-    None => sized(fn { n => self.such_that(pred).resize(n + 1) })
-    Some(x) => pure(x)
+  .bind(fn(res) {
+    match res {
+      None => sized(fn(n) { self.such_that(pred).resize(n + 1) })
+      Some(x) => pure(x)
+    }
   })
 }
 
@@ -245,7 +246,7 @@ pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
   } else {
-    let sum = arr.map(@tuple.fst).fold(Int::op_add, init=0)
+    let sum = arr.map(fn(t) { t.0 }).fold(Int::op_add, init=0)
     if sum < 1 {
       abort("frequency: total weight is less than 1")
     } else {
@@ -400,12 +401,12 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 
 ///|
 pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
-  loop size, pure(@immut/list.Nil) {
-    n, acc =>
+  loop (size, pure(@immut/list.Nil)) {
+    (n, acc) =>
       if n <= 0 {
         break acc
       } else {
-        continue n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc)
+        continue (n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc))
       }
   }
 }

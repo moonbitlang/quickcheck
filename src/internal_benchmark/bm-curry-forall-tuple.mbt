@@ -1,7 +1,7 @@
 ///|
 /// 
 fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
-  x == y == (y == x)
+  (x == y) == (y == x)
 }
 
 ///|
@@ -20,10 +20,10 @@ let test_curry : @qc.Arrow[Array[Int], @qc.Arrow[Array[Int], Bool]] = prop_symme
   |> coerce
 
 ///|
-let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = fn(p) {
+let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = (fn(p) {
     let (x, y) = p
     prop_symmetry(x, y)
-  }
+  })
   |> @qc.Arrow
 
 ///|

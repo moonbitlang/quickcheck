@@ -114,12 +114,14 @@ fn from_config(cfg : Config) -> State {
 }
 
 // Deep copy of the state
+
 ///|
 fn clone(self : State) -> State {
   { ..self }
 }
 
 // Computes the test size from the state
+
 ///|
 fn compute_size(self : State) -> Int {
   match self {
@@ -213,7 +215,7 @@ priv type ListCompare[T] List[T] derive(Eq, Show)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
-  match (self._, other._) {
+  match (self.inner(), other.inner()) {
     (Cons(x, xs), Cons(y, ys)) => {
       let res = T::compare(x, y)
       if res == 0 {
@@ -269,10 +271,10 @@ fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
 fn label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each(fn(list, i) {
-    if list._.is_empty() {
+    if list.inner().is_empty() {
       return
     } else {
-      let l = list._.to_array().join(", ")
+      let l = list.inner().to_array().join(", ")
       res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
     }
   })
