@@ -64,7 +64,7 @@ pub fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
 
 ///|
 pub fn[M, N] fin_app(f : Finite[(M) -> N], e : Finite[M]) -> Finite[N] {
-  fin_fmap(fn { (g, x) => g(x) }, fin_cart(f, e))
+  fin_fmap(fn(p) { let (g, x) = p; g(x) }, fin_cart(f, e))
 }
 
 ///|
@@ -104,9 +104,9 @@ pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 pub fn[T] to_array(self : Finite[T]) -> (BigInt, @immut/list.T[T]) {
   (
     self.fCard,
-    loop self.fCard, @immut/list.Nil {
-      0, acc => acc
-      n, acc => continue n - 1, Cons((self.fIndex)(n), acc)
+    loop (self.fCard, @immut/list.Nil) {
+      (0, acc) => acc
+      (n, acc) => continue (n - 1, Cons((self.fIndex)(n), acc))
     },
   )
 }

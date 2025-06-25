@@ -139,13 +139,13 @@ fn compute_size(self : State) -> Int {
       num_recent_discarded_tests: d,
       ..,
     } => {
-      fn clamp {
-        x, l, h => @math.maximum(l, @math.minimum(x, h))
+      fn clamp(x, l, h) {
+        @math.maximum(l, @math.minimum(x, h))
       }
 
       let dDenom = if mdr > 0 { clamp(mss * mdr / 3, 1, 10) } else { 1 }
-      fn round_to {
-        n, m => n / m * m
+      fn round_to(n, m) {
+        n / m * m
       }
 
       if round_to(n, mts) + mts <= mss || n >= mss || mss % mts == 0 {
@@ -191,17 +191,21 @@ fn discarded_too_much(self : State) -> Bool {
 
 ///|
 fn callback_post_test(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(fn {
-    PostTest(_, f) => f(self, res)
-    _ => ()
+  res.callbacks.each(fn(cb) {
+    match cb {
+      PostTest(_, f) => f(self, res)
+      _ => ()
+    }
   })
 }
 
 ///|
 fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(fn {
-    PostFinalFailure(_, f) => f(self, res)
-    _ => ()
+  res.callbacks.each(fn(cb) {
+    match cb {
+      PostFinalFailure(_, f) => f(self, res)
+      _ => ()
+    }
   })
 }
 
@@ -256,13 +260,12 @@ fn label_incr(self : Coverage, key : List[String]) -> Unit {
 
 ///|
 fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
-  classes.each(fn {
-    (s, b) => {
-      let i = if b { 1 } else { 0 }
-      match self.classes.get(s) {
-        Some(x) => self.classes[s] = x + i
-        None => self.classes[s] = i
-      }
+  classes.each(item => {
+    let (s, b) = item
+    let i = if b { 1 } else { 0 }
+    match self.classes.get(s) {
+      Some(x) => self.classes[s] = x + i
+      None => self.classes[s] = i
     }
   })
 }

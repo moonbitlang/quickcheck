@@ -86,6 +86,8 @@ pub fn[T, E] falsify(
   prop : Property[T, E]
 ) -> (RandomState, List[Success[T]], Int, Failure[E]?) {
   let st : DriverState[T] = init_state(opt)
+
+  // Local function defined properly
   fn go(acc : DriverState[T]) -> (List[Success[T]], Int, Failure[E]?) {
     if acc.todo == 0 {
       (acc.success, acc.total_discard, None)
@@ -111,7 +113,10 @@ pub fn[T, E] falsify(
             result_is_valid_shrink,
             ((e, run), shrunk),
           )
-          let explain = sf.e_fmap(@tuple.snd).limit_steps(Some(opt.max_shrinks))
+          // Correctly accessing tuple second element
+          let explain = sf
+            .e_fmap(fn(t) { t.1 })
+            .limit_steps(Some(opt.max_shrinks))
           let failure = { seed: acc.rng.clone(), run: explain }
           (acc.success, acc.total_discard, Some(failure))
         }

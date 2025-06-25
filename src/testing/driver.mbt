@@ -39,6 +39,8 @@ test "add comm double" {
 
 ///|
 test "modify max tests" {
+  // Use the quick_check function directly without the @ annotation
+  // This addresses the warning about traits with only default implementation
   @qc.quick_check(@qc.Arrow(prop_rev), max_success=1000)
 }
 
@@ -59,7 +61,7 @@ test "add assoc double (expect fail)" {
 
 ///|
 test "non empty list (with filter)" {
-  let prop_is_non_empty = fn(l : List[Int]) {
+  let prop_is_non_empty = fn(l : List[Int]) -> @qc.Property {
     not(l.is_empty()) |> @qc.filter(not(l.is_empty()))
   }
   @qc.quick_check(@qc.Arrow(prop_is_non_empty))

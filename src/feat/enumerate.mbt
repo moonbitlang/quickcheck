@@ -25,13 +25,13 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 
 ///|
 pub fn[T] en_index(self : Enumerate[T], idx : BigInt) -> T {
-  loop self.parts, idx {
-    Nil, _ => abort("index out of bounds")
-    Cons(f, rest), i =>
+  loop (self.parts, idx) {
+    (Nil, _) => abort("index out of bounds")
+    (Cons(f, rest), i) =>
       if i < f.fCard {
         (f.fIndex)(i)
       } else {
-        continue rest.force(), i - f.fCard
+        continue (rest.force(), i - f.fCard)
       }
   }
 }
@@ -48,7 +48,7 @@ pub impl[T] Add for Enumerate[T] with op_add(self, other) {
 
 ///|
 pub fn[T, U] fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
-  { parts: self.parts.map(fn { x => fin_fmap(f, x) }) }
+  { parts: self.parts.map(fn(x) { fin_fmap(f, x) }) }
 }
 
 ///|
@@ -71,7 +71,7 @@ fn[T, U] prod_helper(
 
 ///|
 pub fn[T, U] app(f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
-  product(f, e).fmap(fn { (ff, x) => ff(x) })
+  product(f, e).fmap(fn(t) { (t.0)(t.1) })
 }
 
 ///|

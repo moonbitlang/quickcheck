@@ -43,17 +43,16 @@ pub fn[P : Testable] quick_check(
   expect~ : Expected = Success,
   abort~ : Bool = false
 ) -> Unit raise Failure {
-  let prop = map_total_result(prop, fn {
-    res =>
-      {
-        ..res,
-        maybe_num_tests: max_success,
-        maybe_max_test_size: max_size,
-        maybe_max_shrinks: max_shrinks,
-        maybe_discarded_ratio: discard_ratio,
-        expect,
-        abort,
-      }
+  let prop = map_total_result(prop, fn(res) {
+    {
+      ..res,
+      maybe_num_tests: max_success,
+      maybe_max_test_size: max_size,
+      maybe_max_shrinks: max_shrinks,
+      maybe_discarded_ratio: discard_ratio,
+      expect,
+      abort,
+    }
   })
   quick_check_with(Default::default(), prop)
 }
@@ -174,20 +173,19 @@ pub fn run_single_test(
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let { val: res, branch: ts } = prop.inner().run(self.compute_size(), rnd1)
-  fn next(
+  letrec next = fn(
     end_with : (State, Property) -> TestSuccess raise TestError,
     next_state : State,
     p : Property
   ) -> Result[TestSuccess, State] raise TestError {
     update_state(next_state)
     if res.abort {
-      end_with(next_state, p) |> Ok
+      Ok(end_with(next_state, p))
     } else {
       Err(next_state)
     }
   }
-
-  fn update_state(st0) {
+  and update_state = fn(st0 : State) {
     self.random_state = rnd2
     st0.update_state_from_res(res)
   }
