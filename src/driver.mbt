@@ -43,17 +43,16 @@ pub fn[P : Testable] quick_check(
   expect~ : Expected = Success,
   abort~ : Bool = false
 ) -> Unit raise Failure {
-  let prop = map_total_result(prop, fn {
-    res =>
-      {
-        ..res,
-        maybe_num_tests: max_success,
-        maybe_max_test_size: max_size,
-        maybe_max_shrinks: max_shrinks,
-        maybe_discarded_ratio: discard_ratio,
-        expect,
-        abort,
-      }
+  let prop = map_total_result(prop, fn(res) {
+    {
+      ..res,
+      maybe_num_tests: max_success,
+      maybe_max_test_size: max_size,
+      maybe_max_shrinks: max_shrinks,
+      maybe_discarded_ratio: discard_ratio,
+      expect,
+      abort,
+    }
   })
   quick_check_with(Default::default(), prop)
 }

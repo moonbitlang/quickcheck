@@ -45,7 +45,10 @@ impl @feat.Enumerable for SingleTree with enumerate() {
 
 ///|
 pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
-  fn { (x, y) => f(x, y) }
+  fn(t) {
+    let (x, y) = t
+    f(x, y)
+  }
 }
 
 ///|
@@ -62,7 +65,7 @@ priv struct Forest[T] {
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
   @feat.pay(fn() {
-    @feat.Enumerable::enumerate().fmap(fn { forest => { forest, } })
+    @feat.Enumerable::enumerate().fmap(fn(forest) { { forest, } })
   })
 }
 
@@ -178,6 +181,6 @@ test "frequency" {
 ///|
 test "sized trivial" {
   let gen : @qc.Gen[Int] = @qc.sized(@qc.pure)
-  let arr = Array::makei(10, fn { i => gen.sample(size=i) })
+  let arr = Array::makei(10, fn(i) { gen.sample(size=i) })
   inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 }
