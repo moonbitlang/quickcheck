@@ -5,6 +5,7 @@ pub(all) enum Outcome[T] {
   Fail(T) // Counterexample
 }
 
+///|
 pub(all) enum Expected {
   Fail
   Success

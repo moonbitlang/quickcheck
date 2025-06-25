@@ -2,6 +2,7 @@
 let global_counter : Ref[Int] = @ref.new(0)
 
 // Generate a fresh name
+
 ///|
 pub fn fresh_name() -> String {
   let counter = global_counter.val
