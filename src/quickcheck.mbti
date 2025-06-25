@@ -257,6 +257,27 @@ pub typealias @splitmix.RandomState as RandomState
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self] = _
 }
+impl Shrink for Unit
+impl Shrink for Bool
+impl Shrink for Char
+impl Shrink for Int
+impl Shrink for Int64
+impl Shrink for UInt
+impl Shrink for UInt64
+impl Shrink for Float
+impl Shrink for Double
+impl Shrink for String
+impl[T : Shrink] Shrink for T?
+impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
+impl Shrink for Bytes
+impl[X : Shrink] Shrink for Array[X]
+impl[X : Shrink] Shrink for Iter[X]
+impl[T : Shrink] Shrink for @list.T[T]
+impl[A : Shrink, B : Shrink] Shrink for (A, B)
+impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (A, B, C, D, E)
+impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shrink for (A, B, C, D, E, F)
 
 pub(open) trait Testable {
   property(Self) -> Property
