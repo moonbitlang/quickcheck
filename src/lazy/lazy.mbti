@@ -5,7 +5,7 @@ import(
 )
 
 // Values
-fn[X : Default] default() -> LazyList[X]
+fn[X] default() -> LazyList[X]
 
 fn[T] from_list(@list.T[T]) -> LazyList[T]
 

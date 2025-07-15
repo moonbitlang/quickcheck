@@ -140,7 +140,7 @@ fn compute_size(self : State) -> Int {
       ..,
     } => {
       fn clamp(x, l, h) {
-        @math.maximum(l, @math.minimum(x, h))
+        @cmp.maximum(l, @cmp.minimum(x, h))
       }
 
       let dDenom = if mdr > 0 { clamp(mss * mdr / 3, 1, 10) } else { 1 }
@@ -149,7 +149,7 @@ fn compute_size(self : State) -> Int {
       }
 
       if round_to(n, mts) + mts <= mss || n >= mss || mss % mts == 0 {
-        @math.minimum(n % mts + d / dDenom, mts)
+        @cmp.minimum(n % mts + d / dDenom, mts)
       } else {
         (n % mts * mts / (mss % mts) + d / dDenom) % mts
       }
@@ -165,12 +165,16 @@ fn add_coverages(self : State, res : SingleResult) -> Unit {
 
 ///|
 fn update_state_from_res(self : State, result : SingleResult) -> Unit {
-  self.max_success_tests_ = result.maybe_num_tests.or(self.max_success_tests_)
-  self.max_discarded_ratio_ = result.maybe_discarded_ratio.or(
+  self.max_success_tests_ = result.maybe_num_tests.unwrap_or(
+    self.max_success_tests_,
+  )
+  self.max_discarded_ratio_ = result.maybe_discarded_ratio.unwrap_or(
     self.max_discarded_ratio_,
   )
-  self.max_test_size_ = result.maybe_max_test_size.or(self.max_test_size_)
-  self.max_shrinks_ = result.maybe_max_shrinks.or(self.max_shrinks_)
+  self.max_test_size_ = result.maybe_max_test_size.unwrap_or(
+    self.max_test_size_,
+  )
+  self.max_shrinks_ = result.maybe_max_shrinks.unwrap_or(self.max_shrinks_)
   self.expected = result.expect
 }
 
@@ -183,7 +187,7 @@ fn finished_successfully(self : State) -> Bool {
 fn discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
-    @math.maximum(self.num_success_tests, self.max_success_tests_)
+    @cmp.maximum(self.num_success_tests, self.max_success_tests_)
   } else {
     false
   }
