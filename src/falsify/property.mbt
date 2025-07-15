@@ -62,7 +62,7 @@ pub fn info(msg : String) -> Property[Unit, String] {
 ///|
 pub fn[E] label(label : String, vals : List[String]) -> Property[Unit, E] {
   fn add_values(x : @sorted_set.T[String]?) -> @sorted_set.T[String] {
-    let s = x.or(@sorted_set.new())
+    let s = x.unwrap_or(@sorted_set.new())
     s.union(@sorted_set.from_iter(vals.iter()))
   }
 

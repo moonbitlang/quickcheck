@@ -1,5 +1,6 @@
 {
   "import": [
     "moonbitlang/quickcheck/lazy"
-  ]
+  ],
+  "warn-list": "-1"
 }

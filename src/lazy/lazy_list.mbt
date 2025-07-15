@@ -5,7 +5,7 @@ pub(all) enum LazyList[T] {
 }
 
 ///|
-pub fn[X : Default] default() -> LazyList[X] {
+pub fn[X] default() -> LazyList[X] {
   Nil
 }
 

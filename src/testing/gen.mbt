@@ -138,12 +138,9 @@ test "one of" {
 
 ///|
 test "one of array" {
-  inspect(
-    @qc.one_of_array(["a", "b", "c"]).samples(size=50),
-    content=
-      #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
-    ,
-  )
+  let result =
+    #|["a", "a", "b", "a", "c", "a", "b", "a", "c", "b", "c", "c", "a", "a", "c", "b", "b", "a", "b", "a", "c", "a", "a", "b", "b", "c", "b", "a", "b", "a", "b", "a", "c", "b", "c", "c", "c", "b", "a", "c", "a", "a", "a", "a", "b", "b", "a", "b", "c", "b"]
+  inspect(@qc.one_of_array(["a", "b", "c"]).samples(size=50), content=result)
 }
 
 ///|
