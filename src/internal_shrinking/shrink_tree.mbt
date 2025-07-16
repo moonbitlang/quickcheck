@@ -10,14 +10,11 @@ pub impl[T : Show] Show for ShrinkTree[T] with output(self, logger) {
 }
 
 ///|
-pub fn[T : Show] draw(
-  self : ShrinkTree[T],
-  depth : Int
-) -> @immut/list.T[String] {
+pub fn[T : Show] draw(self : ShrinkTree[T], depth : Int) -> @list.T[String] {
   if depth == 0 {
-    return Cons("limit reach", Nil)
+    return @list.singleton("limit reach")
   }
-  fn shift(first : String, other : String, x : @immut/list.T[String]) {
+  fn shift(first : String, other : String, x : @list.T[String]) {
     @lazy.zip_lazy_normal(
       String::op_add,
       @lazy.Cons(first, @lazy.LazyRef::from_value(@lazy.repeat(other))),
@@ -25,19 +22,20 @@ pub fn[T : Show] draw(
     )
   }
 
-  fn draw_sub(l : @immut/list.T[ShrinkTree[T]]) {
+  fn draw_sub(l : @list.T[ShrinkTree[T]]) {
     match l {
-      @immut/list.Nil => @immut/list.Nil
-      Cons(t, Nil) => Cons("│", shift("└─ ", "   ", t.draw(depth - 1)))
-      Cons(t, ts) =>
-        @immut/list.T::concat(
-          Cons("│", shift("├─ ", "│  ", t.draw(depth - 1))),
+      Empty => @list.empty()
+      More(t, tail=Empty) =>
+        shift("└─ ", "   ", t.draw(depth - 1)).add("│")
+      More(t, tail=ts) =>
+        @list.T::concat(
+          shift("├─ ", "│  ", t.draw(depth - 1)).add("│"),
           draw_sub(ts),
         )
     }
   }
 
-  Cons(self.leaf.to_string(), draw_sub(@immut/list.from_iter(self.branch)))
+  draw_sub(@list.from_iter(self.branch)).add(self.leaf.to_string())
 }
 
 ///|

@@ -3,7 +3,7 @@ package "moonbitlang/quickcheck"
 import(
   "moonbitlang/core/bigint"
   "moonbitlang/core/buffer"
-  "moonbitlang/core/immut/list"
+  "moonbitlang/core/list"
   "moonbitlang/core/quickcheck/splitmix"
   "moonbitlang/quickcheck/feat"
   "moonbitlang/quickcheck/rose"

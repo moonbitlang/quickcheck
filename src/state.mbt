@@ -1,5 +1,5 @@
 ///|
-typealias @immut/list.T as List
+typealias @list.T as List
 
 ///|
 struct Printer {
@@ -224,7 +224,7 @@ priv type ListCompare[T] List[T] derive(Eq, Show)
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
   match (self.inner(), other.inner()) {
-    (Cons(x, xs), Cons(y, ys)) => {
+    (More(x, tail=xs), More(y, tail=ys)) => {
       let res = T::compare(x, y)
       if res == 0 {
         Compare::compare(ListCompare(xs), ListCompare(ys))
@@ -232,9 +232,9 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
         res
       }
     }
-    (Cons(_), Nil) => 1
-    (Nil, Cons(_)) => -1
-    (Nil, Nil) => 0
+    (More(_), Empty) => 1
+    (Empty, More(_)) => -1
+    (Empty, Empty) => 0
   }
 }
 

@@ -1,5 +1,5 @@
 ///|
-pub typealias @immut/list.T as List
+pub typealias @list.T as List
 
 ///|
 struct TestRun {
@@ -10,7 +10,7 @@ struct TestRun {
 
 ///|
 pub fn init_test_run() -> TestRun {
-  { log: Nil, deterministic: true, labels: @immut/hashmap.new() }
+  { log: @list.empty(), deterministic: true, labels: @immut/hashmap.new() }
 }
 
 ///|
@@ -55,7 +55,7 @@ pub fn[T, E] discard() -> Property[T, E] {
 ///|
 pub fn info(msg : String) -> Property[Unit, String] {
   mk_property(fn(run) {
-    pure((TestPassed(()), { ..run, log: Cons(msg, run.log) }))
+    pure((TestPassed(()), { ..run, log: run.log.add(msg) }))
   })
 }
 
@@ -87,7 +87,7 @@ pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
     fn(x) {
       match f(x) {
         None => (TestPassed(x), { ..run, deterministic: false })
-        Some(msg) => (TestPassed(x), { ..run, log: Cons(msg, run.log) })
+        Some(msg) => (TestPassed(x), { ..run, log: run.log.add(msg) })
       }
     }
   }

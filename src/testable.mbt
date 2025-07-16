@@ -135,12 +135,12 @@ pub fn[P : Testable, T] shrinking(
 
 ///|
 pub fn[P : Testable] callback(p : P, cb : Callback) -> Property {
-  map_total_result(p, fn(res) { { ..res, callbacks: Cons(cb, res.callbacks) } })
+  map_total_result(p, fn(res) { { ..res, callbacks: res.callbacks.add(cb) } })
 }
 
 ///| Attaches a label to a test case
 pub fn[P : Testable] label(p : P, s : String) -> Property {
-  map_total_result(p, fn(res) { { ..res, labels: Cons(s, res.labels) } })
+  map_total_result(p, fn(res) { { ..res, labels: res.labels.add(s) } })
 }
 
 ///| Attaches a label (Show) to a test case
@@ -150,15 +150,13 @@ pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
 
 ///| Classifies a test case based on a condition
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
-  map_total_result(p, fn(res) {
-    { ..res, classes: Cons((s, cond), res.classes) }
-  })
+  map_total_result(p, fn(res) { { ..res, classes: res.classes.add((s, cond)) } })
 }
 
 ///| Adds a string to the counterexample if the property fails
 pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
   let cb = callback(p, PostFinalFailure(CounterExample, fn(_st, _res) {  }))
-  map_total_result(cb, fn(res) { { ..res, test_case: Cons(s, res.test_case) } })
+  map_total_result(cb, fn(res) { { ..res, test_case: res.test_case.add(s) } })
 }
 
 ///| Filters a property based on a condition

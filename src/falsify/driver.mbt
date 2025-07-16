@@ -51,7 +51,7 @@ fn[T] append_success(
   {
     ..acc,
     rng,
-    success: Cons(success, acc.success),
+    success: acc.success.add(success),
     todo: acc.todo - 1,
     discarded: 0,
   }
@@ -61,7 +61,7 @@ fn[T] append_success(
 pub fn[T] init_state(opt : Config) -> DriverState[T] {
   {
     rng: opt.replay.unwrap_or(@quickcheck/splitmix.new()),
-    success: Nil,
+    success: @list.empty(),
     todo: opt.tests,
     discarded: 0,
     total_discard: 0,
@@ -101,7 +101,7 @@ pub fn[T, E] falsify(
           let success : Success[T] = { result: x, seed: now.clone(), run }
           if run.deterministic {
             match (acc.success, acc.total_discard) {
-              (Nil, 0) => (Cons(success, Nil), 0, None)
+              (Empty, 0) => (@list.singleton(success), 0, None)
               _ => abort("impossible")
             }
           } else {

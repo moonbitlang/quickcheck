@@ -107,12 +107,12 @@ pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 }
 
 ///|
-pub fn[T] to_array(self : Finite[T]) -> (BigInt, @immut/list.T[T]) {
+pub fn[T] to_array(self : Finite[T]) -> (BigInt, @list.T[T]) {
   (
     self.fCard,
-    loop (self.fCard, @immut/list.Nil) {
+    loop (self.fCard, @list.empty()) {
       (0, acc) => acc
-      (n, acc) => continue (n - 1, Cons((self.fIndex)(n), acc))
+      (n, acc) => continue (n - 1, acc.add((self.fIndex)(n)))
     },
   )
 }

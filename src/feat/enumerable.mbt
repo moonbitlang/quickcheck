@@ -37,11 +37,11 @@ pub impl Enumerable for UInt64 with enumerate() {
 }
 
 ///|
-pub impl[E : Enumerable] Enumerable for @immut/list.T[E] with enumerate() {
+pub impl[E : Enumerable] Enumerable for @list.T[E] with enumerate() {
   consts(
-    @immut/list.of([
-      singleton(Nil),
-      unary(@utils.pair_function(@immut/list.Cons(_, _))),
+    @list.of([
+      singleton(@list.empty()),
+      unary(@utils.pair_function(fn(e : E, lst : @list.T[E]) { lst.add(e) })),
     ]),
   )
 }

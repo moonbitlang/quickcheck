@@ -1,5 +1,5 @@
 ///|
-typealias @immut/list.T as List
+typealias @list.T as List
 
 ///|
 typealias @qc.Arrow
@@ -75,7 +75,7 @@ test "reject all" {
 
 ///|
 test "label" {
-  let ar : @qc.Arrow[@immut/list.T[Int], Bool] = @qc.Arrow(prop_rev)
+  let ar : @qc.Arrow[@list.T[Int], Bool] = @qc.Arrow(prop_rev)
   @qc.quick_check(
     @qc.Arrow(fn(x : List[Int]) {
       @qc.label(ar, if x.is_empty() { "trivial" } else { "non-trivial" })

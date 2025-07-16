@@ -36,7 +36,7 @@ priv enum SingleTree {
 ///|
 impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
-    @immut/list.of([
+    @list.of([
       @feat.Enumerable::enumerate().fmap(SingleTree::Leaf(_)),
       @feat.unary(pair_function(SingleTree::Node(_, _))),
     ]),
@@ -56,7 +56,7 @@ priv enum Tree[T] {
 
 ///|
 priv struct Forest[T] {
-  forest : @immut/list.T[Tree[T]]
+  forest : @list.T[Tree[T]]
 } derive(Show)
 
 ///|
