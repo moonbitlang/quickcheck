@@ -12,7 +12,7 @@ pub fn[T] Equivalence::new(lhs : T, rhs : T) -> Equivalence[T] {
 ///|
 pub fn[T, U] Equivalence::fmap(
   self : Equivalence[T],
-  f : (T) -> U
+  f : (T) -> U,
 ) -> Equivalence[U] {
   { lhs: f(self.lhs), rhs: f(self.rhs) }
 }
@@ -20,7 +20,7 @@ pub fn[T, U] Equivalence::fmap(
 ///|
 pub fn[T, U] Equivalence::bind(
   self : Equivalence[T],
-  f : (T) -> Equivalence[U]
+  f : (T) -> Equivalence[U],
 ) -> Equivalence[U] {
   let lhs = f(self.lhs).lhs
   let rhs = f(self.rhs).rhs
@@ -30,7 +30,7 @@ pub fn[T, U] Equivalence::bind(
 ///|
 pub fn[T, U] Equivalence::ap(
   self : Equivalence[(T) -> U],
-  other : Equivalence[T]
+  other : Equivalence[T],
 ) -> Equivalence[U] {
   let lhs = (self.lhs)(other.lhs)
   let rhs = (self.rhs)(other.rhs)
@@ -71,7 +71,7 @@ pub fn[T] Axiom::run(self : Axiom[T], x : T) -> Equivalence[T] {
 pub fn[T, U] to_property(
   self : Axiom[T],
   cong : (T) -> U,
-  eq : (U, U) -> Bool
+  eq : (U, U) -> Bool,
 ) -> (T) -> Bool {
   fn(x : T) { self.run(x).fmap(cong).equal_by(eq) }
 }
@@ -79,7 +79,7 @@ pub fn[T, U] to_property(
 ///|
 pub fn[T, U : Eq] to_property_eq(
   self : Axiom[T],
-  cong : (T) -> U
+  cong : (T) -> U,
 ) -> (T) -> Bool {
   self.to_property(cong, Eq::op_equal)
 }
@@ -88,7 +88,7 @@ pub fn[T, U : Eq] to_property_eq(
 pub fn[T, M, N] to_property_parametric(
   self : Axiom[T],
   cong : (T, M) -> N,
-  eq : (N, N) -> Bool
+  eq : (N, N) -> Bool,
 ) -> ((T, M)) -> Bool {
   fn(x : (T, M)) { self.run(x.0).fmap(fn(y) { cong(y, x.1) }).equal_by(eq) }
 }
@@ -96,7 +96,7 @@ pub fn[T, M, N] to_property_parametric(
 ///|
 pub fn[T, M, N : Eq] to_property_parametric_eq(
   self : Axiom[T],
-  cong : (T, M) -> N
+  cong : (T, M) -> N,
 ) -> ((T, M)) -> Bool {
   self.to_property_parametric(cong, Eq::op_equal)
 }

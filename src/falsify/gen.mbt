@@ -34,7 +34,7 @@ pub fn combine_shrunk(
   l : SampleTree,
   r : SampleTree,
   ls : Iter[SampleTree],
-  rs : Iter[SampleTree]
+  rs : Iter[SampleTree],
 ) -> Iter[SampleTree] {
   fn shortcut(st : Iter[SampleTree]) -> Iter[SampleTree] {
     match st.head() {

@@ -57,9 +57,7 @@ pub impl[E : Enumerable] Enumerable for E? with enumerate() {
 }
 
 ///|
-pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E] with enumerate(
-
-) {
+pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E] with enumerate() {
   pay(fn() {
     E::enumerate().fmap(Result::Err(_)) + T::enumerate().fmap(Result::Ok(_))
   })

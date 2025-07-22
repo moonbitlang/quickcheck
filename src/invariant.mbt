@@ -20,7 +20,7 @@ pub fn[A : Eq, B] inverse(f : (A) -> B, g : (B) -> A) -> (A) -> Bool {
 
 ///| Monotonic increasing function.
 pub fn[A : Compare, B : Compare] mono_increase(
-  f : (A) -> B
+  f : (A) -> B,
 ) -> ((A, A)) -> Bool {
   fn(t : (A, A)) {
     let (x, y) = t
@@ -30,7 +30,7 @@ pub fn[A : Compare, B : Compare] mono_increase(
 
 ///| Monotonic decreasing function.
 pub fn[A : Compare, B : Compare] mono_decrease(
-  f : (A) -> B
+  f : (A) -> B,
 ) -> ((A, A)) -> Bool {
   fn(t : (A, A)) {
     let (x, y) = t
@@ -57,7 +57,7 @@ pub fn[A : Eq] associative(f : (A, A) -> A) -> ((A, A, A)) -> Bool {
 ///| Distributive binary operation over left
 pub fn[A : Eq] distributive_left(
   f : (A, A) -> A,
-  g : (A, A) -> A
+  g : (A, A) -> A,
 ) -> ((A, A, A)) -> Bool {
   fn(t : (A, A, A)) {
     let (x, y, z) = t
@@ -68,7 +68,7 @@ pub fn[A : Eq] distributive_left(
 ///| Distributive binary operation over right
 pub fn[A : Eq] distributive_right(
   f : (A, A) -> A,
-  g : (A, A) -> A
+  g : (A, A) -> A,
 ) -> ((A, A, A)) -> Bool {
   fn(t : (A, A, A)) {
     let (x, y, z) = t

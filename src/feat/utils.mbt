@@ -9,7 +9,7 @@ fn sum(a : Array[BigInt]) -> BigInt {
 ///|
 fn[A, B] convolution(
   xs : LazyList[Finite[A]],
-  ys : LazyList[Finite[B]]
+  ys : LazyList[Finite[B]],
 ) -> Finite[(A, B)] {
   let s1 = xs.map(fn(x) { x.fCard })
   let s2 = ys.map(fn(x) { x.fCard })
@@ -25,7 +25,7 @@ fn[A, B] convolution(
 fn[T] reversals(l : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go(
     rev : @lazy.LazyRef[LazyList[T]],
-    xs : LazyList[T]
+    xs : LazyList[T],
   ) -> LazyList[LazyList[T]] {
     match (rev, xs) {
       (_, @lazy.Nil) => @lazy.Nil

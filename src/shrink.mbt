@@ -191,7 +191,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with shrink(x)
 
 ///|
 pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D) with shrink(
-  x
+  x,
 ) {
   let (a, b, c, d) = x
   Shrink::shrink((a, (b, c, d))).map(fn(y) {

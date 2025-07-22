@@ -6,7 +6,7 @@ fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
 
 ///|
 let test_forall : @qc.Property = @qc.forall(@qc.Gen::spawn(), fn(
-  x : Array[Int]
+  x : Array[Int],
 ) {
   @qc.forall(@qc.Gen::spawn(), fn(y : Array[Int]) { prop_symmetry(x, y) })
 })

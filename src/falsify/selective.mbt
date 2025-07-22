@@ -33,7 +33,7 @@ pub fn[T, U] select(self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
 fn[A, B, C] branch(
   self : Gen[Either[A, B]],
   l : Gen[(A) -> C],
-  r : Gen[(B) -> C]
+  r : Gen[(B) -> C],
 ) -> Gen[C] {
   let left = self.fmap(fn(x) { x.fmap(Either::Left(_)) })
   let right = l.fmap(fn(g) { fn(x) { Right(g(x)) } })

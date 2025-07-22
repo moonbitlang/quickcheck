@@ -64,7 +64,7 @@ pub fn[T, U] product(e1 : Enumerate[T], e2 : Enumerate[U]) -> Enumerate[(T, U)] 
 ///|
 fn[T, U] prod_helper(
   xs : LazyList[Finite[T]],
-  rys : LazyList[LazyList[Finite[U]]]
+  rys : LazyList[LazyList[Finite[U]]],
 ) -> LazyList[Finite[(T, U)]] {
   rys.map(fn(y) { convolution(xs, y) })
 }

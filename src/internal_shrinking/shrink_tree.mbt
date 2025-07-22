@@ -60,7 +60,7 @@ pub fn[T] ShrinkTree::from_value(x : T) -> ShrinkTree[T] {
 ///|
 pub fn[T] ShrinkTree::from_shinker(
   shrink : (T) -> Iter[T],
-  x : T
+  x : T,
 ) -> ShrinkTree[T] {
   fn build(x) {
     { leaf: x, branch: shrink(x).map(build) }
@@ -90,7 +90,7 @@ pub fn[T] join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
 ///|
 pub fn[T, U] bind(
   self : ShrinkTree[T],
-  f : (T) -> ShrinkTree[U]
+  f : (T) -> ShrinkTree[U],
 ) -> ShrinkTree[U] {
   self.smap(f).join()
 }

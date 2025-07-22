@@ -154,7 +154,7 @@ pub fn[X : Add] sum(l : LazyList[X], init~ : X) -> X {
 pub fn[A, B, C] zip_with(
   f : (A, B) -> C,
   xs : LazyList[A],
-  ys : LazyList[B]
+  ys : LazyList[B],
 ) -> LazyList[C] {
   match (xs, ys) {
     (Cons(x, xs), Cons(y, ys)) =>
@@ -220,7 +220,7 @@ pub fn[X : Add] infinite_stream(start : X, step : X) -> LazyList[X] {
 pub fn[A, B, C] zip_lazy_normal(
   f : (A, B) -> C,
   xs : LazyList[A],
-  ys : @list.T[B]
+  ys : @list.T[B],
 ) -> @list.T[C] {
   match (xs, ys) {
     (Cons(x, xs), More(y, tail=ys)) =>
@@ -233,7 +233,7 @@ pub fn[A, B, C] zip_lazy_normal(
 pub fn[T] zip_plus(
   f : (T, T) -> T,
   ls1 : LazyList[T],
-  ls2 : LazyList[T]
+  ls2 : LazyList[T],
 ) -> LazyList[T] {
   match (ls1, ls2) {
     (Cons(x, xs), Cons(y, ys)) =>
@@ -248,7 +248,7 @@ pub fn[T] zip_plus(
 ///|
 pub fn[T] unfold(
   self : LazyList[T],
-  f : (LazyList[T]) -> (T, LazyList[T])?
+  f : (LazyList[T]) -> (T, LazyList[T])?,
 ) -> LazyList[T] {
   match f(self) {
     None => Nil

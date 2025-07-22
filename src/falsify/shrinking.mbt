@@ -14,7 +14,7 @@ struct ShrinkExplain[P, N] {
 ///|
 pub fn[P, N] limit_steps(
   self : ShrinkExplain[P, N],
-  n : Int?
+  n : Int?,
 ) -> ShrinkExplain[P, N] {
   fn go(n : Int, history : ShrinkHistory[P, N]) -> ShrinkHistory[P, N] {
     match (n, history) {
@@ -101,7 +101,7 @@ fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
 pub fn[A, P, N] shrink_from(
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
-  ps : (P, Iter[SampleTree])
+  ps : (P, Iter[SampleTree]),
 ) -> ShrinkExplain[P, N] {
   let (p, shrunk) = ps
   fn consider(ak) {
@@ -145,7 +145,7 @@ pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
 ///| (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
 fn[P, M, N] h_fmap(
   self : ShrinkHistory[P, M],
-  f : (M) -> N
+  f : (M) -> N,
 ) -> ShrinkHistory[P, N] {
   match self {
     ShrinkStopped => ShrinkStopped
@@ -157,7 +157,7 @@ fn[P, M, N] h_fmap(
 ///|
 fn[P, M, N] e_fmap(
   self : ShrinkExplain[P, M],
-  f : (M) -> N
+  f : (M) -> N,
 ) -> ShrinkExplain[P, N] {
   { initial: self.initial, history: self.history.h_fmap(f) }
 }

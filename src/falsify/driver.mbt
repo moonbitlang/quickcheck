@@ -46,7 +46,7 @@ struct DriverState[T] {
 fn[T] append_success(
   rng : RandomState,
   success : Success[T],
-  acc : DriverState[T]
+  acc : DriverState[T],
 ) -> DriverState[T] {
   {
     ..acc,
@@ -70,7 +70,7 @@ pub fn[T] init_state(opt : Config) -> DriverState[T] {
 
 ///|
 fn[T, E] result_is_valid_shrink(
-  ra : (TestResult[T, E], TestRun)
+  ra : (TestResult[T, E], TestRun),
 ) -> IsValidShrink[(E, TestRun), (T?, TestRun)] {
   let (res, run) = ra
   match res {
@@ -83,7 +83,7 @@ fn[T, E] result_is_valid_shrink(
 ///|
 pub fn[T, E] falsify(
   opt : Config,
-  prop : Property[T, E]
+  prop : Property[T, E],
 ) -> (RandomState, List[Success[T]], Int, Failure[E]?) {
   let st : DriverState[T] = init_state(opt)
 

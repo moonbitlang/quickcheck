@@ -28,21 +28,21 @@ struct Property[T, E] {
 ///|
 pub fn[T, E] Property::run(
   self : Property[T, E],
-  tr : TestRun
+  tr : TestRun,
 ) -> Gen[(TestResult[T, E], TestRun)] {
   (self.run)(tr)
 }
 
 ///|
 pub fn[T, E] mk_property(
-  run : (TestRun) -> Gen[(TestResult[T, E], TestRun)]
+  run : (TestRun) -> Gen[(TestResult[T, E], TestRun)],
 ) -> Property[T, E] {
   { run, }
 }
 
 ///|
 pub fn[T, E] run_property(
-  p : Property[T, E]
+  p : Property[T, E],
 ) -> Gen[(TestResult[T, E], TestRun)] {
   p.run(init_test_run())
 }

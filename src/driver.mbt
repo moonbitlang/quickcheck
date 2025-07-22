@@ -41,7 +41,7 @@ pub fn[P : Testable] quick_check(
   max_size? : Int,
   discard_ratio? : Int,
   expect~ : Expected = Success,
-  abort~ : Bool = false
+  abort~ : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, fn(res) {
     {
@@ -65,7 +65,7 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   max_size? : Int,
   discard_ratio? : Int,
   expect~ : Expected = Success,
-  abort~ : Bool = false
+  abort~ : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
@@ -81,7 +81,7 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 ///|
 pub fn[P : Testable] quick_check_with(
   cfg : Config,
-  prop : P
+  prop : P,
 ) -> Unit raise Failure {
   fn f(s : String) -> _ raise Failure {
     fail("\n\{s}")
@@ -106,7 +106,7 @@ pub fn[P : Testable] quick_check_with(
 ///|
 pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
-  prop : P
+  prop : P,
 ) -> TestSuccess raise TestError {
   from_config(cfg).run_test(prop.property())
 }
@@ -129,7 +129,7 @@ pub fn run_test(self : State, prop : Property) -> TestSuccess raise TestError {
 ///|
 pub fn complete_test(
   self : State,
-  _prop : Property
+  _prop : Property,
 ) -> TestSuccess raise TestError {
   if self.expected is Fail {
     raise NoneExpectedFail(
@@ -168,7 +168,7 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
 ///| Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
 pub fn run_single_test(
   self : State,
-  prop : Property
+  prop : Property,
 ) -> Result[TestSuccess, State] raise TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
@@ -181,7 +181,7 @@ pub fn run_single_test(
   fn next(
     end_with : (State, Property) -> TestSuccess raise TestError,
     next_state : State,
-    p : Property
+    p : Property,
   ) -> Result[TestSuccess, State] raise TestError {
     update_state(next_state)
     if res.abort {
@@ -223,7 +223,7 @@ pub fn run_single_test(
 pub fn find_failure(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]]
+  ts : Iter[Rose[SingleResult]],
 ) -> TestSuccess raise TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   match res.expect {
@@ -255,7 +255,7 @@ pub fn find_failure(
 pub fn local_min(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]]
+  ts : Iter[Rose[SingleResult]],
 ) -> (Int, Int, Int, SingleResult) {
   if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
     local_min_found(self, res)
@@ -285,7 +285,7 @@ pub fn local_min(
 ///|
 pub fn local_min_found(
   st : State,
-  res : SingleResult
+  res : SingleResult,
 ) -> (Int, Int, Int, SingleResult) {
   // TODO: Print error
   (

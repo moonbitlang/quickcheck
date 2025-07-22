@@ -14,7 +14,7 @@ pub fn fresh_name() -> String {
 pub fn[T] removes_list(
   k : Int,
   n : Int,
-  xs : @list.T[T]
+  xs : @list.T[T],
 ) -> @list.T[@list.T[T]] {
   if k > n {
     @list.empty()
@@ -49,7 +49,7 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
 pub fn[T] apply_while_list(
   x : T,
   f : (T) -> T,
-  cond : (T) -> Bool
+  cond : (T) -> Bool,
 ) -> @list.T[T] {
   loop (x, @list.empty()) {
     (acc, lst) => {
@@ -67,7 +67,7 @@ pub fn[T] apply_while_list(
 pub fn[T] apply_while_array(
   x : T,
   f : (T) -> T,
-  cond : (T) -> Bool
+  cond : (T) -> Bool,
 ) -> Array[T] {
   loop (x, []) {
     (acc, lst) => {

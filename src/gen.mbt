@@ -31,7 +31,7 @@ pub fn[T] Gen::run(self : Gen[T], i : Int, rs : RandomState) -> T {
 pub fn[T] Gen::sample(
   self : Gen[T],
   size~ : Int = 100,
-  seed~ : UInt64 = 37
+  seed~ : UInt64 = 37,
 ) -> T {
   let state = @quickcheck/splitmix.new(seed~)
   self.run(size, state)
@@ -41,7 +41,7 @@ pub fn[T] Gen::sample(
 pub fn[T] Gen::samples(
   self : Gen[T],
   size~ : Int = 10,
-  seed~ : UInt64 = 37
+  seed~ : UInt64 = 37,
 ) -> Array[T] {
   let state = @quickcheck/splitmix.new(seed~)
   Array::makei(size, fn(_x) { self.run(size, state) })
@@ -101,7 +101,7 @@ pub fn[A, B, C, D] liftA3(
   f : (A, B, C) -> D,
   v : Gen[A],
   w : Gen[B],
-  x : Gen[C]
+  x : Gen[C],
 ) -> Gen[D] {
   v.bind(fn(a) { w.bind(fn(b) { x.bind(fn(c) { pure(f(a, b, c)) }) }) })
 }
@@ -112,7 +112,7 @@ pub fn[A, B, C, D, E] liftA4(
   v : Gen[A],
   w : Gen[B],
   x : Gen[C],
-  y : Gen[D]
+  y : Gen[D],
 ) -> Gen[E] {
   v.bind(fn(a) {
     w.bind(fn(b) { x.bind(fn(c) { y.bind(fn(d) { pure(f(a, b, c, d)) }) }) })
@@ -126,7 +126,7 @@ pub fn[A, B, C, D, E, F] liftA5(
   w : Gen[B],
   x : Gen[C],
   y : Gen[D],
-  z : Gen[E]
+  z : Gen[E],
 ) -> Gen[F] {
   v.bind(fn(a) {
     w.bind(fn(b) {
@@ -145,7 +145,7 @@ pub fn[A, B, C, D, E, F, G] liftA6(
   x : Gen[C],
   y : Gen[D],
   z : Gen[E],
-  u : Gen[F]
+  u : Gen[F],
 ) -> Gen[G] {
   v.bind(fn(a) {
     w.bind(fn(b) {
@@ -174,7 +174,7 @@ pub fn[T, U] tuple(gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
 pub fn[T, U, V] triple(
   gen1 : Gen[T],
   gen2 : Gen[U],
-  gen3 : Gen[V]
+  gen3 : Gen[V],
 ) -> Gen[(T, U, V)] {
   gen1.bind(fn(x) { gen2.bind(fn(y) { gen3.fmap(fn(z) { (x, y, z) }) }) })
 }
@@ -184,7 +184,7 @@ pub fn[T, U, V, W] quad(
   gen1 : Gen[T],
   gen2 : Gen[U],
   gen3 : Gen[V],
-  gen4 : Gen[W]
+  gen4 : Gen[W],
 ) -> Gen[(T, U, V, W)] {
   gen1.bind(fn(x) {
     gen2.bind(fn(y) { gen3.bind(fn(z) { gen4.fmap(fn(w) { (x, y, z, w) }) }) })

@@ -94,7 +94,7 @@ pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
 ///|
 pub fn[P : Testable] map_total_result(
   prop : P,
-  f : (SingleResult) -> SingleResult
+  f : (SingleResult) -> SingleResult,
 ) -> Property {
   run_prop(prop).fmap(fn(rose) { rose.fmap(f) })
 }
@@ -124,7 +124,7 @@ pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
 pub fn[P : Testable, T] shrinking(
   shrinker : (T) -> Iter[T],
   x0 : T,
-  pf : (T) -> P
+  pf : (T) -> P,
 ) -> Property {
   fn props(x) -> Rose[Gen[RoseRes]] {
     @rose.new(pf(x) |> run_prop, shrinker(x).map(props))
@@ -176,7 +176,7 @@ pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
 pub fn[T : Testable, A : Show] forall_shrink(
   gen : Gen[A],
   shrinker : (A) -> Iter[A],
-  f : (A) -> T
+  f : (A) -> T,
 ) -> Property {
   gen.bind(fn(x) {
     shrinking(shrinker, x, fn(a : A) {
