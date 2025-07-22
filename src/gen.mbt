@@ -268,7 +268,7 @@ pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
 
 ///| Chooses one of the given generators, with a weighted random distribution.
 /// @alert unsafe "Panics if the list is empty or total weight is less than one"
-pub fn[T] frequency_list(lst : @immut/list.T[(Int, T)]) -> Gen[T] {
+pub fn[T] frequency_list(lst : @list.T[(Int, T)]) -> Gen[T] {
   lst
   .to_array()
   .map(fn(x) {
@@ -279,10 +279,10 @@ pub fn[T] frequency_list(lst : @immut/list.T[(Int, T)]) -> Gen[T] {
 }
 
 ///| Generate a list of elements from individual generators
-pub fn[T] flatten_list(lst : @immut/list.T[Gen[T]]) -> Gen[@immut/list.T[T]] {
+pub fn[T] flatten_list(lst : @list.T[Gen[T]]) -> Gen[@list.T[T]] {
   match lst {
-    Nil => pure(Nil)
-    Cons(x, xs) => liftA2(@immut/list.T::Cons(_, _), x, flatten_list(xs))
+    Empty => pure(@list.empty())
+    More(x, tail=xs) => liftA2(@list.T::add, flatten_list(xs), x)
   }
 }
 
@@ -315,7 +315,7 @@ pub fn[T] one_of(arr : Array[Gen[T]]) -> Gen[T] {
 
 ///| Randomly uses one of the given generators in list
 /// @alert unsafe "Panics if the list is empty"
-pub fn[T] one_of_list(lst : @immut/list.T[T]) -> Gen[T] {
+pub fn[T] one_of_list(lst : @list.T[T]) -> Gen[T] {
   int_bound(lst.length()).fmap(fn(x) { lst.unsafe_nth(x) })
 }
 
@@ -400,23 +400,20 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 }
 
 ///|
-pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[@immut/list.T[T]] {
-  loop (size, pure(@immut/list.Nil)) {
+pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[@list.T[T]] {
+  loop (size, pure(@list.empty())) {
     (n, acc) =>
       if n <= 0 {
         break acc
       } else {
-        continue (n - 1, liftA2(@immut/list.T::Cons(_, _), gen, acc))
+        continue (n - 1, liftA2(@list.T::add, acc, gen))
       }
   }
 }
 
 ///|
-pub fn[T : Compare] sorted_list(
-  size : Int,
-  gen : Gen[T]
-) -> Gen[@immut/list.T[T]] {
-  list_with_size(size, gen).fmap(@immut/list.T::sort)
+pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[@list.T[T]] {
+  list_with_size(size, gen).fmap(@list.T::sort)
 }
 
 ///|

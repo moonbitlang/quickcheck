@@ -241,15 +241,15 @@ test "shrink 6-tuple" {
 }
 
 ///|
-pub impl[T : Shrink] Shrink for @immut/list.T[T] with shrink(xs) {
+pub impl[T : Shrink] Shrink for @list.T[T] with shrink(xs) {
   let n = xs.length()
-  fn shr_sub_terms(lst : @immut/list.T[T]) {
+  fn shr_sub_terms(lst : @list.T[T]) {
     match lst {
-      Nil => Iter::empty()
-      Cons(x, xs) =>
+      Empty => Iter::empty()
+      More(x, tail=xs) =>
         T::shrink(x)
-        .map(fn(x_) { @immut/list.Cons(x_, xs) })
-        .concat(shr_sub_terms(xs).map(fn(xs_) { Cons(x, xs_) }))
+        .map(fn(x_) { xs.add(x_) })
+        .concat(shr_sub_terms(xs).map(fn(xs_) { xs_.add(x) }))
     }
   }
 
@@ -262,7 +262,7 @@ pub impl[T : Shrink] Shrink for @immut/list.T[T] with shrink(xs) {
 
 ///|
 test "shrink int list" {
-  let il : @immut/list.T[Int] = @immut/list.of([1, 2, 3, 4, 5, 6])
+  let il : @list.T[Int] = @list.of([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
   inspect(
     s,

@@ -14,20 +14,19 @@ pub fn fresh_name() -> String {
 pub fn[T] removes_list(
   k : Int,
   n : Int,
-  xs : @immut/list.T[T]
-) -> @immut/list.T[@immut/list.T[T]] {
+  xs : @list.T[T]
+) -> @list.T[@list.T[T]] {
   if k > n {
-    Nil
+    @list.empty()
   } else {
     let xs_drop = xs.drop(k)
     if xs_drop.is_empty() {
-      Nil
+      @list.empty()
     } else {
       let xs_take = xs.take(k)
-      Cons(
-        xs_drop,
-        removes_list(k, n - k, xs_drop).map(fn(x) { xs_take.concat(x) }),
-      )
+      removes_list(k, n - k, xs_drop)
+      .map(fn(x) { xs_take.concat(x) })
+      .add(xs_drop)
     }
   }
 }
@@ -51,12 +50,12 @@ pub fn[T] apply_while_list(
   x : T,
   f : (T) -> T,
   cond : (T) -> Bool
-) -> @immut/list.T[T] {
-  loop (x, @immut/list.T::Nil) {
+) -> @list.T[T] {
+  loop (x, @list.empty()) {
     (acc, lst) => {
       let next = f(acc)
       if cond(next) {
-        continue (next, Cons(next, lst))
+        continue (next, lst.add(next))
       } else {
         break lst
       }

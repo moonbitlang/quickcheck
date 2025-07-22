@@ -76,11 +76,11 @@ impl Default for SingleResult with default() {
     maybe_discarded_ratio: None,
     maybe_max_shrinks: None,
     maybe_max_test_size: None,
-    labels: Nil,
-    classes: Nil,
-    tables: Nil,
-    test_case: Nil,
+    labels: @list.empty(),
+    classes: @list.empty(),
+    tables: @list.empty(),
+    test_case: @list.empty(),
     error: InternalError("none"),
-    callbacks: Nil,
+    callbacks: @list.empty(),
   }
 }

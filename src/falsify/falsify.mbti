@@ -1,7 +1,7 @@
 package "moonbitlang/quickcheck/falsify"
 
 import(
-  "moonbitlang/core/immut/list"
+  "moonbitlang/core/list"
   "moonbitlang/core/quickcheck/splitmix"
 )
 

@@ -2,7 +2,7 @@ package "moonbitlang/quickcheck/feat"
 
 import(
   "moonbitlang/core/bigint"
-  "moonbitlang/core/immut/list"
+  "moonbitlang/core/list"
   "moonbitlang/quickcheck/lazy"
 )
 
