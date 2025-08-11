@@ -14,8 +14,8 @@ pub fn fresh_name() -> String {
 pub fn[T] removes_list(
   k : Int,
   n : Int,
-  xs : @list.T[T],
-) -> @list.T[@list.T[T]] {
+  xs : @list.List[T],
+) -> @list.List[@list.List[T]] {
   if k > n {
     @list.empty()
   } else {
@@ -50,7 +50,7 @@ pub fn[T] apply_while_list(
   x : T,
   f : (T) -> T,
   cond : (T) -> Bool,
-) -> @list.T[T] {
+) -> @list.List[T] {
   loop (x, @list.empty()) {
     (acc, lst) => {
       let next = f(acc)

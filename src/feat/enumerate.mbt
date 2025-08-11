@@ -75,7 +75,7 @@ pub fn[T, U] app(f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
 }
 
 ///|
-pub fn[T] consts(ls : @list.T[Enumerate[T]]) -> Enumerate[T] {
+pub fn[T] consts(ls : @list.List[Enumerate[T]]) -> Enumerate[T] {
   pay(fn() { ls.fold(union, init=empty()) })
 }
 

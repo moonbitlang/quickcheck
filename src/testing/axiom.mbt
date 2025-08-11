@@ -1,11 +1,11 @@
 ///|
 struct Queue {
-  f : @list.T[Int]
-  r : @list.T[Int]
+  f : List[Int]
+  r : List[Int]
 } derive(Show)
 
 ///|
-fn build_queue(f : @list.T[Int], r : @list.T[Int]) -> Queue {
+fn build_queue(f : List[Int], r : List[Int]) -> Queue {
   match f {
     Empty => { f: r, r: @list.empty() }
     f => { f, r }
@@ -47,7 +47,7 @@ fn dequeue(self : Queue) -> Queue {
 }
 
 ///|
-fn to_list(self : Queue) -> @list.T[Int] {
+fn to_list(self : Queue) -> List[Int] {
   self.f.concat(self.r.rev())
 }
 
@@ -58,8 +58,8 @@ fn op_equal(self : Queue, other : Queue) -> Bool {
 
 ///|
 impl @quickcheck.Arbitrary for Queue with arbitrary(i, rs) {
-  let f : @list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
-  let r : @list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
+  let f : List[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
+  let r : List[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
   build_queue(f, r)
 }
 
@@ -68,17 +68,17 @@ priv struct EqQueue(@qc.Equivalence[Queue])
 
 ///|
 impl @quickcheck.Arbitrary for EqQueue with arbitrary(i, rs) {
-  fn split(xs : @list.T[Int], i) {
+  fn split(xs : List[Int], i) {
     (xs.take(i), xs.drop(i))
   }
 
-  fn from(xs : @list.T[Int]) {
+  fn from(xs : List[Int]) {
     let n = @qc.int_bound(xs.length() - 1).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }
 
-  let z : @list.T[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
+  let z : List[Int] = @quickcheck.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
   EqQueue({ lhs, rhs })
