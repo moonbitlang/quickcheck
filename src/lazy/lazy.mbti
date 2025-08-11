@@ -8,7 +8,7 @@ import(
 // Values
 fn[X] default() -> LazyList[X]
 
-fn[T] from_list(@list.T[T]) -> LazyList[T]
+fn[T] from_list(@list.List[T]) -> LazyList[T]
 
 fn[X : Add] infinite_stream(X, X) -> LazyList[X]
 
@@ -16,13 +16,15 @@ fn[T] repeat(T) -> LazyList[T]
 
 fn[X : Add] sum(LazyList[X], init~ : X) -> X
 
-fn[T] to_lazy(@list.T[T]) -> LazyList[T]
+fn[T] to_lazy(@list.List[T]) -> LazyList[T]
 
-fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.T[B]) -> @list.T[C]
+fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.List[B]) -> @list.List[C]
 
 fn[T] zip_plus((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
 
 fn[A, B, C] zip_with((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
+
+// Errors
 
 // Types and methods
 pub(all) enum LazyList[T] {

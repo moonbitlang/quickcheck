@@ -8,6 +8,8 @@ fn enqueue(Queue, Int) -> Queue
 
 fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
+// Errors
+
 // Types and methods
 type Queue
 fn Queue::is_empty(Self) -> Bool

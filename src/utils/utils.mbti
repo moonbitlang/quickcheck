@@ -8,7 +8,7 @@ import(
 // Values
 fn[T] apply_while_array(T, (T) -> T, (T) -> Bool) -> Array[T]
 
-fn[T] apply_while_list(T, (T) -> T, (T) -> Bool) -> @list.T[T]
+fn[T] apply_while_list(T, (T) -> T, (T) -> Bool) -> @list.List[T]
 
 fn[T, U] const_(T) -> (U) -> T
 
@@ -22,7 +22,9 @@ fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
 
-fn[T] removes_list(Int, Int, @list.T[T]) -> @list.T[@list.T[T]]
+fn[T] removes_list(Int, Int, @list.List[T]) -> @list.List[@list.List[T]]
+
+// Errors
 
 // Types and methods
 

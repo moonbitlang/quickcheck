@@ -45,7 +45,7 @@ fn[P : Testable] filter(P, Bool) -> Property
 
 fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
 
-fn[T] flatten_list(@list.T[Gen[T]]) -> Gen[@list.T[T]]
+fn[T] flatten_list(@list.List[Gen[T]]) -> Gen[@list.List[T]]
 
 fn[T] flatten_option(Gen[T]?) -> Gen[T?]
 
@@ -57,7 +57,7 @@ fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Pr
 
 fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
 
-fn[T] frequency_list(@list.T[(Int, T)]) -> Gen[T]
+fn[T] frequency_list(@list.List[(Int, T)]) -> Gen[T]
 
 fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
 
@@ -85,7 +85,7 @@ fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D]
 
 fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.T[T]]
+fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.List[T]]
 
 fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
 
@@ -107,7 +107,7 @@ fn[T] one_of(Array[Gen[T]]) -> Gen[T]
 
 fn[T] one_of_array(Array[T]) -> Gen[T]
 
-fn[T] one_of_list(@list.T[T]) -> Gen[T]
+fn[T] one_of_list(@list.List[T]) -> Gen[T]
 
 fn[T] pure(T) -> Gen[T]
 
@@ -115,9 +115,9 @@ fn[T] pure_eq(T) -> Equivalence[T]
 
 fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
-fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect~ : Expected = .., abort~ : Bool = ..) -> Unit raise Failure
+fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
 
-fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect~ : Expected = .., abort~ : Bool = ..) -> Unit raise Failure
+fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
 
 fn[P : Testable] quick_check_with(Config, P) -> Unit raise Failure
 
@@ -133,7 +133,7 @@ fn[T] sized((Int) -> Gen[T]) -> Gen[T]
 
 fn small_int() -> Gen[Int]
 
-fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.T[T]]
+fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
 
 fn succeed() -> SingleResult
 
@@ -156,8 +156,11 @@ fn[P : Testable] with_max_size(P, Int) -> Property
 #deprecated
 fn[P : Testable] with_max_success(P, Int) -> Property
 
+// Errors
+type TestError
+
 // Types and methods
-pub(all) type Arrow[A, B] (A) -> B
+pub(all) struct Arrow[A, B]((A) -> B)
 fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
@@ -205,8 +208,8 @@ fn[T] Gen::join(Self[Self[T]]) -> Self[T]
 fn[T] Gen::new((Int, @splitmix.RandomState) -> T) -> Self[T]
 fn[T] Gen::resize(Self[T], Int) -> Self[T]
 fn[T] Gen::run(Self[T], Int, @splitmix.RandomState) -> T
-fn[T] Gen::sample(Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> T
-fn[T] Gen::samples(Self[T], size~ : Int = .., seed~ : UInt64 = ..) -> Array[T]
+fn[T] Gen::sample(Self[T], size? : Int, seed? : UInt64) -> T
+fn[T] Gen::samples(Self[T], size? : Int, seed? : UInt64) -> Array[T]
 fn[T] Gen::scale(Self[T], (Int) -> Int) -> Self[T]
 fn[T : @moonbitlang/core/quickcheck.Arbitrary] Gen::spawn() -> Self[T]
 fn[T] Gen::such_that(Self[T], (T) -> Bool) -> Self[T]
@@ -223,7 +226,7 @@ impl[T] Show for Outcome[T]
 type Printer
 fn Printer::format(Self, String) -> String
 fn Printer::from_buffer(@buffer.T) -> Self
-fn Printer::ident(Self, size~ : Int = ..) -> Unit
+fn Printer::ident(Self, size? : Int) -> Unit
 fn Printer::unident(Self) -> Unit
 fn Printer::write_string(Self, String) -> Unit
 
@@ -246,8 +249,6 @@ fn State::give_up(Self, Property) -> TestSuccess raise TestError
 fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
 fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
 fn State::run_test(Self, Property) -> TestSuccess raise TestError
-
-type TestError
 
 type TestSuccess
 
@@ -273,7 +274,7 @@ impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
 impl Shrink for Bytes
 impl[X : Shrink] Shrink for Array[X]
 impl[X : Shrink] Shrink for Iter[X]
-impl[T : Shrink] Shrink for @list.T[T]
+impl[T : Shrink] Shrink for @list.List[T]
 impl[A : Shrink, B : Shrink] Shrink for (A, B)
 impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)
 impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)

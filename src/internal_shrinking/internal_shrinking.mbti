@@ -7,10 +7,12 @@ import(
 
 // Values
 
+// Errors
+
 // Types and methods
 type ShrinkTree[T]
 fn[T, U] ShrinkTree::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[T : Show] ShrinkTree::draw(Self[T], Int) -> @list.T[String]
+fn[T : Show] ShrinkTree::draw(Self[T], Int) -> @list.List[String]
 fn[T] ShrinkTree::from_shinker((T) -> Iter[T], T) -> Self[T]
 fn[T] ShrinkTree::from_value(T) -> Self[T]
 fn[T] ShrinkTree::get_value(Self[T]) -> (T, Iter[Self[T]])
