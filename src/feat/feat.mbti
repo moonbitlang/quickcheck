@@ -10,7 +10,7 @@ import(
 // Values
 fn[T, U] app(Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
 
-fn[T] consts(@list.T[Enumerate[T]]) -> Enumerate[T]
+fn[T] consts(@list.List[Enumerate[T]]) -> Enumerate[T]
 
 fn[T] default() -> Enumerate[T]
 
@@ -46,6 +46,8 @@ fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 
 fn[T] union(Enumerate[T], Enumerate[T]) -> Enumerate[T]
 
+// Errors
+
 // Types and methods
 pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
@@ -60,7 +62,7 @@ pub(all) struct Finite[T] {
   fIndex : (@bigint.BigInt) -> T
 }
 fn[T] Finite::op_add(Self[T], Self[T]) -> Self[T]
-fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.T[T])
+fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
 impl[T : Show] Show for Finite[T]
 
 // Type aliases
@@ -78,6 +80,6 @@ impl Enumerable for UInt
 impl Enumerable for UInt64
 impl[E : Enumerable] Enumerable for E?
 impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E]
-impl[E : Enumerable] Enumerable for @list.T[E]
+impl[E : Enumerable] Enumerable for @list.List[E]
 impl[A : Enumerable, B : Enumerable] Enumerable for (A, B)
 

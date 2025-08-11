@@ -7,7 +7,7 @@ import(
 )
 
 // Values
-fn[T : Show, E] collect(String, @list.T[T]) -> Property[Unit, E]
+fn[T : Show, E] collect(String, @list.List[T]) -> Property[Unit, E]
 
 fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
 
@@ -15,7 +15,7 @@ fn constant(UInt) -> SampleTree
 
 fn[T, E] discard() -> Property[T, E]
 
-fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.T[Success[T]], Int, Failure[E]?)
+fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.List[Success[T]], Int, Failure[E]?)
 
 fn from_rng(@splitmix.RandomState) -> SampleTree
 
@@ -29,7 +29,7 @@ fn[T] init_state(Config) -> DriverState[T]
 
 fn init_test_run() -> TestRun
 
-fn[E] label(String, @list.T[String]) -> Property[Unit, E]
+fn[E] label(String, @list.List[String]) -> Property[Unit, E]
 
 fn[T, E] mk_property((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
 
@@ -48,6 +48,8 @@ fn[A, B, C] second((B) -> C, (A, B)) -> (A, C)
 fn[T] shrink_to_list(T, Iter[T]) -> Gen[T]
 
 fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
+
+// Errors
 
 // Types and methods
 type Config
@@ -99,7 +101,7 @@ type TestRun
 impl Show for TestRun
 
 // Type aliases
-pub typealias @list.T as List
+pub typealias @list.List as List
 
 pub typealias @splitmix.RandomState as RandomState
 

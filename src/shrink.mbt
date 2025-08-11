@@ -241,9 +241,9 @@ test "shrink 6-tuple" {
 }
 
 ///|
-pub impl[T : Shrink] Shrink for @list.T[T] with shrink(xs) {
+pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
   let n = xs.length()
-  fn shr_sub_terms(lst : @list.T[T]) {
+  fn shr_sub_terms(lst : List[T]) {
     match lst {
       Empty => Iter::empty()
       More(x, tail=xs) =>
@@ -262,7 +262,7 @@ pub impl[T : Shrink] Shrink for @list.T[T] with shrink(xs) {
 
 ///|
 test "shrink int list" {
-  let il : @list.T[Int] = @list.of([1, 2, 3, 4, 5, 6])
+  let il : List[Int] = @list.of([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
   inspect(
     s,

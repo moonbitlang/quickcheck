@@ -39,7 +39,7 @@ pub fn[T] index(self : LazyList[T], i : Int) -> T {
 }
 
 ///|
-pub fn[T] to_lazy(ls : @list.T[T]) -> LazyList[T] {
+pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
   match ls {
     Empty => Nil
     More(x, tail=xs) => Cons(x, LazyRef::from_value(to_lazy(xs)))
@@ -220,8 +220,8 @@ pub fn[X : Add] infinite_stream(start : X, step : X) -> LazyList[X] {
 pub fn[A, B, C] zip_lazy_normal(
   f : (A, B) -> C,
   xs : LazyList[A],
-  ys : @list.T[B],
-) -> @list.T[C] {
+  ys : @list.List[B],
+) -> @list.List[C] {
   match (xs, ys) {
     (Cons(x, xs), More(y, tail=ys)) =>
       zip_lazy_normal(f, xs.force(), ys).add(f(x, y))
@@ -257,7 +257,7 @@ pub fn[T] unfold(
 }
 
 ///|
-pub fn[T] from_list(ls : @list.T[T]) -> LazyList[T] {
+pub fn[T] from_list(ls : @list.List[T]) -> LazyList[T] {
   match ls {
     Empty => Nil
     More(x, tail=xs) => Cons(x, LazyRef::from_value(from_list(xs)))
