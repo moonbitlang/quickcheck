@@ -2,7 +2,7 @@
 priv suberror InternalError String
 
 ///|
-pub(all) type Arrow[A, B] (A) -> B
+pub(all) struct Arrow[A, B]((A) -> B)
 
 ///|
 typealias Rose[SingleResult] as RoseRes
@@ -28,7 +28,7 @@ fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {
 }
 
 ///|
-type Property Gen[RoseRes]
+struct Property(Gen[RoseRes])
 
 ///|
 pub(open) trait Testable {

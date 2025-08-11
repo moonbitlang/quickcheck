@@ -64,7 +64,7 @@ impl @quickcheck.Arbitrary for Queue with arbitrary(i, rs) {
 }
 
 ///|
-priv type EqQueue @qc.Equivalence[Queue]
+priv struct EqQueue(@qc.Equivalence[Queue])
 
 ///|
 impl @quickcheck.Arbitrary for EqQueue with arbitrary(i, rs) {

@@ -83,7 +83,8 @@ struct State {
 }
 
 ///|
-fn format_name(self : State, loc~ : ArgsLoc = _) -> String {
+#callsite(autofill(loc))
+fn format_name(self : State, loc~ : ArgsLoc) -> String {
   "[\{self.name}] \{loc}"
 }
 
@@ -219,7 +220,7 @@ fn counts(self : State) -> String {
 }
 
 ///|
-priv type ListCompare[T] List[T] derive(Eq, Show)
+priv struct ListCompare[T](List[T]) derive(Eq, Show)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
