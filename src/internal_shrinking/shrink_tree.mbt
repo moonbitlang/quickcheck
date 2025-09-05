@@ -39,7 +39,10 @@ pub fn[T : Show] draw(self : ShrinkTree[T], depth : Int) -> @list.List[String] {
 }
 
 ///|
-fn[T : Show] to_string_with_depth(self : ShrinkTree[T], depth : Int) -> String {
+pub fn[T : Show] to_string_with_depth(
+  self : ShrinkTree[T],
+  depth : Int,
+) -> String {
   if depth == 0 {
     return ""
   }

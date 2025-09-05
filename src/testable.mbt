@@ -10,7 +10,8 @@ typealias Rose[SingleResult] as RoseRes
 ///|
 typealias @rose.Rose
 
-///| TODO: determine the execution of callback by kind
+///|
+/// TODO: determine the execution of callback by kind
 enum Callback {
   PostTest(Kind, (State, SingleResult) -> Unit)
   PostFinalFailure(Kind, (State, SingleResult) -> Unit)
@@ -138,28 +139,33 @@ pub fn[P : Testable] callback(p : P, cb : Callback) -> Property {
   map_total_result(p, fn(res) { { ..res, callbacks: res.callbacks.add(cb) } })
 }
 
-///| Attaches a label to a test case
+///|
+/// Attaches a label to a test case
 pub fn[P : Testable] label(p : P, s : String) -> Property {
   map_total_result(p, fn(res) { { ..res, labels: res.labels.add(s) } })
 }
 
-///| Attaches a label (Show) to a test case
+///|
+/// Attaches a label (Show) to a test case
 pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
   p |> label(t.to_string())
 }
 
-///| Classifies a test case based on a condition
+///|
+/// Classifies a test case based on a condition
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
   map_total_result(p, fn(res) { { ..res, classes: res.classes.add((s, cond)) } })
 }
 
-///| Adds a string to the counterexample if the property fails
+///|
+/// Adds a string to the counterexample if the property fails
 pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
   let cb = callback(p, PostFinalFailure(CounterExample, fn(_st, _res) {  }))
   map_total_result(cb, fn(res) { { ..res, test_case: res.test_case.add(s) } })
 }
 
-///| Filters a property based on a condition
+///|
+/// Filters a property based on a condition
 pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
   match cond {
     true => p.property()
@@ -167,7 +173,8 @@ pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
   }
 }
 
-///| Run with an explicit generator
+///|
+/// Run with an explicit generator
 pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
   forall_shrink(gen, fn(_x) { Iter::empty() }, f)
 }
@@ -186,7 +193,8 @@ pub fn[T : Testable, A : Show] forall_shrink(
   })
 }
 
-///| Adds a callback that will be called if the property fails
+///|
+/// Adds a callback that will be called if the property fails
 pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
   callback(
     p,
@@ -199,7 +207,8 @@ pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
   )
 }
 
-///| Modifies a property to make it terminate after the first test
+///|
+/// Modifies a property to make it terminate after the first test
 #deprecated("please use implicit arguments")
 pub fn[P : Testable] terminate(p : P) -> Property {
   map_total_result(p, fn(res) { { ..res, abort: true } })

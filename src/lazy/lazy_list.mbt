@@ -71,7 +71,7 @@ pub fn[T] concat(self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
 }
 
 ///|
-pub impl[T] Add for LazyList[T] with op_add(self, other) {
+pub impl[T] Add for LazyList[T] with add(self, other) {
   self.concat(other)
 }
 

@@ -12,7 +12,7 @@ suberror TestError {
     output~ : String,
     failing_case~ : Array[String],
     failing_labels~ : Array[String],
-    failing_classes~ : @sorted_set.T[String]
+    failing_classes~ : @sorted_set.SortedSet[String]
   )
   GaveUp(
     num_tests~ : Int,
@@ -40,8 +40,8 @@ pub fn[P : Testable] quick_check(
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
-  expect~ : Expected = Success,
-  abort~ : Bool = false,
+  expect? : Expected = Success,
+  abort? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, fn(res) {
     {
@@ -64,8 +64,8 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
-  expect~ : Expected = Success,
-  abort~ : Bool = false,
+  expect? : Expected = Success,
+  abort? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
@@ -165,7 +165,8 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
   }
 }
 
-///| Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
+///|
+/// Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
 pub fn run_single_test(
   self : State,
   prop : Property,

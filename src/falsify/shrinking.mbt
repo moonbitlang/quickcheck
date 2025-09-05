@@ -142,7 +142,8 @@ pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
   prim_with(shrinker).fmap(aux)
 }
 
-///| (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
+///|
+/// (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
 fn[P, M, N] h_fmap(
   self : ShrinkHistory[P, M],
   f : (M) -> N,

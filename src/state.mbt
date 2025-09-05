@@ -1,5 +1,5 @@
 ///|
-typealias @list.T as List
+typealias @list.List
 
 ///|
 struct Printer {
@@ -13,12 +13,12 @@ impl Default for Printer with default() {
 }
 
 ///|
-pub fn Printer::from_buffer(buf : @buffer.T) -> Printer {
+pub fn Printer::from_buffer(buf : @buffer.Buffer) -> Printer {
   { buf, ident: 0 }
 }
 
 ///|
-pub fn ident(self : Printer, size~ : Int = 2) -> Unit {
+pub fn ident(self : Printer, size? : Int = 2) -> Unit {
   self.ident += size
 }
 
@@ -41,7 +41,8 @@ pub fn write_string(self : Printer, str : String) -> Unit {
   self.buf.write_string(self.format(str) + "\n")
 }
 
-///| Internal State of Compiler
+///|
+/// Internal State of Compiler
 struct State {
   // Name of the test
   name : String
@@ -246,7 +247,7 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 priv struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
-  labels : @sorted_map.T[ListCompare[String], Int]
+  labels : @sorted_map.SortedMap[ListCompare[String], Int]
   classes : Map[String, Int]
 }
 

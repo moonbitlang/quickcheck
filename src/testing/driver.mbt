@@ -1,5 +1,5 @@
 ///|
-typealias @list.T as List
+typealias @list.List
 
 ///|
 typealias @qc.Arrow
@@ -107,7 +107,8 @@ test "abort" {
   @qc.quick_check(@qc.Arrow(prop_rev), abort=true)
 }
 
-///| Natural Numbers
+///|
+/// Natural Numbers
 priv enum Nat {
   Zero
   Succ(Nat)
@@ -126,15 +127,15 @@ impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
 }
 
 ///|
-impl Add for Nat with op_add(self, other) {
+impl Add for Nat with add(self, other) {
   match self {
     Zero => other
-    Succ(n) => Succ(n.op_add(other))
+    Succ(n) => Succ(n.add(other))
   }
 }
 
 ///|
-impl Eq for Nat with op_equal(self, other) {
+impl Eq for Nat with equal(self, other) {
   match (self, other) {
     (Zero, Zero) => true
     (Succ(a), Succ(b)) => a == b

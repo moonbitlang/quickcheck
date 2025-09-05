@@ -1,24 +1,29 @@
-///| Extensional equality for function.
+///|
+/// Extensional equality for function.
 pub fn[A, B : Eq] ext_equal(f : (A) -> B, g : (A) -> B) -> (A) -> Bool {
   fn(x) { f(x) == g(x) }
 }
 
-///| Idempotent function.
+///|
+/// Idempotent function.
 pub fn[A : Eq] idempotent(f : (A) -> A) -> (A) -> Bool {
   fn(x) { f(f(x)) == f(x) }
 }
 
-///| Involutory function.
+///|
+/// Involutory function.
 pub fn[A : Eq] involutory(f : (A) -> A) -> (A) -> Bool {
   fn(x) { f(f(x)) == x }
 }
 
-///| Inverse function.
+///|
+/// Inverse function.
 pub fn[A : Eq, B] inverse(f : (A) -> B, g : (B) -> A) -> (A) -> Bool {
   fn(x) { g(f(x)) == x }
 }
 
-///| Monotonic increasing function.
+///|
+/// Monotonic increasing function.
 pub fn[A : Compare, B : Compare] mono_increase(
   f : (A) -> B,
 ) -> ((A, A)) -> Bool {
@@ -28,7 +33,8 @@ pub fn[A : Compare, B : Compare] mono_increase(
   }
 }
 
-///| Monotonic decreasing function.
+///|
+/// Monotonic decreasing function.
 pub fn[A : Compare, B : Compare] mono_decrease(
   f : (A) -> B,
 ) -> ((A, A)) -> Bool {
@@ -38,7 +44,8 @@ pub fn[A : Compare, B : Compare] mono_decrease(
   }
 }
 
-///| Commutative binary operation.
+///|
+/// Commutative binary operation.
 pub fn[A, B : Eq] commutative(f : (A, A) -> B) -> ((A, A)) -> Bool {
   fn(t : (A, A)) {
     let (x, y) = t
@@ -46,7 +53,8 @@ pub fn[A, B : Eq] commutative(f : (A, A) -> B) -> ((A, A)) -> Bool {
   }
 }
 
-///| Associative binary operation.
+///|
+/// Associative binary operation.
 pub fn[A : Eq] associative(f : (A, A) -> A) -> ((A, A, A)) -> Bool {
   fn(t : (A, A, A)) {
     let (x, y, z) = t
@@ -54,7 +62,8 @@ pub fn[A : Eq] associative(f : (A, A) -> A) -> ((A, A, A)) -> Bool {
   }
 }
 
-///| Distributive binary operation over left
+///|
+/// Distributive binary operation over left
 pub fn[A : Eq] distributive_left(
   f : (A, A) -> A,
   g : (A, A) -> A,
@@ -65,7 +74,8 @@ pub fn[A : Eq] distributive_left(
   }
 }
 
-///| Distributive binary operation over right
+///|
+/// Distributive binary operation over right
 pub fn[A : Eq] distributive_right(
   f : (A, A) -> A,
   g : (A, A) -> A,

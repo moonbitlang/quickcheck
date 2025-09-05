@@ -42,7 +42,7 @@ pub fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
 }
 
 ///|
-pub impl[T] Add for Enumerate[T] with op_add(self, other) {
+pub impl[T] Add for Enumerate[T] with add(self, other) {
   union(self, other)
 }
 

@@ -225,7 +225,7 @@ impl[T] Show for Outcome[T]
 
 type Printer
 fn Printer::format(Self, String) -> String
-fn Printer::from_buffer(@buffer.T) -> Self
+fn Printer::from_buffer(@buffer.Buffer) -> Self
 fn Printer::ident(Self, size? : Int) -> Unit
 fn Printer::unident(Self) -> Unit
 fn Printer::write_string(Self, String) -> Unit

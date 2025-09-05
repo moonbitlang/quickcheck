@@ -1,11 +1,11 @@
 ///|
-pub typealias @list.T as List
+pub typealias @list.List
 
 ///|
 struct TestRun {
   log : List[String]
   deterministic : Bool
-  labels : @immut/hashmap.T[String, @sorted_set.T[String]]
+  labels : @immut/hashmap.HashMap[String, @sorted_set.SortedSet[String]]
 } derive(Show)
 
 ///|
@@ -61,7 +61,9 @@ pub fn info(msg : String) -> Property[Unit, String] {
 
 ///|
 pub fn[E] label(label : String, vals : List[String]) -> Property[Unit, E] {
-  fn add_values(x : @sorted_set.T[String]?) -> @sorted_set.T[String] {
+  fn add_values(
+    x : @sorted_set.SortedSet[String]?,
+  ) -> @sorted_set.SortedSet[String] {
     let s = x.unwrap_or(@sorted_set.new())
     s.union(@sorted_set.from_iter(vals.iter()))
   }
