@@ -1,0 +1,58 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/systematic"
+
+// Values
+fn[T] all_satisfy(Array[T], (T) -> Bool) -> Bool
+
+fn[T] any_satisfy(Array[T], (T) -> Bool) -> Bool
+
+fn[T] count_test_cases(Array[T], Int) -> Int
+
+fn enumerate_int_range(Int, Int) -> Array[Int]
+
+fn preview_test_cases(Int) -> Array[String]
+
+fn[T : Enumerable] test_enumerable_property((T) -> Bool) -> TestResult[T]
+
+fn[A : Enumerable, B : Enumerable] test_pairs((A, B) -> Bool) -> TestResult[(A, B)]
+
+fn[T] test_property(Array[T], (T) -> Bool) -> TestResult[T]
+
+fn[A : Enumerable, B : Enumerable, C : Enumerable] test_triples((A, B, C) -> Bool) -> TestResult[(A, B, C)]
+
+fn[T] test_with_generator(() -> Array[T], (T) -> Bool) -> TestResult[T]
+
+// Errors
+
+// Types and methods
+type SearchState
+
+type SmallBool
+impl Eq for SmallBool
+impl Show for SmallBool
+
+pub struct TestConfig {
+  max_test_cases : Int
+  verbose : Bool
+  seed : Int?
+}
+fn TestConfig::make(Int, Bool, Int?) -> Self
+fn TestConfig::new() -> Self
+
+pub struct TestResult[T] {
+  total : Int
+  failures : Array[(T, String)]
+  passed : Int
+}
+fn[T] TestResult::combine(Self[T], Self[T]) -> Self[T]
+fn[T] TestResult::failure(Int, Int, (T, String)) -> Self[T]
+fn[T] TestResult::success(Int, Int) -> Self[T]
+fn[T : Show] TestResult::to_string(Self[T]) -> String
+
+// Type aliases
+
+// Traits
+pub trait Enumerable {
+  enumerate() -> Array[Self]
+}
+
