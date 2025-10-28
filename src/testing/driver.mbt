@@ -227,7 +227,7 @@ test "custom generator" {
 ///|
 test "no_duplicate" {
   fn no_duplicate(x : Array[Int]) -> Bool {
-    @sorted_set.from_iter(x.iter()).size() == x.length()
+    @sorted_set.from_iter(x.iter()).length() == x.length()
   }
 
   @qc.quick_check(

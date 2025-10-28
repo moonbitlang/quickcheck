@@ -147,7 +147,7 @@ pub fn[T] length(self : LazyList[T]) -> Int {
 
 ///|
 pub fn[X : Add] sum(l : LazyList[X], init~ : X) -> X {
-  l.fold_left(Add::op_add, init~)
+  l.fold_left(Add::add, init~)
 }
 
 ///|
@@ -204,10 +204,10 @@ pub fn[T] drop(self : LazyList[T], n : Int) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] drop_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] drwhile(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
-    Cons(x, xs) => if p(x) { xs.force().drop_while(p) } else { self }
+    Cons(x, xs) => if p(x) { xs.force().drwhile(p) } else { self }
   }
 }
 

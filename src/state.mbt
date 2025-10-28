@@ -302,12 +302,12 @@ fn class_to_string(self : Coverage, success : Int) -> String {
 ///|
 fn to_string(self : Coverage, success : Int) -> String {
   [
-    if self.labels.size() == 0 {
+    if self.labels.length() == 0 {
       ""
     } else {
       self.label_to_string(success)
     },
-    if self.classes.size() == 0 {
+    if self.classes.length() == 0 {
       ""
     } else {
       self.class_to_string(success)

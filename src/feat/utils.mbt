@@ -3,7 +3,7 @@ pub typealias @lazy.LazyList
 
 ///|
 fn sum(a : Array[BigInt]) -> BigInt {
-  a.fold(BigInt::op_add, init=0)
+  a.fold(BigInt::add, init=0)
 }
 
 ///|
@@ -13,7 +13,7 @@ fn[A, B] convolution(
 ) -> Finite[(A, B)] {
   let s1 = xs.map(fn(x) { x.fCard })
   let s2 = ys.map(fn(x) { x.fCard })
-  let card : BigInt = @lazy.sum(@lazy.zip_with(BigInt::op_mul, s1, s2), init=0)
+  let card : BigInt = @lazy.sum(@lazy.zip_with(BigInt::mul, s1, s2), init=0)
   let fx = @lazy.zip_with(fin_cart, xs, ys).fold_left(
       fin_union,
       init=fin_empty(),

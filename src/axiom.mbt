@@ -81,7 +81,7 @@ pub fn[T, U : Eq] to_property_eq(
   self : Axiom[T],
   cong : (T) -> U,
 ) -> (T) -> Bool {
-  self.to_property(cong, Eq::op_equal)
+  self.to_property(cong, Eq::equal)
 }
 
 ///|
@@ -98,5 +98,5 @@ pub fn[T, M, N : Eq] to_property_parametric_eq(
   self : Axiom[T],
   cong : (T, M) -> N,
 ) -> ((T, M)) -> Bool {
-  self.to_property_parametric(cong, Eq::op_equal)
+  self.to_property_parametric(cong, Eq::equal)
 }

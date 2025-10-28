@@ -272,7 +272,7 @@ pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
   } else {
-    let sum = arr.map(fn(t) { t.0 }).fold(Int::op_add, init=0)
+    let sum = arr.map(fn(t) { t.0 }).fold(Int::add, init=0)
     if sum < 1 {
       abort("frequency: total weight is less than 1")
     } else {

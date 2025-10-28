@@ -16,7 +16,7 @@ pub fn[T : Show] draw(self : ShrinkTree[T], depth : Int) -> @list.List[String] {
   }
   fn shift(first : String, other : String, x : @list.List[String]) {
     @lazy.zip_lazy_normal(
-      String::op_add,
+      String::add,
       @lazy.Cons(first, @lazy.LazyRef::from_value(@lazy.repeat(other))),
       x,
     )
