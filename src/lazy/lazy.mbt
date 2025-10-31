@@ -20,7 +20,7 @@ pub fn[T] LazyRef::from_thunk(f : () -> T) -> LazyRef[T] {
 }
 
 ///|
-pub fn[T] force(self : LazyRef[T]) -> T {
+pub fn[T] LazyRef::force(self : LazyRef[T]) -> T {
   match self.body {
     Value(v) => v
     Thunk(f) => {

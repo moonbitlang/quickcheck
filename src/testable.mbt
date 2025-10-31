@@ -84,12 +84,12 @@ pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for A
   A,
   P,
 ] with property(self) {
-  forall_shrink(Gen::spawn(), A::shrink, self.inner())
+  forall_shrink(Gen::spawn(), A::shrink, self.0)
 }
 
 ///|
 pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
-  prop.property().inner()
+  prop.property().0
 }
 
 ///|
@@ -189,7 +189,7 @@ pub fn[T : Testable, A : Show] forall_shrink(
     shrinking(shrinker, x, fn(a : A) {
       let s = a.to_string()
       counterexample(f(a), s)
-    }).inner()
+    }).0
   })
 }
 

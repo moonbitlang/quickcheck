@@ -112,7 +112,7 @@ pub fn[P : Testable] quick_check_with_result(
 }
 
 ///|
-pub fn run_test(self : State, prop : Property) -> TestSuccess raise TestError {
+pub fn State::run_test(self : State, prop : Property) -> TestSuccess raise TestError {
   loop self.run_single_test(prop) {
     Ok(res) => res
     Err(ns) =>
@@ -127,7 +127,7 @@ pub fn run_test(self : State, prop : Property) -> TestSuccess raise TestError {
 }
 
 ///|
-pub fn complete_test(
+pub fn State::complete_test(
   self : State,
   _prop : Property,
 ) -> TestSuccess raise TestError {
@@ -148,7 +148,7 @@ pub fn complete_test(
 }
 
 ///|
-pub fn give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
+pub fn State::give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
   if self.expected is GaveUp {
     Success(
       num_tests=self.num_success_tests,
@@ -167,13 +167,13 @@ pub fn give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
 
 ///|
 /// Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
-pub fn run_single_test(
+pub fn State::run_single_test(
   self : State,
   prop : Property,
 ) -> Result[TestSuccess, State] raise TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
-  let { val: res, branch: ts } = prop.inner().run(self.compute_size(), rnd1)
+  let { val: res, branch: ts } = prop.0.run(self.compute_size(), rnd1)
   fn update_state(st0 : State) {
     self.random_state = rnd2
     st0.update_state_from_res(res)
@@ -221,7 +221,7 @@ pub fn run_single_test(
 }
 
 ///|
-pub fn find_failure(
+pub fn State::find_failure(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]],
@@ -253,7 +253,7 @@ pub fn find_failure(
 }
 
 ///|
-pub fn local_min(
+pub fn State::local_min(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]],

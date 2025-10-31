@@ -12,7 +12,7 @@ struct ShrinkExplain[P, N] {
 } derive(Show)
 
 ///|
-pub fn[P, N] limit_steps(
+pub fn[P, N] ShrinkExplain::limit_steps(
   self : ShrinkExplain[P, N],
   n : Int?,
 ) -> ShrinkExplain[P, N] {
@@ -32,7 +32,7 @@ pub fn[P, N] limit_steps(
 }
 
 ///|
-pub fn[P, N] shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
+pub fn[P, N] ShrinkExplain::shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
   let arr = [self.initial]
   loop self.history {
     ShrinkTo(x, xs) => {
@@ -45,7 +45,7 @@ pub fn[P, N] shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
 }
 
 ///|
-pub fn[P, N] shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
+pub fn[P, N] ShrinkExplain::shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
   loop (self.initial, self.history) {
     (_, ShrinkTo(p, h)) => continue (p, h)
     (p, ShrinkDone(ns)) => (p, Some(ns))
@@ -98,7 +98,7 @@ fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
 }
 
 ///|
-pub fn[A, P, N] shrink_from(
+pub fn[A, P, N] Gen::shrink_from(
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
   ps : (P, Iter[SampleTree]),
@@ -144,7 +144,7 @@ pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
 
 ///|
 /// (a -> b) -> ShrinkExplanation p a -> ShrinkExplanation p b
-fn[P, M, N] h_fmap(
+fn[P, M, N] ShrinkHistory::h_fmap(
   self : ShrinkHistory[P, M],
   f : (M) -> N,
 ) -> ShrinkHistory[P, N] {
@@ -156,7 +156,7 @@ fn[P, M, N] h_fmap(
 }
 
 ///|
-fn[P, M, N] e_fmap(
+fn[P, M, N] ShrinkExplain::e_fmap(
   self : ShrinkExplain[P, M],
   f : (M) -> N,
 ) -> ShrinkExplain[P, N] {

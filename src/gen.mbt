@@ -78,19 +78,19 @@ pub fn[T] pure(val : T) -> Gen[T] {
 
 ///|
 /// Functor instance for Gen[T] (fmap)
-pub fn[T, U] fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
+pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
   Gen::new(fn(n, s) { f(self.run(n, s)) })
 }
 
 ///|
 /// Applicative Functor instance for Gen[T]
-pub fn[T, U] ap(self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
+pub fn[T, U] Gen::ap(self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
   self.bind(fn(f) { v.bind(fn(x) { pure(f(x)) }) })
 }
 
 ///|
 /// Monad instance for Gen[T]
-pub fn[T, U] bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
+pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   Gen::new(fn(n, s) {
     let s2 = s.split()
     let t = self.run(n, s)
@@ -99,7 +99,7 @@ pub fn[T, U] bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 }
 
 ///|
-pub fn[T] join(self : Gen[Gen[T]]) -> Gen[T] {
+pub fn[T] Gen::join(self : Gen[Gen[T]]) -> Gen[T] {
   self.bind(@utils.id)
 }
 
@@ -219,20 +219,20 @@ pub fn[T] sized(f : (Int) -> Gen[T]) -> Gen[T] {
 
 ///|
 /// Adjust the size parameter of a generator
-pub fn[T] scale(self : Gen[T], f : (Int) -> Int) -> Gen[T] {
+pub fn[T] Gen::scale(self : Gen[T], f : (Int) -> Int) -> Gen[T] {
   Gen::new(fn(i, rs) { self.run(f(i), rs) })
 }
 
 ///|
 /// Resize a generator to a specific value
-pub fn[T] resize(self : Gen[T], size : Int) -> Gen[T] {
+pub fn[T] Gen::resize(self : Gen[T], size : Int) -> Gen[T] {
   self.scale(fn(_n) { size })
 }
 
 ///|
 /// Attempt to generate a value that satisfies a predicate
 /// If failures reach the maximum size, return None
-pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
+pub fn[T] Gen::such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
   fn attempt(m, n) {
     if m > n {
       pure(None)
@@ -254,7 +254,7 @@ pub fn[T] such_that_maybe(self : Gen[T], pred : (T) -> Bool) -> Gen[T?] {
 
 ///|
 /// Generate a value that satisfies a predicate
-pub fn[T] such_that(self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
+pub fn[T] Gen::such_that(self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
   self
   .such_that_maybe(pred)
   .bind(fn(res) {
@@ -459,6 +459,6 @@ pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[List[T]] {
 }
 
 ///|
-pub fn[T] array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
+pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { self.run(i, rs) }) })
 }

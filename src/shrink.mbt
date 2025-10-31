@@ -262,11 +262,11 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 
 ///|
 test "shrink int list" {
-  let il : List[Int] = @list.of([1, 2, 3, 4, 5, 6])
+  let il : List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
   inspect(
     s,
-    content="[@list.of([2, 3, 4, 5, 6]), @list.of([1, 3, 4, 5, 6]), @list.of([1, 2, 4, 5, 6]), @list.of([1, 2, 3, 5, 6]), @list.of([1, 2, 3, 4, 6]), @list.of([4, 5, 6]), @list.of([0, 2, 3, 4, 5, 6]), @list.of([1, 1, 3, 4, 5, 6]), @list.of([1, 0, 3, 4, 5, 6]), @list.of([1, 2, 2, 4, 5, 6]), @list.of([1, 2, 0, 4, 5, 6]), @list.of([1, 2, 3, 3, 5, 6]), @list.of([1, 2, 3, 2, 5, 6]), @list.of([1, 2, 3, 0, 5, 6]), @list.of([1, 2, 3, 4, 4, 6]), @list.of([1, 2, 3, 4, 3, 6]), @list.of([1, 2, 3, 4, 0, 6]), @list.of([1, 2, 3, 4, 5, 5]), @list.of([1, 2, 3, 4, 5, 3]), @list.of([1, 2, 3, 4, 5, 0])]",
+    content="[@list.from_array([2, 3, 4, 5, 6]), @list.from_array([1, 3, 4, 5, 6]), @list.from_array([1, 2, 4, 5, 6]), @list.from_array([1, 2, 3, 5, 6]), @list.from_array([1, 2, 3, 4, 6]), @list.from_array([4, 5, 6]), @list.from_array([0, 2, 3, 4, 5, 6]), @list.from_array([1, 1, 3, 4, 5, 6]), @list.from_array([1, 0, 3, 4, 5, 6]), @list.from_array([1, 2, 2, 4, 5, 6]), @list.from_array([1, 2, 0, 4, 5, 6]), @list.from_array([1, 2, 3, 3, 5, 6]), @list.from_array([1, 2, 3, 2, 5, 6]), @list.from_array([1, 2, 3, 0, 5, 6]), @list.from_array([1, 2, 3, 4, 4, 6]), @list.from_array([1, 2, 3, 4, 3, 6]), @list.from_array([1, 2, 3, 4, 0, 6]), @list.from_array([1, 2, 3, 4, 5, 5]), @list.from_array([1, 2, 3, 4, 5, 3]), @list.from_array([1, 2, 3, 4, 5, 0])]",
   )
 }
 

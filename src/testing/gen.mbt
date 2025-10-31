@@ -36,7 +36,7 @@ priv enum SingleTree {
 ///|
 impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
-    @list.of([
+    @list.from_array([
       @feat.Enumerable::enumerate().fmap(SingleTree::Leaf(_)),
       @feat.unary(pair_function(SingleTree::Node(_, _))),
     ]),
@@ -79,7 +79,7 @@ test "feat tree random" {
   let tg : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(10)
   inspect(
     tg.samples(),
-    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.of([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.of([Branch({forest: @list.of([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.of([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.of([Branch({forest: @list.of([])})])})]",
+    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.from_array([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.from_array([Branch({forest: @list.from_array([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.from_array([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.from_array([Branch({forest: @list.from_array([])})])})]",
   )
 }
 

@@ -25,7 +25,7 @@ pub fn enqueue(q : Queue, x : Int) -> Queue {
 }
 
 ///|
-pub fn is_empty(self : Queue) -> Bool {
+pub fn Queue::is_empty(self : Queue) -> Bool {
   match self {
     { f, .. } =>
       match f {
@@ -36,23 +36,23 @@ pub fn is_empty(self : Queue) -> Bool {
 }
 
 ///|
-fn front(self : Queue) -> Int {
+fn Queue::front(self : Queue) -> Int {
   self.f.last().unwrap()
 }
 
 ///|
-fn dequeue(self : Queue) -> Queue {
+fn Queue::dequeue(self : Queue) -> Queue {
   let { f, r } = self
   build_queue(f.unsafe_tail(), r)
 }
 
 ///|
-fn to_list(self : Queue) -> List[Int] {
+fn Queue::to_list(self : Queue) -> List[Int] {
   self.f.concat(self.r.rev())
 }
 
 ///|
-fn op_equal(self : Queue, other : Queue) -> Bool {
+fn Queue::op_equal(self : Queue, other : Queue) -> Bool {
   self.to_list() == other.to_list()
 }
 

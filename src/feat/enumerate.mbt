@@ -4,7 +4,7 @@ pub(all) struct Enumerate[T] {
 }
 
 ///|
-pub fn[T] eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
+pub fn[T] Enumerate::eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
   self.parts
 }
 
@@ -24,7 +24,7 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 }
 
 ///|
-pub fn[T] en_index(self : Enumerate[T], idx : BigInt) -> T {
+pub fn[T] Enumerate::en_index(self : Enumerate[T], idx : BigInt) -> T {
   loop (self.parts, idx) {
     (Nil, _) => abort("index out of bounds")
     (Cons(f, rest), i) =>
@@ -47,7 +47,7 @@ pub impl[T] Add for Enumerate[T] with add(self, other) {
 }
 
 ///|
-pub fn[T, U] fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
+pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
   { parts: self.parts.map(fn(x) { fin_fmap(f, x) }) }
 }
 

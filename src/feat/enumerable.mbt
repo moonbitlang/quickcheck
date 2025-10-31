@@ -39,7 +39,7 @@ pub impl Enumerable for UInt64 with enumerate() {
 ///|
 pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with enumerate() {
   consts(
-    @list.of([
+    @list.from_array([
       singleton(@list.empty()),
       unary(
         @utils.pair_function(fn(e : E, lst : @moonbitlang/core/list.List[E]) {

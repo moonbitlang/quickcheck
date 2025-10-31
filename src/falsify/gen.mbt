@@ -11,12 +11,12 @@ pub fn[T] new(g : (SampleTree) -> (T, Iter[SampleTree])) -> Gen[T] {
 }
 
 ///|
-pub fn[T] run_gen(self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
+pub fn[T] Gen::run_gen(self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
   (self.run_gen)(x)
 }
 
 ///|
-pub fn[T, U] fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
+pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
   new(fn(x) {
     let (v, rest) = self.run_gen(x)
     (f(v), rest)
@@ -63,7 +63,7 @@ pub fn combine_shrunk(
 }
 
 ///|
-pub fn[T, U] bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
+pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   new(fn(st) {
     let (s, l, r) = st.view()
     let (a, ls) = self.run_gen(l)
@@ -73,7 +73,7 @@ pub fn[T, U] bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 }
 
 ///|
-pub fn[T, U] ap(self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
+pub fn[T, U] Gen::ap(self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
   self.bind(fn(f) { g.bind(fn(x) { pure(f(x)) }) })
 }
 

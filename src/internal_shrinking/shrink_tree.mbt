@@ -10,7 +10,7 @@ pub impl[T : Show] Show for ShrinkTree[T] with output(self, logger) {
 }
 
 ///|
-pub fn[T : Show] draw(self : ShrinkTree[T], depth : Int) -> @list.List[String] {
+pub fn[T : Show] ShrinkTree::draw(self : ShrinkTree[T], depth : Int) -> @list.List[String] {
   if depth == 0 {
     return @list.singleton("limit reach")
   }
@@ -39,7 +39,7 @@ pub fn[T : Show] draw(self : ShrinkTree[T], depth : Int) -> @list.List[String] {
 }
 
 ///|
-pub fn[T : Show] to_string_with_depth(
+pub fn[T : Show] ShrinkTree::to_string_with_depth(
   self : ShrinkTree[T],
   depth : Int,
 ) -> String {
@@ -73,12 +73,12 @@ pub fn[T] ShrinkTree::from_shinker(
 }
 
 ///|
-pub fn[T, U] smap(self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
+pub fn[T, U] ShrinkTree::smap(self : ShrinkTree[T], f : (T) -> U) -> ShrinkTree[U] {
   { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { x.smap(f) }) }
 }
 
 ///|
-pub fn[T] join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
+pub fn[T] ShrinkTree::join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
   let x = self.leaf.leaf
   let ts = self.branch
     .map(_.join())
@@ -91,7 +91,7 @@ pub fn[T] join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
 }
 
 ///|
-pub fn[T, U] bind(
+pub fn[T, U] ShrinkTree::bind(
   self : ShrinkTree[T],
   f : (T) -> ShrinkTree[U],
 ) -> ShrinkTree[U] {
@@ -99,7 +99,7 @@ pub fn[T, U] bind(
 }
 
 ///|
-pub fn[T] get_value(self : ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]]) {
+pub fn[T] ShrinkTree::get_value(self : ShrinkTree[T]) -> (T, Iter[ShrinkTree[T]]) {
   let { leaf, branch } = self
   (leaf, branch)
 }

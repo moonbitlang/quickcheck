@@ -30,7 +30,7 @@ pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
 }
 
 ///|
-pub fn[T] index(self : LazyList[T], i : Int) -> T {
+pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
   match (self, i) {
     (Cons(x, _), 0) => x
     (Nil, _) => abort("index out of bounds")
@@ -47,7 +47,7 @@ pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
+pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go(xs) {
     Cons(
       xs,
@@ -62,7 +62,7 @@ pub fn[T] tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
 }
 
 ///|
-pub fn[T] concat(self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
+pub fn[T] LazyList::concat(self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
   match self {
     Nil => other
     Cons(x, xs) =>
@@ -81,7 +81,7 @@ pub fn[T] repeat(val : T) -> LazyList[T] {
 }
 
 ///|
-pub fn[T, U] map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
+pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   match self {
     Nil => Nil
     Cons(x, xs) => Cons(f(x), LazyRef::from_thunk(fn() { xs.force().map(f) }))
@@ -89,7 +89,7 @@ pub fn[T, U] map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
 }
 
 ///|
-pub fn[T] split_at(self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
+pub fn[T] LazyList::split_at(self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
   if i <= 0 {
     (Nil, self)
   } else {
@@ -109,7 +109,7 @@ pub fn[T] split_at(self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
 }
 
 ///|
-pub fn[T, U] fold_left(self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
+pub fn[T, U] LazyList::fold_left(self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
   match self {
     Nil => init
     Cons(x, xs) => xs.force().fold_left(f, init=f(init, x))
@@ -117,7 +117,7 @@ pub fn[T, U] fold_left(self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
 }
 
 ///|
-pub fn[T, U] fold_right(self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
+pub fn[T, U] LazyList::fold_right(self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
   match self {
     Nil => init
     Cons(y, ys) => f(y, ys.force().fold_right(f, init~))
@@ -125,7 +125,7 @@ pub fn[T, U] fold_right(self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
 }
 
 ///|
-pub fn[T] head(self : LazyList[T]) -> T {
+pub fn[T] LazyList::head(self : LazyList[T]) -> T {
   match self {
     Cons(x, _) => x
     Nil => abort("head of empty list")
@@ -133,7 +133,7 @@ pub fn[T] head(self : LazyList[T]) -> T {
 }
 
 ///|
-pub fn[T] tail(self : LazyList[T]) -> LazyList[T] {
+pub fn[T] LazyList::tail(self : LazyList[T]) -> LazyList[T] {
   match self {
     Cons(_, xs) => xs.force()
     Nil => abort("tail of empty list")
@@ -141,7 +141,7 @@ pub fn[T] tail(self : LazyList[T]) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] length(self : LazyList[T]) -> Int {
+pub fn[T] LazyList::length(self : LazyList[T]) -> Int {
   self.fold_left(fn(acc, _x) { acc + 1 }, init=0)
 }
 
@@ -167,7 +167,7 @@ pub fn[A, B, C] zip_with(
 }
 
 ///|
-pub fn[T] take_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] LazyList::take_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
     Cons(x, xs) =>
@@ -180,7 +180,7 @@ pub fn[T] take_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] take(self : LazyList[T], n : Int) -> LazyList[T] {
+pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
   if n <= 0 {
     Nil
   } else {
@@ -192,7 +192,7 @@ pub fn[T] take(self : LazyList[T], n : Int) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] drop(self : LazyList[T], n : Int) -> LazyList[T] {
+pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
   if n <= 0 {
     self
   } else {
@@ -204,7 +204,7 @@ pub fn[T] drop(self : LazyList[T], n : Int) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] drwhile(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] LazyList::drwhile(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
     Cons(x, xs) => if p(x) { xs.force().drwhile(p) } else { self }
@@ -246,7 +246,7 @@ pub fn[T] zip_plus(
 }
 
 ///|
-pub fn[T] unfold(
+pub fn[T] LazyList::unfold(
   self : LazyList[T],
   f : (LazyList[T]) -> (T, LazyList[T])?,
 ) -> LazyList[T] {

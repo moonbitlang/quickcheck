@@ -15,7 +15,7 @@ fn[L, R, S] Either::fmap(self : Either[L, R], f : (R) -> S) -> Either[L, S] {
 }
 
 ///|
-pub fn[T, U] select(self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
+pub fn[T, U] Gen::select(self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
   new(fn(st) {
     let (s, l, r) = st.view()
     let (ma, ls) = e.run_gen(l)
@@ -30,7 +30,7 @@ pub fn[T, U] select(self : Gen[(T) -> U], e : Gen[Either[T, U]]) -> Gen[U] {
 }
 
 ///|
-fn[A, B, C] branch(
+pub fn[A, B, C] Gen::branch(
   self : Gen[Either[A, B]],
   l : Gen[(A) -> C],
   r : Gen[(B) -> C],
@@ -41,14 +41,14 @@ fn[A, B, C] branch(
 }
 
 ///|
-pub fn[T] ifS(self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
-  let const_ = fn(x) { fn(_y) { x } }
+pub fn[T] Gen::ifS(self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
+  let const_ = fn(x) { fn(_y : Unit) { x } }
   self
   .fmap(fn(x) { if x { Left(()) } else { Right(()) } })
   .branch(t.fmap(const_), e.fmap(const_))
 }
 
 ///|
-pub fn[A, B] apS(self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
+pub fn[A, B] Gen::apS(self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
   x.fmap(fn(y) { fn(g) { g(y) } }).select(self.fmap(Either::Left(_)))
 }

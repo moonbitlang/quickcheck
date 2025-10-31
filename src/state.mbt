@@ -18,17 +18,17 @@ pub fn Printer::from_buffer(buf : @buffer.Buffer) -> Printer {
 }
 
 ///|
-pub fn ident(self : Printer, size? : Int = 2) -> Unit {
+pub fn Printer::ident(self : Printer, size? : Int = 2) -> Unit {
   self.ident += size
 }
 
 ///|
-pub fn unident(self : Printer) -> Unit {
+pub fn Printer::unident(self : Printer) -> Unit {
   self.ident -= 1
 }
 
 ///|
-pub fn format(self : Printer, str : String) -> String {
+pub fn Printer::format(self : Printer, str : String) -> String {
   let mut s = ""
   for i = 0; i < self.ident; i = i + 1 {
     s += " "
@@ -37,7 +37,7 @@ pub fn format(self : Printer, str : String) -> String {
 }
 
 ///|
-pub fn write_string(self : Printer, str : String) -> Unit {
+pub fn Printer::write_string(self : Printer, str : String) -> Unit {
   self.buf.write_string(self.format(str) + "\n")
 }
 
@@ -85,7 +85,7 @@ struct State {
 
 ///|
 #callsite(autofill(loc))
-fn format_name(self : State, loc~ : ArgsLoc) -> String {
+fn State::format_name(self : State, loc~ : ArgsLoc) -> String {
   "[\{self.name}] \{loc}"
 }
 
@@ -118,14 +118,14 @@ fn from_config(cfg : Config) -> State {
 // Deep copy of the state
 
 ///|
-fn clone(self : State) -> State {
+fn State::clone(self : State) -> State {
   { ..self }
 }
 
 // Computes the test size from the state
 
 ///|
-fn compute_size(self : State) -> Int {
+fn State::compute_size(self : State) -> Int {
   match self {
     {
       replay_start_size_: Some(x),
@@ -160,13 +160,13 @@ fn compute_size(self : State) -> Int {
 }
 
 ///|
-fn add_coverages(self : State, res : SingleResult) -> Unit {
+fn State::add_coverages(self : State, res : SingleResult) -> Unit {
   self.collects.label_incr(res.labels)
   self.collects.class_incr(res.classes)
 }
 
 ///|
-fn update_state_from_res(self : State, result : SingleResult) -> Unit {
+fn State::update_state_from_res(self : State, result : SingleResult) -> Unit {
   self.max_success_tests_ = result.maybe_num_tests.unwrap_or(
     self.max_success_tests_,
   )
@@ -181,12 +181,12 @@ fn update_state_from_res(self : State, result : SingleResult) -> Unit {
 }
 
 ///|
-fn finished_successfully(self : State) -> Bool {
+fn State::finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
 }
 
 ///|
-fn discarded_too_much(self : State) -> Bool {
+fn State::discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
     @cmp.maximum(self.num_success_tests, self.max_success_tests_)
@@ -196,7 +196,7 @@ fn discarded_too_much(self : State) -> Bool {
 }
 
 ///|
-fn callback_post_test(self : State, res : SingleResult) -> Unit {
+fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
   res.callbacks.each(fn(cb) {
     match cb {
       PostTest(_, f) => f(self, res)
@@ -206,7 +206,7 @@ fn callback_post_test(self : State, res : SingleResult) -> Unit {
 }
 
 ///|
-fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
+fn State::callback_post_final_failure(self : State, res : SingleResult) -> Unit {
   res.callbacks.each(fn(cb) {
     match cb {
       PostFinalFailure(_, f) => f(self, res)
@@ -216,7 +216,7 @@ fn callback_post_final_failure(self : State, res : SingleResult) -> Unit {
 }
 
 ///|
-fn counts(self : State) -> String {
+fn State::counts(self : State) -> String {
   "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
 
@@ -225,7 +225,7 @@ priv struct ListCompare[T](List[T]) derive(Eq, Show)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
-  match (self.inner(), other.inner()) {
+  match (self.0, other.0) {
     (More(x, tail=xs), More(y, tail=ys)) => {
       let res = T::compare(x, y)
       if res == 0 {
@@ -257,7 +257,7 @@ fn Coverage::new() -> Coverage {
 }
 
 ///|
-fn label_incr(self : Coverage, key : List[String]) -> Unit {
+fn Coverage::label_incr(self : Coverage, key : List[String]) -> Unit {
   match self.labels.get(key) {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
@@ -265,7 +265,7 @@ fn label_incr(self : Coverage, key : List[String]) -> Unit {
 }
 
 ///|
-fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
+fn Coverage::class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
   classes.each(item => {
     let (s, b) = item
     let i = if b { 1 } else { 0 }
@@ -277,13 +277,13 @@ fn class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
 }
 
 ///|
-fn label_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each(fn(list, i) {
-    if list.inner().is_empty() {
+    if list.0.is_empty() {
       return
     } else {
-      let l = list.inner().to_array().join(", ")
+      let l = list.0.to_array().join(", ")
       res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
     }
   })
@@ -291,7 +291,7 @@ fn label_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-fn class_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.classes.each(fn(s, i) {
     res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
@@ -300,7 +300,7 @@ fn class_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-fn to_string(self : Coverage, success : Int) -> String {
+fn Coverage::to_string(self : Coverage, success : Int) -> String {
   [
     if self.labels.length() == 0 {
       ""

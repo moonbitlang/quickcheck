@@ -107,7 +107,7 @@ pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 }
 
 ///|
-pub fn[T] to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
+pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
   (
     self.fCard,
     loop (self.fCard, @list.empty()) {

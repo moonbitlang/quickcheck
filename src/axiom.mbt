@@ -43,12 +43,12 @@ pub fn[T] pure_eq(x : T) -> Equivalence[T] {
 }
 
 ///|
-pub fn[T : Eq] is_equal(self : Equivalence[T]) -> Bool {
+pub fn[T : Eq] Equivalence::is_equal(self : Equivalence[T]) -> Bool {
   self.lhs == self.rhs
 }
 
 ///|
-pub fn[T] equal_by(self : Equivalence[T], eq : (T, T) -> Bool) -> Bool {
+pub fn[T] Equivalence::equal_by(self : Equivalence[T], eq : (T, T) -> Bool) -> Bool {
   eq(self.lhs, self.rhs)
 }
 
@@ -68,7 +68,7 @@ pub fn[T] Axiom::run(self : Axiom[T], x : T) -> Equivalence[T] {
 }
 
 ///|
-pub fn[T, U] to_property(
+pub fn[T, U] Axiom::to_property(
   self : Axiom[T],
   cong : (T) -> U,
   eq : (U, U) -> Bool,
@@ -77,7 +77,7 @@ pub fn[T, U] to_property(
 }
 
 ///|
-pub fn[T, U : Eq] to_property_eq(
+pub fn[T, U : Eq] Axiom::to_property_eq(
   self : Axiom[T],
   cong : (T) -> U,
 ) -> (T) -> Bool {
@@ -85,7 +85,7 @@ pub fn[T, U : Eq] to_property_eq(
 }
 
 ///|
-pub fn[T, M, N] to_property_parametric(
+pub fn[T, M, N] Axiom::to_property_parametric(
   self : Axiom[T],
   cong : (T, M) -> N,
   eq : (N, N) -> Bool,
@@ -94,7 +94,7 @@ pub fn[T, M, N] to_property_parametric(
 }
 
 ///|
-pub fn[T, M, N : Eq] to_property_parametric_eq(
+pub fn[T, M, N : Eq] Axiom::to_property_parametric_eq(
   self : Axiom[T],
   cong : (T, M) -> N,
 ) -> ((T, M)) -> Bool {
