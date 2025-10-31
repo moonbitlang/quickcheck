@@ -161,6 +161,7 @@ type TestError
 
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
+#deprecated
 fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
 impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
@@ -253,7 +254,7 @@ fn State::run_test(Self, Property) -> TestSuccess raise TestError
 type TestSuccess
 
 // Type aliases
-pub typealias @splitmix.RandomState as RandomState
+pub using @splitmix {type RandomState}
 
 // Traits
 pub(open) trait Shrink {

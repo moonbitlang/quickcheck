@@ -66,6 +66,7 @@ type Gen[T]
 fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
 fn[A, B] Gen::apS(Self[(A) -> B], Self[A]) -> Self[B]
 fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+fn[A, B, C] Gen::branch(Self[Either[A, B]], Self[(A) -> C], Self[(B) -> C]) -> Self[C]
 fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
 fn[T] Gen::ifS(Self[Bool], Self[T], Self[T]) -> Self[T]
 fn[T] Gen::run_gen(Self[T], SampleTree) -> (T, Iter[SampleTree])
@@ -101,9 +102,9 @@ type TestRun
 impl Show for TestRun
 
 // Type aliases
-pub typealias @list.List as List
+pub using @list {type List}
 
-pub typealias @splitmix.RandomState as RandomState
+pub using @splitmix {type RandomState}
 
 // Traits
 

@@ -204,10 +204,10 @@ pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] LazyList::drwhile(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] LazyList::drop_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
   match self {
     Nil => Nil
-    Cons(x, xs) => if p(x) { xs.force().drwhile(p) } else { self }
+    Cons(x, xs) => if p(x) { xs.force().drop_while(p) } else { self }
   }
 }
 
