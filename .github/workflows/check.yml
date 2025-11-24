@@ -24,18 +24,18 @@ jobs:
           - pre-release
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.version != latest }}
+    continue-on-error: ${{ matrix.version != 'latest' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: install stable version on unix
-        if: ${{ runner.os != "Windows" }}
+        if: ${{ runner.os != 'Windows' }}
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s ${{ matrix.version }}
           echo "$HOME/.moon/bin" >> $GITHUB_PATH
 
       - name: install stable version on windows
-        if: ${{ runner.os == "Windows" }}
+        if: ${{ runner.os == 'Windows' }}
         env: 
           MOONBIT_INSTALL_VERSION: ${{ matrix.version }}
         run: |
@@ -65,11 +65,11 @@ jobs:
           git diff --exit-code
 
       - name: Setup MSVC
-        if: ${{ runner.os == "Windows" }}
+        if: ${{ runner.os == 'Windows' }}
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Set ulimit on unix
-        if: ${{ runner.os != "Windows" }}
+        if: ${{ runner.os != 'Windows' }}
         run: |
           ulimit -s 8176
 
