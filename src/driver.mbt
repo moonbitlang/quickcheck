@@ -112,7 +112,10 @@ pub fn[P : Testable] quick_check_with_result(
 }
 
 ///|
-pub fn State::run_test(self : State, prop : Property) -> TestSuccess raise TestError {
+pub fn State::run_test(
+  self : State,
+  prop : Property,
+) -> TestSuccess raise TestError {
   loop self.run_single_test(prop) {
     Ok(res) => res
     Err(ns) =>
@@ -148,7 +151,10 @@ pub fn State::complete_test(
 }
 
 ///|
-pub fn State::give_up(self : State, _prop : Property) -> TestSuccess raise TestError {
+pub fn State::give_up(
+  self : State,
+  _prop : Property,
+) -> TestSuccess raise TestError {
   if self.expected is GaveUp {
     Success(
       num_tests=self.num_success_tests,

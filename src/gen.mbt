@@ -1,5 +1,5 @@
 ///|
-pub typealias @quickcheck/splitmix.RandomState
+pub using @quickcheck/splitmix {type RandomState}
 
 ///|
 /// The Gen type represents a generator of values of type T.

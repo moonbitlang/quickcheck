@@ -2,18 +2,18 @@
 package "moonbitlang/quickcheck/testing"
 
 // Values
-fn empty_queue() -> Queue
+pub fn empty_queue() -> Queue
 
-fn enqueue(Queue, Int) -> Queue
+pub fn enqueue(Queue, Int) -> Queue
 
-fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
+pub fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 // Errors
 
 // Types and methods
 type Queue
-fn Queue::is_empty(Self) -> Bool
-impl Show for Queue
+pub fn Queue::is_empty(Self) -> Bool
+pub impl Show for Queue
 
 // Type aliases
 

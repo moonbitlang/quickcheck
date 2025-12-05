@@ -6,23 +6,23 @@ import(
 )
 
 // Values
-fn[X] default() -> LazyList[X]
+pub fn[X] default() -> LazyList[X]
 
-fn[T] from_list(@list.List[T]) -> LazyList[T]
+pub fn[T] from_list(@list.List[T]) -> LazyList[T]
 
-fn[X : Add] infinite_stream(X, X) -> LazyList[X]
+pub fn[X : Add] infinite_stream(X, X) -> LazyList[X]
 
-fn[T] repeat(T) -> LazyList[T]
+pub fn[T] repeat(T) -> LazyList[T]
 
-fn[X : Add] sum(LazyList[X], init~ : X) -> X
+pub fn[X : Add] sum(LazyList[X], init~ : X) -> X
 
-fn[T] to_lazy(@list.List[T]) -> LazyList[T]
+pub fn[T] to_lazy(@list.List[T]) -> LazyList[T]
 
-fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.List[B]) -> @list.List[C]
+pub fn[A, B, C] zip_lazy_normal((A, B) -> C, LazyList[A], @list.List[B]) -> @list.List[C]
 
-fn[T] zip_plus((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
+pub fn[T] zip_plus((T, T) -> T, LazyList[T], LazyList[T]) -> LazyList[T]
 
-fn[A, B, C] zip_with((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
+pub fn[A, B, C] zip_with((A, B) -> C, LazyList[A], LazyList[B]) -> LazyList[C]
 
 // Errors
 
@@ -31,28 +31,28 @@ pub(all) enum LazyList[T] {
   Nil
   Cons(T, LazyRef[LazyList[T]])
 }
-fn[T] LazyList::concat(Self[T], Self[T]) -> Self[T]
-fn[T] LazyList::drop(Self[T], Int) -> Self[T]
-fn[T] LazyList::drop_while(Self[T], (T) -> Bool) -> Self[T]
-fn[T, U] LazyList::fold_left(Self[T], (U, T) -> U, init~ : U) -> U
-fn[T, U] LazyList::fold_right(Self[T], (T, U) -> U, init~ : U) -> U
-fn[T] LazyList::head(Self[T]) -> T
-fn[T] LazyList::index(Self[T], Int) -> T
-fn[T] LazyList::length(Self[T]) -> Int
-fn[T, U] LazyList::map(Self[T], (T) -> U) -> Self[U]
-fn[T] LazyList::split_at(Self[T], Int) -> (Self[T], Self[T])
-fn[T] LazyList::tail(Self[T]) -> Self[T]
-fn[T] LazyList::tails(Self[T]) -> Self[Self[T]]
-fn[T] LazyList::take(Self[T], Int) -> Self[T]
-fn[T] LazyList::take_while(Self[T], (T) -> Bool) -> Self[T]
-fn[T] LazyList::unfold(Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
-impl[T] Add for LazyList[T]
-impl[T : Show] Show for LazyList[T]
+pub fn[T] LazyList::concat(Self[T], Self[T]) -> Self[T]
+pub fn[T] LazyList::drop(Self[T], Int) -> Self[T]
+pub fn[T] LazyList::drop_while(Self[T], (T) -> Bool) -> Self[T]
+pub fn[T, U] LazyList::fold_left(Self[T], (U, T) -> U, init~ : U) -> U
+pub fn[T, U] LazyList::fold_right(Self[T], (T, U) -> U, init~ : U) -> U
+pub fn[T] LazyList::head(Self[T]) -> T
+pub fn[T] LazyList::index(Self[T], Int) -> T
+pub fn[T] LazyList::length(Self[T]) -> Int
+pub fn[T, U] LazyList::map(Self[T], (T) -> U) -> Self[U]
+pub fn[T] LazyList::split_at(Self[T], Int) -> (Self[T], Self[T])
+pub fn[T] LazyList::tail(Self[T]) -> Self[T]
+pub fn[T] LazyList::tails(Self[T]) -> Self[Self[T]]
+pub fn[T] LazyList::take(Self[T], Int) -> Self[T]
+pub fn[T] LazyList::take_while(Self[T], (T) -> Bool) -> Self[T]
+pub fn[T] LazyList::unfold(Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
+pub impl[T] Add for LazyList[T]
+pub impl[T : Show] Show for LazyList[T]
 
 type LazyRef[T]
-fn[T] LazyRef::force(Self[T]) -> T
-fn[T] LazyRef::from_thunk(() -> T) -> Self[T]
-fn[T] LazyRef::from_value(T) -> Self[T]
+pub fn[T] LazyRef::force(Self[T]) -> T
+pub fn[T] LazyRef::from_thunk(() -> T) -> Self[T]
+pub fn[T] LazyRef::from_value(T) -> Self[T]
 
 // Type aliases
 

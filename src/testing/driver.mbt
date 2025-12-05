@@ -1,8 +1,8 @@
 ///|
-typealias @list.List
+using @list {type List}
 
 ///|
-typealias @qc.Arrow
+using @qc {type Arrow}
 
 ///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {

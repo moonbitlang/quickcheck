@@ -6,23 +6,23 @@ import(
 )
 
 // Values
-fn[T] apply_while_array(T, (T) -> T, (T) -> Bool) -> Array[T]
+pub fn[T] apply_while_array(T, (T) -> T, (T) -> Bool) -> Array[T]
 
-fn[T] apply_while_list(T, (T) -> T, (T) -> Bool) -> @list.List[T]
+pub fn[T] apply_while_list(T, (T) -> T, (T) -> Bool) -> @list.List[T]
 
-fn[T, U] const_(T) -> (U) -> T
+pub fn[T, U] const_(T) -> (U) -> T
 
-fn[M, N, Z] flip((M, N) -> Z) -> (N, M) -> Z
+pub fn[M, N, Z] flip((M, N) -> Z) -> (N, M) -> Z
 
-fn fresh_name() -> String
+pub fn fresh_name() -> String
 
-fn[T] id(T) -> T
+pub fn[T] id(T) -> T
 
-fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
+pub fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
-fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
+pub fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
 
-fn[T] removes_list(Int, Int, @list.List[T]) -> @list.List[@list.List[T]]
+pub fn[T] removes_list(Int, Int, @list.List[T]) -> @list.List[@list.List[T]]
 
 // Errors
 

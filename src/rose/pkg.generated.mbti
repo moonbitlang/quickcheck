@@ -2,9 +2,9 @@
 package "moonbitlang/quickcheck/rose"
 
 // Values
-fn[T] new(T, Iter[Rose[T]]) -> Rose[T]
+pub fn[T] new(T, Iter[Rose[T]]) -> Rose[T]
 
-fn[T] pure(T) -> Rose[T]
+pub fn[T] pure(T) -> Rose[T]
 
 // Errors
 
@@ -13,11 +13,11 @@ pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
 }
-fn[T] Rose::apply(Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
-fn[T, U] Rose::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[T, U] Rose::fmap(Self[T], (T) -> U) -> Self[U]
-fn[T] Rose::join(Self[Self[T]]) -> Self[T]
-impl[T : Show] Show for Rose[T]
+pub fn[T] Rose::apply(Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
+pub fn[T, U] Rose::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[T, U] Rose::fmap(Self[T], (T) -> U) -> Self[U]
+pub fn[T] Rose::join(Self[Self[T]]) -> Self[T]
+pub impl[T : Show] Show for Rose[T]
 
 // Type aliases
 
