@@ -8,43 +8,43 @@ import(
 )
 
 // Values
-fn[T, U] app(Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
+pub fn[T, U] app(Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]
 
-fn[T] consts(@list.List[Enumerate[T]]) -> Enumerate[T]
+pub fn[T] consts(@list.List[Enumerate[T]]) -> Enumerate[T]
 
-fn[T] default() -> Enumerate[T]
+pub fn[T] default() -> Enumerate[T]
 
-fn[T] empty() -> Enumerate[T]
+pub fn[T] empty() -> Enumerate[T]
 
-fn[M, N] fin_app(Finite[(M) -> N], Finite[M]) -> Finite[N]
+pub fn[M, N] fin_app(Finite[(M) -> N], Finite[M]) -> Finite[N]
 
-fn[M, N] fin_bind(Finite[M], (M) -> Finite[N]) -> Finite[N]
+pub fn[M, N] fin_bind(Finite[M], (M) -> Finite[N]) -> Finite[N]
 
-fn[T, U] fin_cart(Finite[T], Finite[U]) -> Finite[(T, U)]
+pub fn[T, U] fin_cart(Finite[T], Finite[U]) -> Finite[(T, U)]
 
-fn[M] fin_concat(Array[Finite[M]]) -> Finite[M]
+pub fn[M] fin_concat(Array[Finite[M]]) -> Finite[M]
 
-fn[T] fin_empty() -> Finite[T]
+pub fn[T] fin_empty() -> Finite[T]
 
-fn fin_finite(@bigint.BigInt) -> Finite[@bigint.BigInt]
+pub fn fin_finite(@bigint.BigInt) -> Finite[@bigint.BigInt]
 
-fn[T, U] fin_fmap((T) -> U, Finite[T]) -> Finite[U]
+pub fn[T, U] fin_fmap((T) -> U, Finite[T]) -> Finite[U]
 
-fn[M] fin_mconcat(@lazy.LazyList[Finite[M]]) -> Finite[M]
+pub fn[M] fin_mconcat(@lazy.LazyList[Finite[M]]) -> Finite[M]
 
-fn[T] fin_pure(T) -> Finite[T]
+pub fn[T] fin_pure(T) -> Finite[T]
 
-fn[T] fin_union(Finite[T], Finite[T]) -> Finite[T]
+pub fn[T] fin_union(Finite[T], Finite[T]) -> Finite[T]
 
-fn[T] pay(() -> Enumerate[T]) -> Enumerate[T]
+pub fn[T] pay(() -> Enumerate[T]) -> Enumerate[T]
 
-fn[T, U] product(Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
+pub fn[T, U] product(Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
-fn[T] singleton(T) -> Enumerate[T]
+pub fn[T] singleton(T) -> Enumerate[T]
 
-fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
+pub fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 
-fn[T] union(Enumerate[T], Enumerate[T]) -> Enumerate[T]
+pub fn[T] union(Enumerate[T], Enumerate[T]) -> Enumerate[T]
 
 // Errors
 
@@ -52,18 +52,18 @@ fn[T] union(Enumerate[T], Enumerate[T]) -> Enumerate[T]
 pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
 }
-fn[T] Enumerate::en_index(Self[T], @bigint.BigInt) -> T
-fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
-fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
-impl[T] Add for Enumerate[T]
+pub fn[T] Enumerate::en_index(Self[T], @bigint.BigInt) -> T
+pub fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
+pub fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
+pub impl[T] Add for Enumerate[T]
 
 pub(all) struct Finite[T] {
   fCard : @bigint.BigInt
   fIndex : (@bigint.BigInt) -> T
 }
-fn[T] Finite::op_add(Self[T], Self[T]) -> Self[T]
-fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
-impl[T : Show] Show for Finite[T]
+pub fn[T] Finite::op_add(Self[T], Self[T]) -> Self[T]
+pub fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
+pub impl[T : Show] Show for Finite[T]
 
 // Type aliases
 pub using @lazy {type LazyList}
@@ -72,14 +72,14 @@ pub using @lazy {type LazyList}
 pub(open) trait Enumerable {
   enumerate() -> Enumerate[Self]
 }
-impl Enumerable for Unit
-impl Enumerable for Bool
-impl Enumerable for Int
-impl Enumerable for Int64
-impl Enumerable for UInt
-impl Enumerable for UInt64
-impl[E : Enumerable] Enumerable for E?
-impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E]
-impl[E : Enumerable] Enumerable for @list.List[E]
-impl[A : Enumerable, B : Enumerable] Enumerable for (A, B)
+pub impl Enumerable for Unit
+pub impl Enumerable for Bool
+pub impl Enumerable for Int
+pub impl Enumerable for Int64
+pub impl Enumerable for UInt
+pub impl Enumerable for UInt64
+pub impl[E : Enumerable] Enumerable for E?
+pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E]
+pub impl[E : Enumerable] Enumerable for @list.List[E]
+pub impl[A : Enumerable, B : Enumerable] Enumerable for (A, B)
 

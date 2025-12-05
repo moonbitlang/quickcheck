@@ -62,7 +62,10 @@ pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
 }
 
 ///|
-pub fn[T] LazyList::concat(self : LazyList[T], other : LazyList[T]) -> LazyList[T] {
+pub fn[T] LazyList::concat(
+  self : LazyList[T],
+  other : LazyList[T],
+) -> LazyList[T] {
   match self {
     Nil => other
     Cons(x, xs) =>
@@ -89,7 +92,10 @@ pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
 }
 
 ///|
-pub fn[T] LazyList::split_at(self : LazyList[T], i : Int) -> (LazyList[T], LazyList[T]) {
+pub fn[T] LazyList::split_at(
+  self : LazyList[T],
+  i : Int,
+) -> (LazyList[T], LazyList[T]) {
   if i <= 0 {
     (Nil, self)
   } else {
@@ -109,7 +115,11 @@ pub fn[T] LazyList::split_at(self : LazyList[T], i : Int) -> (LazyList[T], LazyL
 }
 
 ///|
-pub fn[T, U] LazyList::fold_left(self : LazyList[T], f : (U, T) -> U, init~ : U) -> U {
+pub fn[T, U] LazyList::fold_left(
+  self : LazyList[T],
+  f : (U, T) -> U,
+  init~ : U,
+) -> U {
   match self {
     Nil => init
     Cons(x, xs) => xs.force().fold_left(f, init=f(init, x))
@@ -117,7 +127,11 @@ pub fn[T, U] LazyList::fold_left(self : LazyList[T], f : (U, T) -> U, init~ : U)
 }
 
 ///|
-pub fn[T, U] LazyList::fold_right(self : LazyList[T], f : (T, U) -> U, init~ : U) -> U {
+pub fn[T, U] LazyList::fold_right(
+  self : LazyList[T],
+  f : (T, U) -> U,
+  init~ : U,
+) -> U {
   match self {
     Nil => init
     Cons(y, ys) => f(y, ys.force().fold_right(f, init~))
@@ -167,7 +181,10 @@ pub fn[A, B, C] zip_with(
 }
 
 ///|
-pub fn[T] LazyList::take_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] LazyList::take_while(
+  self : LazyList[T],
+  p : (T) -> Bool,
+) -> LazyList[T] {
   match self {
     Nil => Nil
     Cons(x, xs) =>
@@ -204,7 +221,10 @@ pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
 }
 
 ///|
-pub fn[T] LazyList::drop_while(self : LazyList[T], p : (T) -> Bool) -> LazyList[T] {
+pub fn[T] LazyList::drop_while(
+  self : LazyList[T],
+  p : (T) -> Bool,
+) -> LazyList[T] {
   match self {
     Nil => Nil
     Cons(x, xs) => if p(x) { xs.force().drop_while(p) } else { self }

@@ -36,7 +36,8 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
   if k > n {
     []
   } else {
-    let (xs2, xs1) = xs.split_at(k)
+    let xs2 = xs[:k].to_array()
+    let xs1 = xs[k:].to_array()
     if xs1.is_empty() {
       []
     } else {

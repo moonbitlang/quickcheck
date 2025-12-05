@@ -32,7 +32,9 @@ pub fn[P, N] ShrinkExplain::limit_steps(
 }
 
 ///|
-pub fn[P, N] ShrinkExplain::shrink_history(self : ShrinkExplain[P, N]) -> Array[P] {
+pub fn[P, N] ShrinkExplain::shrink_history(
+  self : ShrinkExplain[P, N],
+) -> Array[P] {
   let arr = [self.initial]
   loop self.history {
     ShrinkTo(x, xs) => {
@@ -45,7 +47,9 @@ pub fn[P, N] ShrinkExplain::shrink_history(self : ShrinkExplain[P, N]) -> Array[
 }
 
 ///|
-pub fn[P, N] ShrinkExplain::shrink_outcome(self : ShrinkExplain[P, N]) -> (P, Iter[N]?) {
+pub fn[P, N] ShrinkExplain::shrink_outcome(
+  self : ShrinkExplain[P, N],
+) -> (P, Iter[N]?) {
   loop (self.initial, self.history) {
     (_, ShrinkTo(p, h)) => continue (p, h)
     (p, ShrinkDone(ns)) => (p, Some(ns))

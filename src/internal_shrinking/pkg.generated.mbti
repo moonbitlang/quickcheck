@@ -11,15 +11,15 @@ import(
 
 // Types and methods
 type ShrinkTree[T]
-fn[T, U] ShrinkTree::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[T : Show] ShrinkTree::draw(Self[T], Int) -> @list.List[String]
-fn[T] ShrinkTree::from_shinker((T) -> Iter[T], T) -> Self[T]
-fn[T] ShrinkTree::from_value(T) -> Self[T]
-fn[T] ShrinkTree::get_value(Self[T]) -> (T, Iter[Self[T]])
-fn[T] ShrinkTree::join(Self[Self[T]]) -> Self[T]
-fn[T, U] ShrinkTree::smap(Self[T], (T) -> U) -> Self[U]
-fn[T : Show] ShrinkTree::to_string_with_depth(Self[T], Int) -> String
-impl[T : Show] Show for ShrinkTree[T]
+pub fn[T, U] ShrinkTree::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[T : Show] ShrinkTree::draw(Self[T], Int) -> @list.List[String]
+pub fn[T] ShrinkTree::from_shinker((T) -> Iter[T], T) -> Self[T]
+pub fn[T] ShrinkTree::from_value(T) -> Self[T]
+pub fn[T] ShrinkTree::get_value(Self[T]) -> (T, Iter[Self[T]])
+pub fn[T] ShrinkTree::join(Self[Self[T]]) -> Self[T]
+pub fn[T, U] ShrinkTree::smap(Self[T], (T) -> U) -> Self[U]
+pub fn[T : Show] ShrinkTree::to_string_with_depth(Self[T], Int) -> String
+pub impl[T : Show] Show for ShrinkTree[T]
 
 // Type aliases
 
