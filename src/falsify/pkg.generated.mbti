@@ -7,99 +7,99 @@ import(
 )
 
 // Values
-fn[T : Show, E] collect(String, @list.List[T]) -> Property[Unit, E]
+pub fn[T : Show, E] collect(String, @list.List[T]) -> Property[Unit, E]
 
-fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
+pub fn combine_shrunk(Sample, SampleTree, SampleTree, Iter[SampleTree], Iter[SampleTree]) -> Iter[SampleTree]
 
-fn constant(UInt) -> SampleTree
+pub fn constant(UInt) -> SampleTree
 
-fn[T, E] discard() -> Property[T, E]
+pub fn[T, E] discard() -> Property[T, E]
 
-fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.List[Success[T]], Int, Failure[E]?)
+pub fn[T, E] falsify(Config, Property[T, E]) -> (@splitmix.RandomState, @list.List[Success[T]], Int, Failure[E]?)
 
-fn from_rng(@splitmix.RandomState) -> SampleTree
+pub fn from_rng(@splitmix.RandomState) -> SampleTree
 
-fn from_seed(UInt64) -> SampleTree
+pub fn from_seed(UInt64) -> SampleTree
 
-fn[T, E] gen((T) -> String?, Gen[T]) -> Property[T, E]
+pub fn[T, E] gen((T) -> String?, Gen[T]) -> Property[T, E]
 
-fn info(String) -> Property[Unit, String]
+pub fn info(String) -> Property[Unit, String]
 
-fn[T] init_state(Config) -> DriverState[T]
+pub fn[T] init_state(Config) -> DriverState[T]
 
-fn init_test_run() -> TestRun
+pub fn init_test_run() -> TestRun
 
-fn[E] label(String, @list.List[String]) -> Property[Unit, E]
+pub fn[E] label(String, @list.List[String]) -> Property[Unit, E]
 
-fn[T, E] mk_property((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
+pub fn[T, E] mk_property((TestRun) -> Gen[(TestResult[T, E], TestRun)]) -> Property[T, E]
 
-fn[T] new((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
+pub fn[T] new((SampleTree) -> (T, Iter[SampleTree])) -> Gen[T]
 
-fn prim() -> Gen[UInt]
+pub fn prim() -> Gen[UInt]
 
-fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
+pub fn prim_with((Sample) -> Iter[UInt]) -> Gen[Sample]
 
-fn[T] pure(T) -> Gen[T]
+pub fn[T] pure(T) -> Gen[T]
 
-fn[T, E] run_property(Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
+pub fn[T, E] run_property(Property[T, E]) -> Gen[(TestResult[T, E], TestRun)]
 
-fn[A, B, C] second((B) -> C, (A, B)) -> (A, C)
+pub fn[A, B, C] second((B) -> C, (A, B)) -> (A, C)
 
-fn[T] shrink_to_list(T, Iter[T]) -> Gen[T]
+pub fn[T] shrink_to_list(T, Iter[T]) -> Gen[T]
 
-fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
+pub fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
 
 // Errors
 
 // Types and methods
 type Config
-impl Show for Config
+pub impl Show for Config
 
 type DriverState[T]
 
 type Either[L, R]
 
 type Failure[E]
-impl[E : Show] Show for Failure[E]
+pub impl[E : Show] Show for Failure[E]
 
 type Gen[T]
-fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
-fn[A, B] Gen::apS(Self[(A) -> B], Self[A]) -> Self[B]
-fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[A, B, C] Gen::branch(Self[Either[A, B]], Self[(A) -> C], Self[(B) -> C]) -> Self[C]
-fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
-fn[T] Gen::ifS(Self[Bool], Self[T], Self[T]) -> Self[T]
-fn[T] Gen::run_gen(Self[T], SampleTree) -> (T, Iter[SampleTree])
-fn[T] Gen::sample(Self[T]) -> T
-fn[T, U] Gen::select(Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
-fn[A, P, N] Gen::shrink_from(Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
+pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
+pub fn[A, B] Gen::apS(Self[(A) -> B], Self[A]) -> Self[B]
+pub fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[A, B, C] Gen::branch(Self[Either[A, B]], Self[(A) -> C], Self[(B) -> C]) -> Self[C]
+pub fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
+pub fn[T] Gen::ifS(Self[Bool], Self[T], Self[T]) -> Self[T]
+pub fn[T] Gen::run_gen(Self[T], SampleTree) -> (T, Iter[SampleTree])
+pub fn[T] Gen::sample(Self[T]) -> T
+pub fn[T, U] Gen::select(Self[(T) -> U], Self[Either[T, U]]) -> Self[U]
+pub fn[A, P, N] Gen::shrink_from(Self[A], (A) -> IsValidShrink[P, N], (P, Iter[SampleTree])) -> ShrinkExplain[P, N]
 
 type IsValidShrink[P, N]
 
 type Property[T, E]
-fn[T, E] Property::run(Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
+pub fn[T, E] Property::run(Self[T, E], TestRun) -> Gen[(TestResult[T, E], TestRun)]
 
 type Sample
-fn Sample::sample_value(Self) -> UInt
+pub fn Sample::sample_value(Self) -> UInt
 
 type SampleTree
-fn SampleTree::map(Self, (UInt) -> UInt) -> Self
-fn SampleTree::mod(Self, UInt) -> Self
-fn SampleTree::view(Self) -> (Sample, Self, Self)
+pub fn SampleTree::map(Self, (UInt) -> UInt) -> Self
+pub fn SampleTree::mod(Self, UInt) -> Self
+pub fn SampleTree::view(Self) -> (Sample, Self, Self)
 
 type ShrinkExplain[P, N]
-fn[P, N] ShrinkExplain::limit_steps(Self[P, N], Int?) -> Self[P, N]
-fn[P, N] ShrinkExplain::shrink_history(Self[P, N]) -> Array[P]
-fn[P, N] ShrinkExplain::shrink_outcome(Self[P, N]) -> (P, Iter[N]?)
-impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
+pub fn[P, N] ShrinkExplain::limit_steps(Self[P, N], Int?) -> Self[P, N]
+pub fn[P, N] ShrinkExplain::shrink_history(Self[P, N]) -> Array[P]
+pub fn[P, N] ShrinkExplain::shrink_outcome(Self[P, N]) -> (P, Iter[N]?)
+pub impl[P : Show, N : Show] Show for ShrinkExplain[P, N]
 
 type Success[T]
-impl[T : Show] Show for Success[T]
+pub impl[T : Show] Show for Success[T]
 
 type TestResult[T, E]
 
 type TestRun
-impl Show for TestRun
+pub impl Show for TestRun
 
 // Type aliases
 pub using @list {type List}

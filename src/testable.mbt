@@ -5,10 +5,10 @@ priv suberror InternalError String
 pub(all) struct Arrow[A, B]((A) -> B)
 
 ///|
-typealias Rose[SingleResult] as RoseRes
+type RoseRes = Rose[SingleResult]
 
 ///|
-typealias @rose.Rose
+using @rose {type Rose}
 
 ///|
 /// TODO: determine the execution of callback by kind

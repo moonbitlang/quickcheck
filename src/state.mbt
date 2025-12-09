@@ -1,5 +1,5 @@
 ///|
-typealias @list.List
+using @list {type List}
 
 ///|
 struct Printer {
@@ -265,7 +265,10 @@ fn Coverage::label_incr(self : Coverage, key : List[String]) -> Unit {
 }
 
 ///|
-fn Coverage::class_incr(self : Coverage, classes : List[(String, Bool)]) -> Unit {
+fn Coverage::class_incr(
+  self : Coverage,
+  classes : List[(String, Bool)],
+) -> Unit {
   classes.each(item => {
     let (s, b) = item
     let i = if b { 1 } else { 0 }

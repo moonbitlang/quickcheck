@@ -11,150 +11,150 @@ import(
 )
 
 // Values
-fn alphabet() -> Gen[Char]
+pub fn alphabet() -> Gen[Char]
 
-fn[A : Eq] associative((A, A) -> A) -> ((A, A, A)) -> Bool
+pub fn[A : Eq] associative((A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn[P : Testable] callback(P, Callback) -> Property
+pub fn[P : Testable] callback(P, Callback) -> Property
 
-fn char_range(Char, Char) -> Gen[Char]
+pub fn char_range(Char, Char) -> Gen[Char]
 
-fn[P : Testable] classify(P, Bool, String) -> Property
+pub fn[P : Testable] classify(P, Bool, String) -> Property
 
-fn[P : Testable, T : Show] collect(P, T) -> Property
+pub fn[P : Testable, T : Show] collect(P, T) -> Property
 
-fn[A, B : Eq] commutative((A, A) -> B) -> ((A, A)) -> Bool
+pub fn[A, B : Eq] commutative((A, A) -> B) -> ((A, A)) -> Bool
 
-fn[P : Testable] counterexample(P, String) -> Property
+pub fn[P : Testable] counterexample(P, String) -> Property
 
-fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
+pub fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
-
-#deprecated
-fn[P : Testable] expect_fail(P) -> Property
+pub fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
 #deprecated
-fn[P : Testable] expect_gave_up(P) -> Property
-
-fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
-
-fn failed() -> SingleResult
-
-fn[P : Testable] filter(P, Bool) -> Property
-
-fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
-
-fn[T] flatten_list(@list.List[Gen[T]]) -> Gen[@list.List[T]]
-
-fn[T] flatten_option(Gen[T]?) -> Gen[T?]
-
-fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
-
-fn[T : Testable, A : Show] forall(Gen[A], (A) -> T) -> Property
-
-fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Property
-
-fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
-
-fn[T] frequency_list(@list.List[(Int, T)]) -> Gen[T]
-
-fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
-
-fn[P : Testable] if_fail(P, () -> Unit) -> Property
-
-fn int_bound(Int) -> Gen[Int]
-
-fn int_range(Int, Int) -> Gen[Int]
-
-fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
-
-fn[A : Eq, B] inverse((A) -> B, (B) -> A) -> (A) -> Bool
-
-fn[A : Eq] involutory((A) -> A) -> (A) -> Bool
-
-fn[P : Testable] label(P, String) -> Property
-
-fn[A, B, C] liftA2((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
-
-fn[A, B, C, D] liftA3((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
-
-fn[A, B, C, D, E] liftA4((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
-
-fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
-
-fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
-
-fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.List[T]]
-
-fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
-
-fn[P : Testable] map_size(P, (Int) -> Int) -> Property
-
-fn[P : Testable] map_total_result(P, (SingleResult) -> SingleResult) -> Property
-
-fn[A : Compare, B : Compare] mono_decrease((A) -> B) -> ((A, A)) -> Bool
-
-fn[A : Compare, B : Compare] mono_increase((A) -> B) -> ((A, A)) -> Bool
-
-fn nat() -> Gen[Int]
-
-fn neg_int() -> Gen[Int]
-
-fn numeral() -> Gen[Char]
-
-fn[T] one_of(Array[Gen[T]]) -> Gen[T]
-
-fn[T] one_of_array(Array[T]) -> Gen[T]
-
-fn[T] one_of_list(@list.List[T]) -> Gen[T]
-
-fn[T] pure(T) -> Gen[T]
-
-fn[T] pure_eq(T) -> Equivalence[T]
-
-fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
-
-fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
-
-fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
-
-fn[P : Testable] quick_check_with(Config, P) -> Unit raise Failure
-
-fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
-
-fn rejected() -> SingleResult
-
-fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
-
-fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
-
-fn[T] sized((Int) -> Gen[T]) -> Gen[T]
-
-fn small_int() -> Gen[Int]
-
-fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
-
-fn succeed() -> SingleResult
+pub fn[P : Testable] expect_fail(P) -> Property
 
 #deprecated
-fn[P : Testable] terminate(P) -> Property
+pub fn[P : Testable] expect_gave_up(P) -> Property
 
-fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
+pub fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
 
-fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
+pub fn failed() -> SingleResult
+
+pub fn[P : Testable] filter(P, Bool) -> Property
+
+pub fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
+
+pub fn[T] flatten_list(@list.List[Gen[T]]) -> Gen[@list.List[T]]
+
+pub fn[T] flatten_option(Gen[T]?) -> Gen[T?]
+
+pub fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
+
+pub fn[T : Testable, A : Show] forall(Gen[A], (A) -> T) -> Property
+
+pub fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+
+pub fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
+
+pub fn[T] frequency_list(@list.List[(Int, T)]) -> Gen[T]
+
+pub fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
+
+pub fn[P : Testable] if_fail(P, () -> Unit) -> Property
+
+pub fn int_bound(Int) -> Gen[Int]
+
+pub fn int_range(Int, Int) -> Gen[Int]
+
+pub fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
+
+pub fn[A : Eq, B] inverse((A) -> B, (B) -> A) -> (A) -> Bool
+
+pub fn[A : Eq] involutory((A) -> A) -> (A) -> Bool
+
+pub fn[P : Testable] label(P, String) -> Property
+
+pub fn[A, B, C] liftA2((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
+
+pub fn[A, B, C, D] liftA3((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
+
+pub fn[A, B, C, D, E] liftA4((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
+
+pub fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
+
+pub fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
+
+pub fn[T] list_with_size(Int, Gen[T]) -> Gen[@list.List[T]]
+
+pub fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
+
+pub fn[P : Testable] map_size(P, (Int) -> Int) -> Property
+
+pub fn[P : Testable] map_total_result(P, (SingleResult) -> SingleResult) -> Property
+
+pub fn[A : Compare, B : Compare] mono_decrease((A) -> B) -> ((A, A)) -> Bool
+
+pub fn[A : Compare, B : Compare] mono_increase((A) -> B) -> ((A, A)) -> Bool
+
+pub fn nat() -> Gen[Int]
+
+pub fn neg_int() -> Gen[Int]
+
+pub fn numeral() -> Gen[Char]
+
+pub fn[T] one_of(Array[Gen[T]]) -> Gen[T]
+
+pub fn[T] one_of_array(Array[T]) -> Gen[T]
+
+pub fn[T] one_of_list(@list.List[T]) -> Gen[T]
+
+pub fn[T] pure(T) -> Gen[T]
+
+pub fn[T] pure_eq(T) -> Equivalence[T]
+
+pub fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
+
+pub fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+
+pub fn[P : Testable] quick_check_with(Config, P) -> Unit raise Failure
+
+pub fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
+
+pub fn rejected() -> SingleResult
+
+pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
+
+pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
+
+pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
+
+pub fn small_int() -> Gen[Int]
+
+pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
+
+pub fn succeed() -> SingleResult
 
 #deprecated
-fn[P : Testable] with_discarded_ratio(P, Int) -> Property
+pub fn[P : Testable] terminate(P) -> Property
+
+pub fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
+
+pub fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
 
 #deprecated
-fn[P : Testable] with_max_shrinks(P, Int) -> Property
+pub fn[P : Testable] with_discarded_ratio(P, Int) -> Property
 
 #deprecated
-fn[P : Testable] with_max_size(P, Int) -> Property
+pub fn[P : Testable] with_max_shrinks(P, Int) -> Property
 
 #deprecated
-fn[P : Testable] with_max_success(P, Int) -> Property
+pub fn[P : Testable] with_max_size(P, Int) -> Property
+
+#deprecated
+pub fn[P : Testable] with_max_success(P, Int) -> Property
 
 // Errors
 type TestError
@@ -162,36 +162,36 @@ type TestError
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
 #deprecated
-fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
-impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+pub fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
+pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 type Axiom[T]
-fn[T] Axiom::new((T) -> Equivalence[T]) -> Self[T]
-fn[T] Axiom::run(Self[T], T) -> Equivalence[T]
-fn[T, U] Axiom::to_property(Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
-fn[T, U : Eq] Axiom::to_property_eq(Self[T], (T) -> U) -> (T) -> Bool
-fn[T, M, N] Axiom::to_property_parametric(Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
-fn[T, M, N : Eq] Axiom::to_property_parametric_eq(Self[T], (T, M) -> N) -> ((T, M)) -> Bool
+pub fn[T] Axiom::new((T) -> Equivalence[T]) -> Self[T]
+pub fn[T] Axiom::run(Self[T], T) -> Equivalence[T]
+pub fn[T, U] Axiom::to_property(Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
+pub fn[T, U : Eq] Axiom::to_property_eq(Self[T], (T) -> U) -> (T) -> Bool
+pub fn[T, M, N] Axiom::to_property_parametric(Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
+pub fn[T, M, N : Eq] Axiom::to_property_parametric_eq(Self[T], (T, M) -> N) -> ((T, M)) -> Bool
 
 type Callback
 
 type Config
 
 type Discard
-impl Default for Discard
-impl Testable for Discard
+pub impl Default for Discard
+pub impl Testable for Discard
 
 pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
 }
-fn[T, U] Equivalence::ap(Self[(T) -> U], Self[T]) -> Self[U]
-fn[T, U] Equivalence::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[T] Equivalence::equal_by(Self[T], (T, T) -> Bool) -> Bool
-fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
-fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
-fn[T] Equivalence::new(T, T) -> Self[T]
-impl[T : Show] Show for Equivalence[T]
+pub fn[T, U] Equivalence::ap(Self[(T) -> U], Self[T]) -> Self[U]
+pub fn[T, U] Equivalence::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[T] Equivalence::equal_by(Self[T], (T, T) -> Bool) -> Bool
+pub fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
+pub fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
+pub fn[T] Equivalence::new(T, T) -> Self[T]
+pub impl[T : Show] Show for Equivalence[T]
 
 pub(all) enum Expected {
   Fail
@@ -200,56 +200,56 @@ pub(all) enum Expected {
 }
 
 type Gen[T]
-fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
-fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
-fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
-fn[T : @feat.Enumerable] Gen::feat_random(Int) -> Self[T]
-fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
-fn[T] Gen::join(Self[Self[T]]) -> Self[T]
-fn[T] Gen::new((Int, @splitmix.RandomState) -> T) -> Self[T]
-fn[T] Gen::resize(Self[T], Int) -> Self[T]
-fn[T] Gen::run(Self[T], Int, @splitmix.RandomState) -> T
-fn[T] Gen::sample(Self[T], size? : Int, seed? : UInt64) -> T
-fn[T] Gen::samples(Self[T], size? : Int, seed? : UInt64) -> Array[T]
-fn[T] Gen::scale(Self[T], (Int) -> Int) -> Self[T]
-fn[T : @moonbitlang/core/quickcheck.Arbitrary] Gen::spawn() -> Self[T]
-fn[T] Gen::such_that(Self[T], (T) -> Bool) -> Self[T]
-fn[T] Gen::such_that_maybe(Self[T], (T) -> Bool) -> Self[T?]
-impl[P : Testable] Testable for Gen[P]
+pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
+pub fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
+pub fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[T : @feat.Enumerable] Gen::feat_random(Int) -> Self[T]
+pub fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
+pub fn[T] Gen::join(Self[Self[T]]) -> Self[T]
+pub fn[T] Gen::new((Int, @splitmix.RandomState) -> T) -> Self[T]
+pub fn[T] Gen::resize(Self[T], Int) -> Self[T]
+pub fn[T] Gen::run(Self[T], Int, @splitmix.RandomState) -> T
+pub fn[T] Gen::sample(Self[T], size? : Int, seed? : UInt64) -> T
+pub fn[T] Gen::samples(Self[T], size? : Int, seed? : UInt64) -> Array[T]
+pub fn[T] Gen::scale(Self[T], (Int) -> Int) -> Self[T]
+pub fn[T : @moonbitlang/core/quickcheck.Arbitrary] Gen::spawn() -> Self[T]
+pub fn[T] Gen::such_that(Self[T], (T) -> Bool) -> Self[T]
+pub fn[T] Gen::such_that_maybe(Self[T], (T) -> Bool) -> Self[T?]
+pub impl[P : Testable] Testable for Gen[P]
 
 pub(all) enum Outcome[T] {
   Success
   GaveUp
   Fail(T)
 }
-impl[T] Show for Outcome[T]
+pub impl[T] Show for Outcome[T]
 
 type Printer
-fn Printer::format(Self, String) -> String
-fn Printer::from_buffer(@buffer.Buffer) -> Self
-fn Printer::ident(Self, size? : Int) -> Unit
-fn Printer::unident(Self) -> Unit
-fn Printer::write_string(Self, String) -> Unit
+pub fn Printer::format(Self, String) -> String
+pub fn Printer::from_buffer(@buffer.Buffer) -> Self
+pub fn Printer::ident(Self, size? : Int) -> Unit
+pub fn Printer::unident(Self) -> Unit
+pub fn Printer::write_string(Self, String) -> Unit
 
 type Property
-impl Testable for Property
+pub impl Testable for Property
 
 pub(all) struct Replay {
   rand_state : @splitmix.RandomState
   size : Int
 }
-fn Replay::new(@splitmix.RandomState, Int) -> Self
+pub fn Replay::new(@splitmix.RandomState, Int) -> Self
 
 type SingleResult
-impl Testable for SingleResult
+pub impl Testable for SingleResult
 
 type State
-fn State::complete_test(Self, Property) -> TestSuccess raise TestError
-fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
-fn State::give_up(Self, Property) -> TestSuccess raise TestError
-fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
-fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
-fn State::run_test(Self, Property) -> TestSuccess raise TestError
+pub fn State::complete_test(Self, Property) -> TestSuccess raise TestError
+pub fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
+pub fn State::give_up(Self, Property) -> TestSuccess raise TestError
+pub fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
+pub fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
+pub fn State::run_test(Self, Property) -> TestSuccess raise TestError
 
 type TestSuccess
 
@@ -260,33 +260,33 @@ pub using @splitmix {type RandomState}
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self] = _
 }
-impl Shrink for Unit
-impl Shrink for Bool
-impl Shrink for Char
-impl Shrink for Int
-impl Shrink for Int64
-impl Shrink for UInt
-impl Shrink for UInt64
-impl Shrink for Float
-impl Shrink for Double
-impl Shrink for String
-impl[T : Shrink] Shrink for T?
-impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
-impl Shrink for Bytes
-impl[X : Shrink] Shrink for Array[X]
-impl[X : Shrink] Shrink for Iter[X]
-impl[T : Shrink] Shrink for @list.List[T]
-impl[A : Shrink, B : Shrink] Shrink for (A, B)
-impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)
-impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)
-impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (A, B, C, D, E)
-impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shrink for (A, B, C, D, E, F)
+pub impl Shrink for Unit
+pub impl Shrink for Bool
+pub impl Shrink for Char
+pub impl Shrink for Int
+pub impl Shrink for Int64
+pub impl Shrink for UInt
+pub impl Shrink for UInt64
+pub impl Shrink for Float
+pub impl Shrink for Double
+pub impl Shrink for String
+pub impl[T : Shrink] Shrink for T?
+pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
+pub impl Shrink for Bytes
+pub impl[X : Shrink] Shrink for Array[X]
+pub impl[X : Shrink] Shrink for Iter[X]
+pub impl[T : Shrink] Shrink for @list.List[T]
+pub impl[A : Shrink, B : Shrink] Shrink for (A, B)
+pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)
+pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)
+pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for (A, B, C, D, E)
+pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink] Shrink for (A, B, C, D, E, F)
 
 pub(open) trait Testable {
   property(Self) -> Property
 }
-impl Testable for Unit
-impl Testable for Bool
-impl[P : Testable] Testable for P?
-impl Testable for @rose.Rose[SingleResult]
+pub impl Testable for Unit
+pub impl Testable for Bool
+pub impl[P : Testable] Testable for P?
+pub impl Testable for @rose.Rose[SingleResult]
 

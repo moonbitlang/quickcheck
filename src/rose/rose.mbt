@@ -34,6 +34,9 @@ pub fn[T, U] Rose::bind(self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {
 }
 
 ///|
-pub fn[T] Rose::apply(self : Rose[T], f : (T, Iter[Rose[T]]) -> Rose[T]) -> Rose[T] {
+pub fn[T] Rose::apply(
+  self : Rose[T],
+  f : (T, Iter[Rose[T]]) -> Rose[T],
+) -> Rose[T] {
   f(self.val, self.branch)
 }

@@ -1,5 +1,5 @@
 ///|
-pub typealias @lazy.LazyList
+pub using @lazy {type LazyList}
 
 ///|
 fn sum(a : Array[BigInt]) -> BigInt {

@@ -1,5 +1,5 @@
 ///|
-pub typealias @list.List
+pub using @list {type List}
 
 ///|
 struct TestRun {

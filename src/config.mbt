@@ -1,4 +1,5 @@
-///| Configuration for initializing a test runner.
+///|
+/// Configuration for initializing a test runner.
 struct Config {
   replay : (RandomState, Int)?
   max_success : Int

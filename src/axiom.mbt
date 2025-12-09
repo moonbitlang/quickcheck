@@ -48,7 +48,10 @@ pub fn[T : Eq] Equivalence::is_equal(self : Equivalence[T]) -> Bool {
 }
 
 ///|
-pub fn[T] Equivalence::equal_by(self : Equivalence[T], eq : (T, T) -> Bool) -> Bool {
+pub fn[T] Equivalence::equal_by(
+  self : Equivalence[T],
+  eq : (T, T) -> Bool,
+) -> Bool {
   eq(self.lhs, self.rhs)
 }
 
