@@ -1,41 +1,41 @@
 ///|
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self] = _
+  shrink(Self) -> Iterator[Self] = _
 }
 
 ///|
 impl Shrink with shrink(_a) {
-  Iter::empty()
+  Iterator::empty()
 }
 
 ///|
 pub impl Shrink for Int with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  .iterator()
   .map(fn(i) { x - i })
-  .iter()
-  .concat(Iter::singleton(0))
+  .concat(Iterator::singleton(0))
   .filter(fn(u) { u != x })
 }
 
 ///|
 test "shrink int" {
-  inspect(Shrink::shrink(100), content="[99, 97, 94, 88, 75, 50, 0]")
-  inspect(Shrink::shrink(0), content="[]")
+  inspect(Shrink::shrink(100).to_array(), content="[99, 97, 94, 88, 75, 50, 0]")
+  inspect(Shrink::shrink(0).to_array(), content="[]")
 }
 
 ///|
 pub impl Shrink for Int64 with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
+  .iterator()
   .map(fn(i) { x - i })
-  .iter()
-  .concat(Iter::singleton(0))
+  .concat(Iterator::singleton(0))
   .filter(fn(u) { u != x })
 }
 
 ///|
 test "shrink int64" {
   inspect(
-    Shrink::shrink(10000L),
+    Shrink::shrink(10000L).to_array(),
     content="[9999, 9998, 9996, 9991, 9981, 9961, 9922, 9844, 9688, 9375, 8750, 7500, 5000, 0]",
   )
 }
@@ -43,16 +43,16 @@ test "shrink int64" {
 ///|
 pub impl Shrink for UInt with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  .iterator()
   .map(fn(i) { x - i })
-  .iter()
-  .concat(Iter::singleton(0))
+  .concat(Iterator::singleton(0))
   .filter(fn(u) { u != x })
 }
 
 ///|
 test "shrink uint" {
   inspect(
-    Shrink::shrink(37000U),
+    Shrink::shrink(37000U).to_array(),
     content="[36999, 36998, 36996, 36991, 36982, 36964, 36928, 36856, 36711, 36422, 35844, 34688, 32375, 27750, 18500, 0]",
   )
 }
@@ -60,51 +60,51 @@ test "shrink uint" {
 ///|
 pub impl Shrink for UInt64 with shrink(x) {
   @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  .iterator()
   .map(fn(i) { x - i })
-  .iter()
-  .concat(Iter::singleton(0))
+  .concat(Iterator::singleton(0))
   .filter(fn(u) { u != x })
 }
 
 ///|
 test "shrink uint64" {
   inspect(
-    Shrink::shrink((42000 : UInt64)),
+    Shrink::shrink((42000 : UInt64)).to_array(),
     content="[41999, 41998, 41995, 41990, 41980, 41959, 41918, 41836, 41672, 41344, 40688, 39375, 36750, 31500, 21000, 0]",
   )
 }
 
 ///|
 pub impl Shrink for Bool with shrink(b) {
-  Iter::new(fn(yield_) {
+  Iterator::new(fn() {
     match b {
-      true => yield_(false)
-      false => IterEnd
+      true => Some(false)
+      false => None
     }
-  })
+  }).take(1)
 }
 
 ///|
 test "shrink boolean" {
-  inspect(Shrink::shrink(true), content="[false]")
-  inspect(Shrink::shrink(false), content="[]")
+  inspect(Shrink::shrink(true).to_array(), content="[false]")
+  inspect(Shrink::shrink(false).to_array(), content="[]")
 }
 
 ///|
 pub impl Shrink for Char with shrink(c) {
   let ci = c.to_int()
   if ci == 0 {
-    return Iter::empty()
+    return Iterator::empty()
   } else {
     let (cl, ch) = (Int::unsafe_to_char(ci - 1), Int::unsafe_to_char(ci + 1))
-    [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '].iter()
+    [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '].iterator()
   }
 }
 
 ///|
 test "shrink char" {
   inspect(
-    Shrink::shrink('测'),
+    Shrink::shrink('测').to_array(),
     content="['浊', '浌', 'a', 'A', '1', '\\n', '\\t', '\\b', '\\\\', '\\'', '\\r', ' ']",
   )
 }
@@ -124,9 +124,9 @@ pub impl Shrink for Bytes
 ///|
 pub impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
-    None => Iter::empty()
+    None => Iterator::empty()
     Some(v) =>
-      Shrink::shrink(v).map(Option::Some(_)).concat(Iter::singleton(None))
+      Shrink::shrink(v).map(Option::Some(_)).concat(Iterator::singleton(None))
   }
 }
 
@@ -137,9 +137,9 @@ pub impl Shrink for Unit
 
 ///|
 test "shrink option" {
-  inspect(Shrink::shrink((None : Unit?)), content="[]")
+  inspect(Shrink::shrink((None : Unit?)).to_array(), content="[]")
   inspect(
-    Shrink::shrink(Some(1000)),
+    Shrink::shrink(Some(1000)).to_array(),
     content="[Some(999), Some(997), Some(993), Some(985), Some(969), Some(938), Some(875), Some(750), Some(500), Some(0), None]",
   )
 }
@@ -157,10 +157,10 @@ test "shrink result" {
   let b : Result[Bool, Int] = Err(100)
   let x : Result[Bool, Int] = Ok(true)
   inspect(
-    Shrink::shrink(b),
+    Shrink::shrink(b).to_array(),
     content="[Err(99), Err(97), Err(94), Err(88), Err(75), Err(50), Err(0)]",
   )
-  inspect(Shrink::shrink(x), content="[Ok(false)]")
+  inspect(Shrink::shrink(x).to_array(), content="[Ok(false)]")
 }
 
 ///|
@@ -175,7 +175,7 @@ pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
 test "shrink tuple" {
   let x = (120, true)
   inspect(
-    Shrink::shrink(x),
+    Shrink::shrink(x).to_array(),
     content="[(119, true), (117, true), (113, true), (105, true), (90, true), (60, true), (0, true), (120, false)]",
   )
 }
@@ -243,9 +243,9 @@ test "shrink 6-tuple" {
 ///|
 pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
   let n = xs.length()
-  fn shr_sub_terms(lst : List[T]) {
+  fn shr_sub_terms(lst : List[T]) -> Iterator[List[T]] {
     match lst {
-      Empty => Iter::empty()
+      Empty => Iterator::empty()
       More(x, tail=xs) =>
         T::shrink(x)
         .map(fn(x_) { xs.add(x_) })
@@ -254,9 +254,9 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
   }
 
   @utils.apply_while_list(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { @utils.removes_list(k, n, xs) })
+  .iterator()
+  .map(fn(k) { @utils.removes_list(k, n, xs).iterator() })
   .flatten()
-  .iter()
   .concat(shr_sub_terms(xs))
 }
 
@@ -274,9 +274,9 @@ test "shrink int list" {
 pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
   let view = xs[:]
   let n = view.length()
-  fn shr_sub_terms(arr : ArrayView[X]) {
+  fn shr_sub_terms(arr : ArrayView[X]) -> Iterator[Array[X]] {
     match arr {
-      [] => Iter::empty()
+      [] => Iterator::empty()
       [x, .. xs] =>
         X::shrink(x)
         .map(fn(x_) { [x_, ..xs] })
@@ -285,9 +285,9 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
   }
 
   @utils.apply_while_array(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { @utils.removes_array(k, n, xs) })
+  .iterator()
+  .map(fn(k) { @utils.removes_array(k, n, xs).iterator() })
   .flatten()
-  .iter()
   .concat(shr_sub_terms(view))
 }
 
@@ -296,36 +296,36 @@ test "shrink array" {
   let ar = [1, 2, 3, 4, 5, 6]
   let s = Shrink::shrink(ar)
   inspect(
-    s,
+    s.to_array(),
     content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [4, 5, 6], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
   )
 }
 
 ///|
-pub impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
+pub impl[X : Shrink] Shrink for Iterator[X] with shrink(xs) {
   let arr = xs.to_array()
-  let its : Array[_] = Array::makei(arr.length(), fn(x) {
+  let its_iter : Array[Iterator[X]] = Array::makei(arr.length(), fn(x) {
     X::shrink(arr[x])
     .map(fn(y) {
       let cp = arr.copy()
       cp[x] = y
-      cp.iter()
+      cp.iterator()
     })
     .to_array()
   }).flatten()
-  let rms : Array[Iter[X]] = arr.mapi(fn(i, _) {
+  let rms_iter : Array[Iterator[X]] = arr.mapi(fn(i, _) {
     let a = arr.copy()
     a.remove(i) |> ignore
-    a.iter()
+    a.iterator()
   })
-  rms.iter().concat(its.iter())
+  rms_iter.iterator().concat(its_iter.iterator())
 }
 
 ///|
-test "shrink iter" {
-  let it = [1, 2, 3, 4, 5, 6].iter()
+test "shrink iterator" {
+  let it = [1, 2, 3, 4, 5, 6].iterator()
   inspect(
-    Shrink::shrink(it),
+    Shrink::shrink(it).map(fn(x) { x.to_array() }).to_array(),
     content="[[2, 3, 4, 5, 6], [1, 3, 4, 5, 6], [1, 2, 4, 5, 6], [1, 2, 3, 5, 6], [1, 2, 3, 4, 6], [1, 2, 3, 4, 5], [0, 2, 3, 4, 5, 6], [1, 1, 3, 4, 5, 6], [1, 0, 3, 4, 5, 6], [1, 2, 2, 4, 5, 6], [1, 2, 0, 4, 5, 6], [1, 2, 3, 3, 5, 6], [1, 2, 3, 2, 5, 6], [1, 2, 3, 0, 5, 6], [1, 2, 3, 4, 4, 6], [1, 2, 3, 4, 3, 6], [1, 2, 3, 4, 0, 6], [1, 2, 3, 4, 5, 5], [1, 2, 3, 4, 5, 3], [1, 2, 3, 4, 5, 0]]",
   )
 }

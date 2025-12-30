@@ -123,7 +123,7 @@ pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
 
 ///|
 pub fn[P : Testable, T] shrinking(
-  shrinker : (T) -> Iter[T],
+  shrinker : (T) -> Iterator[T],
   x0 : T,
   pf : (T) -> P,
 ) -> Property {
@@ -176,13 +176,13 @@ pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
 ///|
 /// Run with an explicit generator
 pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
-  forall_shrink(gen, fn(_x) { Iter::empty() }, f)
+  forall_shrink(gen, fn(_x) { Iterator::empty() }, f)
 }
 
 ///|
 pub fn[T : Testable, A : Show] forall_shrink(
   gen : Gen[A],
-  shrinker : (A) -> Iter[A],
+  shrinker : (A) -> Iterator[A],
   f : (A) -> T,
 ) -> Property {
   gen.bind(fn(x) {

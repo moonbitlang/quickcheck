@@ -3,11 +3,11 @@
 ///|
 pub(all) struct Rose[T] {
   val : T
-  branch : Iter[Rose[T]]
+  branch : Iterator[Rose[T]]
 } derive(Show)
 
 ///|
-pub fn[T] new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
+pub fn[T] new(val : T, branch : Iterator[Rose[T]]) -> Rose[T] {
   { val, branch }
 }
 
@@ -20,7 +20,7 @@ pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
 
 ///|
 pub fn[T] pure(val : T) -> Rose[T] {
-  { val, branch: Iter::empty() }
+  { val, branch: Iterator::empty() }
 }
 
 ///|
@@ -36,7 +36,7 @@ pub fn[T, U] Rose::bind(self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {
 ///|
 pub fn[T] Rose::apply(
   self : Rose[T],
-  f : (T, Iter[Rose[T]]) -> Rose[T],
+  f : (T, Iterator[Rose[T]]) -> Rose[T],
 ) -> Rose[T] {
   f(self.val, self.branch)
 }
