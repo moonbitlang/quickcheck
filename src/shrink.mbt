@@ -75,6 +75,24 @@ test "shrink uint64" {
 }
 
 ///|
+pub impl Shrink for Byte with shrink(x) {
+  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
+  .iterator()
+  .map(fn(i) { x - i })
+  .concat(Iterator::singleton(0))
+  .filter(fn(u) { u != x })
+}
+
+///|
+test "shrink byte" {
+  inspect(
+    Shrink::shrink((200 : Byte)).to_array(),
+    content="[199, 197, 194, 188, 175, 150, 100, 0]",
+  )
+  inspect(Shrink::shrink((0 : Byte)).to_array(), content="[]")
+}
+
+///|
 pub impl Shrink for Bool with shrink(b) {
   Iterator::new(fn() {
     match b {
