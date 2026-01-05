@@ -267,6 +267,7 @@ pub impl Shrink for Int
 pub impl Shrink for Int64
 pub impl Shrink for UInt
 pub impl Shrink for UInt64
+pub impl Shrink for Byte
 pub impl Shrink for Float
 pub impl Shrink for Double
 pub impl Shrink for String
