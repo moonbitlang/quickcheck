@@ -262,7 +262,6 @@ pub(open) trait Shrink {
 }
 pub impl Shrink for Unit
 pub impl Shrink for Bool
-pub impl Shrink for Byte
 pub impl Shrink for Char
 pub impl Shrink for Int
 pub impl Shrink for Int64
