@@ -53,7 +53,7 @@ pub fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
 
 pub fn[T : Testable, A : Show] forall(Gen[A], (A) -> T) -> Property
 
-pub fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+pub fn[T : Testable, A : Show] forall_shrink(Gen[A], (A) -> Iterator[A], (A) -> T) -> Property
 
 pub fn[T] frequency(Array[(Int, Gen[T])]) -> Gen[T]
 
@@ -127,7 +127,7 @@ pub fn rejected() -> SingleResult
 
 pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 
-pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
+pub fn[P : Testable, T] shrinking((T) -> Iterator[T], T, (T) -> P) -> Property
 
 pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
 
@@ -245,9 +245,9 @@ pub impl Testable for SingleResult
 
 type State
 pub fn State::complete_test(Self, Property) -> TestSuccess raise TestError
-pub fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
+pub fn State::find_failure(Self, SingleResult, Iterator[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
 pub fn State::give_up(Self, Property) -> TestSuccess raise TestError
-pub fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
+pub fn State::local_min(Self, SingleResult, Iterator[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
 pub fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
 pub fn State::run_test(Self, Property) -> TestSuccess raise TestError
 
@@ -258,7 +258,7 @@ pub using @splitmix {type RandomState}
 
 // Traits
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self] = _
+  shrink(Self) -> Iterator[Self] = _
 }
 pub impl Shrink for Unit
 pub impl Shrink for Bool
@@ -274,7 +274,7 @@ pub impl[T : Shrink] Shrink for T?
 pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E]
 pub impl Shrink for Bytes
 pub impl[X : Shrink] Shrink for Array[X]
-pub impl[X : Shrink] Shrink for Iter[X]
+pub impl[X : Shrink] Shrink for Iterator[X]
 pub impl[T : Shrink] Shrink for @list.List[T]
 pub impl[A : Shrink, B : Shrink] Shrink for (A, B)
 pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C)

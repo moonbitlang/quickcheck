@@ -230,7 +230,7 @@ pub fn State::run_single_test(
 pub fn State::find_failure(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]],
+  ts : Iterator[Rose[SingleResult]],
 ) -> TestSuccess raise TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   match res.expect {
@@ -262,12 +262,12 @@ pub fn State::find_failure(
 pub fn State::local_min(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]],
+  ts : Iterator[Rose[SingleResult]],
 ) -> (Int, Int, Int, SingleResult) {
   if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
     local_min_found(self, res)
   } else {
-    let t = ts.head()
+    let t = ts.next()
     match t {
       Some({ val, branch }) => {
         self.callback_post_test(val)
@@ -280,7 +280,7 @@ pub fn State::local_min(
           _ => {
             self.num_to_try_shrinks += 1
             self.num_try_shrinks += 1
-            self.local_min(res, ts.drop(1))
+            self.local_min(res, ts)
           }
         }
       }
