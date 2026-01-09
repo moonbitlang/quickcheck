@@ -76,12 +76,11 @@ test "shrink uint64" {
 
 ///|
 pub impl Shrink for Bool with shrink(b) {
-  Iter::new(fn(yield_) {
-    match b {
-      true => yield_(false)
-      false => IterEnd
-    }
-  })
+  if !b {
+    Iter::empty()
+  } else {
+    Iter::singleton(false)
+  }
 }
 
 ///|
