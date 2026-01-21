@@ -1,5 +1,7 @@
 ///|
-priv suberror InternalError String
+priv suberror InternalError {
+  InternalError(String)
+}
 
 ///|
 pub(all) struct Arrow[A, B]((A) -> B)
@@ -205,47 +207,4 @@ pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
       }
     }),
   )
-}
-
-///|
-/// Modifies a property to make it terminate after the first test
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] terminate(p : P) -> Property {
-  map_total_result(p, fn(res) { { ..res, abort: true } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] expect_fail(p : P) -> Property {
-  map_total_result(p, fn(res) { { ..res, expect: Fail } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] expect_gave_up(p : P) -> Property {
-  map_total_result(p, fn(res) { { ..res, expect: GaveUp } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] with_max_success(p : P, n : Int) -> Property {
-  map_total_result(p, fn(res) { { ..res, maybe_num_tests: Some(n) } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] with_discarded_ratio(p : P, n : Int) -> Property {
-  map_total_result(p, fn(res) { { ..res, maybe_discarded_ratio: Some(n) } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] with_max_shrinks(p : P, n : Int) -> Property {
-  map_total_result(p, fn(res) { { ..res, maybe_max_shrinks: Some(n) } })
-}
-
-///|
-#deprecated("please use implicit arguments")
-pub fn[P : Testable] with_max_size(p : P, n : Int) -> Property {
-  map_total_result(p, fn(res) { { ..res, maybe_max_test_size: Some(n) } })
 }

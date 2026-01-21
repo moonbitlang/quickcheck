@@ -31,12 +31,6 @@ pub fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Boo
 
 pub fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
 
-#deprecated
-pub fn[P : Testable] expect_fail(P) -> Property
-
-#deprecated
-pub fn[P : Testable] expect_gave_up(P) -> Property
-
 pub fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
 
 pub fn failed() -> SingleResult
@@ -137,24 +131,9 @@ pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
 
 pub fn succeed() -> SingleResult
 
-#deprecated
-pub fn[P : Testable] terminate(P) -> Property
-
 pub fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
 pub fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
-
-#deprecated
-pub fn[P : Testable] with_discarded_ratio(P, Int) -> Property
-
-#deprecated
-pub fn[P : Testable] with_max_shrinks(P, Int) -> Property
-
-#deprecated
-pub fn[P : Testable] with_max_size(P, Int) -> Property
-
-#deprecated
-pub fn[P : Testable] with_max_success(P, Int) -> Property
 
 // Errors
 type TestError
