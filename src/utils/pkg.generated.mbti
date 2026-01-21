@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/quickcheck/utils"
 
-import(
-  "moonbitlang/core/list"
-)
+import {
+  "moonbitlang/core/list",
+}
 
 // Values
 pub fn[T] apply_while_array(T, (T) -> T, (T) -> Bool) -> Array[T]

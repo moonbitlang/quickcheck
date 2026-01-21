@@ -120,7 +120,6 @@ test "queue equivalence property" {
       }
     }
   }
-
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_eq_queue)),
     content="+++ [100/0/100] Ok, passed!",

@@ -1,10 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/quickcheck/falsify"
 
-import(
-  "moonbitlang/core/list"
-  "moonbitlang/core/quickcheck/splitmix"
-)
+import {
+  "moonbitlang/core/list",
+  "moonbitlang/core/quickcheck/splitmix",
+}
 
 // Values
 pub fn[T : Show, E] collect(String, @list.List[T]) -> Property[Unit, E]
@@ -53,6 +53,7 @@ pub fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
 
 // Types and methods
 type Config
+pub impl Default for Config
 pub impl Show for Config
 
 type DriverState[T]

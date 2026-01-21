@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/quickcheck/lazy"
 
-import(
-  "moonbitlang/core/list"
-)
+import {
+  "moonbitlang/core/list",
+}
 
 // Values
 pub fn[X] default() -> LazyList[X]

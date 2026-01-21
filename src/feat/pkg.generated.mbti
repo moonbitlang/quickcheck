@@ -1,11 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/quickcheck/feat"
 
-import(
-  "moonbitlang/core/bigint"
-  "moonbitlang/core/list"
-  "moonbitlang/quickcheck/lazy"
-)
+import {
+  "moonbitlang/core/bigint",
+  "moonbitlang/core/list",
+  "moonbitlang/quickcheck/lazy",
+}
 
 // Values
 pub fn[T, U] app(Enumerate[(T) -> U], Enumerate[T]) -> Enumerate[U]

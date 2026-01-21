@@ -1,14 +1,14 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonbitlang/quickcheck"
 
-import(
-  "moonbitlang/core/bigint"
-  "moonbitlang/core/buffer"
-  "moonbitlang/core/list"
-  "moonbitlang/core/quickcheck/splitmix"
-  "moonbitlang/quickcheck/feat"
-  "moonbitlang/quickcheck/rose"
-)
+import {
+  "moonbitlang/core/bigint",
+  "moonbitlang/core/buffer",
+  "moonbitlang/core/list",
+  "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/quickcheck/feat",
+  "moonbitlang/quickcheck/rose",
+}
 
 // Values
 pub fn alphabet() -> Gen[Char]
