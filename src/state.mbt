@@ -298,20 +298,22 @@ fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
 
 ///|
 fn Coverage::to_string(self : Coverage, success : Int) -> String {
-  [
-    if self.labels.length() == 0 {
-      ""
-    } else {
-      self.label_to_string(success)
-    },
-    if self.classes.length() == 0 {
-      ""
-    } else {
-      self.class_to_string(success)
-    },
-  ]
-  .filter(fn(x) { x != "" })
-  .join("\n")
+  let res = [
+      if self.labels.length() == 0 {
+        ""
+      } else {
+        self.label_to_string(success)
+      },
+      if self.classes.length() == 0 {
+        ""
+      } else {
+        self.class_to_string(success)
+      },
+    ]
+    .filter(x => x != "")
+    .join("\n")
+  guard res != "" else { "" }
+  "\n\{res}"
 }
 
 ///|

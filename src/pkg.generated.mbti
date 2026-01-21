@@ -109,11 +109,11 @@ pub fn[T] pure_eq(T) -> Equivalence[T]
 
 pub fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
-pub fn[P : Testable] quick_check(P, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+pub fn[P : Testable] quick_check(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
 
 pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
 
-pub fn[P : Testable] quick_check_with(Config, P) -> Unit raise Failure
+pub fn[P : Testable] quick_check_silence(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> String
 
 pub fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
 
@@ -209,6 +209,7 @@ pub fn Printer::from_buffer(@buffer.Buffer) -> Self
 pub fn Printer::ident(Self, size? : Int) -> Unit
 pub fn Printer::unident(Self) -> Unit
 pub fn Printer::write_string(Self, String) -> Unit
+pub impl Default for Printer
 
 type Property
 pub impl Testable for Property

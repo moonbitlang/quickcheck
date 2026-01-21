@@ -44,16 +44,64 @@ pub fn[P : Testable] quick_check(
   abort? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  quick_check_with(
-    {
-      replay: None,
-      max_shrink,
-      max_success,
-      max_size,
-      max_discard_ratio: discard_ratio,
-    },
-    prop,
-  )
+  try {
+    let result = quick_check_with_result(
+      {
+        replay: None,
+        max_shrink,
+        max_success,
+        max_size,
+        max_discard_ratio: discard_ratio,
+      },
+      prop,
+    )
+    match result {
+      Success(output~, coverage~, num_tests~) => {
+        println(output)
+        println(coverage.to_string(num_tests))
+      }
+    }
+  } catch {
+    // TODO: Print coverage
+    GaveUp(output~, ..) => fail(output)
+    Fail(output~, failing_case~, ..) =>
+      fail(output + "\n" + failing_case.join("\n"))
+    NoneExpectedFail(output~, ..) => fail(output)
+  }
+}
+
+///|
+pub fn[P : Testable] quick_check_silence(
+  prop : P,
+  max_shrink? : Int = 100,
+  max_success? : Int = 100,
+  max_size? : Int = 100,
+  discard_ratio? : Int = 10,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> String {
+  let prop = map_total_result(prop, res => { ..res, expect, abort })
+  try {
+    let result = quick_check_with_result(
+      {
+        replay: None,
+        max_shrink,
+        max_success,
+        max_size,
+        max_discard_ratio: discard_ratio,
+      },
+      prop,
+    )
+    match result {
+      Success(output~, coverage~, num_tests~) =>
+        return output + coverage.to_string(num_tests)
+    }
+  } catch {
+    // TODO: Print coverage
+    GaveUp(output~, ..) => output
+    Fail(output~, failing_case~, ..) => output + "\n" + failing_case.join("\n")
+    NoneExpectedFail(output~, ..) => output
+  }
 }
 
 ///|
@@ -75,31 +123,6 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
     expect~,
     abort~,
   )
-}
-
-///|
-pub fn[P : Testable] quick_check_with(
-  cfg : Config,
-  prop : P,
-) -> Unit raise Failure {
-  fn f(s : String) -> _ raise Failure {
-    fail("\n\{s}")
-  }
-
-  try {
-    match quick_check_with_result(cfg, prop) {
-      Success(output~, coverage~, num_tests~) => {
-        println(output)
-        println(coverage.to_string(num_tests))
-      }
-    }
-  } catch {
-    // TODO: Print coverage
-    GaveUp(output~, ..) => f(output)
-    Fail(output~, failing_case~, ..) =>
-      f(output + "\n" + failing_case.join("\n"))
-    NoneExpectedFail(output~, ..) => f(output)
-  }
 }
 
 ///|
