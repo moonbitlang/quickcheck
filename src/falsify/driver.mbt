@@ -22,7 +22,7 @@ struct Config {
 } derive(Show)
 
 ///|
-impl Default for Config with default() {
+pub impl Default for Config with default() {
   {
     tests: 100,
     max_shrinks: 100,
@@ -60,7 +60,7 @@ fn[T] append_success(
 ///|
 pub fn[T] init_state(opt : Config) -> DriverState[T] {
   {
-    rng: opt.replay.unwrap_or(@quickcheck/splitmix.new()),
+    rng: opt.replay.unwrap_or(@splitmix.new()),
     success: @list.empty(),
     todo: opt.tests,
     discarded: 0,

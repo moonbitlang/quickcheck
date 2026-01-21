@@ -82,7 +82,7 @@ pub impl[P : Testable] Testable for P? with property(self) {
 }
 
 ///|
-pub impl[P : Testable, A : @quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[
+pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow[
   A,
   P,
 ] with property(self) {

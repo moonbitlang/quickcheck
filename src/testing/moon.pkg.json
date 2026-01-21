@@ -9,8 +9,10 @@
       "alias": "feat"
     },
     "moonbitlang/core/list",
-    "moonbitlang/core/quickcheck",
+    {
+      "path": "moonbitlang/core/quickcheck",
+      "alias": "coreqc"
+    },
     "moonbitlang/core/sorted_set"
-  ],
-  "warn-list": "-1-2-3-5-6-7-8"
+  ]
 }

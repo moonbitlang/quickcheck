@@ -15,7 +15,7 @@ pub fn[T] Gen::new(gen : (Int, RandomState) -> T) -> Gen[T] {
 
 ///|
 /// Spawn a new generator from an arbitrary instance
-pub fn[T : @quickcheck.Arbitrary] Gen::spawn() -> Gen[T] {
+pub fn[T : @coreqc.Arbitrary] Gen::spawn() -> Gen[T] {
   { gen: T::arbitrary }
 }
 

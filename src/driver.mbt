@@ -105,7 +105,7 @@ pub fn[P : Testable] quick_check_silence(
 }
 
 ///|
-pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -255,6 +255,7 @@ pub fn State::find_failure(
   ts : Iter[Rose[SingleResult]],
 ) -> TestSuccess raise TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
+  self.callback_post_final_failure(ce)
   match res.expect {
     Success | GaveUp =>
       raise TestError::Fail(

@@ -29,7 +29,7 @@ pub fn SampleTree::view(self : SampleTree) -> (Sample, SampleTree, SampleTree) {
 // Note that SampleTree is implemented Lense
 
 ///|
-pub using @quickcheck/splitmix {type RandomState}
+pub using @splitmix {type RandomState}
 
 ///|
 pub fn from_rng(rs : RandomState) -> SampleTree {
@@ -44,7 +44,7 @@ pub fn from_rng(rs : RandomState) -> SampleTree {
 
 ///|
 pub fn from_seed(seed : UInt64) -> SampleTree {
-  from_rng(@quickcheck/splitmix.new(seed~))
+  from_rng(@splitmix.new(seed~))
 }
 
 ///|
@@ -83,7 +83,7 @@ pub fn SampleTree::mod(self : SampleTree, u : UInt) -> SampleTree {
 
 ///|
 pub fn[T] Gen::sample(self : Gen[T]) -> T {
-  let s = @quickcheck/splitmix.new()
+  let s = @splitmix.new()
   let (x, _shrunk) = self.run_gen(from_rng(s))
   x
 }

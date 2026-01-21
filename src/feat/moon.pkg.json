@@ -1,6 +1,7 @@
 {
   "import": [
     "moonbitlang/quickcheck/lazy",
-    "moonbitlang/quickcheck/utils"
+    "moonbitlang/quickcheck/utils",
+    "moonbitlang/core/list"
   ]
 }

@@ -2,9 +2,6 @@
 using @list {type List}
 
 ///|
-using @qc {type Arrow}
-
-///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {
   let (x, y) = xy
   x + y == y + x
@@ -229,7 +226,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 }
 
 ///|
-impl @quickcheck.Arbitrary for Nat with arbitrary(i, rs) {
+impl @coreqc.Arbitrary for Nat with arbitrary(i, rs) {
   @qc.Gen::feat_random(i).run(i, rs)
 }
 

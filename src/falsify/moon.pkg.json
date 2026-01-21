@@ -1,6 +1,15 @@
 {
   "import": [
-    "moonbitlang/quickcheck/lazy"
-  ],
-  "warn-list": "-1"
+    "moonbitlang/quickcheck/lazy",
+    "moonbitlang/core/list",
+    {
+      "path": "moonbitlang/core/immut/hashmap",
+      "alias": "ihs"
+    },
+    "moonbitlang/core/sorted_set",
+    {
+      "path": "moonbitlang/core/quickcheck/splitmix",
+      "alias": "splitmix"
+    }
+  ]
 }

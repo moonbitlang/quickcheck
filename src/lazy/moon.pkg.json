@@ -1,1 +1,7 @@
-{}
+{
+    "import": [
+        "moonbitlang/core/list",
+        "moonbitlang/core/quickcheck",
+        "moonbitlang/core/sorted_set"
+    ]
+}

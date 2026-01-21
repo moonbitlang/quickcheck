@@ -5,12 +5,12 @@ pub using @list {type List}
 struct TestRun {
   log : List[String]
   deterministic : Bool
-  labels : @immut/hashmap.HashMap[String, @sorted_set.SortedSet[String]]
+  labels : @ihs.HashMap[String, @sorted_set.SortedSet[String]]
 } derive(Show)
 
 ///|
 pub fn init_test_run() -> TestRun {
-  { log: @list.empty(), deterministic: true, labels: @immut/hashmap.new() }
+  { log: @list.empty(), deterministic: true, labels: @ihs.new() }
 }
 
 ///|
