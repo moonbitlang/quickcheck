@@ -8,7 +8,7 @@ struct Printer {
 }
 
 ///|
-impl Default for Printer with default() {
+pub impl Default for Printer with default() {
   { buf: @buffer.new(), ident: 0 }
 }
 
@@ -81,12 +81,6 @@ struct State {
   mut num_try_shrinks : Int
   // Number of shrinks failed (total)
   mut num_to_try_shrinks : Int
-}
-
-///|
-#callsite(autofill(loc))
-fn State::format_name(self : State, loc~ : ArgsLoc) -> String {
-  "[\{self.name}] \{loc}"
 }
 
 ///|
@@ -221,7 +215,7 @@ fn State::counts(self : State) -> String {
 }
 
 ///|
-priv struct ListCompare[T](List[T]) derive(Eq, Show)
+priv struct ListCompare[T](List[T]) derive(Eq)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
@@ -318,4 +312,14 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
   ]
   .filter(fn(x) { x != "" })
   .join("\n")
+}
+
+///|
+/// Configuration for initializing a test runner.
+struct Config {
+  replay : (RandomState, Int)?
+  max_success : Int
+  max_discard_ratio : Int
+  max_size : Int
+  max_shrink : Int
 }

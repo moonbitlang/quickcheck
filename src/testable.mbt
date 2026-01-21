@@ -23,7 +23,7 @@ enum Callback {
 priv enum Kind {
   CounterExample
   Nothing
-} derive(Show)
+}
 
 ///|
 fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {

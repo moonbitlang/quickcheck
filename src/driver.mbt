@@ -36,25 +36,24 @@ enum TestSuccess {
 ///|
 pub fn[P : Testable] quick_check(
   prop : P,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
+  max_shrink? : Int = 100,
+  max_success? : Int = 100,
+  max_size? : Int = 100,
+  discard_ratio? : Int = 10,
   expect? : Expected = Success,
   abort? : Bool = false,
 ) -> Unit raise Failure {
-  let prop = map_total_result(prop, fn(res) {
+  let prop = map_total_result(prop, res => { ..res, expect, abort })
+  quick_check_with(
     {
-      ..res,
-      maybe_num_tests: max_success,
-      maybe_max_test_size: max_size,
-      maybe_max_shrinks: max_shrinks,
-      maybe_discarded_ratio: discard_ratio,
-      expect,
-      abort,
-    }
-  })
-  quick_check_with(Default::default(), prop)
+      replay: None,
+      max_shrink,
+      max_success,
+      max_size,
+      max_discard_ratio: discard_ratio,
+    },
+    prop,
+  )
 }
 
 ///|
@@ -69,7 +68,7 @@ pub fn[A : @quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
-    max_shrinks?,
+    max_shrink?=max_shrinks,
     max_success?,
     max_size?,
     discard_ratio?,
