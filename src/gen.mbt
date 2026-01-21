@@ -1,5 +1,5 @@
 ///|
-pub using @quickcheck/splitmix {type RandomState}
+pub using @splitmix {type RandomState}
 
 ///|
 /// The Gen type represents a generator of values of type T.
@@ -39,7 +39,7 @@ pub fn[T] Gen::sample(
   size? : Int = 100,
   seed? : UInt64 = 37,
 ) -> T {
-  let state = @quickcheck/splitmix.new(seed~)
+  let state = @splitmix.new(seed~)
   self.run(size, state)
 }
 
@@ -50,7 +50,7 @@ pub fn[T] Gen::samples(
   size? : Int = 10,
   seed? : UInt64 = 37,
 ) -> Array[T] {
-  let state = @quickcheck/splitmix.new(seed~)
+  let state = @splitmix.new(seed~)
   Array::makei(size, fn(_x) { self.run(size, state) })
 }
 

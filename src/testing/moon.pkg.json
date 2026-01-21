@@ -7,7 +7,10 @@
     {
       "path": "moonbitlang/quickcheck/feat",
       "alias": "feat"
-    }
+    },
+    "moonbitlang/core/list",
+    "moonbitlang/core/quickcheck",
+    "moonbitlang/core/sorted_set"
   ],
   "warn-list": "-1-2-3-5-6-7-8"
 }

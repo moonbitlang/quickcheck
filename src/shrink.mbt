@@ -19,8 +19,8 @@ pub impl Shrink for Int with shrink(x) {
 
 ///|
 test "shrink int" {
-  @json.inspect(Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
-  @json.inspect(Shrink::shrink(0), content=[])
+  json_inspect(Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
+  json_inspect(Shrink::shrink(0), content=[])
 }
 
 ///|
@@ -34,7 +34,7 @@ pub impl Shrink for Int64 with shrink(x) {
 
 ///|
 test "shrink int64" {
-  @json.inspect(Shrink::shrink(10000L), content=[
+  json_inspect(Shrink::shrink(10000L), content=[
     "9999", "9998", "9996", "9991", "9981", "9961", "9922", "9844", "9688", "9375",
     "8750", "7500", "5000", "0",
   ])
@@ -51,7 +51,7 @@ pub impl Shrink for UInt with shrink(x) {
 
 ///|
 test "shrink uint" {
-  @json.inspect(Shrink::shrink(37000U), content=[
+  json_inspect(Shrink::shrink(37000U), content=[
     36999, 36998, 36996, 36991, 36982, 36964, 36928, 36856, 36711, 36422, 35844,
     34688, 32375, 27750, 18500, 0,
   ])
@@ -68,10 +68,10 @@ pub impl Shrink for UInt64 with shrink(x) {
 
 ///|
 test "shrink uint64" {
-  @json.inspect(
-    Shrink::shrink((42000 : UInt64)),
-    content=(["41999","41998","41995","41990","41980","41959","41918","41836","41672","41344","40688","39375","36750","31500","21000","0"]),
-  )
+  json_inspect(Shrink::shrink((42000 : UInt64)), content=[
+    "41999", "41998", "41995", "41990", "41980", "41959", "41918", "41836", "41672",
+    "41344", "40688", "39375", "36750", "31500", "21000", "0",
+  ])
 }
 
 ///|
@@ -85,8 +85,8 @@ pub impl Shrink for Bool with shrink(b) {
 
 ///|
 test "shrink boolean" {
-  @json.inspect(Shrink::shrink(true), content=[false])
-  @json.inspect(Shrink::shrink(false), content=[])
+  json_inspect(Shrink::shrink(true), content=[false])
+  json_inspect(Shrink::shrink(false), content=[])
 }
 
 ///|
@@ -102,7 +102,7 @@ pub impl Shrink for Char with shrink(c) {
 
 ///|
 test "shrink char" {
-  @json.inspect(Shrink::shrink('测'), content=[
+  json_inspect(Shrink::shrink('测'), content=[
     "浊", "浌", "a", "A", "1", "\n", "\t", "\b", "\\", "'", "\r", " ",
   ])
 }
@@ -135,8 +135,8 @@ pub impl Shrink for Unit
 
 ///|
 test "shrink option" {
-  @json.inspect(Shrink::shrink((None : Unit?)), content=[])
-  @json.inspect(Shrink::shrink(Some(1000)), content=[
+  json_inspect(Shrink::shrink((None : Unit?)), content=[])
+  json_inspect(Shrink::shrink(Some(1000)), content=[
     [999],
     [997],
     [993],
@@ -163,7 +163,7 @@ pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
 test "shrink result" {
   let b : Result[Bool, Int] = Err(100)
   let x : Result[Bool, Int] = Ok(true)
-  @json.inspect(Shrink::shrink(b), content=[
+  json_inspect(Shrink::shrink(b), content=[
     { "Err": 99 },
     { "Err": 97 },
     { "Err": 94 },
@@ -172,7 +172,7 @@ test "shrink result" {
     { "Err": 50 },
     { "Err": 0 },
   ])
-  @json.inspect(Shrink::shrink(x), content=[{ "Ok": false }])
+  json_inspect(Shrink::shrink(x), content=[{ "Ok": false }])
 }
 
 ///|
@@ -186,7 +186,7 @@ pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
 ///|
 test "shrink tuple" {
   let x = (120, true)
-  @json.inspect(Shrink::shrink(x), content=[
+  json_inspect(Shrink::shrink(x), content=[
     [119, true],
     [117, true],
     [113, true],
@@ -252,7 +252,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
 ///|
 test "shrink 6-tuple" {
   let x = (20, 'A', 30U, true, true, true)
-  @json.inspect(Shrink::shrink(x), content=[
+  json_inspect(Shrink::shrink(x), content=[
     [19, "A", 30, true, true, true],
     [18, "A", 30, true, true, true],
     [15, "A", 30, true, true, true],
@@ -305,7 +305,7 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 test "shrink int list" {
   let il : List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
-  @json.inspect(s, content=[
+  json_inspect(s, content=[
     [2, 3, 4, 5, 6],
     [1, 3, 4, 5, 6],
     [1, 2, 4, 5, 6],
@@ -354,7 +354,7 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
 test "shrink array" {
   let ar = [1, 2, 3, 4, 5, 6]
   let s = Shrink::shrink(ar)
-  @json.inspect(s, content=[
+  json_inspect(s, content=[
     [2, 3, 4, 5, 6],
     [1, 3, 4, 5, 6],
     [1, 2, 4, 5, 6],
@@ -401,7 +401,7 @@ pub impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
 ///|
 test "shrink iter" {
   let it = [1, 2, 3, 4, 5, 6].iter()
-  @json.inspect(Shrink::shrink(it), content=[
+  json_inspect(Shrink::shrink(it), content=[
     [2, 3, 4, 5, 6],
     [1, 3, 4, 5, 6],
     [1, 2, 4, 5, 6],

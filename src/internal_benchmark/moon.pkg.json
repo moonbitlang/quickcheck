@@ -7,6 +7,10 @@
     {
       "path": "moonbitlang/quickcheck/feat",
       "alias": "feat"
+    },
+    {
+      "path": "moonbitlang/core/bench",
+      "alias": "bench"
     }
   ]
 }

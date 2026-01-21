@@ -3,6 +3,16 @@
     "moonbitlang/quickcheck/feat",
     "moonbitlang/quickcheck/lazy",
     "moonbitlang/quickcheck/utils",
-    "moonbitlang/quickcheck/rose"
+    "moonbitlang/quickcheck/rose",
+    "moonbitlang/core/sorted_set",
+    "moonbitlang/core/cmp",
+    "moonbitlang/core/list",
+    "moonbitlang/core/quickcheck",
+    "moonbitlang/core/buffer",
+    {
+      "path": "moonbitlang/core/quickcheck/splitmix",
+      "alias": "splitmix"
+    },
+    "moonbitlang/core/sorted_map"
   ]
 }

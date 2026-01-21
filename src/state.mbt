@@ -87,7 +87,7 @@ struct State {
 fn from_config(cfg : Config) -> State {
   let rs = match cfg.replay {
     Some((rng, _)) => rng
-    None => @quickcheck/splitmix.new()
+    None => @splitmix.new()
   }
   {
     name: @utils.fresh_name(),
