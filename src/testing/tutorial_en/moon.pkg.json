@@ -1,0 +1,13 @@
+{
+    "test-import": [
+        {
+            "path": "moonbitlang/quickcheck",
+            "alias": "qc"
+        },
+        {
+            "path": "moonbitlang/core/quickcheck",
+            "alias": "coreqc"
+        },
+        "moonbitlang/core/list"
+    ]
+}
