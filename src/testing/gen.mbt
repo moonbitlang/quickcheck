@@ -37,8 +37,8 @@ priv enum SingleTree {
 impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
     @list.from_array([
-      @feat.Enumerable::enumerate().fmap(SingleTree::Leaf(_)),
-      @feat.unary(pair_function(SingleTree::Node(_, _))),
+      @feat.Enumerable::enumerate().fmap(x => SingleTree::Leaf(x)),
+      @feat.unary(pair_function((x, y) => SingleTree::Node(x, y))),
     ]),
   )
 }
@@ -69,8 +69,8 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
   @feat.pay(fn() {
-    E::enumerate().fmap(Tree::Leaf(_)) +
-    @feat.Enumerable::enumerate().fmap(Tree::Branch(_))
+    E::enumerate().fmap(x => Tree::Leaf(x)) +
+    @feat.Enumerable::enumerate().fmap(x => Tree::Branch(x))
   })
 }
 

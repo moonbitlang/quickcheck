@@ -103,7 +103,20 @@ pub fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
 
 ///|
 pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
-  val.fold_left(fin_union, init=fin_empty())
+  let acc : Array[Finite[M]] = []
+  loop val {
+    Nil => break ()
+    Cons(x, xs) => {
+      acc.push(x)
+      continue xs.force()
+    }
+  }
+  let fin = fin_concat(acc)
+  if fin.fCard == 0 {
+    fin_empty()
+  } else {
+    fin
+  }
 }
 
 ///|

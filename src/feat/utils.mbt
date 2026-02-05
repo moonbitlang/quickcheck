@@ -11,14 +11,7 @@ fn[A, B] convolution(
   xs : LazyList[Finite[A]],
   ys : LazyList[Finite[B]],
 ) -> Finite[(A, B)] {
-  let s1 = xs.map(fn(x) { x.fCard })
-  let s2 = ys.map(fn(x) { x.fCard })
-  let card : BigInt = @lazy.sum(@lazy.zip_with(BigInt::mul, s1, s2), init=0)
-  let fx = @lazy.zip_with(fin_cart, xs, ys).fold_left(
-      fin_union,
-      init=fin_empty(),
-    ).fIndex
-  { fCard: card, fIndex: fx }
+  fin_mconcat(@lazy.zip_with(fin_cart, xs, ys))
 }
 
 ///|
