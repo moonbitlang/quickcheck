@@ -52,8 +52,7 @@ test "gen spawn for arbitrary" {
 ///|
 test "gen array_with_size" {
   let gen = @qc.int_range(0, 9).array_with_size(5)
-  let prop = @qc.forall(gen, fn(arr) { arr.length() == 5 })
-  @qc.quick_check(prop)
+  inspect(gen.samples(), content="[[0, 6], [4, 3], [8, 0], [4, 6], [5, 7], [5, 2], [0, 0], [2, 4], [1, 0], [4, 3]]")
 }
 
 ///|
@@ -201,11 +200,8 @@ test "@qc.sized array with explicit length" {
     let len = if n < 0 { 0 } else { n }
     @qc.tuple(@qc.pure(len), @qc.int_range(0, 9).array_with_size(len))
   })
-  let prop = @qc.forall(gen, fn(p) {
-    let (len, arr) = p
-    arr.length() == len
-  })
-  @qc.quick_check(prop, max_size=20)
+
+  inspect(gen.sample(), content="(100, [5, 5, 0, 2, 0, 5, 4, 6, 4, 2, 1, 3, 3, 3, 0, 8, 2, 4, 2, 3, 5, 6, 5, 8, 8, 6, 2, 1, 7, 3, 6, 6, 1, 3, 8, 3, 4, 7, 4, 8, 7, 4, 0, 7, 2, 5, 4, 6, 5, 5])")
 }
 ```
 

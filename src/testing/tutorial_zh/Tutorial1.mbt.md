@@ -486,7 +486,7 @@ test "queue invariance" {
     guard !is_empty(lhs) else { true }
     front(lhs) == front(rhs)
   })
-  @qc.quick_check(prop)
+  @qc.quick_check(prop, expect=Fail)
 }
 ```
 
@@ -553,7 +553,7 @@ test "operation invariance tests" {
   let gen_xqp = @qc.triple(@qc.small_int(), gen_queue(), gen_queue())
   @qc.quick_check(@qc.forall(gen_xq, enqueue_1_q3))
   @qc.quick_check(@qc.forall(gen_xqp, enqueue_1_q4))
-  @qc.quick_check(@qc.forall(gen_xq, front_1_q6))
+  @qc.quick_check(@qc.forall(gen_xq, front_1_q6), expect=Fail)
 }
 ```
 
