@@ -197,6 +197,159 @@ pub fn[P : Testable] quick_check_with_result(
 }
 
 ///|
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
+  f : (A) -> B,
+  max_size? : Int = 100,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> Unit raise Failure {
+  try {
+    let result = small_check_with_result(f, max_size, expect, abort)
+    match result {
+      Success(output~, coverage~, num_tests~) => {
+        println(output)
+        println(coverage.to_string(num_tests))
+      }
+    }
+  } catch {
+    GaveUp(output~, ..) => fail(output)
+    Fail(output~, failing_case~, ..) =>
+      fail(output + "\n" + failing_case.join("\n"))
+    NoneExpectedFail(output~, ..) => fail(output)
+  }
+}
+
+///|
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
+  f : (A) -> B,
+  max_size? : Int = 100,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> String {
+  try {
+    let result = small_check_with_result(f, max_size, expect, abort)
+    match result {
+      Success(output~, coverage~, num_tests~) =>
+        return output + coverage.to_string(num_tests)
+    }
+  } catch {
+    GaveUp(output~, ..) => output
+    Fail(output~, failing_case~, ..) => output + "\n" + failing_case.join("\n")
+    NoneExpectedFail(output~, ..) => output
+  }
+}
+
+///|
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
+  f : (A) -> B raise,
+  max_size? : Int = 100,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> Unit raise Failure {
+  small_check(
+    fn(a : A) { try? (f)(a) },
+    max_size=max_size,
+    expect=expect,
+    abort=abort,
+  )
+}
+
+///|
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
+  f : (A) -> B raise,
+  max_size? : Int = 100,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> String {
+  small_check_silence(
+    fn(a : A) { try? (f)(a) },
+    max_size=max_size,
+    expect=expect,
+    abort=abort,
+  )
+}
+
+///|
+fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
+  f : (A) -> B,
+  max_size : Int,
+  expect : Expected,
+  abort : Bool,
+) -> TestSuccess raise TestError {
+  let limit = if max_size < 0 { 0 } else { max_size }
+  let mut st = from_config({
+    replay: None,
+    max_shrink: 0,
+    max_success: limit,
+    max_size: limit,
+    max_discard_ratio: 0,
+  })
+  st.expected = expect
+  let dummy : Property = succeed().property()
+  loop (A::enumerate().eval(), None, 0, limit, 0) {
+    (_, _, _, remaining, _) if remaining <= 0 =>
+      break st.complete_test(dummy)
+    (@lazy.Nil, _, _, _, _) => break st.complete_test(dummy)
+    (parts, None, _, remaining, idx) => {
+      match parts {
+        @lazy.Nil => break st.complete_test(dummy)
+        @lazy.Cons(finite, rest) =>
+          if finite.fCard == 0 {
+            continue (rest.force(), None, 0, remaining, idx)
+          } else {
+            continue (rest.force(), Some(finite), 0, remaining, idx)
+          }
+      }
+    }
+    (parts, Some(finite), j, remaining, idx) =>
+      if BigInt::compare_int(finite.fCard, j) <= 0 {
+        continue (parts, None, 0, remaining, idx)
+      } else {
+        let val = (finite.fIndex)(BigInt::from_int(j))
+        let prop =
+          map_total_result(
+            counterexample(f(val), val.to_string()),
+            res => { ..res, expect, abort },
+          )
+        let rnd1 = st.random_state.split()
+        let rnd2 = st.random_state
+        let { val: res, .. } = prop.0.run(idx, rnd1)
+        st.random_state = rnd2
+        st.update_state_from_res(res)
+        st.callback_post_test(res)
+        match res.ok {
+          Some(true) => {
+            st.add_coverages(res)
+            st = {
+              ..st,
+              num_success_tests: st.num_success_tests + 1,
+              num_recent_discarded_tests: 0,
+            }
+            if res.abort {
+              break st.complete_test(dummy)
+            } else {
+              continue (parts, Some(finite), j + 1, remaining - 1, idx + 1)
+            }
+          }
+          Some(false) => break st.find_failure_no_shrink(res, idx)
+          None => {
+            st = {
+              ..st,
+              num_discarded_tests: st.num_discarded_tests + 1,
+              num_recent_discarded_tests: st.num_recent_discarded_tests + 1,
+            }
+            if res.abort {
+              break st.give_up(dummy)
+            } else {
+              continue (parts, Some(finite), j + 1, remaining - 1, idx + 1)
+            }
+          }
+        }
+      }
+  }
+}
+
+///|
 pub fn State::run_test(
   self : State,
   prop : Property,
@@ -333,6 +486,38 @@ pub fn State::find_failure(
         output="*** \{self.counts()} Failed! \{res.reason}",
         failing_case=ce.test_case.to_array(),
         failing_labels=ce.labels.to_array(),
+        failing_classes=@sorted_set.new(), // TODO: Add classes
+      )
+    Fail =>
+      Success(
+        num_tests=self.num_success_tests + 1,
+        coverage=self.collects,
+        output="+++ \{self.counts()} Ok! Failed as expected.",
+      )
+  }
+}
+
+///|
+fn State::find_failure_no_shrink(
+  self : State,
+  res : SingleResult,
+  size : Int,
+) -> TestSuccess raise TestError {
+  self.callback_post_final_failure(res)
+  match res.expect {
+    Success | GaveUp =>
+      raise TestError::Fail(
+        error=res.error,
+        replay_info=Replay::new(self.random_state, size),
+        num_tests=self.num_success_tests + 1,
+        num_discarded=self.num_discarded_tests,
+        num_shrinks=0,
+        num_shrink_tries=0,
+        num_shrink_final=0,
+        reason=res.reason,
+        output="*** \{self.counts()} Failed! \{res.reason}",
+        failing_case=res.test_case.to_array(),
+        failing_labels=res.labels.to_array(),
         failing_classes=@sorted_set.new(), // TODO: Add classes
       )
     Fail =>

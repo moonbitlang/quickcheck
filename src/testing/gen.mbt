@@ -3,7 +3,7 @@ test "feat int" {
   let fe : @qc.Gen[Int] = @qc.Gen::feat_random(10)
   inspect(
     fe.samples(size=50),
-    content="[-3, 2, 3, -1, 2, -1, -4, 5, 0, 2, -4, 2, -2, -2, -5, 2, -3, 0, 1, 0, 1, -4, -2, -1, 2, -2, -2, -4, 0, 1, 0, 3, 0, 2, 3, 0, -2, -2, 1, -1, -1, -4, -1, 0, -2, -4, 0, 0, -2, -1]",
+    content="[0, 0, -2, 5, -2, -4, -1, -1, 4, -2, 4, -4, -3, -3, 2, 4, 2, -2, 5, -2, -4, 0, -4, -3, -4, -4, -1, -2, -4, -2, -2, 5, 5, -4, -1, -3, -3, 4, 2, -2, -3, 0, -2, 4, -3, 5, 5, 3, 5, 4]",
   )
 }
 
@@ -25,6 +25,13 @@ test "feat nat index" {
     x,
     content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Zero))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))]",
   )
+}
+
+///|
+test "feat int index order" {
+  let e : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
+  let xs = [0N, 1, 2, 3, 4, 5].map(fn(i) { e.en_index(i) })
+  inspect(xs, content="[0, 1, -1, 2, -2, 3]")
 }
 
 ///|
@@ -177,4 +184,10 @@ test "sized trivial" {
   let gen : @qc.Gen[Int] = @qc.sized(@qc.pure)
   let arr = Array::makei(10, fn(i) { gen.sample(size=i) })
   inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
+}
+
+test "enumerate int" {
+  let gen : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
+  let arr = Array::makei(10, fn(i) { gen.en_index(BigInt::from_int(i)) })
+  inspect(arr, content="[0, 1, -1, 2, -2, 3, -3, 4, -4, 5]")
 }

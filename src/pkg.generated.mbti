@@ -113,6 +113,12 @@ pub fn[P : Testable] quick_check(P, max_shrink? : Int, max_success? : Int, max_s
 
 pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
 
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error_silence((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> String
+
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> String
+
 pub fn[P : Testable] quick_check_silence(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool) -> String
 
 pub fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
@@ -124,6 +130,14 @@ pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
 pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
+
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check((A) -> B, max_size? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : Expected, abort? : Bool) -> Unit raise Failure
+
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : Expected, abort? : Bool) -> String
+
+pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence((A) -> B, max_size? : Int, expect? : Expected, abort? : Bool) -> String
 
 pub fn small_int() -> Gen[Int]
 
@@ -143,6 +157,15 @@ pub(all) struct Arrow[A, B]((A) -> B)
 #deprecated
 pub fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
 pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+
+pub(all) struct ArrowAsync[A, B](async (A) -> B)
+#deprecated
+pub fn[A, B] ArrowAsync::inner(Self[A, B]) -> async (A) -> B
+
+pub(all) struct ArrowError[A, B]((A) -> B raise)
+#deprecated
+pub fn[A, B] ArrowError::inner(Self[A, B]) -> (A) -> B raise
+pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for ArrowError[A, P]
 
 type Axiom[T]
 pub fn[T] Axiom::new((T) -> Equivalence[T]) -> Self[T]
@@ -268,5 +291,6 @@ pub(open) trait Testable {
 pub impl Testable for Unit
 pub impl Testable for Bool
 pub impl[P : Testable] Testable for P?
+pub impl[P : Testable, E : Show] Testable for Result[P, E]
 pub impl Testable for @rose.Rose[SingleResult]
 

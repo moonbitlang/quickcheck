@@ -76,6 +76,24 @@ test "add assoc double (expect fail)" {
 }
 
 ///|
+test "small check pass" {
+  let prop = fn(x : Int) { x + 0 == x }
+  inspect(
+    @qc.small_check_silence(prop, max_size=1000000),
+    content="+++ [1000000/0/1000000] Ok, passed!",
+  )
+}
+
+///|
+test "small check expect fail" {
+  let prop = fn(x : Int) { x == 0 }
+  inspect(
+    @qc.small_check_silence(prop, max_size=5, expect=Fail),
+    content="+++ [1/0/5] Ok! Failed as expected.",
+  )
+}
+
+///|
 test "non empty list (with filter)" {
   let prop_is_non_empty = fn(l : List[Int]) -> @qc.Property {
     not(l.is_empty()) |> @qc.filter(not(l.is_empty()))
