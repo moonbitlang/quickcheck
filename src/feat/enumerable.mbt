@@ -61,6 +61,34 @@ pub impl Enumerable for UInt64 with enumerate() {
 }
 
 ///|
+pub impl Enumerable for Byte with enumerate() {
+  let byte_card : BigInt = 256
+  let byte_from_index = (i : BigInt) => Int::to_byte(i.to_int())
+  {
+    parts: @lazy.Cons(
+      { fCard: byte_card, fIndex: byte_from_index },
+      @lazy.LazyRef::from_value(@lazy.Nil),
+    ),
+  }
+}
+
+///|
+pub impl Enumerable for Char with enumerate() {
+  let char_card : BigInt = 1112064
+  let char_from_index = (i : BigInt) => {
+    let idx = i.to_int()
+    let cp = if idx < 55296 { idx } else { idx + 2048 }
+    Int::unsafe_to_char(cp)
+  }
+  {
+    parts: @lazy.Cons(
+      { fCard: char_card, fIndex: char_from_index },
+      @lazy.LazyRef::from_value(@lazy.Nil),
+    ),
+  }
+}
+
+///|
 pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with enumerate() {
   consts(
     @list.from_array([

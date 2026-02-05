@@ -114,12 +114,11 @@ pub fn[T] LazyList::split_at(
           continue (xs.force(), n - 1)
         }
     }
-    let prefix =
-      for j = buf.length() - 1, acc = Nil; j >= 0; {
-        continue j - 1, Cons(buf[j], LazyRef::from_value(acc))
-      } else {
-        acc
-      }
+    let prefix = for j = buf.length() - 1, acc = Nil; j >= 0; {
+      continue j - 1, Cons(buf[j], LazyRef::from_value(acc))
+    } else {
+      acc
+    }
     (prefix, rest)
   }
 }
@@ -243,12 +242,7 @@ pub fn[T] LazyList::drop_while(
 ) -> LazyList[T] {
   loop self {
     Nil => Nil
-    Cons(x, xs) =>
-      if p(x) {
-        continue xs.force()
-      } else {
-        Cons(x, xs)
-      }
+    Cons(x, xs) => if p(x) { continue xs.force() } else { Cons(x, xs) }
   }
 }
 

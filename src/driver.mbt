@@ -246,12 +246,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
   expect? : Expected = Success,
   abort? : Bool = false,
 ) -> Unit raise Failure {
-  small_check(
-    fn(a : A) { try? (f)(a) },
-    max_size=max_size,
-    expect=expect,
-    abort=abort,
-  )
+  small_check(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
 }
 
 ///|
@@ -261,12 +256,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
   expect? : Expected = Success,
   abort? : Bool = false,
 ) -> String {
-  small_check_silence(
-    fn(a : A) { try? (f)(a) },
-    max_size=max_size,
-    expect=expect,
-    abort=abort,
-  )
+  small_check_silence(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
 }
 
 ///|
@@ -287,10 +277,9 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
   st.expected = expect
   let dummy : Property = succeed().property()
   loop (A::enumerate().eval(), None, 0, limit, 0) {
-    (_, _, _, remaining, _) if remaining <= 0 =>
-      break st.complete_test(dummy)
+    (_, _, _, remaining, _) if remaining <= 0 => break st.complete_test(dummy)
     (@lazy.Nil, _, _, _, _) => break st.complete_test(dummy)
-    (parts, None, _, remaining, idx) => {
+    (parts, None, _, remaining, idx) =>
       match parts {
         @lazy.Nil => break st.complete_test(dummy)
         @lazy.Cons(finite, rest) =>
@@ -300,17 +289,16 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
             continue (rest.force(), Some(finite), 0, remaining, idx)
           }
       }
-    }
     (parts, Some(finite), j, remaining, idx) =>
       if BigInt::compare_int(finite.fCard, j) <= 0 {
         continue (parts, None, 0, remaining, idx)
       } else {
         let val = (finite.fIndex)(BigInt::from_int(j))
-        let prop =
-          map_total_result(
-            counterexample(f(val), val.to_string()),
-            res => { ..res, expect, abort },
-          )
+        let prop = map_total_result(counterexample(f(val), val.to_string()), res => {
+          ..res,
+          expect,
+          abort,
+        })
         let rnd1 = st.random_state.split()
         let rnd2 = st.random_state
         let { val: res, .. } = prop.0.run(idx, rnd1)
