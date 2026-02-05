@@ -7,6 +7,12 @@ priv suberror InternalError {
 pub(all) struct Arrow[A, B]((A) -> B)
 
 ///|
+pub(all) struct ArrowError[A, B]((A) -> B raise)
+
+///|
+pub(all) struct ArrowAsync[A, B](async (A) -> B)
+
+///|
 type RoseRes = Rose[SingleResult]
 
 ///|
@@ -68,7 +74,10 @@ pub impl Testable for SingleResult with property(self) {
 
 ///|
 pub impl Testable for Bool with property(self) {
-  lift_bool(self).property()
+  match self {
+    true => succeed().property()
+    false => { ..failed(), reason: "Falsified." }.property()
+  }
 }
 
 ///|
@@ -78,7 +87,18 @@ pub impl[P : Testable] Testable for Gen[P] with property(self) {
 
 ///|
 pub impl[P : Testable] Testable for P? with property(self) {
-  lift_option(self)
+  match self {
+    None => rejected().property()
+    Some(x) => x.property()
+  }
+}
+
+///|
+pub impl[P : Testable, E : Show] Testable for Result[P, E] with property(self) {
+  match self {
+    Ok(p) => p.property()
+    Err(e) => { ..failed(), reason: e.to_string() }.property()
+  }
 }
 
 ///|
@@ -87,6 +107,14 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
   P,
 ] with property(self) {
   forall_shrink(Gen::spawn(), A::shrink, self.0)
+}
+
+///|
+pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for ArrowError[
+  A,
+  P,
+] with property(self) {
+  forall_shrink(Gen::spawn(), A::shrink, fn(a : A) { try? (self.0)(a) })
 }
 
 ///|
@@ -100,22 +128,6 @@ pub fn[P : Testable] map_total_result(
   f : (SingleResult) -> SingleResult,
 ) -> Property {
   run_prop(prop).fmap(fn(rose) { rose.fmap(f) })
-}
-
-///|
-fn lift_bool(b : Bool) -> SingleResult {
-  match b {
-    true => succeed()
-    false => { ..failed(), reason: "Falsified." }
-  }
-}
-
-///|
-fn[T : Testable] lift_option(opt : T?) -> Property {
-  match opt {
-    None => rejected().property()
-    Some(x) => x.property()
-  }
 }
 
 ///|

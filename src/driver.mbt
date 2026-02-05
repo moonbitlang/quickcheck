@@ -126,6 +126,69 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 }
 
 ///|
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence(
+  f : (A) -> B,
+  max_shrinks? : Int,
+  max_success? : Int,
+  max_size? : Int,
+  discard_ratio? : Int,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> String {
+  quick_check_silence(
+    Arrow(f),
+    max_shrink?=max_shrinks,
+    max_success?,
+    max_size?,
+    discard_ratio?,
+    expect~,
+    abort~,
+  )
+}
+
+///|
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error(
+  f : (A) -> B raise,
+  max_shrinks? : Int,
+  max_success? : Int,
+  max_size? : Int,
+  discard_ratio? : Int,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> Unit raise Failure {
+  quick_check(
+    ArrowError(f),
+    max_shrink?=max_shrinks,
+    max_success?,
+    max_size?,
+    discard_ratio?,
+    expect~,
+    abort~,
+  )
+}
+
+///|
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error_silence(
+  f : (A) -> B raise,
+  max_shrinks? : Int,
+  max_success? : Int,
+  max_size? : Int,
+  discard_ratio? : Int,
+  expect? : Expected = Success,
+  abort? : Bool = false,
+) -> String {
+  quick_check_silence(
+    ArrowError(f),
+    max_shrink?=max_shrinks,
+    max_success?,
+    max_size?,
+    discard_ratio?,
+    expect~,
+    abort~,
+  )
+}
+
+///|
 pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P,
