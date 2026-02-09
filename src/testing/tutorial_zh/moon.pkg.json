@@ -8,6 +8,7 @@
             "path": "moonbitlang/core/quickcheck",
             "alias": "coreqc"
         },
-        "moonbitlang/core/list"
+        "moonbitlang/core/list",
+        "moonbitlang/core/immut/sorted_set"
     ]
 }

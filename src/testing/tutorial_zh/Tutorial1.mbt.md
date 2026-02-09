@@ -649,7 +649,7 @@ pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int], Trace) {
 
 ```mbt check
 ///|
-type SUTSet[T] = @immut/sorted_set.SortedSet[T] // 假设这是我们要测试的复杂实现
+type SUTSet[T] = @sorted_set.SortedSet[T] // 假设这是我们要测试的复杂实现
 
 ///|
 pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {

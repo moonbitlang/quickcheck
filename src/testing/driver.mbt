@@ -239,7 +239,7 @@ priv enum Nat {
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(fn() {
-    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(Nat::Succ(_))
+    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(fn(x) { Nat::Succ(x) })
   })
 }
 
