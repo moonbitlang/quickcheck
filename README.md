@@ -95,7 +95,7 @@ this is easily archived by the `quick_check_fn` function:
 ///|
 test {
   @qc.quick_check_fn(prop_reverse_identity)
-  // equivalent to quick_check!(Arrow(prop_reverse_identity))
+  // equivalent to quick_check(Arrow(prop_reverse_identity))
 }
 ```
 
@@ -258,7 +258,7 @@ but instead use `Arrow[A, P]` as a wrapper.
 The reason is simple: The MoonBit type system does not allow us to do so.
 
 ```mbt nocheck
-pub fn quick_check[P : Testable](prop : P) -> Unit!Failure
+pub fn quick_check[P : Testable](prop : P) -> Unit raise Failure
 
 type Arrow[A, P] (A) -> P
 
@@ -443,7 +443,7 @@ For example, we can make a trivial generator for a list of integers with a given
 
 ```mbt nocheck
 let gen : Gen[Int] = sized(fn { size => pure(size) })
-let arr = Array::makei(20, fn { i => gen.sample(size=i) })
+let arr = Array::makei(10, fn { i => gen.sample(size=i) })
 inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 ```
 
