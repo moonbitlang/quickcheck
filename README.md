@@ -444,7 +444,7 @@ For example, we can make a trivial generator for a list of integers with a given
 ```mbt nocheck
 let gen : Gen[Int] = sized(fn { size => pure(size) })
 let arr = Array::makei(20, fn { i => gen.sample(size=i) })
-inspect!(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
+inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 ```
 
 The purpose of size control is to ensure that test cases are large enough to reveal errors, while remaining small enough to test fast. Sometimes the default size control does not achieve this. So we have provided some tool functions like `resize` and `scale` (check the document for details) for this purpose.
@@ -454,7 +454,7 @@ The purpose of size control is to ensure that test cases are large enough to rev
 QuickCheck defines default test data generators and shrinkers for some often used types (By trait `Arbitrary` and `Shrink`). You do not need to define or apply these explicitly for every property because QuickCheck can provide a property with appropriate generators and shrinkers for the property's arguments. But if you are required to do so, you can use the `forall` for explicitly universal quantification.
 
 ```mbt nocheck
-quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
+quick_check(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
 ```
 
 Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.

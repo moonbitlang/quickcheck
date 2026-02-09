@@ -1,1 +1,1 @@
-/Users/hongbozhang/git/quickcheck/README.md
+README.md
