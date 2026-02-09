@@ -325,7 +325,7 @@ pub fn[T] flatten_array(arr : Array[Gen[T]]) -> Gen[Array[T]] {
 pub fn[T] flatten_option(opt : Gen[T]?) -> Gen[T?] {
   match opt {
     None => pure(None)
-    Some(x) => x.fmap(Option::Some(_))
+    Some(x) => x.fmap(fn(y) { Option::Some(y) })
   }
 }
 
@@ -333,7 +333,7 @@ pub fn[T] flatten_option(opt : Gen[T]?) -> Gen[T?] {
 /// Generate a result of a generator or return the pure error
 pub fn[T, E] flatten_result(res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
   match res {
-    Ok(x) => x.fmap(Result::Ok(_))
+    Ok(x) => x.fmap(fn(y) { Result::Ok(y) })
     Err(e) => pure(Err(e))
   }
 }

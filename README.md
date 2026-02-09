@@ -48,26 +48,26 @@ You can do this by executing the following command:
 
 ```sh
 moon add moonbitlang/quickcheck
-moon install
 ```
 
-To use the library, you need to import it in your `moon.pkg.json` file,
+To use the library, you need to import it in your `moon.pkg` file,
 and for convenience we give an alias `qc` to the library:
 
-```json
-{
-  "import": [{ "path": "moonbitlang/quickcheck", "alias": "qc" }]
-}
+```
+import {
+  "moonbitlang/quickcheck" @qc,
+}  
 ```
 
 ### First Look
 
 Let's start with something very simple. Suppose that we just wrote a function `reverse` which takes an array as argument and returns its reverse. We want to test its functionality by writing unit tests:
 
-```moonbit
+```mbt nocheck
+///|
 test "reverse" {
-  inspect!(reverse(([] : Array[Int])), content="[]")
-  inspect!(reverse([1, 2, 3]), content="[3, 2, 1]")
+  inspect(reverse(([] : Array[Int])), content="[]")
+  inspect(reverse([1, 2, 3]), content="[3, 2, 1]")
 }
 ```
 
@@ -75,7 +75,8 @@ Is this enough to prove that this function is correct? No, the bugs may lies in 
 
 But what property should we write? We may notice that the reverse of the reverse of an array is the original array. So we can write a **property** (you can roughly think of it as a function `(T) -> Bool`) that `reverse` should hold for any array:
 
-```moonbit
+```mbt nocheck
+///|
 fn prop_reverse_identity(arr : Array[Int]) -> Bool {
   reverse(reverse(arr)) == arr
 }
@@ -90,10 +91,11 @@ $$
 Looks good, now we can use QuickCheck to test this property,
 this is easily archived by the `quick_check_fn` function:
 
-```moonbit
+```mbt nocheck
+///|
 test {
-  @qc.quick_check_fn!(prop_reverse_identity)
-  // equivalent to quick_check!(Arrow(prop_reverse_identity))
+  @qc.quick_check_fn(prop_reverse_identity)
+  // equivalent to quick_check(Arrow(prop_reverse_identity))
 }
 ```
 
@@ -124,7 +126,8 @@ an array and an element and returns a new array with **all**
 occurrences of `x` removed. The intuitive implementation is to
 search for `x` in the array and remove it if found:
 
-```moonbit
+```mbt nocheck
+///|
 fn remove(arr : Array[Int], x : Int) -> Array[Int] {
   match arr.search(x) {
     Some(i) => arr.remove(i) |> ignore
@@ -154,7 +157,8 @@ $$
 
 Now we translate the first property into a MoonBit function (Note that the property function should have exactly **one** argument, but we can use tuple to pass multiple arguments):
 
-```moonbit
+```mbt nocheck
+///|
 fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
   let len = arr.length()
@@ -164,9 +168,10 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
 
 Run QuickCheck, all tests passed. However, this property is not considered a _good_ property because it is can be fulfilled easily and hence the test is not very meaningful. Most Bugs may still exist in the function.
 
-```moonbit
+```mbt nocheck
+///|
 test {
-  @qc.quick_check_fn!(prop_length_is_not_greater)
+  @qc.quick_check_fn(prop_length_is_not_greater)
 }
 
 // +++ [100/0/100] Ok, passed!
@@ -175,14 +180,16 @@ test {
 The later property is considered better,
 similarly we implement it in MoonBit:
 
-```moonbit
+```mbt nocheck
+///|
 fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
   remove(arr, x).contains(x).not()
 }
 
+///|
 test {
-  @qc.quick_check_fn!(prop_remove_not_presence)
+  @qc.quick_check_fn(prop_remove_not_presence)
 }
 ```
 
@@ -215,12 +222,13 @@ and this section will discuss how these functions are attached to a type.
 Remind the `quick_check_fn` function we used before, it is defined as follows
 in the MoonBit QuickCheck library:
 
-```moonbit
-///| path: src/driver.mbt
-pub fn quick_check_fn[A : Arbitrary + Shrink + Show, B : Testable](
-  f : (A) -> B
-) -> Unit!Failure {
-  quick_check!(Arrow(f))
+```mbt nocheck
+///|
+/// path: src/driver.mbt
+pub fn[A : Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
+  f : (A) -> B,
+) -> Unit raise Failure {
+  quick_check(Arrow(f))
 }
 ```
 
@@ -249,8 +257,8 @@ The reader may wonder why we don't directly implement `(A) -> P` as `Testable`
 but instead use `Arrow[A, P]` as a wrapper.
 The reason is simple: The MoonBit type system does not allow us to do so.
 
-```moonbit
-pub fn quick_check[P : Testable](prop : P) -> Unit!Failure
+```mbt nocheck
+pub fn quick_check[P : Testable](prop : P) -> Unit raise Failure
 
 type Arrow[A, P] (A) -> P
 
@@ -264,9 +272,10 @@ and QuickCheck provides a number of `Testable` combinators that can be
 used to modify a test's properties, such as `with_max_success`
 to modify the maximum number of successes:
 
-```moonbit
+```mbt nocheck
+///|
 test {
-  @qc.quick_check!(
+  @qc.quick_check(
     @qc.Arrow(prop_remove_not_presence) |> @qc.with_max_success(1000),
   )
 }
@@ -285,7 +294,8 @@ which is defined in the MoonBit Core library with compiler level support.
 It has a method `arbitrary` that takes a size and a random number
 generator and then returns a random value of the type.
 
-```moonbit
+```mbt nocheck
+///|
 pub trait Arbitrary {
   arbitrary(Int, RandomState) -> Self
 }
@@ -296,16 +306,18 @@ The vast majority of types in the core library already implement the
 their own defined types or use the compiler's automatic derivation.
 For example, we can derive the `Arbitrary` trait for our own `Nat` type:
 
-```moonbit
+```mbt nocheck
+///|
 enum Nat {
   Zero
   Succ(Nat)
 } derive(Arbitrary, Show)
 
+///|
 test {
   let nat_gen : @qc.Gen[Nat] = @qc.Gen::spawn()
   let nats = nat_gen.samples(size=4)
-  inspect!(
+  inspect(
     nats,
     content="[Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero)))), Succ(Zero), Succ(Succ(Succ(Zero)))]",
   )
@@ -326,7 +338,8 @@ here we use it to show the behavior of `Arbitrary`.
 It has a method `shrink` that takes a value and returns a iter
 of simpler values (lazily).
 
-```moonbit
+```mbt nocheck
+///|
 pub trait Shrink {
   shrink(Self) -> Iter[Self]
 }
@@ -354,7 +367,8 @@ Test data is produced by test data generators. QuickCheck defines default genera
 
 Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
 
-```moonbit
+```mbt nocheck
+///|
 struct Gen[T] {
   gen : (Int, RandomState) -> T
 }
@@ -362,14 +376,14 @@ struct Gen[T] {
 
 QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic ones, we can use `Gen::new(f: (Int, RandomState) -> T)` to create a generator from a function and run it by invoking the `run` method:
 
-```moonbit
+```mbt nocheck
 let g : Gen[Int] = Gen::new(..) // Suppose we have a generator for Int
 let x : Int = g.run(100, RandomState::new()) // Generate a random Int at size 100
 ```
 
 `Gen[T]` was implemented as functor, applicative and monad which means you can compose it in many ways.
 
-```moonbit
+```mbt nocheck
 fn pure[T](val : T) -> Gen[T]
 fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U]
 fn ap[T, U](self : Gen[(T) -> U], v : Gen[T]) -> Gen[U]
@@ -378,7 +392,7 @@ fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U]
 
 For instance, you can use the `fmap` method to transform the generated value:
 
-```moonbit
+```mbt nocheck
 let g : Gen[Int] = Gen::new(..)
 let g2 : Gen[Int] = g.fmap(fn(x) { x + 1 })
 let g3 : Gen[String] = g.fmap(fn(x) { x.to_string() })
@@ -386,7 +400,7 @@ let g3 : Gen[String] = g.fmap(fn(x) { x.to_string() })
 
 Or create a dependent generator:
 
-```moonbit
+```mbt nocheck
 let g : Gen[Int] = Gen::new(..)
 let g2 : Gen[Int] = g.bind(fn(x : Int) {
   if x == 0 {
@@ -403,13 +417,15 @@ The following documents explains some useful combinators for `Gen[T]`.
 
 A generator may take the form `one_of` which chooses among the generators in the array with equal probability. For example, this generates a random boolean which is true with probability one half:
 
-```moonbit
+```mbt nocheck
+///|
 let gen_bool : Gen[Bool] = one_of([pure(true), pure(false)])
 ```
 
 If you want to control the distribution of results using frequency instead. We have `frequency` which chooses a generator from the array randomly, but weighs the probability of choosing each alternative by the factor given. For example, this generates true in the probability of $4/5$.
 
-```moonbit
+```mbt nocheck
+///|
 let gen_freq : Gen[Bool] = frequency([(4, pure(true)), (1, pure(false))])
 ```
 
@@ -419,16 +435,16 @@ We have pointed that test data generators have an size parameter. QuickCheck beg
 
 You can obtain the value of the size parameter using `sized` combinator.
 
-```moonbit
+```mbt nocheck
 pub fn sized[T](f : (Int) -> Gen[T]) -> Gen[T]
 ```
 
 For example, we can make a trivial generator for a list of integers with a given length:
 
-```moonbit
+```mbt nocheck
 let gen : Gen[Int] = sized(fn { size => pure(size) })
-let arr = Array::makei(20, fn { i => gen.sample(size=i) })
-inspect!(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
+let arr = Array::makei(10, fn { i => gen.sample(size=i) })
+inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 ```
 
 The purpose of size control is to ensure that test cases are large enough to reveal errors, while remaining small enough to test fast. Sometimes the default size control does not achieve this. So we have provided some tool functions like `resize` and `scale` (check the document for details) for this purpose.
@@ -437,13 +453,13 @@ The purpose of size control is to ensure that test cases are large enough to rev
 
 QuickCheck defines default test data generators and shrinkers for some often used types (By trait `Arbitrary` and `Shrink`). You do not need to define or apply these explicitly for every property because QuickCheck can provide a property with appropriate generators and shrinkers for the property's arguments. But if you are required to do so, you can use the `forall` for explicitly universal quantification.
 
-```moonbit
-quick_check!(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
+```mbt nocheck
+quick_check(forall(spawn(), fn(x : List[Int]) { x.rev().rev() == x }))
 ```
 
 Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.
 
-```moonbit
+```mbt nocheck
 fn Gen::spawn[T : Arbitrary]() -> Gen[T]
 ```
 
@@ -451,17 +467,14 @@ fn Gen::spawn[T : Arbitrary]() -> Gen[T]
 
 Recall the `remove` function we want to test before. The QuickCheck do report an error for us, but the generator is quite random and the tuple element `(x, arr): (Int, Array[Int])` is independent. In most cases, the `x` is not in the array, so the test is not very meaningful (falls to the branch `None => ()`). Now we use the `one_of_array` combinator to generate a random element from a generated non-empty array, which makes the test more meaningful.
 
-```moonbit
+```mbt nocheck
+///|
 test {
-  quick_check!(
-    forall(
-      spawn(),
-      fn(a : Array[Int]) {
-        forall(one_of_array(a),
-          fn(y : Int) { remove(a, y).contains(y).not() })
-        |> filter(a.length() != 0)
-      },
-    ),
+  quick_check(
+    forall(spawn(), fn(a : Array[Int]) {
+      forall(one_of_array(a), fn(y : Int) { remove(a, y).contains(y).not() })
+      |> filter(a.length() != 0)
+    }),
   )
 }
 ```
@@ -485,20 +498,18 @@ We find that there are 33 cases that do not satisfy the condition, and the count
 
 Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array contains no duplicated elements, then our tests should pass. Use the function `filter` can filter out unwanted test cases:
 
-```moonbit
+```mbt nocheck
+///|
 test {
   fn no_duplicate(x : Array[Int]) -> Bool {
     @sorted_set.from_iter(x.iter()).size() == x.length().to_int64()
   }
 
-  quick_check!(
-    forall(
-      spawn(),
-      fn(iarr : (Int, Array[Int])) {
-        let (x, arr) = iarr
-        filter(remove(arr.copy(), x).contains(x).not(), no_duplicate(arr))
-      },
-    ),
+  quick_check(
+    forall(spawn(), fn(iarr : (Int, Array[Int])) {
+      let (x, arr) = iarr
+      filter(remove(arr.copy(), x).contains(x).not(), no_duplicate(arr))
+    }),
   )
 }
 ```
@@ -513,15 +524,14 @@ Running this test, we find that all tests passed. Now we have strong evidence th
 
 We may interest in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
 
-```moonbit
+```mbt nocheck
+///|
 test "classes" {
-  quick_check_fn!(
-    fn(x : List[Int]) {
-      Arrow(prop_rev)
-      |> classify(x.length() > 5, "long list")
-      |> classify(x.length() <= 5, "short list")
-    },
-  )
+  quick_check_fn(fn(x : List[Int]) {
+    Arrow(prop_rev)
+    |> classify(x.length() > 5, "long list")
+    |> classify(x.length() <= 5, "short list")
+  })
 }
 ```
 
@@ -535,14 +545,13 @@ The `classify` function takes a boolean and a string, and if the boolean is true
 
 The `label` function takes a string and classifies the test case with the string.
 
-```moonbit
+```mbt nocheck
+///|
 test "label" {
-  quick_check_fn!(
-    fn(x : List[Int]) {
-      Arrow(prop_rev)
-      |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
-    }
-  )
+  quick_check_fn(fn(x : List[Int]) {
+    Arrow(prop_rev)
+    |> label(if x.is_empty() { "trivial" } else { "non-trivial" })
+  })
 }
 ```
 

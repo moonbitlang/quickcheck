@@ -574,7 +574,7 @@ We run the same command sequence on the SUTSet and compare final state and trace
 
 ```mbt check
 ///|
-type SUTSet[T] = @immut/sorted_set.SortedSet[T] // assume this is the complex implementation under test
+type SUTSet[T] = @sorted_set.SortedSet[T] // assume this is the complex implementation under test
 
 ///|
 pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {

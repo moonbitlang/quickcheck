@@ -15,7 +15,7 @@ pub fn[T] new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
   let ts = self.val.branch
-  { val: self.val.val, branch: tss.map(_.join()).concat(ts) }
+  { val: self.val.val, branch: tss.map(fn(x) { x.join() }).concat(ts) }
 }
 
 ///|
