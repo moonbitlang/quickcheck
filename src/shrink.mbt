@@ -124,9 +124,7 @@ pub impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
     Some(v) =>
-      Shrink::shrink(v)
-      .map(fn(v1) { Some(v1) })
-      .concat(Iter::singleton(None))
+      Shrink::shrink(v).map(fn(v1) { Some(v1) }).concat(Iter::singleton(None))
   }
 }
 

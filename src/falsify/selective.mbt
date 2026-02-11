@@ -50,7 +50,5 @@ pub fn[T] Gen::ifS(self : Gen[Bool], t : Gen[T], e : Gen[T]) -> Gen[T] {
 
 ///|
 pub fn[A, B] Gen::apS(self : Gen[(A) -> B], x : Gen[A]) -> Gen[B] {
-  x
-  .fmap(fn(y) { fn(g) { g(y) } })
-  .select(self.fmap(fn(v) { Either::Left(v) }))
+  x.fmap(fn(y) { fn(g) { g(y) } }).select(self.fmap(fn(v) { Either::Left(v) }))
 }
