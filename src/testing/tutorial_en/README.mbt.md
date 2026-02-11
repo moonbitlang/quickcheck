@@ -290,7 +290,11 @@ to modify the maximum number of successes:
 ```mbt check
 ///|
 test {
-  @qc.quick_check(@qc.Arrow(prop_remove_not_presence), max_shrink=1000, expect=Fail)
+  @qc.quick_check(
+    @qc.Arrow(prop_remove_not_presence),
+    max_shrink=1000,
+    expect=Fail,
+  )
 }
 ```
 
@@ -567,7 +571,7 @@ test {
     }),
     max_size=50,
     discard_ratio=20,
-    max_success=100
+    max_success=100,
   )
 }
 ```
@@ -585,9 +589,11 @@ We may interest in the distribution of the generated data: sometimes the generat
 ```mbt check
 ///|
 test "classes" {
-  @qc.quick_check_fn((x : List[Int]) => @qc.Arrow(prop_rev)
+  @qc.quick_check_fn((x : List[Int]) => {
+    @qc.Arrow(prop_rev)
     |> @qc.classify(x.length() > 5, "long list")
-    |> @qc.classify(x.length() <= 5, "short list"))
+    |> @qc.classify(x.length() <= 5, "short list")
+  })
 }
 ```
 

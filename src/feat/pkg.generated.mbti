@@ -74,6 +74,8 @@ pub(open) trait Enumerable {
 }
 pub impl Enumerable for Unit
 pub impl Enumerable for Bool
+pub impl Enumerable for Byte
+pub impl Enumerable for Char
 pub impl Enumerable for Int
 pub impl Enumerable for Int64
 pub impl Enumerable for UInt

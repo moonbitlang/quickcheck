@@ -116,7 +116,7 @@ pub fn[T] LazyList::split_at(
     }
     let prefix = for j = buf.length() - 1, acc = Nil; j >= 0; {
       continue j - 1, Cons(buf[j], LazyRef::from_value(acc))
-    } else {
+    } nobreak {
       acc
     }
     (prefix, rest)

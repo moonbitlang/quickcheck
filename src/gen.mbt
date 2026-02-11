@@ -284,7 +284,7 @@ pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
           } else {
             continue i + 1, acc + w
           }
-        } else {
+        } nobreak {
           abort("frequency: internal error (impossible)")
         }
       })

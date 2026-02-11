@@ -1,0 +1,9 @@
+import {
+  "moonbitlang/quickcheck" @qc,
+  "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/quickcheck/splitmix" @splitmix,
+  "moonbitlang/core/list",
+  "moonbitlang/core/immut/sorted_set" @sorted_set,
+} for "test"
+
+warnings = "-28"

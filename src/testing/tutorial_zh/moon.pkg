@@ -1,0 +1,6 @@
+import {
+  "moonbitlang/quickcheck" @qc,
+  "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/list",
+  "moonbitlang/core/immut/sorted_set" @sorted_set,
+} for "test"

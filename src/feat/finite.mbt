@@ -81,14 +81,12 @@ pub fn[M, N] fin_bind(m : Finite[M], f : (M) -> Finite[N]) -> Finite[N] {
 ///|
 fn[M] sum_sel(a : Array[Finite[M]]) -> (BigInt) -> M {
   fn(idx) {
-    for j = 0, i = idx; j < a.length(); {
-      if i < a[j].fCard {
+    for j = 0, i = idx {
+      if i < a[j].fCard || j >= a.length() {
         break (a[j].fIndex)(i)
       } else {
         continue j + 1, i - a[j].fCard
       }
-    } else {
-      abort("index out of bounds")
     }
   }
 }
