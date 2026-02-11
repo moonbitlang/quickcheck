@@ -124,7 +124,9 @@ pub impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
     Some(v) =>
-      Shrink::shrink(v).map(Option::Some(_)).concat(Iter::singleton(None))
+      Shrink::shrink(v)
+      .map(fn(v1) { Some(v1) })
+      .concat(Iter::singleton(None))
   }
 }
 
@@ -154,8 +156,8 @@ test "shrink option" {
 ///|
 pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
   match x {
-    Ok(v) => Shrink::shrink(v).map(Result::Ok(_))
-    Err(e) => Shrink::shrink(e).map(Result::Err(_))
+    Ok(v) => Shrink::shrink(v).map(fn(v1) { Ok(v1) })
+    Err(e) => Shrink::shrink(e).map(fn(e1) { Err(e1) })
   }
 }
 

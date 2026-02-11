@@ -87,7 +87,7 @@ pub fn[T, U] ShrinkTree::smap(
 pub fn[T] ShrinkTree::join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
   let x = self.leaf.leaf
   let ts = self.branch
-    .map(_.join())
+    .map(fn(x) { x.join() })
     .concat(
       match self.leaf {
         { branch: ts, .. } => ts
