@@ -557,7 +557,7 @@ Now let's further verify our hypothesis: The function `remove` only removes the 
 ///|
 test {
   fn no_duplicate(x : Array[Int]) -> Bool {
-    @immut/sorted_set.from_iter(x.iter()).length() == x.length()
+    @sorted_set.from_iter(x.iter()).length() == x.length()
   }
 
   @qc.quick_check(

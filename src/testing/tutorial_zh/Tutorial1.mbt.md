@@ -103,7 +103,6 @@ test "peek generator" {
 
 在这里我们可以讨论一些 QuickCheck 内部的结构细节：
 
-> 
 > 从执行流程上看，Testable 会被转成 Property，Property 内部再被展开成可遍历的测试树，QuickCheck
 > 沿着这棵树运行、记录、缩减并最终决定结果。我们暂时不需要理解这些结构细节，但要清楚性质是「可执行」
 > 的对象，而不是静态文档，这一层理解会决定我们之后如何组织属性与生成器。
@@ -649,7 +648,7 @@ pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int], Trace) {
 
 ```mbt check
 ///|
-type SUTSet[T] = @immut/sorted_set.SortedSet[T] // 假设这是我们要测试的复杂实现
+type SUTSet[T] = @sorted_set.SortedSet[T] // 假设这是我们要测试的复杂实现
 
 ///|
 pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
