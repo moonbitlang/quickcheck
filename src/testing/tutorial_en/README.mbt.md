@@ -5,7 +5,7 @@
 The idea of QuickCheck was originally introduced in John's paper [_QuickCheck: a lightweight tool for random testing of Haskell programs_](https://doi.org/10.1145/351240.351266) and its Haskell derivation QuickCheck, which aimed at simplifying the writing of tests by generating them. The core is to automatically generate tests based on a the signature of the **specification / theorem** (i.e. properties which functions should satisfy) and QuickCheck then tests that the properties hold. The idea spread to other languages and is now implemented in **MoonBit**. Because of the differences in type systems between Haskell and MoonBit, the original idea morphed into something different. There are several differences to this approach:
 
 - We have discarded many ideas in Haskell QuickCheck that have been proven inappropriate by time.
-- Some features requires a very fancy type system were removed (Or not considered currently). For instance, the generation of functions requires GADT but MoonBit does not.
+- Some features requiring a very fancy type system were removed (or not considered currently). For instance, the generation of functions requires GADTs, which MoonBit does not support.
 - MoonBit QuickCheck brings many modern academic ideas into industrial practice (listed [below](#references)).
 
 ---
@@ -72,9 +72,9 @@ test "reverse" {
 }
 ```
 
-Is this enough to prove that this function is correct? No, the bugs may lies in the remaining untested code. But if we want more rigorous verification, we may need to write more test cases. For the complicated program, there would never be time to. How can we reduce the cost of testing? The key to doing so must be to generalize the test functions, so that each function covers not only one test case, but many. This is where QuickCheck comes in. We can write a property that `reverse` should hold for any array, and QuickCheck will generate a large number of random array and check that the property holds for all of them.
+Is this enough to prove that this function is correct? No, the bugs may lie in the remaining untested code. But if we want more rigorous verification, we may need to write more test cases. For a complicated program, there would never be time to do so. How can we reduce the cost of testing? The key to doing so must be to generalize the test functions, so that each function covers not only one test case, but many. This is where QuickCheck comes in. We can write a property of `reverse` that should hold for any array, and QuickCheck will generate a large number of random array and check that the property holds for all of them.
 
-But what property should we write? We may notice that the reverse of the reverse of an array is the original array. So we can write a **property** (you can roughly think of it as a function `(T) -> Bool`) that `reverse` should hold for any array:
+But what property should we write? We may notice that the reverse of the reverse of an array is the original array. So we can write a **property** (you can roughly think of it as a function `(T) -> Bool`) that `reverse` should have for any array:
 
 ```mbt check
 ///|
@@ -106,9 +106,9 @@ the function first generates a bunch of random values with
 type `T` and then calling the property function `f` with these values.
 The results are then collected and will be reported later.
 In this example, the input value `T = Array[Int]` and the boolean
-value `true` implies that the property holds for some particular values,
+value `true` imply that the property holds for some particular values,
 and the `false` implies that the property does not hold for some values.
-When finding a counterexample, the QuickCheck will try to simplify it
+When finding a counterexample, QuickCheck will try to simplify it
 and then print it to the console. If all the tests passed, the following
 sentence will be printed to the console:
 
@@ -156,7 +156,7 @@ $$
 x\not\in\text{remove}(a,x)
 $$
 
-Now we translate the first property into a MoonBit function (Note that the property function should have exactly **one** argument, but we can use tuple to pass multiple arguments):
+Now we translate the first property into a MoonBit function (Note that the property function should have exactly **one** argument, but we can use a tuple to pass multiple arguments):
 
 ```mbt check
 ///|
@@ -167,7 +167,7 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
 }
 ```
 
-Run QuickCheck, all tests passed. However, this property is not considered a _good_ property because it is can be fulfilled easily and hence the test is not very meaningful. Most Bugs may still exist in the function.
+Run QuickCheck, all tests passed. However, this property is not considered a _good_ property because it can be fulfilled easily and hence the test is not very meaningful. Bugs may still exist in the function.
 
 ```mbt check
 ///|
@@ -183,18 +183,18 @@ similarly we implement it in MoonBit:
 
 ```mbt check
 ///|
-fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
+fn prop_removed_not_present(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
   !remove(arr, x).contains(x)
 }
 
 ///|
 test {
-  @qc.quick_check_fn(prop_remove_not_presence, expect=Fail)
+  @qc.quick_check_fn(prop_removed_not_present, expect=Fail)
 }
 ```
 
-The QuickCheck reports a failure with a counterexample in the second line after 8 tests:
+The QuickCheck test reports a failure with a counterexample in the second line after 8 tests:
 
 ```
 *** [8/0/100] Failed! Falsified.
@@ -220,7 +220,7 @@ to this counterexample and try to explore downwards for smaller counterexamples.
 
 We've already discussed generation and shrinking,
 and this section will discuss how these functions are attached to a type.
-Remind the `quick_check_fn` function we used before, it is defined as follows
+Recall the `quick_check_fn` function we used before. It is defined as follows
 in the MoonBit QuickCheck library:
 
 ```mbt nocheck
@@ -259,8 +259,8 @@ we will discuss this later, for now we focus on the constraints of `A`:
 - `Shrink` is a trait that allows a value of particular type to be shrunk to simpler ones.
 - `Show` is used for printing the counterexample when a test fails.
 
-The function body
-It takes a value of type that implemented `Testable` as argument and runs the test. This is an effectful function that may throw an failure to the MoonBit test driver when a test fails (Or give up). If success, it simply returns `Unit` with the sentence `Ok, passed!` printed to the console.
+Now let's look at the function body.
+It takes a value of type that implemented `Testable` as argument and runs the test. This is an effectful function that may throw an error to the MoonBit test driver when a test fails (or give up). On success, it simply returns `Unit` with the sentence `Ok, passed!` printed to the console.
 
 The body of the function contains a call to `quick_check` and wraps `f` in `Arrow`.
 According to the definition of `quick_check`, it requires a value `prop` of a type
@@ -344,13 +344,13 @@ you can use the `Gen::spawn` function to get its generator.
 Calling the generator's method `samples` will generate some values of that type.
 Note that `Gen` is an internal type of QuickCheck,
 which will be automatically called by the `quick_check` function,
-normally do not require the user to access it,
-here we use it to show the behavior of `Arbitrary`.
+but normally the user is not required to access it.
+Here we use it to show the behavior of `Arbitrary`.
 
 #### Shrink
 
 `Shrink` is a trait that shrinks a value to a simpler one.
-It has a method `shrink` that takes a value and returns a iter
+It has a method `shrink` that takes a value and returns an `Iter`
 of simpler values (lazily).
 
 ```mbt check
@@ -362,25 +362,25 @@ pub trait Shrink {
 
 If QuickCheck finds a set of values that fails a given property,
 it will try to make that value simpler than the original value by
-getting the shrinks for the value and trying each one in turn to
+getting the shrunken versions of the value and trying each one in turn to
 check that the property is still false. If it is, the smaller
 value becomes the new counterexample and the shrinking process
 continues with that value.
 
 ## Advanced Topics
 
-### QuickCheck Invalid Case
+### QuickCheck Invalid Cases
 
 This section summarizes some common mistakes in using QuickCheck:
 
 - Testing with external effects: If a property requires an external state, for example, the user's input, the global mutable and etc, you should pass the state as an argument to the property function. Otherwise, the property is not a pure function and the test is not repeatable.
-- Mutable arguments was unexpectedly modified: You should keep the arguments **immutable** in the property function. If you need to modify the arguments, you should make a copy of them.
+- Mutable argument was unexpectedly modified: You should keep the arguments **immutable** in the property function. If you need to modify the arguments, you should make a copy of them.
 
 ### Generators
 
 Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
 
-Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
+Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains a single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
 
 ```mbt nocheck
 ///|
@@ -470,7 +470,7 @@ let _gen_freq : @qc.Gen[Bool] = @qc.frequency([
 
 #### Size parameter
 
-We have pointed that test data generators have an size parameter. QuickCheck begins by generating small test cases, and gradually increases the size as testing progresses. Different test data generators interpret the size parameter in different ways: some _ignore_ it, some interprets it as an upper bound on the size of containers. Most generators defined in `Arbitrary` trait depends on the size parameter but most separated generator combinators does not.
+We have pointed out that test data generators have an size parameter. QuickCheck begins by generating small test cases, and gradually increases the size as testing progresses. Different test data generators interpret the size parameter in different ways: some _ignore_ it, some interpret it as an upper bound on the size of containers. Most generators defined in the `Arbitrary` trait depend on the size parameter but most separate generator combinators do not.
 
 You can obtain the value of the size parameter using `sized` combinator.
 
@@ -515,7 +515,7 @@ test "List reverse" {
 }
 ```
 
-Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance, in this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.
+Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance. In this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.
 
 ```mbt nocheck
 fn Gen::spawn[T : Arbitrary]() -> Gen[T]
@@ -523,7 +523,7 @@ fn Gen::spawn[T : Arbitrary]() -> Gen[T]
 
 ### Custom Generator
 
-Recall the `remove` function we want to test before. The QuickCheck do report an error for us, but the generator is quite random and the tuple element `(x, arr): (Int, Array[Int])` is independent. In most cases, the `x` is not in the array, so the test is not very meaningful (falls to the branch `None => ()`). Now we use the `one_of_array` combinator to generate a random element from a generated non-empty array, which makes the test more meaningful.
+Recall the `remove` function we wanted to test before. The QuickCheck do report an error for us, but the generator is quite random and the tuple element `(x, arr): (Int, Array[Int])` is independent. In most cases, `x` is not in the array, so the test is not very meaningful (falls to the branch `None => ()`). Now we use the `one_of_array` combinator to generate a random element from a generated non-empty array, which makes the test more meaningful.
 
 ```mbt check
 ///|
@@ -542,7 +542,7 @@ We admit the following facts:
 
 - The first `spawn` evaluates to a generator of `Array[Int]`.
 - The `forall` function can be nested.
-- There is a `filter` function that filters out the test cases that do not satisfy the condition, non-empty array is required in this case.
+- There is a `filter` function that filters out the test cases that do not satisfy the condition. A non-empty array is required in this case.
 - The `one_of_array` function selects a random element from a non-empty array.
 
 ```
@@ -555,7 +555,7 @@ We find that there are 33 cases that do not satisfy the condition, and the count
 
 ### Conditional Properties
 
-Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array contains no duplicated elements, then our tests should pass. Use the function `filter` can filter out unwanted test cases:
+Now let's further verify our hypothesis: The function `remove` only removes the first one but not all. So if we instead formulate a conditional property which restricts the input array to contain no duplicated elements, then our tests should pass. Using the function `filter` can filter out unwanted test cases:
 
 ```mbt check
 ///|
@@ -584,7 +584,7 @@ Running this test, we find that all tests passed. Now we have strong evidence th
 
 ### Classifying Data
 
-We may interest in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
+We may also be interest in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
 
 ```mbt check
 ///|
