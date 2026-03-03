@@ -38,8 +38,42 @@ test "frequency" {
   ])
   inspect(
     gen_freq.samples(size=20),
-    content="[true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true]",
+    content="[true, true, true, true, true, true, true, false, true, true, true, true, false, false, true, true, true, true, true, true]",
   )
+}
+
+///|
+test "backtrack fallback to next generator" {
+  let gen : @qc.Gen[Int?] = @qc.backtrack([
+    (1, @qc.pure((None : Int?))),
+    (1, @qc.pure(Some(42))),
+    (1, @qc.pure(Some(100))),
+  ])
+  inspect(gen.sample(), content="Some(42)")
+}
+
+///|
+test "backtrack all failed" {
+  let gen : @qc.Gen[Int?] = @qc.backtrack([
+    (3, @qc.pure((None : Int?))),
+    (1, @qc.pure((None : Int?))),
+  ])
+  inspect(gen.sample(), content="None")
+}
+
+///|
+test "backtrack empty input" {
+  let gen : @qc.Gen[Int?] = @qc.backtrack([])
+  inspect(gen.sample(), content="None")
+}
+
+///|
+test "backtrack ignores zero-weight candidate" {
+  let gen : @qc.Gen[Int?] = @qc.backtrack([
+    (0, @qc.pure(Some(1))),
+    (1, @qc.pure(Some(2))),
+  ])
+  inspect(gen.sample(), content="Some(2)")
 }
 
 ///|
@@ -71,6 +105,6 @@ test "frequency int" {
     @qc.frequency([(4, @qc.pure(42)), (1, @qc.pure(37)), (3, @qc.pure(114))]).samples(
       size=50,
     ),
-    content="[42, 114, 114, 42, 42, 42, 114, 37, 42, 42, 114, 42, 114, 42, 42, 42, 114, 42, 42, 42, 114, 37, 42, 42, 114, 114, 114, 42, 114, 42, 37, 42, 42, 114, 42, 114, 42, 37, 37, 114, 42, 42, 114, 42, 37, 42, 114, 42, 42, 42]",
+    content="[42, 114, 114, 42, 42, 114, 42, 37, 42, 42, 42, 42, 42, 42, 42, 114, 114, 114, 42, 42, 42, 37, 114, 42, 42, 114, 42, 42, 42, 114, 37, 114, 42, 114, 114, 42, 114, 37, 37, 114, 42, 42, 114, 114, 37, 114, 114, 114, 42, 114]",
   )
 }

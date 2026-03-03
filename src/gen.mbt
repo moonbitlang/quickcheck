@@ -266,27 +266,100 @@ pub fn[T] Gen::such_that(self : Gen[T], pred : (T) -> Bool) -> Gen[T] {
 }
 
 ///|
+fn uint_bound(bound : UInt) -> Gen[UInt] {
+  if bound == 0 {
+    pure(0)
+  } else {
+    Gen::new(fn(_i, rs) { rs.next_uint() % bound })
+  }
+}
+
+///|
+fn[T] sum_backtrack_weights(gs : Array[(UInt, Gen[T?])]) -> UInt {
+  gs.map(fn(gw) { gw.0 }).fold(fn(acc, x) { acc + x }, init=0)
+}
+
+///|
+fn[T] pick(
+  def : Gen[T],
+  xs : Array[(UInt, Gen[T])],
+  n : UInt,
+) -> (UInt, Gen[T]) {
+  match xs[:] {
+    [] => (0, def)
+    [head, .. tail] => {
+      let (k, x) = head
+      if n < k {
+        (k, x)
+      } else {
+        pick(def, tail.to_array(), n - k)
+      }
+    }
+  }
+}
+
+///|
+fn[T] pick_drop(
+  gs : Array[(UInt, Gen[T?])],
+  n : UInt,
+) -> (UInt, Gen[T?], Array[(UInt, Gen[T?])]) {
+  match gs[:] {
+    [] => (0, pure(None), [])
+    [head, .. tail] => {
+      let (k, g) = head
+      let tail_arr = tail.to_array()
+      if n < k {
+        (k, g, tail_arr)
+      } else {
+        let (k2, g2, tail2) = pick_drop(tail_arr, n - k)
+        (k2, g2, [(k, g), ..tail2])
+      }
+    }
+  }
+}
+
+///|
+fn[T] backtrack_fuel(
+  fuel : Int,
+  tot : UInt,
+  gs : Array[(UInt, Gen[T?])],
+) -> Gen[T?] {
+  if fuel <= 0 || tot == 0 {
+    pure(None)
+  } else {
+    uint_bound(tot).bind(fn(n) {
+      let (k, g, rest) = pick_drop(gs, n)
+      g.bind(fn(ma) {
+        match ma {
+          Some(a) => pure(Some(a))
+          None => backtrack_fuel(fuel - 1, tot - k, rest)
+        }
+      })
+    })
+  }
+}
+
+///|
+/// Tries weighted optional generators without replacement until one succeeds.
+pub fn[T] backtrack(gs : Array[(UInt, Gen[T?])]) -> Gen[T?] {
+  backtrack_fuel(gs.length(), sum_backtrack_weights(gs), gs)
+}
+
+///|
 /// Chooses one of the given generators, with a weighted random distribution.
-/// @alert unsafe "Panics if the array is empty or total weight is less than one"
-pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
+/// @alert unsafe "Panics if the array is empty or total weight is zero"
+pub fn[T] frequency(arr : Array[(UInt, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
   } else {
-    let sum = arr.map(fn(t) { t.0 }).fold(Int::add, init=0)
-    if sum < 1 {
-      abort("frequency: total weight is less than 1")
+    let sum = arr.map(fn(t) { t.0 }).fold(fn(acc, x) { acc + x }, init=0)
+    if sum == 0 {
+      abort("frequency: total weight is zero")
     } else {
-      int_range(1, sum + 1).bind(fn(k) {
-        for i = 0, acc = 0; i < arr.length(); {
-          let (w, g) = arr[i]
-          if k <= acc + w {
-            break g
-          } else {
-            continue i + 1, acc + w
-          }
-        } nobreak {
-          abort("frequency: internal error (impossible)")
-        }
+      let def = arr[0].1
+      uint_bound(sum).bind(fn(k) {
+        let (_w, g) = pick(def, arr, k)
+        g
       })
     }
   }
@@ -294,8 +367,8 @@ pub fn[T] frequency(arr : Array[(Int, Gen[T])]) -> Gen[T] {
 
 ///|
 /// Chooses one of the given generators, with a weighted random distribution.
-/// @alert unsafe "Panics if the list is empty or total weight is less than one"
-pub fn[T] frequency_list(lst : List[(Int, T)]) -> Gen[T] {
+/// @alert unsafe "Panics if the list is empty or total weight is zero"
+pub fn[T] frequency_list(lst : List[(UInt, T)]) -> Gen[T] {
   lst
   .to_array()
   .map(fn(x) {
