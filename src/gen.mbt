@@ -442,7 +442,7 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 }
 
 ///|
-pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[List[T]] {
+pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
   loop (size, pure(@list.empty())) {
     (n, acc) =>
       if n <= 0 {
@@ -455,10 +455,10 @@ pub fn[T] list_with_size(size : Int, gen : Gen[T]) -> Gen[List[T]] {
 
 ///|
 pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[List[T]] {
-  list_with_size(size, gen).fmap(List::sort)
+  gen.list_with_size(size).fmap(List::sort)
 }
 
 ///|
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
-  Gen::new(fn(i, rs) { Array::makei(size / 2, fn(_j) { self.run(i, rs) }) })
+  Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { self.run(i, rs) }) })
 }

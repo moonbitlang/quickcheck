@@ -373,7 +373,7 @@ Because `==` is defined as “convert to lists and compare”—i.e. a form of *
 ```mbt check
 ///|
 fn gen_int_list() -> @qc.Gen[@list.List[Int]] {
-  @qc.sized(fn(n) { @qc.list_with_size(n, @qc.small_int()) })
+  @qc.sized(fn(n) { @qc.small_int().list_with_size(n) })
 }
 
 ///|
@@ -591,7 +591,7 @@ pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
 
 ///|
 test "model-based testing for Set" {
-  let gen = @qc.list_with_size(20, @qc.Gen::spawn())
+  let gen = @qc.Gen::spawn().list_with_size(20)
   let prop = @qc.forall(gen, fn(cmds) {
     let (model_set, model_trace) = run_model(cmds)
     let (sut_set, sut_trace) = run_sut(cmds)
