@@ -305,5 +305,58 @@ test "scale slows growth" {
 因此我们需要把 `max_size`、`resize` 与 `scale` 作为统一策略使用，在不同阶段选择不同的规模曲线，
 让性质既能触及复杂情形，又能保持失败信息的可读性与可诊断性。
 
-<!-- 在完成规模与复杂度管理之后，我们就可以把注意力转向缩减策略本身。下一章将讨论 shrink 的理念与实现，
-说明如何把「最小反例」从抽象概念变成可操作的工程流程。 -->
+## 组合构造器
+
+到这里我们已经有了范围、分布与规模控制，剩下的难点是「结构性约束」。
+例如二分查找、区间合并等逻辑都要求输入数组有序，单靠 `int_range` 这类基础生成器无法直接表达这个前置条件。
+一个直接做法是先生成数组，再用 `@qc.filter` 过滤为有序样本，这正是组合构造器最常见的入口。
+
+```mbt check
+///|
+test "combinator sorted array with filter" {
+  fn is_non_decreasing(xs : Array[Int]) -> Bool {
+    fn go(i : Int) -> Bool {
+      if i + 1 >= xs.length() {
+        true
+      } else {
+        xs[i] <= xs[i + 1] && go(i + 1)
+      }
+    }
+
+    go(0)
+  }
+
+  let base = @qc.int_range(-8, 8).array_with_size(3)
+  let prop = @qc.forall(base, fn(arr) {
+    @qc.forall(@qc.one_of_array(arr), fn(x) {
+      arr[0] <= x && x <= arr[arr.length() - 1]
+    })
+    |> @qc.filter(is_non_decreasing(arr))
+  })
+
+  @qc.quick_check(prop, discard_ratio=20)
+}
+```
+
+这个例子里有三个组合层次：先用 `array_with_size` 固定结构，再用嵌套 `forall + one_of_array` 建立元素与容器的依赖，
+最后用 `filter` 施加「有序」约束。写法直观，适合快速验证想法，但它仍然会丢弃一部分样本。
+
+当过滤比例偏高时，我们更推荐把约束提前到「构造阶段」。
+QuickCheck 已经提供 `@qc.sorted_array`，我们可以直接利用它：
+
+```mbt check
+///|
+test "combinator sorted array constructor" {
+  let gen = @qc.sorted_array(5, @qc.int_range(-30, 30))
+  let prop = @qc.forall(gen, fn(arr) {
+    @qc.forall(@qc.one_of_array(arr), fn(x) {
+      arr[0] <= x && x <= arr[arr.length() - 1]
+    })
+  })
+  @qc.quick_check(prop)
+}
+```
+
+`filter` 适合表达「临时前置条件」，`sorted_array` 这类构造器适合表达「稳定结构不变量」。
+在工程实践中通常先用过滤器快速定位性质，再逐步替换为专门构造器，让测试既可读又高效。
+

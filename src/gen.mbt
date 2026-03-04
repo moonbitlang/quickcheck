@@ -532,6 +532,11 @@ pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[List[T]] {
 }
 
 ///|
+pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
+  gen.array_with_size(size).fmap(a => a..sort())
+}
+
+///|
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { self.run(i, rs) }) })
 }
