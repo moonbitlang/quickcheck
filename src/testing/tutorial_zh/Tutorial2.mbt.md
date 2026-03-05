@@ -13,11 +13,13 @@ $$
 \forall x,\forall t, \text{isBST}(t) \implies \text{isBST}(\text{insert}(t, x))
 $$
 
-这表明，如果一棵树 $t$ 是有效的二分搜索树（BST），那么在 $t$ 中插入一个新值 $x$ 会得到另一个有效的 BST。
-为了测试这一特性，PBT 框架将使用一个称为生成器的程序 随机采样数千个值 $(x,t)$，并通过过滤器 isBST
-判断这是否为一颗合法的 BST，如果是，就继续执行 insert 操作并验证结果是否仍然满足 isBST 条件；
-否则这个样本就被丢弃了。满足满足 isBST 条件的树是非常少，因此如果我们使用一个简单的生成器来生成树，
-我们可能会得到大量的无效样本，导致测试效率极低，甚至无法得到任何有效样本。
+这表明，如果一棵树 $t$ 是有效的二叉搜索树（BST），那么在 $t$ 中插入一个新值 $x$ 会得到另一个有效的 BST。
+
+为了测试这条性质，框架会反复采样 `(x, t)`。
+如果 `t` 不是 BST，就会被直接丢弃；
+只有通过前置条件的样本才会进入 `insert` 并检查结果。问题在于：
+随机树成为 BST 的概率很低，
+朴素生成器会让测试大部分轮次都浪费在 discard 上。
 因此，在这种情况下我们可能不得不自己设计一个专门的生成器来直接生成满足 isBST 条件的树。
 本文我们将由浅入深探讨自定义生成器的设计思路，并通过 QuickCheck 的 API 来实现它们，从而让我们能够高效地测试受限性质。
 
@@ -160,7 +162,9 @@ test "gen fmap transform" {
 
 ## 统计分布控制
 
-本章讨论生成器的组合与分布控制。现实数据往往呈现多峰、偏态或结构性特征，若只依赖单一范围生成器，
+有了「合法形状」的输入后，下一个问题是：
+这些输入出现得是否像真实世界一样频繁？
+这就需要我们控制分布。现实数据往往呈现多峰、偏态或结构性特征，若只依赖单一范围生成器，
 测试覆盖会显得单薄。我们需要通过组合与加权，让输入分布更贴近真实场景，同时保持性质表达的简洁性。
 
 当需求存在多种类别或路径时，`@qc.one_of` 是最直接的组合手段。它在若干生成器之间做均匀选择，
@@ -360,3 +364,189 @@ test "combinator sorted array constructor" {
 `filter` 适合表达「临时前置条件」，`sorted_array` 这类构造器适合表达「稳定结构不变量」。
 在工程实践中通常先用过滤器快速定位性质，再逐步替换为专门构造器，让测试既可读又高效。
 
+## 受限结构的构造器案例
+
+在介绍完上述的各种组合子之后，是时候进入我们的正题：
+设计一个满足特定性质的生成器，例如有序数组、平衡树、特定协议格式等。
+当然，这并非易事，本节也只能提供一个大致的思路框架，
+复杂情况仍然需要测试者进行创造性的设计与调试。
+
+手写 QuickCheck 生成器的核心目标其实就两件事：
+
+- 把「有效输入空间」编码进生成过程，别靠过滤；
+- 让分布与规模（size）可控，这样测试既跑得动又能覆盖到你真正关心的结构角落
+
+### 规模作为一等公民
+
+QuickCheck 的 `Gen` 有一个隐含的 `size` 参数：
+随着测试次数增长， `size` 会逐步变大。手写递归结构生成器时，
+最重要的是每一层递归都要消耗 `size`，否则要么无限递归，
+要么结构大得离谱导致测试变慢。
+
+```mbt nocheck
+fn gen_t() -> @qc.Gen[T] {
+  letrec go = (s : Int) => {
+    match s {
+      0 => base case
+      n => recursive case, can call go(n - 1) for smaller substructures
+    }
+  }
+  @qc.sized(go)
+}
+```
+
+如果你不想「每层都减 1」，
+也可以把 n 拆成左右子规模
+（树、图、AST 都是这个套路）：
+`let k = int_range(0, n - 1)`，
+左用 `k`，右用 `n-1-k`。这样平均会更自然，
+而不是总在深度上单边生长，当然也可以直接 `go(n / 2)`，让规模指数级增长。
+
+### 二叉搜索树的例子
+
+先定义 BST 的数据结构：
+
+```mbt check
+///|
+enum Tree[T] {
+  Leaf
+  Node(Tree[T], T, Tree[T])
+} derive(Debug, Show)
+```
+
+如果性质测试不强依赖「树形分布」，
+第一个方案是，我们可以先定义一个「插入」函数，来把任意值插入到 BST 中，
+然后用 `from_array` 来把一个数组转成 BST。
+这样我们就能直接利用 `@qc.int_range().array_with_size()` 来先生成一个普通数组，
+再通过 `from_array` 来得到一棵树，
+这样天然满足 BST 不变量，
+而且 shrink 也很好做（缩列表即可）。
+
+```mbt check
+///|
+fn[T : Compare] Tree::insert(t : Tree[T], v : T) -> Tree[T] {
+  match t {
+    Leaf => Node(Leaf, v, Leaf)
+    Node(l, x, r) if v < x => Node(l.insert(v), x, r)
+    Node(l, x, r) if v > x => Node(l, x, r.insert(v))
+    Node(l, x, r) => Node(l, x, r) // v == x, no duplicates
+  }
+}
+
+///|
+fn[T : Compare] Tree::from_array(arr : Array[T]) -> Tree[T] {
+  arr.fold(init=Leaf, Tree::insert)
+}
+
+///|
+/// inorder traversal should be sorted
+fn[T] inorder(tree : Tree[T]) -> Array[T] {
+  match tree {
+    Leaf => []
+    Node(l, x, r) => inorder(l) + [x] + inorder(r)
+  }
+}
+
+///|
+test "generate BST" {
+  let int_arr = @qc.int_range(-100, 100).array_with_size(10)
+  let gen_bst = int_arr.fmap(Tree::from_array)
+  let prop = @qc.forall(gen_bst, fn(t) {
+    let arr = inorder(t)
+    arr == arr.copy()..sort()
+  })
+  @qc.quick_check(prop)
+}
+```
+
+然而，这需要我们理解 BST 的插入逻辑，才能正确地实现 `Tree::insert`，
+如果这个函数也实现错误，那我们的测试结果会非常混乱。
+并且这个方案的效率也不高，因为 `from_array` 可能会生成非常不平衡的树，
+因此我们的下一个优化目标可能是「让树更加平衡」，从而更快地覆盖到不同的树形结构。
+
+BST 的一个天然表示是中序遍历是有序序列，
+所以我们可以先生成一个列表，排序去重，
+然后用「取中点」方式建近似平衡树：
+
+```mbt check
+///|
+fn[T] from_sorted(arr : ArrayView[T]) -> Tree[T] {
+  guard !arr.is_empty() else { Leaf }
+  let m = arr.length() / 2
+  let (l, x, r) = (arr[:m], arr[m], arr[m + 1:])
+  Node(from_sorted(l), x, from_sorted(r))
+}
+
+///|
+test "generate balanced BST" {
+  let int_arr = @qc.int_range(-100, 100).array_with_size(10)
+  let gen_bst = int_arr.fmap(fn(arr) { arr..sort()..dedup() |> from_sorted })
+  let prop = @qc.forall(gen_bst, fn(t) {
+    let arr = inorder(t)
+    arr == arr.copy()..sort()
+  })
+  @qc.quick_check(prop)
+}
+```
+
+这个方案的优势是：大多数树更平衡，
+能更容易覆盖到「左右子树都非空」的情形，
+也能减小极端深度带来的性能问题。
+
+下一个方案叫做区间递归生成，直接按照 BST 的语义来生长，
+关键点是在递归时维护值域区间 `(lo, hi)`：
+左子树只能取 `(< root)`，右子树只能取 `(> root)`。
+这能控制很多细节，下面我们以 `Tree[Int]` 为例
+（因为 QuickCheck 天然提供了 `int_range`）：
+
+```mbt check
+///|
+fn gen_bst_ranged(min: Int, max: Int) -> @qc.Gen[Tree[Int]] {
+  letrec go = (n : Int, lo : Int, hi : Int) => {
+    guard lo <= hi && n > 0 else { @qc.pure(Leaf) }
+    @qc.frequency([
+      (1, @qc.pure(Leaf)),
+      (
+        4,
+        @qc.Gen::new((i, rs) => {
+          let x = @qc.int_range(lo, hi).run(i, rs)
+          let nL = @qc.int_range(0, n - 1).run(i, rs)
+          let nR = n - 1 - nL
+          let l = go(nL, lo, x - 1).run(i, rs)
+          let r = go(nR, x + 1, hi).run(i, rs)
+          Node(l, x, r)
+        })
+      ),
+    ])
+  }
+  @qc.sized(n => go(n, min, max))
+}
+
+test "generate ranged BST" {
+  let gen_bst = gen_bst_ranged(-100, 100)
+  let prop = @qc.forall(gen_bst, fn(t) {
+    let arr = inorder(t)
+    arr == arr.copy()..sort()
+  })
+  @qc.quick_check(prop)
+}
+```
+
+注意这里为了避免重复，
+用了 `x-1/x+1` 这样的「离散域」技巧；
+如果你允许重复值，
+就要改成 `l` 用 `(lo, x)`，`r` 用 `(x, hi)` 并决定重复放哪边（`<=` 或 `>=` 的约定必须统一）。
+
+区间法的真实价值在于：
+当你的结构约束更复杂（比如红黑树、AVL、带额外标签的 AST），
+你可以把「约束状态」一路带下去，让生成永远有效，而不是靠过滤赌概率。
+换句话说，这种方法永远是最具扩展性的，因为它把「语义不变量」直接编码在生成逻辑里了。
+
+## 总结
+
+受限生成器的设计是 PBT 中的核心挑战之一。
+通过合理地组合基础生成器、控制分布与规模，并把语义约束内化到生成过程中，
+确实可以满足大多数受限性质的测试需求。当然，未来我们希望让它更加自动化，
+例如用户只需要编写性质，就可以推导出满足性质前置条件的生成器，
+从而让 PBT 的使用门槛更低，覆盖更广。
+这是相当具有可行性的，我们将在下一篇文章更多讨论这些前沿技术 ([inductive relations](https://github.com/moonbit-community/inrel) / functional enumeration 等等)。
