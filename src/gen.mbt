@@ -502,6 +502,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
 ///|
 /// Generates int within given range [lo, hi)
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
+  guard lo != hi else { pure(lo) }
   Gen::new(fn(_i, rs) {
     let j = rs.next_int().abs() % (hi - lo)
     j + lo
