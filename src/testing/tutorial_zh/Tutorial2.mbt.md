@@ -502,7 +502,7 @@ test "generate balanced BST" {
 
 ```mbt check
 ///|
-fn gen_bst_ranged(min: Int, max: Int) -> @qc.Gen[Tree[Int]] {
+fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
   letrec go = (n : Int, lo : Int, hi : Int) => {
     guard lo <= hi && n > 0 else { @qc.pure(Leaf) }
     @qc.frequency([
@@ -516,13 +516,14 @@ fn gen_bst_ranged(min: Int, max: Int) -> @qc.Gen[Tree[Int]] {
           let l = go(nL, lo, x - 1).run(i, rs)
           let r = go(nR, x + 1, hi).run(i, rs)
           Node(l, x, r)
-        })
+        }),
       ),
     ])
   }
   @qc.sized(n => go(n, min, max))
 }
 
+///|
 test "generate ranged BST" {
   let gen_bst = gen_bst_ranged(-100, 100)
   let prop = @qc.forall(gen_bst, fn(t) {

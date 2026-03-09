@@ -141,6 +141,8 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence((A) -> B, 
 
 pub fn small_int() -> Gen[Int]
 
+pub fn[T : Compare] sorted_array(Int, Gen[T]) -> Gen[Array[T]]
+
 pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
 
 pub fn succeed() -> SingleResult
