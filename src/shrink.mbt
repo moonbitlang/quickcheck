@@ -250,6 +250,44 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
 }
 
 ///|
+/// Shrink sorted array, requires the Array[T] to be sorted.
+pub fn[T : Shrink + Compare] shrink_sorted_array(
+  xs : Array[T],
+  lo~ : T,
+  hi~ : T,
+) -> Iter[Array[T]] {
+  let shrink_one_val = (nv : Array[T]) => {
+    let l = nv.length() - 1
+    Array::makei(l + 1, i => i)
+    .iter()
+    .flat_map(i => {
+      let lo = if i == 0 { lo } else { nv[i - 1] }
+      let hi = if i == l { hi } else { nv[i + 1] }
+      Shrink::shrink(nv[i]).flat_map(x => {
+        if lo <= x && x <= hi && x != nv[i] {
+          let nv1 = nv.copy()
+          nv1[i] = x
+          Iter::singleton(nv1)
+        } else {
+          Iter::empty()
+        }
+      })
+    })
+  }
+  let remove_one_val = (v : Array[T]) => {
+    let l = v.length() - 1
+    Array::makei(l + 1, i => i)
+    .iter()
+    .flat_map(i => {
+      let nv = v.copy()
+      nv.remove(i) |> ignore
+      Iter::singleton(nv)
+    })
+  }
+  remove_one_val(xs).concat(shrink_one_val(xs))
+}
+
+///|
 test "shrink 6-tuple" {
   let x = (20, 'A', 30U, true, true, true)
   json_inspect(Shrink::shrink(x), content=[
@@ -422,5 +460,26 @@ test "shrink iter" {
     [1, 2, 3, 4, 5, 5],
     [1, 2, 3, 4, 5, 3],
     [1, 2, 3, 4, 5, 0],
+  ])
+}
+
+///|
+test "shrink sorted array" {
+  let ar = [1, 3, 5, 7, 9]
+  let s = shrink_sorted_array(ar, lo=0, hi=10)
+  let content = s.to_array()
+  json_inspect(content, content=[
+    [3, 5, 7, 9],
+    [1, 5, 7, 9],
+    [1, 3, 7, 9],
+    [1, 3, 5, 9],
+    [1, 3, 5, 7],
+    [0, 3, 5, 7, 9],
+    [1, 2, 5, 7, 9],
+    [1, 3, 4, 7, 9],
+    [1, 3, 3, 7, 9],
+    [1, 3, 5, 6, 9],
+    [1, 3, 5, 7, 8],
+    [1, 3, 5, 7, 7],
   ])
 }
