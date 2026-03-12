@@ -242,9 +242,12 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
 ///|
 test "shrink sorted array" {
   let s = shrink_sorted_array([1, 3, 5], lo=0, hi=9)
-  inspect(s, content=(
-    #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
-  ))
+  inspect(
+    s,
+    content=(
+      #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
+    ),
+  )
 }
 ```
 
@@ -260,10 +263,13 @@ test "forall_shrink for sorted array" {
     xs.length() < 3
   })
   let r = @qc.quick_check_silence(prop)
-  inspect(r, content=(
-    #|*** [0/0/100] Failed! Falsified.
-    #|[0, 0, 0]
-  ))
+  inspect(
+    r,
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|[0, 0, 0]
+    ),
+  )
 }
 ```
 
@@ -301,11 +307,14 @@ test "counterexample adds derived information" {
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
   })
   let r = @qc.quick_check_silence(prop)
-  inspect(r, content=(
-    #|*** [0/0/100] Failed! Falsified.
-    #|(0, [0, 0, -1])
-    #|after remove: [0, -1]
-  ))
+  inspect(
+    r,
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|(0, [0, 0, -1])
+      #|after remove: [0, -1]
+    ),
+  )
 }
 ```
 
@@ -385,7 +394,7 @@ test "classify list distribution" {
 ///|
 test "discard on non-empty lists" {
   let prop_non_empty = fn(xs : @list.List[Int]) -> @qc.Property {
-    !xs.is_empty() |> @qc.filter(!xs.is_empty())
+    (!xs.is_empty()) |> @qc.filter(!xs.is_empty())
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_non_empty)),
@@ -498,7 +507,7 @@ pub fn[T] @feat.Enumerate::en_index(Self[T], BigInt) -> T
 
 对递归数据类型而言，第二点尤其关键。
 如果递归调用不额外增加任何代价，那么像自然数这样的类型会把无限多个值全塞进同一层，
-从而破坏 part-finiteness ，让我们的枚举进入无限循环。
+从而破坏 part-finiteness，让我们的枚举进入无限循环。
 因此 Feat 风格的枚举都会显式维护一个「付费」动作 `pay`，
 表示每经过一层递归构造，值就进入下一层。
 

@@ -24,7 +24,7 @@ The idea of QuickCheck was originally introduced in John's paper [_QuickCheck: a
       - [Arbitrary](#arbitrary)
       - [Shrink](#shrink)
   - [Advanced Topics](#advanced-topics)
-    - [QuickCheck Invalid Case](#quickcheck-invalid-case)
+    - [QuickCheck Invalid Cases](#quickcheck-invalid-cases)
     - [Generators](#generators)
       - [Choosing Between Alternatives](#choosing-between-alternatives)
       - [Size parameter](#size-parameter)
@@ -288,6 +288,12 @@ used to modify a test's properties, such as `with_max_success`
 to modify the maximum number of successes:
 
 ```mbt check
+///|
+fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
+  let (x, arr) = iarr
+  not(remove(arr, x).contains(x))
+}
+
 ///|
 test {
   @qc.quick_check(

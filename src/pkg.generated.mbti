@@ -127,6 +127,8 @@ pub fn rejected() -> SingleResult
 
 pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 
+pub fn[T : Shrink + Compare] shrink_sorted_array(Array[T], lo~ : T, hi~ : T) -> Iter[Array[T]]
+
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
 pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
