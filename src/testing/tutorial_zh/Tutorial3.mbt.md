@@ -281,9 +281,143 @@ test "forall_shrink for sorted array" {
 
 ### 失败信息
 
+缩减让我们拿到更小的反例，但一个更小的反例不一定就更好读。
+很多时候真正困难的并不是「找到 bug」，而是「知道这个反例在业务语义里意味着什么」。
+例如我们看到一个数组或树失败了，仍然可能不知道它失败前后的关键状态是什么，
+也不知道失败究竟是由哪个派生条件触发的。
+这时如果只打印原始输入，调试者仍然要把很多中间信息重新手算一遍。
+
+QuickCheck 为此提供了 `counterexample` 这个组合子。
+它并不会改变性质的真假，而只是把一段附加信息挂到失败输出上。
+于是我们可以把「输入之外、但对解释失败很关键」的派生量，
+例如中间结果、规格输出、归一化形式、路径标签等，一并打印出来。
+
+```mbt check
+///|
+test "counterexample adds derived information" {
+  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+    let (x, arr) = iarr
+    let out = remove_first_only(arr.copy(), x)
+    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+  })
+  let r = @qc.quick_check_silence(prop)
+  inspect(r, content=(
+    #|*** [0/0/100] Failed! Falsified.
+    #|(0, [0, 0, -1])
+    #|after remove: [0, -1]
+  ))
+}
+```
+
+在这个例子里，原始输入 `(0, [0, 0, -1])` 已经足够小，
+但如果没有 `after remove: [0, -1]` 这条补充信息，
+读者仍然需要自己执行一次函数，才能意识到“数组里还残留了一个 `0`”。
+换句话说，`counterexample` 的作用不是让失败变小，而是让失败变可解释。
+
+这种手法在模型对照与编译器测试里尤其重要。
+我们常常会同时打印 `expected` / `actual`、归一化后的状态、
+或者某段解释器轨迹的摘要信息。
+当性质已经足够复杂时，失败输出本身其实就是一种局部调试报告，
+而不是单纯的一组输入值。
+
 ### 分类统计
 
-### discard 分析
+失败信息解决的是单个反例如何解释的问题，而分类统计解决的是「整体样本分布长什么样」的问题。
+即便一个性质一直通过，我们也不能立刻放心，因为生成器可能把大部分预算都花在了某一类平庸样本上，
+或者根本没有覆盖到我们真正关心的分支。
+如果这些分布信息不可见，那么所谓随机覆盖很容易退化成一种心理安慰。
+
+QuickCheck 提供了 `label`、`classify` 与 `collect` 三个常用接口来观察测试数据。
+`label` 适合给每个样本贴一个单独的标签，
+`classify` 适合把样本划入若干业务类别，
+`collect` 则更通用，它会把某个 `Show` 值直接当作标签收集起来。
+在实践中，最常见的入口是先用 `classify` 观察几个关键类别是否真的出现过。
+
+```mbt check
+///|
+fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
+  xs.rev().rev() == xs
+}
+
+///|
+test "classify list distribution" {
+  let r = @qc.quick_check_silence(
+    @qc.Arrow(fn(xs : @list.List[Int]) {
+      @qc.Arrow(t3_prop_rev_list)
+      |> @qc.classify(xs.length() > 5, "long list")
+      |> @qc.classify(xs.length() <= 5, "short list")
+    }),
+  )
+  inspect(
+    r,
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+      #|21% : short list
+      #|79% : long list
+    ),
+  )
+}
+```
+
+这个输出传达的信息并不在于性质通过了，而在于：
+当前默认生成器明显更偏向较长的列表。
+如果我们真正关心的是空列表、单元素列表、极短列表上的边界行为，
+那这份统计就已经说明，单靠默认分布可能并不够，需要进一步调 generator。
+
+`label` 与 `collect` 的用法也类似，只是粒度不同。
+例如说我们可以直接用 `label("length is \{xs.length()}")`
+观察每个长度桶的分布，也可以用 `collect(xs.length())`
+把长度这个量本身收集起来。
+经验上，`classify` 更适合写教程和日常回归，因为类别更稳定、输出更容易读；
+而 `label` / `collect` 更适合调生成器时做精细诊断。
+
+### Discard 分析
+
+分布问题里最容易被忽略的一类，是 discard。
+当我们使用 `@qc.filter`、前置条件或者部分函数保护时，
+很多样本可能会在真正执行性质之前就被丢弃。
+少量 discard 是正常的，但如果 discard 数量持续偏高，
+那往往说明我们把约束输入的工作推迟到了性质内部过滤的方法不适用。
+
+先看一个温和的例子。我们只想测试非空列表，于是对默认生成器生成的列表再加一层过滤：
+
+```mbt check
+///|
+test "discard on non-empty lists" {
+  let prop_non_empty = fn(xs : @list.List[Int]) -> @qc.Property {
+    !xs.is_empty() |> @qc.filter(!xs.is_empty())
+  }
+  inspect(
+    @qc.quick_check_silence(@qc.Arrow(prop_non_empty)),
+    content="+++ [100/40/100] Ok, passed!",
+  )
+}
+```
+
+这里测试虽然通过了，但我们仍然看到有 `40` 个样本被直接丢弃。
+这意味着框架为了得到 `100` 个有效样本，实际上做了更多无用工作。
+若这个前置条件再稀疏一些，浪费会迅速放大。
+
+极端情况下，测试甚至会直接 `gave up`：
+
+```mbt check
+///|
+test "reject all gives up" {
+  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  inspect(
+    @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
+    content="+++ [0/1000/100] Ok, gave up!",
+  )
+}
+```
+
+这个例子当然是刻意构造出来的，但它准确揭示了 discard 的语义：
+QuickCheck 并不是测试失败了，而是根本拿不到足够多的有效样本，
+于是只能放弃。
+因此一旦我们在真实项目里看到 `gave up`，或者发现 discard 数量长期偏高，
+首先应该怀疑的不是性质本身，而是 generator 与前置条件之间是否存在结构性错位，
+若遇到这种情况，第一步的修复往往是把约束条件尽量写进生成器，而不是写进过滤器。
+这也正是为什么 Part 2 一直强调「尽量把约束写进生成器，而不是写进过滤器」。
 
 ## SmallCheck
 
