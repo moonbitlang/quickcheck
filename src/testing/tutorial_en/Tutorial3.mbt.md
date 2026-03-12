@@ -1,14 +1,14 @@
 # QuickCheck Tutorial Part 3
 
-This is the final installment in the QuickCheck tutorial series. It focuses on the second half of property-based testing: what happens after a property fails. We will look at how QuickCheck shrinks a raw failing sample into a much smaller counterexample, and how to tell whether that final counterexample actually explains the bug instead of just reflecting irrelevant noise.
+This is the final installment in the QuickCheck tutorial series. It focuses on what happens after a property fails: how QuickCheck shrinks a raw failing sample, and how to tell whether the final counterexample really explains the bug.
 
-In practice, randomized testing lives or dies on failure quality. It matters less that the framework can generate a lot of data, and more that it gives us something useful when a test breaks. If a failing property only produces a large, messy input, then the test may have found a real defect without making it much easier to debug. But if the failure can be reduced to the smallest structure the bug depends on, the counterexample becomes a concrete debugging lead.
+In practice, randomized testing is only as useful as the failures it produces. A huge failing input may reveal a real defect without making it much easier to debug. A small, stable counterexample often does.
 
-Shrinking is not the only topic. Once constrained inputs get more complicated, hand-written generators and shrinkers also become harder to maintain. That naturally leads to more systematic techniques: small-scale exhaustive search, functional enumeration, and eventually inductive-relation-based approaches that derive generators and checkers from the specification itself.
+Shrinking is only part of the story. Once constrained inputs get more complicated, hand-written generators and shrinkers become harder to maintain. That leads naturally to more systematic techniques: small-scale exhaustive search, functional enumeration, and eventually inductive-relation-based approaches.
 
 ## Counterexamples and Shrinking
 
-In QuickCheck, failure is not the end of the process. It is where analysis begins. Once a property fails, the real questions are usually not "did it fail?" but "why did it fail?", "what is the smallest failing condition?", and "which parts of this sample are just noise?" If randomized testing only gives us a large, accidental input, debugging is still expensive. Shrinking exists to keep the failure intact while compressing the input into something closer to the core defect.
+In QuickCheck, failure is where analysis begins. Once a property fails, the question is no longer whether it failed, but why, and what the smallest failing condition is. Shrinking keeps the failure intact while compressing the sample toward the core defect.
 
 Operationally, QuickCheck generates samples, finds a failure, and then searches for smaller failing values along a shrink tree. The property does not change, but the speed of understanding often does. A counterexample can be technically correct and still be too large to help. By contrast, a smaller counterexample that still preserves the relevant structure often points almost directly at the bug. Shrinking is therefore not a side feature of QuickCheck. Like the generator, it determines whether the testing workflow is actually usable. We will start with the `Shrink` trait and see how the framework models this process.
 
@@ -34,7 +34,7 @@ test "shrink int sample" {
 }
 ```
 
-This already reveals an important idea. Shrinking is not arbitrary perturbation. It is guided search toward simpler values. The intuition is straightforward: if a large value fails, we first ask whether smaller versions fail for the same reason. This becomes even clearer for container types. An array will first try removing chunks of elements. Only when deletion is not enough to preserve the failure will it keep shrinking the remaining entries. In practice, default shrinking is often very good at finding the smallest context a bug truly needs.
+This already reveals the basic idea. Shrinking is guided search toward simpler values. For container types, the same pattern becomes structural: an array first tries to remove elements, and only then shrinks the entries that still matter.
 
 Now consider a more realistic example. Suppose we write a broken removal function that deletes only the first occurrence of an element instead of removing all occurrences:
 
@@ -65,7 +65,7 @@ test "default shrink for tuple and array" {
 }
 ```
 
-The failure itself is not surprising. What matters is the shape of the failure. Since `quick_check_fn` requires the argument types to implement `Arbitrary`, `Shrink`, and `Show`, the pair `(Int, Array[Int])` gets a combined strategy: tuple shrinking, array shrinking, and integer shrinking all work together. In effect, the integer moves toward `0`, while the array tries to drop irrelevant elements before shrinking the ones that still matter. The final counterexample is `(0, [0, 0, -1])`. That is already quite small, and it points straight at the issue: `remove_first_only` does not handle repeated `0`s correctly.
+Here `quick_check_fn` combines the default strategies for tuples, arrays, and integers automatically. The integer moves toward `0`, while the array tries to drop irrelevant elements before shrinking the ones that still matter. The final counterexample is `(0, [0, 0, -1])`. That is already quite small, and it points straight at the issue: `remove_first_only` does not handle repeated `0`s correctly.
 
 Default shrinking works well in many common cases, but it is still a search process and cannot run forever. Both `@qc.quick_check` and `@qc.quick_check_fn` expose `max_shrink` / `max_shrinks` to cap the shrinking budget. This matters most when inputs are large and the shrink tree is wide. As always, there is an engineering trade-off between finding a smaller counterexample and getting feedback quickly.
 
@@ -235,7 +235,7 @@ test "counterexample adds derived information" {
 }
 ```
 
-In this example, the raw input `(0, [0, 0, -1])` is already small. But without the extra line `after remove: [0, -1]`, the reader still has to simulate the function mentally before noticing that one `0` remains. So the role of `counterexample` is not to make the failure smaller. It is to make the failure readable.
+In this example, the raw input `(0, [0, 0, -1])` is already small. But without the extra line `after remove: [0, -1]`, the reader still has to simulate the function mentally before noticing that one `0` remains.
 
 This technique is especially useful in model-based testing and compiler testing. We often want to print both `expected` and `actual`, a normalized state, or a compact summary of an interpreter trace. Once a property becomes complicated enough, the failure output is really a small debugging report rather than a bare input sample.
 
@@ -315,7 +315,7 @@ This example is obviously artificial, but it captures the meaning of discard pre
 
 ### Small-Scale Exhaustive Search
 
-So far, most of the discussion has stayed inside the QuickCheck model of randomized testing: sample values, then shrink the failing ones. But that is not the only way to do property-based testing. If a class of inputs has a natural small-to-large order, we can turn the process around. Instead of sampling randomly, we can systematically check a small prefix of the search space. That is the basic idea behind SmallCheck. It does not leave coverage to probability. It spends the testing budget on a small search space that is reproducible, exhaustible, and easy to explain.
+So far, most of the discussion has stayed inside the QuickCheck model of randomized testing: sample values, then shrink the failing ones. SmallCheck takes a different route. If a class of inputs has a natural small-to-large order, we can test a small prefix of that space directly. The goal is not probabilistic coverage, but a search space that is reproducible, exhaustible, and easy to explain.
 
 In MoonBit QuickCheck, the entry point `small_check` looks similar to `quick_check`, but it relies on a completely different capability:
 
@@ -328,7 +328,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] @qc.small_check(
 ) -> Unit raise Failure
 ```
 
-The constraint here is not `Arbitrary + Shrink`, but `Enumerable`. SmallCheck asks a different question. Not "how do I generate one random value of this type?" but "how do I arrange all values of this type into an order from small to large?" Once that order is well designed, the test becomes deterministic. The same `max_size` and the same property always explore the same prefix, so they also discover the same first counterexample.
+The constraint here is not `Arbitrary + Shrink`, but `Enumerable`. SmallCheck is not asking how to sample one random value. It is asking how to arrange all values of a type in a small-to-large order. Once that order is well designed, the test becomes deterministic: the same `max_size` and the same property always explore the same prefix.
 
 ```mbt check
 ///|
@@ -344,7 +344,7 @@ test "small check fails on first non-zero int" {
 }
 ```
 
-This result makes the SmallCheck workflow clear. It does not start by generating a large random integer and then shrinking it. It tests the prefix directly in enumeration order. For the default `Enumerable` instance of `Int`, the earliest values are `0, 1, -1, 2, -2, ...`, so the property `x == 0` fails immediately on the second sample, `1`. This also explains why SmallCheck often does not need a separate shrinking phase. It is not because it avoids failure, but because it starts with small values in the first place.
+This result shows the workflow directly. For the default `Enumerable` instance of `Int`, the earliest values are `0, 1, -1, 2, -2, ...`, so the property `x == 0` fails immediately on the second sample, `1`. That is also why SmallCheck often produces useful counterexamples without a separate shrinking phase.
 
 One extra detail matters here. Classical SmallCheck is often presented in terms of a depth bound. The implementation here is closer to an enumeration-prefix model: `max_size` controls how many values are tested in the current run, and those values come from the ordered enumeration defined by `Enumerable`. Whether SmallCheck really explores the space from small to large therefore depends on the quality of the enumerator.
 
@@ -396,11 +396,11 @@ For more complicated data types, the overall pattern is still fairly mechanical.
 
 ### The Feat Style
 
-The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s realization of the functional-enumeration approach from *Feat: Functional Enumeration of Algebraic Types*. The core idea is simple. Instead of treating a type as one long linear list of values, Feat represents it as a sequence of finite parts grouped by size. Each part carries two key pieces of information: its cardinality, meaning how many values it contains, and an indexing function, meaning how to retrieve the value at a given position inside that part.
+The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s realization of the functional-enumeration approach from *Feat: Functional Enumeration of Algebraic Types*. Instead of treating a type as one long linear list of values, Feat represents it as a sequence of finite parts grouped by size. Each part carries two key pieces of information: its cardinality and an indexing function.
 
 MoonBit’s current implementation follows exactly that shape. Internally, `Enumerate[T]` is a lazy stream of parts, and each `Finite[T]` carries two consumers, `fCard` and `fIndex`. That makes the behavior of global indexing via `en_index` quite clear. The implementation does not generate every earlier value one by one. Instead, it skips whole parts using their cardinalities, then indexes directly inside the part that contains the requested value. This is the "function view" from the paper, and it is fundamentally different from the list view used in many SmallCheck-style implementations.
 
-That design has two immediate benefits. First, enumeration is not limited to scanning from the front; it also supports random access. In principle, we can retrieve a fairly large value deep in the search space without expanding all earlier parts. Second, the same enumerator can support multiple testing strategies. We can enumerate prefixes in the SmallCheck style, but we can also perform size-bounded random sampling through APIs such as `@qc.Gen::feat_random`. In that sense, Feat is not a separate testing framework. It is a shared data-generation substrate that brings enumeration, randomness, and size control under one design.
+That design has two immediate benefits. First, enumeration is not limited to scanning from the front; it also supports random access. Second, the same enumerator can support multiple testing strategies, including prefix enumeration and size-bounded random sampling through APIs such as `@qc.Gen::feat_random`. In that sense, Feat is not a separate testing framework. It is a shared data-generation substrate.
 
 From the paper’s perspective, this is also the main way Feat improves on traditional SmallCheck. Classical SmallCheck often relies on constructor depth, but depth is not always a good proxy for semantic complexity. Functional enumeration instead encodes "smallness" directly into the construction of parts. For mutually recursive ASTs, syntax trees, and the sum-of-products structures common in type-system tooling, that style of layering is usually more stable and easier to compose mechanically than a plain depth bound.
 
@@ -426,11 +426,10 @@ This makes a useful contrast with the earlier integer example. Since the enumera
 
 In real engineering work, we would not write an enumerator just to find a tiny counterexample like `PSucc(PZero)`. The real value appears with more complicated recursive structures. Once a type has several recursive layers, multiple constructors, or mutually recursive definitions, a hand-written QuickCheck generator often starts to resemble the implementation under test. A Feat-style enumerator, by contrast, often stays mechanical, local, and compositional. That is also why the paper puts so much emphasis on large mutually recursive syntax trees.
 
-Overall, it is useful to think of SmallCheck as a strong prefix validator. We can first sweep through sufficiently small and representative values to eliminate shallow bugs early. Once that prefix is stable, we can hand the same `Enumerable` instance to `feat_random` or another randomized strategy and continue outward into the larger search space. In that setup, exhaustive search and random testing are no longer separate techniques. They become two ways of traversing the same structural specification.
+Overall, SmallCheck works well as a prefix validator. We can first sweep through sufficiently small and representative values to eliminate shallow bugs early, then move on to `feat_random` or another randomized strategy if we need to explore further.
 
 ## Summary
 
-This brings the main QuickCheck tutorial series to a close. Part 1 was about property design: algebraic laws, operational invariants, and model comparison. Part 2 was about input design: basic generators, distribution control, size parameters, and specialized constructors for constrained structures. Part 3 filled in the back half of the workflow: how to shrink a failing sample into a counterexample that really explains the bug, and when to switch to more systematic coverage through SmallCheck and functional enumeration.
+This brings the main QuickCheck tutorial series to a close. Part 1 was about properties. Part 2 was about generators. Part 3 was about counterexamples, failure diagnosis, and systematic small-value coverage.
 
-QuickCheck, SmallCheck, and functional enumeration are not competing choices in any strict sense. If the input space is huge and structurally complex, so exhaustive exploration is not realistic, then randomized generation plus shrinking is usually the first tool to reach for. If the type has a natural small-to-large order and we mostly care about shallow counterexamples, then SmallCheck’s deterministic prefix is often the cleaner option. And once we have a good `Enumerable` instance for a type, the same definition can support both exhaustive traversal and randomized sampling. At that point, it no longer makes much sense to treat the two approaches as fundamentally separate. The main thing to avoid is locking yourself into one testing strategy too early and letting properties, generators, and failure explanations drift apart.
-
+QuickCheck, SmallCheck, and functional enumeration are complementary tools. Use randomized generation plus shrinking when the input space is huge. Use SmallCheck when a type has a natural small-to-large order and you care about shallow counterexamples. Use a good `Enumerable` instance when you want one definition to support both styles. The main mistake is not choosing the wrong tool, but letting properties, generators, and failure explanations drift apart.
