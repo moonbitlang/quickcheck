@@ -52,7 +52,7 @@ pub trait Shrink {
 「删元素」与「缩元素」，元组会按分量继续递归缩减。
 
 先看一个最简单的例子。对整数而言，默认 shrink 的方向并不是盲目枚举所有更小的数，
-而是用较少的候选点快速逼近“更简单”的值。
+而是用较少的候选点快速逼近「更简单」的值。
 
 ```mbt check
 ///|
@@ -311,7 +311,7 @@ test "counterexample adds derived information" {
 
 在这个例子里，原始输入 `(0, [0, 0, -1])` 已经足够小，
 但如果没有 `after remove: [0, -1]` 这条补充信息，
-读者仍然需要自己执行一次函数，才能意识到“数组里还残留了一个 `0`”。
+读者仍然需要自己执行一次函数，才能意识到「数组里还残留了一个 `0`」。
 换句话说，`counterexample` 的作用不是让失败变小，而是让失败变可解释。
 
 这种手法在模型对照与编译器测试里尤其重要。
@@ -423,33 +423,199 @@ QuickCheck 并不是测试失败了，而是根本拿不到足够多的有效样
 
 ### 小规模穷举
 
-### 随机与穷举
+到目前为止，我们主要讨论的还是 QuickCheck 风格的随机测试：
+框架不断采样，再把失败样本通过 shrink 压小。
+但这并不是 PBT 的唯一工作方式。
+如果某类输入天然存在一个比较好的「从小到大」顺序，
+那么我们也可以反过来，不做随机采样，而是系统地把这一前缀全部测完。
+这正是 SmallCheck 的基本思想：不给概率留余地，而是把测试预算投入到一个可复现、可穷尽、可解释的小规模搜索空间里。
 
-### 规模控制
+在 MoonBit QuickCheck 里，`small_check` 的入口和 `quick_check` 长得很像，
+但它依赖的能力完全不同：
 
-## Functional Enumeration
+```mbt nocheck
+pub fn[A : @feat.Enumerable + Show, B : Testable] @qc.small_check(
+  f : (A) -> B,
+  max_size? : Int,
+  expect? : Expected,
+  abort? : Bool,
+) -> Unit raise Failure
+```
 
-### 枚举模型
+这里约束的不是 `Arbitrary + Shrink`，而是 `Enumerable`。
+这意味着 SmallCheck 关心的核心问题不再是「如何随机生成一个值」，
+而是「如何把一个类型的所有值组织成一个从小到大的可遍历顺序」。
+一旦这个顺序设计得当，测试就是确定性的：同样的 `max_size`、同样的性质，
+总会访问同样的前缀，因此也总会得到同样的第一个反例。
+
+```mbt check
+///|
+test "small check fails on first non-zero int" {
+  let r = @qc.small_check_silence(fn(x : Int) { x == 0 }, max_size=5)
+  inspect(
+    r,
+    content=(
+      #|*** [1/0/5] Failed! Falsified.
+      #|1
+    ),
+  )
+}
+```
+
+这个结果很能说明 SmallCheck 的工作方式。
+它没有像 QuickCheck 那样先随机生成一个较大的整数，再尝试 shrink；
+而是直接按枚举顺序测试前缀。
+对于 `Int` 的默认 `Enumerable` 实例，最前面的值依次是 `0, 1, -1, 2, -2, ...`，
+所以性质 `x == 0` 会在第二个样本 `1` 处立即失败。
+从这里也能看出，SmallCheck 之所以常常不需要 shrink，
+并不是因为它「不会失败」，而是因为它从一开始就在访问比较小的值。
+
+需要额外说明的是，经典 SmallCheck 往往以「深度上界」来描述其搜索范围；
+而这里的实现更接近一个「枚举前缀」模型：`max_size` 控制本轮最多测试多少个值，
+这些值来自 `Enumerable` 给出的有序枚举。
+因此 SmallCheck 是否真正「从小到大」地覆盖了搜索空间，
+本质上取决于 enumerator 的设计质量。
+
+### 枚举器设计
+
+既然 SmallCheck 的核心是「枚举小值」，那么最重要的问题自然就变成：
+什么才算一个设计良好的 enumerator。
+从实现角度看，MoonBit 用 `Enumerable` trait 来承载这个信息：
+
+```mbt nocheck
+pub(open) trait Enumerable {
+  enumerate() -> @feat.Enumerate[Self]
+}
+
+pub fn[T] @feat.Enumerate::en_index(Self[T], BigInt) -> T
+```
+
+一个好的 enumerator 至少要满足三点。第一，枚举结果不应重复，
+否则所谓「穷举前缀」就会浪费预算在同一个值上；第二，每个「大小层级」都必须是有限的，
+否则 SmallCheck 会在某一层卡死，永远走不到更大的值；
+第三，枚举顺序最好能反映我们对「复杂度」的直觉，
+让越靠前的值越接近我们真正想要的「小样本」。
+
+对递归数据类型而言，第二点尤其关键。
+如果递归调用不额外增加任何代价，那么像自然数这样的类型会把无限多个值全塞进同一层，
+从而破坏 part-finiteness ，让我们的枚举进入无限循环。
+因此 Feat 风格的枚举都会显式维护一个「付费」动作 `pay`，
+表示每经过一层递归构造，值就进入下一层。
+
+```mbt check
+///|
+enum Nat {
+  Zero
+  Succ(Nat)
+} derive(Show, Eq)
+
+///|
+impl @feat.Enumerable for Nat with enumerate() {
+  @feat.pay(fn() {
+    @feat.singleton(Zero) +
+    @feat.Enumerable::enumerate().fmap(fn(n) { Nat::Succ(n) })
+  })
+}
+
+///|
+test "nat enumerate order" {
+  let e : @feat.Enumerate[Nat] = @feat.Enumerable::enumerate()
+  let xs = [0N, 1, 2, 3, 4].map(fn(i) { e.en_index(i) })
+  inspect(
+    xs,
+    content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero))))]",
+  )
+}
+```
+
+这个定义看似很短，但已经体现了设计 enumerator 时最核心的原则。
+`@feat.singleton(Zero)` 给出基例；
+递归分支通过 `fmap` 把「更小的自然数」映射为 `Succ(n)`；
+而最外层的 `pay` 则保证每多套一层构造子，值就会被推迟到下一层。
+如果去掉 `pay`，那么 `Zero, Succ(Zero), Succ(Succ(Zero)), ...` 就会落在同一个 part 里，
+SmallCheck 在理论上甚至无法完成这一层的枚举。
+
+对更复杂的类型，写法也基本遵循同样的机械结构。
+空构造器通常用 `singleton`；
+单参数构造器可以直接 `fmap`；
+多参数构造器则先借助 tuple/product 得到参数的枚举，再映射成真正的构造器；
+若一个类型有多个构造器，就用 `consts` 或 `union` 把它们合并起来。
+这里最关键的不是「把代码写短」，而是保持构造方式与数据语义一一对应，
+确保枚举是无重复且按复杂度分层的。
 
 ### Feat 风格
 
-### 覆盖基线
+上面的 `Enumerable` 接口并不是随意设计出来的，它基本上就是论文
+《Feat: Functional Enumeration of Algebraic Types》中的「函数式枚举」思想在 MoonBit 里的落地。
+论文的核心观点是：与其把一个类型看成一条线性的值列表，
+不如把它看成一组按大小分层的有限划分 (parts) 。
+每个 part 都有两个核心信息：其一是基数 (cardinality)，也就是这一层有多少值；
+其二是索引函数，也就是给定层内下标后，如何直接取出对应的值。
 
-## 归纳关系
+MoonBit 当前的实现也正是这样组织的。
+`Enumerate[T]` 内部是一条惰性的 parts 序列，而每个 `Finite[T]`
+则携带 `fCard` 与 `fIndex` 两个消费者。
+于是全局索引 `en_index` 的语义就很清楚了：
+它不是从头把所有值一个个生成出来，而是先根据各 part 的基数跳过整层，
+再在命中的那一层里直接做索引。
+这正是论文所谓的 function view，它和 SmallCheck 常见的 list view 有本质差异。
 
-### 关系规格
+这样设计的直接好处有两个。
+其一，枚举不再局限于「从头扫到尾」，而是具备了随机访问能力；
+理论上我们甚至可以直接取出一个非常靠后的大值，而不需要先展开前面的所有部分。
+其二，同一份 enumerator 可以同时支撑多种测试策略：
+既可以像 SmallCheck 那样系统枚举前缀，
+也可以像 `@qc.Gen::feat_random` 那样，在某个 size 上界内做均匀随机采样。
+换句话说，Feat 并不是「另一个单独的测试框架」，
+而是一种把枚举、随机和规模控制统一起来的数据生成基础设施。
 
-### 自动生成
+从论文角度看，Feat 对传统 SmallCheck 的修正也主要在这里。
+经典 SmallCheck 更依赖构造深度这一概念，但深度并不总能准确刻画值的真实复杂度；
+而 functional enumeration 会把「什么是小值」编码进 part 的构造过程里。
+对于互递归 AST、语法树、类型系统中大量和与积交织的结构，这种分层通常比单纯的深度界更稳定，
+也更容易被机械组合。
 
-### 自动枚举
+### 实践 SmallCheck
 
-## 案例分析
+理解了 enumerator 的设计之后，SmallCheck 的使用就会变得很自然：
+我们先决定「什么叫小」，把这种次序写进 `Enumerable`，
+再用 `small_check` 顺着这个顺序去检验前缀。
+在这个过程中，测试质量很大程度上不再由随机种子决定，而由枚举顺序决定。
 
-### 小语言
+```mbt check
+///|
+test "small check on nat prefix" {
+  let r = @qc.small_check_silence(fn(n : Nat) { n == Zero }, max_size=5)
+  inspect(
+    r,
+    content=(
+      #|*** [1/0/5] Failed! Falsified.
+      #|Succ(Zero)
+    ),
+  )
+}
+```
 
-### 生成器对比
+这个例子与前面的整数版本形成了一个很好的对照。
+由于 `Nat` 的 enumerator 是我们自己定义的，
+SmallCheck 所访问的「小值前缀」也完全由这份定义决定。
+在这里，`Zero` 是第一个值，`Succ(Zero)` 是第二个值，
+所以性质 `n == Zero` 会立刻在最小的非零自然数上失败。
+这类反例几乎不需要后处理，因为「枚举顺序本身」已经承担了缩减的作用。
 
-### 反例对比
+实际工程里，我们一般不会只为了找一个 `Succ(Zero)` 这样简单的反例去写 enumerator，
+真正有价值的是更复杂的递归结构。
+当一个类型包含多层递归、多个构造器，或者多组互递归定义时，
+QuickCheck 风格的手写 generator 往往会变得越来越像待测程序本身；
+而 Feat 风格的 enumerator 通常仍然保持机械、局部、可组合。
+这也是论文特别强调它适合大规模互递归语法树的原因。
+
+总的来说，我们可以把 SmallCheck 理解为一种很好的「前缀验证器」：
+先用它系统扫过足够小、足够典型的值，尽快排除浅层错误；
+如果这一前缀已经稳定通过，再把同一份 `Enumerable` 交给 `feat_random`
+或其他随机策略，继续向更大的空间扩展。
+这样一来，穷举与随机不再是两套彼此割裂的技术，
+而是共享同一份结构规格的两种访问方式。
 
 ## 总结
 
