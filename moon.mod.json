@@ -9,5 +9,9 @@
     "quickcheck"
   ],
   "description": "Automatic testing of MoonBit programs",
-  "source": "src"
+  "source": "src",
+  "exclude": [
+    "src/internal_benchmark",
+    "src/testing"
+  ]
 }
