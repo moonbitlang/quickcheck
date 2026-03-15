@@ -4,15 +4,7 @@ on: workflow_dispatch
 jobs:
   publish:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [19.x]
     steps:
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          registry-url: https://registry.npmjs.org
       - uses: actions/checkout@v4
       - name: install
         run: |
@@ -24,7 +16,6 @@ jobs:
           moonrun --version
       - name: moon check
         run: |
-          node ./rm_deps.js
           moon check --target all
       - name: publish
         run: |
