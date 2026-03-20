@@ -96,7 +96,7 @@ test "small check expect fail" {
 ///|
 test "non empty list (with filter)" {
   let prop_is_non_empty = fn(l : List[Int]) -> @qc.Property {
-    not(l.is_empty()) |> @qc.filter(not(l.is_empty()))
+    (!l.is_empty()) |> @qc.filter(!l.is_empty())
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_is_non_empty)),
@@ -318,7 +318,7 @@ fn remove(arr : Array[Int], x : Int) -> Array[Int] {
 ///|
 fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
-  not(remove(arr, x).contains(x))
+  !remove(arr, x).contains(x)
 }
 
 ///|
@@ -354,7 +354,7 @@ test "custom generator" {
     @qc.quick_check_silence(
       @qc.forall(@qc.Gen::spawn(), fn(i_arr : (Int, Array[Int])) {
         let (x, arr) = i_arr
-        not(remove(arr, x).contains(x))
+        !remove(arr, x).contains(x)
       }),
       expect=Fail,
     ),
@@ -372,7 +372,7 @@ test "no_duplicate" {
     @qc.quick_check_silence(
       @qc.forall(@qc.Gen::spawn(), fn(iarr : (Int, Array[Int])) {
         let (x, arr) = iarr
-        not(remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
+        (!remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
       }),
       expect=GaveUp,
     ),
@@ -386,7 +386,7 @@ test "use one_of" {
     @qc.quick_check_silence(
       @qc.forall(@qc.Gen::spawn(), fn(a : Array[Int]) {
         @qc.forall(@qc.one_of_array(a), fn(y : Int) {
-          not(remove(a, y).contains(y))
+          !remove(a, y).contains(y)
         })
         |> @qc.filter(a.length() != 0)
       }),

@@ -291,7 +291,7 @@ to modify the maximum number of successes:
 ///|
 fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
-  not(remove(arr, x).contains(x))
+  !remove(arr, x).contains(x)
 }
 
 ///|

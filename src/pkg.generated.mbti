@@ -127,7 +127,17 @@ pub fn rejected() -> SingleResult
 
 pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 
+pub fn[X : Shrink + Eq] shrink_distinct_array(Array[X]) -> Iter[Array[X]]
+
+pub fn[X : Shrink] shrink_non_empty_array(Array[X]) -> Iter[Array[X]]
+
+pub fn[T : Shrink] shrink_non_empty_list(@list.List[T]) -> Iter[@list.List[T]]
+
 pub fn[T : Shrink + Compare] shrink_sorted_array(Array[T], lo~ : T, hi~ : T) -> Iter[Array[T]]
+
+pub fn[T : Shrink + Compare] shrink_sorted_distinct_array(Array[T], lo~ : T, hi~ : T) -> Iter[Array[T]]
+
+pub fn[T : Shrink + Compare] shrink_sorted_list(@list.List[T], lo~ : T, hi~ : T) -> Iter[@list.List[T]]
 
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 

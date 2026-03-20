@@ -250,6 +250,18 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
 }
 
 ///|
+fn[X] shrink_remove_one_array(xs : Array[X]) -> Iter[Array[X]] {
+  let l = xs.length() - 1
+  Array::makei(l + 1, i => i)
+  .iter()
+  .flat_map(i => {
+    let nv = xs.copy()
+    nv.remove(i) |> ignore
+    Iter::singleton(nv)
+  })
+}
+
+///|
 /// Shrink sorted array, requires the Array[T] to be sorted.
 pub fn[T : Shrink + Compare] shrink_sorted_array(
   xs : Array[T],
@@ -274,17 +286,73 @@ pub fn[T : Shrink + Compare] shrink_sorted_array(
       })
     })
   }
-  let remove_one_val = (v : Array[T]) => {
-    let l = v.length() - 1
+  shrink_remove_one_array(xs).concat(shrink_one_val(xs))
+}
+
+///|
+/// Shrink sorted list, requires the List[T] to be sorted.
+pub fn[T : Shrink + Compare] shrink_sorted_list(
+  xs : List[T],
+  lo~ : T,
+  hi~ : T,
+) -> Iter[List[T]] {
+  shrink_sorted_array(xs.to_array(), lo~, hi~).map(a => @list.from_array(a))
+}
+
+///|
+/// Shrink distinct array, requires all elements of the Array[X] to be distinct.
+pub fn[X : Shrink + Eq] shrink_distinct_array(xs : Array[X]) -> Iter[Array[X]] {
+  fn no_duplicate_at(arr : Array[X], i : Int, x : X) -> Bool {
+    for j in 0..<arr.length() {
+      if j != i && arr[j] == x {
+        return false
+      }
+    }
+    true
+  }
+
+  let shrink_one_val = Array::makei(xs.length(), i => i)
+    .iter()
+    .flat_map(i => {
+      X::shrink(xs[i]).flat_map(x => {
+        if x != xs[i] && no_duplicate_at(xs, i, x) {
+          let nv = xs.copy()
+          nv[i] = x
+          Iter::singleton(nv)
+        } else {
+          Iter::empty()
+        }
+      })
+    })
+  shrink_remove_one_array(xs).concat(shrink_one_val)
+}
+
+///|
+/// Shrink sorted distinct array, requires the Array[T] to be sorted and distinct.
+pub fn[T : Shrink + Compare] shrink_sorted_distinct_array(
+  xs : Array[T],
+  lo~ : T,
+  hi~ : T,
+) -> Iter[Array[T]] {
+  let shrink_one_val = (nv : Array[T]) => {
+    let l = nv.length() - 1
     Array::makei(l + 1, i => i)
     .iter()
     .flat_map(i => {
-      let nv = v.copy()
-      nv.remove(i) |> ignore
-      Iter::singleton(nv)
+      let lower_ok = fn(x) { if i == 0 { lo <= x } else { nv[i - 1] < x } }
+      let upper_ok = fn(x) { if i == l { x <= hi } else { x < nv[i + 1] } }
+      T::shrink(nv[i]).flat_map(x => {
+        if lower_ok(x) && upper_ok(x) && x != nv[i] {
+          let nv1 = nv.copy()
+          nv1[i] = x
+          Iter::singleton(nv1)
+        } else {
+          Iter::empty()
+        }
+      })
     })
   }
-  remove_one_val(xs).concat(shrink_one_val(xs))
+  shrink_remove_one_array(xs).concat(shrink_one_val(xs))
 }
 
 ///|
@@ -340,6 +408,12 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 }
 
 ///|
+/// Shrink non-empty list without producing the empty list.
+pub fn[T : Shrink] shrink_non_empty_list(xs : List[T]) -> Iter[List[T]] {
+  Shrink::shrink(xs).filter(fn(ys) { !ys.is_empty() })
+}
+
+///|
 test "shrink int list" {
   let il : List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
@@ -368,6 +442,12 @@ test "shrink int list" {
 }
 
 ///|
+test "shrink non-empty list" {
+  let il : List[Int] = @list.from_array([1])
+  json_inspect(shrink_non_empty_list(il), content=[[0]])
+}
+
+///|
 pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
   let view = xs[:]
   let n = view.length()
@@ -386,6 +466,12 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
   .flatten()
   .iter()
   .concat(shr_sub_terms(view))
+}
+
+///|
+/// Shrink non-empty array without producing the empty array.
+pub fn[X : Shrink] shrink_non_empty_array(xs : Array[X]) -> Iter[Array[X]] {
+  Shrink::shrink(xs).filter(ys => ys.length() > 0)
 }
 
 ///|
@@ -414,6 +500,11 @@ test "shrink array" {
     [1, 2, 3, 4, 5, 3],
     [1, 2, 3, 4, 5, 0],
   ])
+}
+
+///|
+test "shrink non-empty array" {
+  json_inspect(shrink_non_empty_array([1]), content=[[0]])
 }
 
 ///|
@@ -481,5 +572,47 @@ test "shrink sorted array" {
     [1, 3, 5, 6, 9],
     [1, 3, 5, 7, 8],
     [1, 3, 5, 7, 7],
+  ])
+}
+
+///|
+test "shrink distinct array" {
+  let s = shrink_distinct_array([1, 3, 5])
+  json_inspect(s, content=[
+    [3, 5],
+    [1, 5],
+    [1, 3],
+    [0, 3, 5],
+    [1, 2, 5],
+    [1, 0, 5],
+    [1, 3, 4],
+    [1, 3, 0],
+  ])
+}
+
+///|
+test "shrink sorted distinct array" {
+  let s = shrink_sorted_distinct_array([1, 3, 5], lo=0, hi=9)
+  json_inspect(s, content=[
+    [3, 5],
+    [1, 5],
+    [1, 3],
+    [0, 3, 5],
+    [1, 2, 5],
+    [1, 3, 4],
+  ])
+}
+
+///|
+test "shrink sorted list" {
+  let xs : List[Int] = @list.from_array([1, 3, 5])
+  json_inspect(shrink_sorted_list(xs, lo=0, hi=9), content=[
+    [3, 5],
+    [1, 5],
+    [1, 3],
+    [0, 3, 5],
+    [1, 2, 5],
+    [1, 3, 4],
+    [1, 3, 3],
   ])
 }

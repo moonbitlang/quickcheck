@@ -529,7 +529,7 @@ fn[T : Eq] ModelSet::contains(self : ModelSet[T], x : T) -> Bool {
 
 ///|
 fn[T : Eq] ModelSet::insert(self : ModelSet[T], x : T) -> ModelSet[T] {
-  guard not(self.contains(x)) else { self }
+  guard !self.contains(x) else { self }
   self.0.prepend(x)
 }
 
