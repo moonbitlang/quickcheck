@@ -6,7 +6,19 @@ struct TestRun {
   log : List[String]
   deterministic : Bool
   labels : @immut_hashmap.HashMap[String, @sorted_set.SortedSet[String]]
-} derive(Show)
+}
+
+///|
+impl Show for TestRun with output(self, logger) {
+  logger
+  ..write_string("{log: ")
+  ..write_object(self.log)
+  ..write_string(", deterministic: ")
+  ..write_object(self.deterministic)
+  ..write_string(", labels: ")
+  ..write_object(self.labels)
+  .write_string("}")
+}
 
 ///|
 pub fn init_test_run() -> TestRun {

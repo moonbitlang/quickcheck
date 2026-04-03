@@ -3,13 +3,35 @@ struct Success[T] {
   result : T
   seed : RandomState
   run : TestRun
-} derive(Show)
+}
+
+///|
+impl[T : Show] Show for Success[T] with output(self, logger) {
+  logger
+  ..write_string("{result: ")
+  ..write_object(self.result)
+  ..write_string(", seed: ")
+  ..write_object(self.seed)
+  ..write_string(", run: ")
+  ..write_object(self.run)
+  .write_string("}")
+}
 
 ///|
 struct Failure[E] {
   seed : RandomState
   run : ShrinkExplain[(E, TestRun), TestRun]
-} derive(Show)
+}
+
+///|
+impl[E : Show] Show for Failure[E] with output(self, logger) {
+  logger
+  ..write_string("{seed: ")
+  ..write_object(self.seed)
+  ..write_string(", run: ")
+  ..write_object(self.run)
+  .write_string("}")
+}
 
 ///|
 struct Config {
@@ -19,7 +41,25 @@ struct Config {
   max_ratio : Int
   verbose : Bool
   expect_failure : Bool
-} derive(Show)
+}
+
+///|
+impl Show for Config with output(self, logger) {
+  logger
+  ..write_string("{tests: ")
+  ..write_object(self.tests)
+  ..write_string(", max_shrinks: ")
+  ..write_object(self.max_shrinks)
+  ..write_string(", replay: ")
+  ..write_object(self.replay)
+  ..write_string(", max_ratio: ")
+  ..write_object(self.max_ratio)
+  ..write_string(", verbose: ")
+  ..write_object(self.verbose)
+  ..write_string(", expect_failure: ")
+  ..write_object(self.expect_failure)
+  .write_string("}")
+}
 
 ///|
 pub impl Default for Config with default() {
@@ -132,4 +172,11 @@ pub fn[T, E] falsify(
 
   let (success, discarded, failed) = go(st)
   (st.rng, success, discarded, failed)
+}
+
+///|
+test "show impls" {
+  let _ : (Config) -> String = Show::to_string
+  let _ : (Success[Int]) -> String = Show::to_string
+  let _ : (Failure[Int]) -> String = Show::to_string
 }

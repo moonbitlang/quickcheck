@@ -369,7 +369,19 @@ The second point is especially important for recursive data types. If recursion 
 enum PeanoNat {
   PZero
   PSucc(PeanoNat)
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+impl Show for PeanoNat with output(self, logger) {
+  match self {
+    PZero => logger.write_string("PZero")
+    PSucc(n) => {
+      logger.write_string("PSucc(")
+      n.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 
 ///|
 impl @feat.Enumerable for PeanoNat with enumerate() {
