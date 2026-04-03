@@ -52,14 +52,14 @@ pub fn[T] test_gen((T) -> Bool, Gen[T]) -> Property[T, String]
 // Errors
 
 // Types and methods
-type Config derive(Show)
+type Config
 pub impl Default for Config
 
 type DriverState[T]
 
 type Either[L, R]
 
-type Failure[E] derive(Show)
+type Failure[E]
 
 type Gen[T]
 pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
@@ -86,16 +86,16 @@ pub fn SampleTree::map(Self, (UInt) -> UInt) -> Self
 pub fn SampleTree::mod(Self, UInt) -> Self
 pub fn SampleTree::view(Self) -> (Sample, Self, Self)
 
-type ShrinkExplain[P, N] derive(Show)
+type ShrinkExplain[P, N]
 pub fn[P, N] ShrinkExplain::limit_steps(Self[P, N], Int?) -> Self[P, N]
 pub fn[P, N] ShrinkExplain::shrink_history(Self[P, N]) -> Array[P]
 pub fn[P, N] ShrinkExplain::shrink_outcome(Self[P, N]) -> (P, Iter[N]?)
 
-type Success[T] derive(Show)
+type Success[T]
 
 type TestResult[T, E]
 
-type TestRun derive(Show)
+type TestRun
 
 // Type aliases
 pub using @list {type List}

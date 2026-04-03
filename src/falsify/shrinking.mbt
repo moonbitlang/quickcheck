@@ -3,13 +3,42 @@ priv enum ShrinkHistory[P, N] {
   ShrinkTo(P, ShrinkHistory[P, N])
   ShrinkDone(Iter[N])
   ShrinkStopped
-} derive(Show)
+}
+
+///|
+impl[P : Show, N : Show] Show for ShrinkHistory[P, N] with output(self, logger) {
+  match self {
+    ShrinkTo(p, rest) => {
+      logger.write_string("ShrinkTo(")
+      p.output(logger)
+      logger.write_string(", ")
+      rest.output(logger)
+      logger.write_string(")")
+    }
+    ShrinkDone(iter) => {
+      logger.write_string("ShrinkDone(")
+      iter.output(logger)
+      logger.write_string(")")
+    }
+    ShrinkStopped => logger.write_string("ShrinkStopped")
+  }
+}
 
 ///|
 struct ShrinkExplain[P, N] {
   initial : P
   history : ShrinkHistory[P, N]
-} derive(Show)
+}
+
+///|
+impl[P : Show, N : Show] Show for ShrinkExplain[P, N] with output(self, logger) {
+  logger
+  ..write_string("{initial: ")
+  ..write_object(self.initial)
+  ..write_string(", history: ")
+  ..write_object(self.history)
+  .write_string("}")
+}
 
 ///|
 pub fn[P, N] ShrinkExplain::limit_steps(

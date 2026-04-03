@@ -52,7 +52,16 @@ enum Color {
   Red
   Green
   Blue
-} derive(Arbitrary, Show)
+} derive(Arbitrary)
+
+///|
+impl Show for Color with output(self, logger) {
+  match self {
+    Red => logger.write_string("Red")
+    Green => logger.write_string("Green")
+    Blue => logger.write_string("Blue")
+  }
+}
 ```
 
 If a type already has an `Arbitrary` instance, then `@qc.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
@@ -338,7 +347,23 @@ First, define the BST data structure:
 enum Tree[T] {
   Leaf
   Node(Tree[T], T, Tree[T])
-} derive(Debug, Show)
+} derive(Debug)
+
+///|
+impl[T : Show] Show for Tree[T] with output(self, logger) {
+  match self {
+    Leaf => logger.write_string("Leaf")
+    Node(left, val, right) => {
+      logger.write_string("Node(")
+      left.output(logger)
+      logger.write_string(", ")
+      val.output(logger)
+      logger.write_string(", ")
+      right.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 ```
 
 If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@qc.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).

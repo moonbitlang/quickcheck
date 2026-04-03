@@ -282,7 +282,16 @@ These tests can even be written without knowing the internal representation of `
 struct Queue {
   f : @list.List[Int]
   r : @list.List[Int]
-} derive(Show)
+}
+
+///|
+impl Show for Queue with output(self, logger) {
+  logger.write_string("{f: ")
+  self.f.output(logger)
+  logger.write_string(", r: ")
+  self.r.output(logger)
+  logger.write_string("}")
+}
 
 ///|
 fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
@@ -547,7 +556,28 @@ enum Cmd {
   Insert(Int)
   Remove(Int)
   Contains(Int)
-} derive(Show, @coreqc.Arbitrary)
+} derive(@coreqc.Arbitrary)
+
+///|
+impl Show for Cmd with output(self, logger) {
+  match self {
+    Insert(x) => {
+      logger.write_string("Insert(")
+      x.output(logger)
+      logger.write_string(")")
+    }
+    Remove(x) => {
+      logger.write_string("Remove(")
+      x.output(logger)
+      logger.write_string(")")
+    }
+    Contains(x) => {
+      logger.write_string("Contains(")
+      x.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 
 ///|
 struct Trace(@list.List[Bool]) derive(Eq) // records results of contains

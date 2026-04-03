@@ -72,7 +72,16 @@ enum Color {
   Red
   Green
   Blue
-} derive(Arbitrary, Show)
+} derive(Arbitrary)
+
+///|
+impl Show for Color with output(self, logger) {
+  match self {
+    Red => logger.write_string("Red")
+    Green => logger.write_string("Green")
+    Blue => logger.write_string("Blue")
+  }
+}
 ```
 
 如果我们已经为某个类型定义了 `Arbitrary` 实例，
@@ -412,7 +421,23 @@ fn gen_t() -> @qc.Gen[T] {
 enum Tree[T] {
   Leaf
   Node(Tree[T], T, Tree[T])
-} derive(Debug, Show)
+} derive(Debug)
+
+///|
+impl[T : Show] Show for Tree[T] with output(self, logger) {
+  match self {
+    Leaf => logger.write_string("Leaf")
+    Node(left, val, right) => {
+      logger.write_string("Node(")
+      left.output(logger)
+      logger.write_string(", ")
+      val.output(logger)
+      logger.write_string(", ")
+      right.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 ```
 
 如果性质测试不强依赖「树形分布」，
