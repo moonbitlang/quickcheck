@@ -36,12 +36,14 @@ pub fn[P, N] ShrinkExplain::shrink_history(
   self : ShrinkExplain[P, N],
 ) -> Array[P] {
   let arr = [self.initial]
-  loop self.history {
-    ShrinkTo(x, xs) => {
-      arr.push(x)
-      continue xs
+  for cur = self.history {
+    match cur {
+      ShrinkTo(x, xs) => {
+        arr.push(x)
+        continue xs
+      }
+      _ => break
     }
-    _ => ()
   }
   arr
 }
@@ -50,10 +52,12 @@ pub fn[P, N] ShrinkExplain::shrink_history(
 pub fn[P, N] ShrinkExplain::shrink_outcome(
   self : ShrinkExplain[P, N],
 ) -> (P, Iter[N]?) {
-  loop (self.initial, self.history) {
-    (_, ShrinkTo(p, h)) => continue (p, h)
-    (p, ShrinkDone(ns)) => (p, Some(ns))
-    (p, ShrinkStopped) => (p, None)
+  for p = self.initial, h = self.history {
+    match h {
+      ShrinkTo(next_p, next_h) => continue next_p, next_h
+      ShrinkDone(ns) => break (p, Some(ns))
+      ShrinkStopped => break (p, None)
+    }
   }
 }
 

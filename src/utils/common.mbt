@@ -52,14 +52,12 @@ pub fn[T] apply_while_list(
   f : (T) -> T,
   cond : (T) -> Bool,
 ) -> @list.List[T] {
-  loop (x, @list.empty()) {
-    (acc, lst) => {
-      let next = f(acc)
-      if cond(next) {
-        continue (next, lst.add(next))
-      } else {
-        break lst
-      }
+  for acc = x, lst = @list.empty() {
+    let next = f(acc)
+    if cond(next) {
+      continue next, lst.add(next)
+    } else {
+      break lst
     }
   }
 }
@@ -70,14 +68,12 @@ pub fn[T] apply_while_array(
   f : (T) -> T,
   cond : (T) -> Bool,
 ) -> Array[T] {
-  loop (x, []) {
-    (acc, lst) => {
-      let next = f(acc)
-      if cond(next) {
-        continue (next, [next, ..lst])
-      } else {
-        break lst
-      }
+  for acc = x, lst = [] {
+    let next = f(acc)
+    if cond(next) {
+      continue next, [next, ..lst]
+    } else {
+      break lst
     }
   }
 }

@@ -12,16 +12,18 @@ pub fn[X] default() -> LazyList[X] {
 ///|
 pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
   logger.write_string("[")
-  loop self {
-    Nil => break
-    Cons(x, xs) => {
-      let next = xs.force()
-      logger.write_object(x)
-      match next {
-        Nil => break
-        _ => {
-          logger.write_string(", ")
-          continue next
+  for cur = self {
+    match cur {
+      Nil => break
+      Cons(x, xs) => {
+        let next = xs.force()
+        logger.write_object(x)
+        match next {
+          Nil => break
+          _ => {
+            logger.write_string(", ")
+            continue next
+          }
         }
       }
     }
@@ -34,10 +36,12 @@ pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
   if i < 0 {
     abort("index out of bounds")
   } else {
-    loop (self, i) {
-      (Nil, _) => abort("index out of bounds")
-      (Cons(x, _), 0) => x
-      (Cons(_, xs), i) => continue (xs.force(), i - 1)
+    for cur = self, i = i {
+      match (cur, i) {
+        (Nil, _) => abort("index out of bounds")
+        (Cons(x, _), 0) => break x
+        (Cons(_, xs), i) => continue xs.force(), i - 1
+      }
     }
   }
 }
@@ -104,15 +108,17 @@ pub fn[T] LazyList::split_at(
     (Nil, self)
   } else {
     let buf : Array[T] = []
-    let rest = loop (self, i) {
-      (Nil, _) => break Nil
-      (Cons(x, xs), n) =>
-        if n <= 0 {
-          break Cons(x, xs)
-        } else {
-          buf.push(x)
-          continue (xs.force(), n - 1)
-        }
+    let rest = for cur = self, n = i {
+      match (cur, n) {
+        (Nil, _) => break Nil
+        (Cons(x, xs), n) =>
+          if n <= 0 {
+            break Cons(x, xs)
+          } else {
+            buf.push(x)
+            continue xs.force(), n - 1
+          }
+      }
     }
     let prefix = for j = buf.length() - 1, acc = Nil; j >= 0; {
       continue j - 1, Cons(buf[j], LazyRef::from_value(acc))
@@ -129,9 +135,11 @@ pub fn[T, U] LazyList::fold_left(
   f : (U, T) -> U,
   init~ : U,
 ) -> U {
-  loop (self, init) {
-    (Nil, acc) => acc
-    (Cons(x, xs), acc) => continue (xs.force(), f(acc, x))
+  for cur = self, acc = init {
+    match cur {
+      Nil => break acc
+      Cons(x, xs) => continue xs.force(), f(acc, x)
+    }
   }
 }
 
@@ -223,14 +231,16 @@ pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
   if n <= 0 {
     self
   } else {
-    loop (self, n) {
-      (Nil, _) => Nil
-      (Cons(_, xs), i) =>
-        if i == 1 {
-          xs.force()
-        } else {
-          continue (xs.force(), i - 1)
-        }
+    for cur = self, i = n {
+      match cur {
+        Nil => break Nil
+        Cons(_, xs) =>
+          if i == 1 {
+            break xs.force()
+          } else {
+            continue xs.force(), i - 1
+          }
+      }
     }
   }
 }
@@ -240,9 +250,11 @@ pub fn[T] LazyList::drop_while(
   self : LazyList[T],
   p : (T) -> Bool,
 ) -> LazyList[T] {
-  loop self {
-    Nil => Nil
-    Cons(x, xs) => if p(x) { continue xs.force() } else { Cons(x, xs) }
+  for cur = self {
+    match cur {
+      Nil => break Nil
+      Cons(x, xs) => if p(x) { continue xs.force() } else { break Cons(x, xs) }
+    }
   }
 }
 

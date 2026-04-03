@@ -276,64 +276,63 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
   })
   st.expected = expect
   let dummy : Property = succeed().property()
-  loop (A::enumerate().eval(), None, 0, limit, 0) {
-    (_, _, _, remaining, _) if remaining <= 0 => break st.complete_test(dummy)
-    (@lazy.Nil, _, _, _, _) => break st.complete_test(dummy)
-    (parts, None, _, remaining, idx) =>
-      match parts {
-        @lazy.Nil => break st.complete_test(dummy)
-        @lazy.Cons(finite, rest) =>
-          if finite.fCard == 0 {
-            continue (rest.force(), None, 0, remaining, idx)
-          } else {
-            continue (rest.force(), Some(finite), 0, remaining, idx)
-          }
-      }
-    (parts, Some(finite), j, remaining, idx) =>
-      if BigInt::compare_int(finite.fCard, j) <= 0 {
-        continue (parts, None, 0, remaining, idx)
-      } else {
-        let val = (finite.fIndex)(BigInt::from_int(j))
-        let prop = map_total_result(counterexample(f(val), val.to_string()), res => {
-          ..res,
-          expect,
-          abort,
-        })
-        let rnd1 = st.random_state.split()
-        let rnd2 = st.random_state
-        let { val: res, .. } = prop.0.run(idx, rnd1)
-        st.random_state = rnd2
-        st.update_state_from_res(res)
-        st.callback_post_test(res)
-        match res.ok {
-          Some(true) => {
-            st.add_coverages(res)
-            st = {
-              ..st,
-              num_success_tests: st.num_success_tests + 1,
-              num_recent_discarded_tests: 0,
+  for parts = A::enumerate().eval(), finite_opt = None, j = 0, remaining = limit, idx = 0 {
+    if remaining <= 0 {
+      break st.complete_test(dummy)
+    }
+    match (parts, finite_opt) {
+      (@lazy.Nil, _) => break st.complete_test(dummy)
+      (@lazy.Cons(finite, rest), None) =>
+        if finite.fCard == 0 {
+          continue rest.force(), None, 0, remaining, idx
+        } else {
+          continue rest.force(), Some(finite), 0, remaining, idx
+        }
+      (_, Some(finite)) =>
+        if BigInt::compare_int(finite.fCard, j) <= 0 {
+          continue parts, None, 0, remaining, idx
+        } else {
+          let val = (finite.fIndex)(BigInt::from_int(j))
+          let prop = map_total_result(
+            counterexample(f(val), val.to_string()),
+            res => { ..res, expect, abort },
+          )
+          let rnd1 = st.random_state.split()
+          let rnd2 = st.random_state
+          let { val: res, .. } = prop.0.run(idx, rnd1)
+          st.random_state = rnd2
+          st.update_state_from_res(res)
+          st.callback_post_test(res)
+          match res.ok {
+            Some(true) => {
+              st.add_coverages(res)
+              st = {
+                ..st,
+                num_success_tests: st.num_success_tests + 1,
+                num_recent_discarded_tests: 0,
+              }
+              if res.abort {
+                break st.complete_test(dummy)
+              } else {
+                continue parts, Some(finite), j + 1, remaining - 1, idx + 1
+              }
             }
-            if res.abort {
-              break st.complete_test(dummy)
-            } else {
-              continue (parts, Some(finite), j + 1, remaining - 1, idx + 1)
-            }
-          }
-          Some(false) => break st.find_failure_no_shrink(res, idx)
-          None => {
-            st = {
-              ..st,
-              num_discarded_tests: st.num_discarded_tests + 1,
-              num_recent_discarded_tests: st.num_recent_discarded_tests + 1,
-            }
-            if res.abort {
-              break st.give_up(dummy)
-            } else {
-              continue (parts, Some(finite), j + 1, remaining - 1, idx + 1)
+            Some(false) => break st.find_failure_no_shrink(res, idx)
+            None => {
+              st = {
+                ..st,
+                num_discarded_tests: st.num_discarded_tests + 1,
+                num_recent_discarded_tests: st.num_recent_discarded_tests + 1,
+              }
+              if res.abort {
+                break st.give_up(dummy)
+              } else {
+                continue parts, Some(finite), j + 1, remaining - 1, idx + 1
+              }
             }
           }
         }
-      }
+    }
   }
 }
 
@@ -342,16 +341,18 @@ pub fn State::run_test(
   self : State,
   prop : Property,
 ) -> TestSuccess raise TestError {
-  loop self.run_single_test(prop) {
-    Ok(res) => res
-    Err(ns) =>
-      if ns.finished_successfully() {
-        ns.complete_test(prop)
-      } else if ns.discarded_too_much() {
-        ns.give_up(prop)
-      } else {
-        continue ns.run_single_test(prop)
-      }
+  for cur = self.run_single_test(prop) {
+    match cur {
+      Ok(res) => break res
+      Err(ns) =>
+        if ns.finished_successfully() {
+          break ns.complete_test(prop)
+        } else if ns.discarded_too_much() {
+          break ns.give_up(prop)
+        } else {
+          continue ns.run_single_test(prop)
+        }
+    }
   }
 }
 
