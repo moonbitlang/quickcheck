@@ -9,9 +9,8 @@ pub fn enqueue(Queue, Int) -> Queue
 // Errors
 
 // Types and methods
-type Queue
+type Queue derive(Show)
 pub fn Queue::is_empty(Self) -> Bool
-pub impl Show for Queue
 
 // Type aliases
 
