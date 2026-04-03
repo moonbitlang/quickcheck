@@ -12,15 +12,17 @@ pub impl Enumerable for Bool with enumerate() {
 
 ///|
 pub impl Enumerable for Int with enumerate() {
-  letrec int_parts_from: (Int) -> @lazy.LazyList[Finite[Int]] = n => @lazy.Cons(
-    fin_pure(n),
-    @lazy.LazyRef::from_thunk(fn() {
-      @lazy.Cons(
-        fin_pure(-n),
-        @lazy.LazyRef::from_thunk(fn() { int_parts_from(n + 1) }),
-      )
-    }),
-  )
+  letrec int_parts_from: (Int) -> @lazy.LazyList[Finite[Int]] = n => {
+    @lazy.Cons(
+      fin_pure(n),
+      @lazy.LazyRef::from_thunk(fn() {
+        @lazy.Cons(
+          fin_pure(-n),
+          @lazy.LazyRef::from_thunk(fn() { int_parts_from(n + 1) }),
+        )
+      }),
+    )
+  }
 
   {
     parts: @lazy.Cons(
@@ -32,15 +34,17 @@ pub impl Enumerable for Int with enumerate() {
 
 ///|
 pub impl Enumerable for Int64 with enumerate() {
-  letrec int64_parts_from: (Int64) -> @lazy.LazyList[Finite[Int64]] = n => @lazy.Cons(
-    fin_pure(n),
-    @lazy.LazyRef::from_thunk(fn() {
-      @lazy.Cons(
-        fin_pure(-n),
-        @lazy.LazyRef::from_thunk(fn() { int64_parts_from(n + 1) }),
-      )
-    }),
-  )
+  letrec int64_parts_from: (Int64) -> @lazy.LazyList[Finite[Int64]] = n => {
+    @lazy.Cons(
+      fin_pure(n),
+      @lazy.LazyRef::from_thunk(fn() {
+        @lazy.Cons(
+          fin_pure(-n),
+          @lazy.LazyRef::from_thunk(fn() { int64_parts_from(n + 1) }),
+        )
+      }),
+    )
+  }
 
   {
     parts: @lazy.Cons(

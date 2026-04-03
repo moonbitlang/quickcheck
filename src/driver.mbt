@@ -293,10 +293,11 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
           continue parts, None, 0, remaining, idx
         } else {
           let val = (finite.fIndex)(BigInt::from_int(j))
-          let prop = map_total_result(
-            counterexample(f(val), val.to_string()),
-            res => { ..res, expect, abort },
-          )
+          let prop = map_total_result(counterexample(f(val), val.to_string()), res => {
+            ..res,
+            expect,
+            abort,
+          })
           let rnd1 = st.random_state.split()
           let rnd2 = st.random_state
           let { val: res, .. } = prop.0.run(idx, rnd1)
