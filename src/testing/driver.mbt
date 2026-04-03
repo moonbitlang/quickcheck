@@ -234,7 +234,19 @@ test "abort" {
 priv enum Nat {
   Zero
   Succ(Nat)
-} derive(Show)
+}
+
+///|
+impl Show for Nat with output(self, logger) {
+  match self {
+    Zero => logger.write_string("Zero")
+    Succ(n) => {
+      logger.write_string("Succ(")
+      n.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {

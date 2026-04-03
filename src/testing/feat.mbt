@@ -59,7 +59,25 @@ test "enumerate int" {
 priv enum SingleTree {
   Leaf(Bool)
   Node(Bool, SingleTree)
-} derive(Show)
+}
+
+///|
+impl Show for SingleTree with output(self, logger) {
+  match self {
+    Leaf(b) => {
+      logger.write_string("Leaf(")
+      b.output(logger)
+      logger.write_string(")")
+    }
+    Node(b, t) => {
+      logger.write_string("Node(")
+      b.output(logger)
+      logger.write_string(", ")
+      t.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
 
 ///|
 impl @feat.Enumerable for SingleTree with enumerate() {
@@ -80,12 +98,35 @@ fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
 priv enum Tree[T] {
   Leaf(T)
   Branch(Forest[T])
-} derive(Show)
+}
 
 ///|
 priv struct Forest[T] {
   forest : List[Tree[T]]
-} derive(Show)
+}
+
+///|
+impl[T : Show] Show for Tree[T] with output(self, logger) {
+  match self {
+    Leaf(x) => {
+      logger.write_string("Leaf(")
+      x.output(logger)
+      logger.write_string(")")
+    }
+    Branch(f) => {
+      logger.write_string("Branch(")
+      f.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
+
+///|
+impl[T : Show] Show for Forest[T] with output(self, logger) {
+  logger.write_string("{forest: ")
+  self.forest.output(logger)
+  logger.write_string("}")
+}
 
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {

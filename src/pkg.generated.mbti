@@ -199,13 +199,14 @@ pub impl Testable for Discard
 pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
-} derive(Show)
+}
 pub fn[T, U] Equivalence::ap(Self[(T) -> U], Self[T]) -> Self[U]
 pub fn[T, U] Equivalence::bind(Self[T], (T) -> Self[U]) -> Self[U]
 pub fn[T] Equivalence::equal_by(Self[T], (T, T) -> Bool) -> Bool
 pub fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
 pub fn[T] Equivalence::new(T, T) -> Self[T]
+pub impl[T : Show] Show for Equivalence[T]
 
 pub(all) enum Expected {
   Fail

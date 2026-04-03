@@ -2,7 +2,16 @@
 pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
-} derive(Show)
+}
+
+///|
+pub impl[T : Show] Show for Equivalence[T] with output(self, logger) {
+  logger.write_string("{lhs: ")
+  self.lhs.output(logger)
+  logger.write_string(", rhs: ")
+  self.rhs.output(logger)
+  logger.write_string("}")
+}
 
 ///|
 pub fn[T] Equivalence::new(lhs : T, rhs : T) -> Equivalence[T] {
