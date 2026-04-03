@@ -102,11 +102,13 @@ pub fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
 ///|
 pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
   let acc : Array[Finite[M]] = []
-  loop val {
-    Nil => break ()
-    Cons(x, xs) => {
-      acc.push(x)
-      continue xs.force()
+  for cur = val {
+    match cur {
+      Nil => break
+      Cons(x, xs) => {
+        acc.push(x)
+        continue xs.force()
+      }
     }
   }
   let fin = fin_concat(acc)
@@ -121,9 +123,11 @@ pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
   (
     self.fCard,
-    loop (self.fCard, @list.empty()) {
-      (0, acc) => acc
-      (n, acc) => continue (n - 1, acc.add((self.fIndex)(n)))
+    for n = self.fCard, acc = @list.empty() {
+      match n {
+        0 => break acc
+        _ => continue n - 1, acc.add((self.fIndex)(n))
+      }
     },
   )
 }

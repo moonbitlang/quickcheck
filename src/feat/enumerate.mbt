@@ -25,14 +25,16 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 
 ///|
 pub fn[T] Enumerate::en_index(self : Enumerate[T], idx : BigInt) -> T {
-  loop (self.parts, idx) {
-    (Nil, _) => abort("index out of bounds")
-    (Cons(f, rest), i) =>
-      if i < f.fCard {
-        (f.fIndex)(i)
-      } else {
-        continue (rest.force(), i - f.fCard)
-      }
+  for parts = self.parts, i = idx {
+    match parts {
+      Nil => abort("index out of bounds")
+      Cons(f, rest) =>
+        if i < f.fCard {
+          break (f.fIndex)(i)
+        } else {
+          continue rest.force(), i - f.fCard
+        }
+    }
   }
 }
 
