@@ -2,7 +2,7 @@
 priv enum Nat {
   Zero
   Succ(Nat)
-} derive(Show)
+} derive(Debug)
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {

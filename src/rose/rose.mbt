@@ -4,7 +4,7 @@
 pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn[T] new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
