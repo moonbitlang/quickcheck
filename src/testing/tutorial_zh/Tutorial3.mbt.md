@@ -340,7 +340,7 @@ fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
 test "classify list distribution" {
   let r = @qc.quick_check_silence(
     @qc.Arrow(fn(xs : @list.List[Int]) {
-      @qc.Arrow(t3_prop_rev_list)
+      t3_prop_rev_list(xs)
       |> @qc.classify(xs.length() > 5, "long list")
       |> @qc.classify(xs.length() <= 5, "short list")
     }),
@@ -355,6 +355,8 @@ test "classify list distribution" {
   )
 }
 ```
+
+这里有一个很容易踩坑的点：`@qc.Arrow(f)` 并不只是把某个现成值包起来，而是会为 `f` 再引入一个新的量化样本。所以如果我们在外层 `@qc.Arrow` 里面再写 `@qc.Arrow(t3_prop_rev_list)`，内层性质测试到的其实是另一份新生成的列表，而不是外层已经绑定好的 `xs`。这样一来，分类标签描述的是外层样本，真正运行的性质却落在内层样本上，两者就错位了。凡是想对“当前这个样本”做 `classify` 或 `label`，都应该像这里一样直接写 `t3_prop_rev_list(xs)`。
 
 这个输出传达的信息并不在于性质通过了，而在于：
 当前默认生成器明显更偏向较长的列表。

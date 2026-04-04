@@ -131,11 +131,25 @@ test "label" {
 }
 
 ///|
+test "nested arrow uses fresh sample" {
+  // The outer forall fixes x = 0, but the nested Arrow quantifies a fresh Int.
+  // If Arrow reused x, then y == x would always pass. The expected failure shows
+  // that nested Arrow does not share the outer sample.
+  inspect(
+    @qc.quick_check_silence(
+      @qc.forall(@qc.pure(0), x => @qc.Arrow((y : Int) => y == x)),
+      expect=Fail,
+    ),
+    content="+++ [2/0/100] Ok! Failed as expected.",
+  )
+}
+
+///|
 test "classes" {
   inspect(
     @qc.quick_check_silence(
       @qc.Arrow(fn(x : List[Int]) {
-        @qc.Arrow(prop_rev)
+        prop_rev(x)
         |> @qc.classify(x.length() > 5, "long list")
         |> @qc.classify(x.length() <= 5, "short list")
       }),
@@ -152,8 +166,8 @@ test "classes" {
 test "label + classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow(fn(x : List[String]) {
-        @qc.Arrow(prop_rev)
+      @qc.Arrow(x => {
+        prop_rev(x)
         |> @qc.classify(x.length() > 5, "long list")
         |> @qc.classify(x.length() <= 5, "short list")
         |> @qc.label("length is \{x.length()}")
