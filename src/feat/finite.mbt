@@ -126,7 +126,7 @@ pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
     for n = self.fCard, acc = @list.empty() {
       match n {
         0 => break acc
-        _ => continue n - 1, acc.add((self.fIndex)(n))
+        _ => continue n - 1, acc.add((self.fIndex)(n - 1))
       }
     },
   )
@@ -144,4 +144,10 @@ pub fn fin_finite(i : BigInt) -> Finite[BigInt] {
   } else {
     { fCard: i, fIndex: fn(j) { j } }
   }
+}
+
+///|
+test "to_array" {
+  inspect(fin_finite(5).to_array(), content="(5, @list.from_array([0, 1, 2, 3, 4]))")
+  inspect((fin_empty() : Finite[Unit]).to_array(), content="(0, @list.from_array([]))")
 }
