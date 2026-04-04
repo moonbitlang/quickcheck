@@ -1,10 +1,11 @@
 import {
   "moonbitlang/quickcheck" @qc,
-  "moonbitlang/quickcheck/feat" @feat,
+  "moonbitlang/quickcheck/feat",
   "moonbitlang/core/quickcheck" @coreqc,
-  "moonbitlang/core/quickcheck/splitmix" @splitmix,
+  "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/core/list",
-  "moonbitlang/core/immut/sorted_set" @sorted_set,
+  "moonbitlang/core/immut/sorted_set",
+  "moonbitlang/core/debug",
 } for "test"
 
 warnings = "-28"
