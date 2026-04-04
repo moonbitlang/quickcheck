@@ -54,10 +54,14 @@ moon install
 To use the library, you need to import it in your `moon.pkg.json` file,
 and for convenience we give an alias `qc` to the library:
 
-```json
-{
-  "import": [{ "path": "moonbitlang/quickcheck", "alias": "qc" }]
+```
+import {
+  "moonbitlang/quickcheck" @qc
 }
+
+import {
+  "moonbitlang/quickcheck"
+} for "test" // for test
 ```
 
 ### First Look
@@ -96,7 +100,9 @@ this is easily archived by the `quick_check_fn` function:
 ///|
 test {
   @qc.quick_check_fn(prop_reverse_identity)
-  // equivalent to quick_check!(Arrow(prop_reverse_identity))
+  // equivalent to 
+  // @qc.quick_check(@qc.Arrow(prop_reverse_identity))
+
 }
 ```
 
@@ -396,7 +402,7 @@ This section summarizes some common mistakes in using QuickCheck:
 
 ### Generators
 
-Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can use your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
+Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can roll your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
 
 Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains a single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
 
@@ -439,10 +445,10 @@ let g1 : @qc.Gen[Int] = @qc.Gen::new(
 )
 
 ///|
-let _g2 : @qc.Gen[Int] = g1.fmap(fn(x) { x + 1 })
+let _g2 : @qc.Gen[Int] = g1.fmap(x => x + 1)
 
 ///|
-let _g3 : @qc.Gen[String] = g1.fmap(fn(x) { x.to_string() })
+let _g3 : @qc.Gen[String] = g1.fmap(x => x.to_string())
 ```
 
 Or create a dependent generator:
@@ -456,7 +462,8 @@ let dg1 : @qc.Gen[Int] = @qc.Gen::new(
 )
 
 ///|
-let _dg2 : @qc.Gen[Int] = dg1.bind(fn(x : Int) {
+let _dg2 : @qc.Gen[Int] = dg1.bind(x => {
+  // TODO(upstream) <| does not work here
   if x == 0 {
     @qc.pure(100)
   } else {
@@ -507,7 +514,7 @@ let arr : Array[Int] = Array::makei(20, i => gen.sample(size=i))
 
 ///|
 test "sized" {
-  inspect(
+  debug_inspect(
     arr,
     content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]",
   )
@@ -518,7 +525,7 @@ The purpose of size control is to ensure that test cases are large enough to rev
 
 #### Default Generators
 
-QuickCheck defines default test data generators and shrinkers for some often used types (By trait `Arbitrary` and `Shrink`). You do not need to define or apply these explicitly for every property because QuickCheck can provide a property with appropriate generators and shrinkers for the property's arguments. But if you are required to do so, you can use the `forall` for explicitly universal quantification.
+QuickCheck defines default test data generators and shrinkers for some often used types (By trait `Arbitrary` and `Shrink`). You do not need to define or apply these explicitly for every property because QuickCheck can provide a property with appropriate generators and shrinkers for the property's arguments. But if you are required to do so, you can use the `forall` for explicit universal quantification.
 
 ```mbt check
 ///|
@@ -547,11 +554,14 @@ Recall the `remove` function we wanted to test before. The QuickCheck do report 
 ///|
 test {
   @qc.quick_check(
-    @qc.forall(@qc.Gen::spawn(), fn(a : Array[Int]) {
-      @qc.forall(@qc.one_of_array(a), fn(y : Int) { !remove(a, y).contains(y) })
-      |> @qc.filter(a.length() != 0)
+    @qc.forall(@qc.Gen::spawn(), (a : Array[Int]) => {
+      @qc.filter(
+        @qc.forall(@qc.one_of_array(a), y => !remove(a, y).contains(y)),
+        a.length() != 0,
+      )
     }),
-    expect=Fail, // We expect this test to fail because of the bug in the remove function
+    expect=Fail,
+    // We expect this test to fail because of the bug in the remove function
   )
 }
 ```
@@ -602,13 +612,13 @@ Running this test, we find that all tests passed. Now we have strong evidence th
 
 ### Classifying Data
 
-We may also be interest in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
+We may also be interested in the distribution of the generated data: sometimes the generator may produce trivial data that does not help us to find the bugs. We want to find out what data is generated and how often in order to improve the generator. QuickCheck provides functions like `label`, `collect` and `classify` to achieve this.
 
 ```mbt check
 ///|
 test "classes" {
   @qc.quick_check_fn((x : List[Int]) => {
-    @qc.Arrow(prop_rev)
+    prop_rev(x)
     |> @qc.classify(x.length() > 5, "long list")
     |> @qc.classify(x.length() <= 5, "short list")
   })
@@ -629,7 +639,7 @@ The `label` function takes a string and classifies the test case with the string
 ///|
 test "label" {
   @qc.quick_check_fn(fn(x : List[Int]) {
-    @qc.Arrow(prop_rev)
+    prop_rev(x)
     |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
   })
 }
