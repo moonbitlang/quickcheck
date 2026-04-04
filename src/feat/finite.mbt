@@ -148,6 +148,12 @@ pub fn fin_finite(i : BigInt) -> Finite[BigInt] {
 
 ///|
 test "to_array" {
-  inspect(fin_finite(5).to_array(), content="(5, @list.from_array([0, 1, 2, 3, 4]))")
-  inspect((fin_empty() : Finite[Unit]).to_array(), content="(0, @list.from_array([]))")
+  inspect(
+    fin_finite(5).to_array(),
+    content="(5, @list.from_array([0, 1, 2, 3, 4]))",
+  )
+  inspect(
+    (fin_empty() : Finite[Unit]).to_array(),
+    content="(0, @list.from_array([]))",
+  )
 }
