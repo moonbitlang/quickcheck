@@ -26,7 +26,7 @@ In PBT, the commonest starting point is modeling the range of values for primiti
 ///|
 test "gen @qc.int_range invariant" {
   let gen = @qc.int_range(-10, 10)
-  let prop = @qc.forall(gen, fn(x) { x >= -10 && x <= 10 })
+  let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
@@ -37,7 +37,7 @@ Generators are not always "random". We can also construct a constant generator w
 ///|
 test "gen @qc.pure value" {
   let gen = @qc.pure(7)
-  let prop = @qc.forall(gen, fn(x) { x == 7 })
+  let prop = @qc.forall(gen, x => x == 7)
   @qc.quick_check(prop)
 }
 ```
@@ -52,16 +52,11 @@ enum Color {
   Red
   Green
   Blue
-} derive(Arbitrary)
+} derive(Arbitrary, Debug)
 
-///|
-impl Show for Color with output(self, logger) {
-  match self {
-    Red => logger.write_string("Red")
-    Green => logger.write_string("Green")
-    Blue => logger.write_string("Blue")
-  }
-}
+// impl Show for Color with output(self, logger) {
+//   logger.write_string("\{to_repr(self)}")
+// }
 ```
 
 If a type already has an `Arbitrary` instance, then `@qc.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
@@ -71,13 +66,13 @@ If a type already has an `Arbitrary` instance, then `@qc.Gen::spawn` can produce
 test "gen spawn for arbitrary" {
   let gc : @qc.Gen[Color] = @qc.Gen::spawn()
   let gen : @qc.Gen[Int] = @qc.Gen::spawn()
-  inspect(
+  debug_inspect(
     gc.samples(size=5),
     content=(
       #|[Green, Green, Green, Blue, Red]
     ),
   )
-  inspect(
+  debug_inspect(
     gen.samples(),
     content=(
       #|[6, 4, -6, -3, 0, 2, -8, 4, 5, 2]
@@ -129,8 +124,8 @@ The last key step in these building blocks is transformation. `@qc.Gen::fmap` le
 ```mbt check
 ///|
 test "gen fmap transform" {
-  let gen = @qc.int_range(0, 50).fmap(fn(x) { x * 2 })
-  let prop = @qc.forall(gen, fn(x) { x % 2 == 0 })
+  let gen = @qc.int_range(0, 50).fmap(x => x * 2)
+  let prop = @qc.forall(gen, x => x % 2 == 0)
   @qc.quick_check(prop)
 }
 ```
@@ -147,7 +142,7 @@ When the domain has multiple categories or paths, `@qc.one_of` is the directest 
 ///|
 test "gen @qc.one_of mix" {
   let gen = @qc.one_of([@qc.pure(0), @qc.pure(1), @qc.int_range(-10, 10)])
-  let prop = @qc.forall(gen, fn(x) { x >= -10 && x <= 10 })
+  let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
@@ -161,7 +156,7 @@ test "gen @qc.frequency weighted" {
     (6, @qc.int_range(-3, 3)),
     (1, @qc.int_range(-30, 30)),
   ])
-  let prop = @qc.forall(gen, fn(x) { x >= -30 && x <= 30 })
+  let prop = @qc.forall(gen, x => x >= -30 && x <= 30)
   @qc.quick_check(prop)
 }
 ```
@@ -173,7 +168,7 @@ For discrete enumerations, `@qc.one_of_array` and `@qc.one_of_list` are more nat
 test "gen @qc.one_of_array enum" {
   let methods : Array[String] = ["GET", "POST", "PUT"]
   let gen = @qc.one_of_array(methods)
-  let prop = @qc.forall(gen, fn(m) { methods.contains(m) })
+  let prop = @qc.forall(gen, m => methods.contains(m))
   @qc.quick_check(prop)
 }
 ```
@@ -185,10 +180,10 @@ When multiple fields have dependencies, `@qc.Gen::bind` allows us to encode thos
 ```mbt check
 ///|
 test "gen bind dependent" {
-  let gen = @qc.int_range(-10, 10).bind(fn(base) {
-    @qc.int_range(0, 5).fmap(fn(delta) { (base, base + delta) })
+  let gen = @qc.int_range(-10, 10).bind(base => {
+    @qc.int_range(0, 5).fmap(delta => (base, base + delta))
   })
-  let prop = @qc.forall(gen, fn(p) {
+  let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a <= b && b - a <= 5
   })
@@ -211,8 +206,8 @@ This section discusses how the `size` parameter affects data size and test compl
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @qc.sized(fn(n) { @qc.small_int().list_with_size(n) })
-  let prop = @qc.forall(gen, fn(xs) { xs.length() >= 0 })
+  let gen = @qc.sized(n => @qc.small_int().list_with_size(n))
+  let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
 ```
@@ -222,10 +217,11 @@ When we want "data structures to grow in sync with `size`", `@qc.sized` is the m
 ```mbt check
 ///|
 test "@qc.sized array with explicit length" {
-  let gen = @qc.sized(fn(n) {
-    let len = if n < 0 { 0 } else { n }
-    @qc.tuple(@qc.pure(len), @qc.int_range(0, 9).array_with_size(len))
-  })
+  // <| works here
+  let gen = @qc.sized <| n => {
+      let len = if n < 0 { 0 } else { n }
+      @qc.tuple(@qc.pure(len), @qc.int_range(0, 9).array_with_size(len))
+    }
   inspect(
     gen.sample(),
     content=(
@@ -240,9 +236,9 @@ When we want to restrict size without changing the generator’s structure, we c
 ```mbt check
 ///|
 test "resize clamps size" {
-  let gen = @qc.sized(fn(n) { @qc.int_range(0, 9).list_with_size(n) })
+  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
   let small = gen.resize(5)
-  let prop = @qc.forall(small, fn(xs) { xs.length() == 5 })
+  let prop = @qc.forall(small, xs => xs.length() == 5)
   @qc.quick_check(prop)
 }
 ```
@@ -252,9 +248,9 @@ If we want size to vary with `size` but grow less steeply, we can use `@qc.Gen::
 ```mbt check
 ///|
 test "scale slows growth" {
-  let gen = @qc.sized(fn(n) { @qc.int_range(0, 9).list_with_size(n) })
-  let scaled = gen.scale(fn(n) { n / 2 })
-  let prop = @qc.forall(scaled, fn(xs) { xs.length() <= 20 })
+  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
+  let scaled = gen.scale(n => n / 2)
+  let prop = @qc.forall(scaled, xs => xs.length() <= 20)
   @qc.quick_check(prop, max_size=40)
 }
 ```
@@ -281,11 +277,13 @@ test "combinator sorted array with filter" {
   }
 
   let base = @qc.int_range(-8, 8).array_with_size(3)
-  let prop = @qc.forall(base, fn(arr) {
-    @qc.forall(@qc.one_of_array(arr), fn(x) {
-      arr[0] <= x && x <= arr[arr.length() - 1]
-    })
-    |> @qc.filter(is_non_decreasing(arr))
+  let prop = @qc.forall(base, arr => {
+    @qc.filter(
+      @qc.forall(@qc.one_of_array(arr), x => {
+        arr[0] <= x && x <= arr[arr.length() - 1]
+      }),
+      is_non_decreasing(arr),
+    )
   })
 
   @qc.quick_check(prop, discard_ratio=20)
@@ -300,8 +298,8 @@ When the discard rate is high, it’s usually better to move constraints into th
 ///|
 test "combinator sorted array constructor" {
   let gen = @qc.sorted_array(5, @qc.int_range(-30, 30))
-  let prop = @qc.forall(gen, fn(arr) {
-    @qc.forall(@qc.one_of_array(arr), fn(x) {
+  let prop = @qc.forall(gen, arr => {
+    @qc.forall(@qc.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     })
   })
@@ -317,19 +315,20 @@ After introducing these combinators, it’s time to get to the main topic: desig
 
 At the core, writing QuickCheck generators by hand boils down to two goals:
 
-* Encode the "valid input space" into generation—don’t rely on filtering.
-* Keep distribution and size (`size`) controllable, so tests can run efficiently while still covering the structural corners you care about.
+- Encode the "valid input space" into generation—don’t rely on filtering.
+- Keep distribution and size (`size`) controllable, so tests can run efficiently while still covering the structural corners you care about.
 
 ### Size as a First-Class Parameter
 
 QuickCheck’s `Gen` has an implicit `size` parameter: as the number of tests increases, `size` gradually grows. When writing generators for recursive structures, the most important thing is that each recursive layer must consume `size`. Otherwise, you either get infinite recursion or structures that explode in size and slow tests to a crawl.
 
-```mbt nocheck
-fn gen_t() -> @qc.Gen[T] {
+```mbt check
+///|
+fn[T] _gen_t() -> @qc.Gen[T] {
   letrec go = (s : Int) => {
     match s {
-      0 => base case
-      n => recursive case, can call go(n - 1) for smaller substructures
+      0 => ... // base case
+      _n => ... // recursive case, can call go(n - 1) for smaller substructures
     }
   }
   @qc.sized(go)
@@ -350,19 +349,8 @@ enum Tree[T] {
 } derive(Debug)
 
 ///|
-impl[T : Show] Show for Tree[T] with output(self, logger) {
-  match self {
-    Leaf => logger.write_string("Leaf")
-    Node(left, val, right) => {
-      logger.write_string("Node(")
-      left.output(logger)
-      logger.write_string(", ")
-      val.output(logger)
-      logger.write_string(", ")
-      right.output(logger)
-      logger.write_string(")")
-    }
-  }
+impl[T : Debug] Show for Tree[T] with output(self, logger) {
+  logger.write_string("\{to_repr(self)}")
 }
 ```
 
@@ -397,7 +385,7 @@ fn[T] inorder(tree : Tree[T]) -> Array[T] {
 test "generate BST" {
   let int_arr = @qc.int_range(-100, 100).array_with_size(10)
   let gen_bst = int_arr.fmap(Tree::from_array)
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })
@@ -421,8 +409,8 @@ fn[T] from_sorted(arr : ArrayView[T]) -> Tree[T] {
 ///|
 test "generate balanced BST" {
   let int_arr = @qc.int_range(-100, 100).array_with_size(10)
-  let gen_bst = int_arr.fmap(fn(arr) { arr..sort()..dedup() |> from_sorted })
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let gen_bst = int_arr.fmap(arr => arr..sort()..dedup() |> from_sorted)
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })
@@ -437,7 +425,7 @@ The next approach is **range-based recursive generation**, where we grow the tre
 ```mbt check
 ///|
 fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
-  letrec go = (n : Int, lo : Int, hi : Int) => {
+  fn go(n : Int, lo : Int, hi : Int) {
     guard lo <= hi && n > 0 else { @qc.pure(Leaf) }
     @qc.frequency([
       (1, @qc.pure(Leaf)),
@@ -460,7 +448,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
 ///|
 test "generate ranged BST" {
   let gen_bst = gen_bst_ranged(-100, 100)
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })
