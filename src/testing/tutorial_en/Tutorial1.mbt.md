@@ -64,7 +64,7 @@ When we need to actively control the data distribution—or when the default `Ar
 ///|
 test "@qc.forall with @qc.int_range" {
   let gen = @qc.int_range(-10, 10)
-  let prop = @qc.forall(gen, fn(x) { x + 1 > x })
+  let prop = @qc.forall(gen, x => x + 1 > x)
   @qc.quick_check(prop)
 }
 ```
@@ -90,7 +90,7 @@ Failure handling is also part of the interface semantics: `@qc.quick_check` rais
 ```mbt check
 ///|
 test "@qc.quick_check_silence" {
-  let prop = @qc.forall(@qc.int_range(0, 5), fn(x) { x >= 0 })
+  let prop = @qc.forall(@qc.int_range(0, 5), x => x >= 0)
   inspect(@qc.quick_check_silence(prop), content="+++ [100/0/100] Ok, passed!")
 }
 ```
@@ -113,7 +113,7 @@ QuickCheck provides built-in properties for common algebraic laws, which directl
 ///|
 test "@qc.commutative for add" {
   let gen = @qc.tuple(@qc.int_range(-200, 200), @qc.int_range(-200, 200))
-  let prop = @qc.forall(gen, @qc.commutative(fn(a, b) { a + b }))
+  let prop = @qc.forall(gen, @qc.commutative((a, b) => a + b))
   @qc.quick_check(prop)
 }
 ```
@@ -240,26 +240,26 @@ As an example, consider a FIFO queue. We specify operation signatures and axioms
 declare fn empty() -> Queue
 
 ///|
-declare fn enqueue(x : Int, q : Queue) -> Queue
+declare fn Queue::enqueue(q : Queue, x : Int) -> Queue
 
 ///|
-declare fn is_empty(q : Queue) -> Bool
+declare fn Queue::is_empty(q : Queue) -> Bool
 
 ///|
-declare fn front(q : Queue) -> Int
+declare fn Queue::front(q : Queue) -> Int
 
 ///|
-declare fn dequeue(q : Queue) -> Queue
+declare fn Queue::dequeue(q : Queue) -> Queue
 ```
 
 Axioms:
 
-- Q1: `is_empty(empty()) == true`
-- Q2: `is_empty(enqueue(x, q)) == false`
-- Q3: `front(enqueue(x, empty())) == x`
-- Q4: `!is_empty(q) => front(enqueue(x, q)) == front(q)`
-- Q5: `dequeue(enqueue(x, empty())) == empty()`
-- Q6: `!is_empty(q) => dequeue(enqueue(x, q)) == enqueue(x, dequeue(q))`
+- Q1: `empty().is_empty() == true`
+- Q2: `q.enqueue(x).is_empty() == false`
+- Q3: `empty().enqueue(x).front() == x`
+- Q4: `!q.is_empty() => q.enqueue(x).front() == q.front()`
+- Q5: `empty().enqueue(x).dequeue() == empty()`
+- Q6: `!q.is_empty() => q.enqueue(x).dequeue() == q.dequeue().enqueue(x)`
 
 A very naive testing strategy is to implement `Queue` and test these axioms directly:
 
@@ -269,7 +269,7 @@ A very naive testing strategy is to implement `Queue` and test these axioms dire
 test "property Q2" {
   let prop = @qc.forall(@qc.tuple(@qc.small_int(), gen_queue()), fn(p) {
     let (x, q) = p
-    is_empty(enqueue(x, q)) == false
+    q.enqueue(x).is_empty() == false
   })
   @qc.quick_check(prop)
 }
@@ -302,7 +302,7 @@ fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
 }
 
 ///|
-fn enqueue(x : Int, q : Queue) -> Queue {
+fn Queue::enqueue(q : Queue, x : Int) -> Queue {
   bq(q.f, q.r.prepend(x))
 }
 
@@ -312,17 +312,17 @@ fn empty() -> Queue {
 }
 
 ///|
-fn is_empty(q : Queue) -> Bool {
+fn Queue::is_empty(q : Queue) -> Bool {
   q.f.is_empty()
 }
 
 ///|
-fn front(q : Queue) -> Int {
+fn Queue::front(q : Queue) -> Int {
   q.f.unsafe_last()
 }
 
 ///|
-fn dequeue(q : Queue) -> Queue {
+fn Queue::dequeue(q : Queue) -> Queue {
   let { f, r } = q
   bq(f.unsafe_tail(), r)
 }
@@ -343,37 +343,37 @@ Along with:
 ```mbt check
 ///|
 fn q1() -> Bool {
-  is_empty(empty()) == true
+  empty().is_empty() == true
 }
 
 ///|
 fn q2(xq : (Int, Queue)) -> Bool {
   let (x, q) = xq
-  is_empty(enqueue(x, q)) == false
+  q.enqueue(x).is_empty() == false
 }
 
 ///|
 fn q3(x : Int) -> Bool {
-  front(enqueue(x, empty())) == x
+  empty().enqueue(x).front() == x
 }
 
 ///|
 fn q4(xq : (Int, Queue)) -> Bool {
   let (x, q) = xq
-  guard !is_empty(q) else { true }
-  front(enqueue(x, q)) == front(q)
+  guard !q.is_empty() else { true }
+  q.enqueue(x).front() == q.front()
 }
 
 ///|
 fn q5(x : Int) -> Bool {
-  dequeue(enqueue(x, empty())) == empty()
+  empty().enqueue(x).dequeue() == empty()
 }
 
 ///|
 fn q6(xq : (Int, Queue)) -> Bool {
   let (x, q) = xq
-  guard !is_empty(q) else { true }
-  dequeue(enqueue(x, q)) == enqueue(x, dequeue(q))
+  guard !q.is_empty() else { true }
+  q.enqueue(x).dequeue() == q.dequeue().enqueue(x)
 }
 ```
 
@@ -382,13 +382,13 @@ Because `==` is defined as “convert to lists and compare”—i.e. a form of *
 ```mbt check
 ///|
 fn gen_int_list() -> @qc.Gen[@list.List[Int]] {
-  @qc.sized(fn(n) { @qc.small_int().list_with_size(n) })
+  @qc.sized(n => @qc.small_int().list_with_size(n))
 }
 
 ///|
 fn gen_queue() -> @qc.Gen[Queue] {
   let gl = gen_int_list()
-  gl.bind(fn(f) { gl.bind(fn(r) { @qc.pure(bq(f, r)) }) })
+  gl.bind(f => gl.bind(r => @qc.pure(bq(f, r))))
 }
 
 ///|
@@ -417,7 +417,7 @@ To mitigate this, we introduce **operational invariance** testing: when two valu
 fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
   let len = xs.length()
   let gen_i = if len <= 0 { @qc.pure(0) } else { @qc.int_range(0, len + 1) }
-  gen_i.fmap(fn(i) {
+  gen_i.fmap(i => {
     let xs1 = xs.take(i)
     let xs2 = xs.drop(i)
     bq(xs1, xs2.rev())
@@ -426,8 +426,8 @@ fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
 
 ///|
 fn gen_equiv_queue() -> @qc.Gen[@qc.Equivalence[Queue]] {
-  gen_int_list().bind(fn(z) {
-    from_list(z).bind(fn(x) { from_list(z).fmap(fn(y) { { lhs: x, rhs: y } }) })
+  gen_int_list().bind(z => {
+    from_list(z).bind(x => from_list(z).fmap(y => { lhs: x, rhs: y }))
   })
 }
 
@@ -435,10 +435,10 @@ fn gen_equiv_queue() -> @qc.Gen[@qc.Equivalence[Queue]] {
 test "queue invariance" {
   let prop = @qc.forall(gen_equiv_queue(), eqv => {
     let { lhs, rhs } = eqv
-    guard !is_empty(lhs) else { true }
-    front(lhs) == front(rhs)
+    guard !lhs.is_empty() else { true }
+    lhs.front() == rhs.front()
   })
-  @qc.quick_check(prop, expect=@qc.Expected::Fail)
+  @qc.quick_check(prop, expect=Fail)
 }
 ```
 
@@ -448,17 +448,17 @@ To that end, we propose a second approach: systematically deriving tests through
 
 The key observation is: if we want `==` to be a congruence for all operations, in principle we want to verify that for every operation `f`:
 
-[
+$$
 t \equiv t' \implies f(\ldots, t, \ldots) \equiv f(\ldots, t', \ldots)
-]
+$$
 
 The difficulty is that it is hard to generate sufficiently rich equivalence pairs (t \equiv t'). But notice: if the property truly fails, then along any rewrite sequence from (t) to (t'), there must exist some step—some **single axiom application**—that already causes the outer operation’s results to differ. Otherwise, if all intermediate results were equal, transitivity would imply the final results are also equal, contradicting the failure.
 
 Therefore, our eventual testing strategy is: for a chosen operation `f`, an argument position `i`, and an axiom `lhs = rhs`, we construct the property:
 
-[
+$$
 f(x_1, \cdots, \text{lhs}(y_1,\cdots, y_m), \cdots, x_n) = f(x_1, \cdots, \text{rhs}(y_1,\cdots, y_m), \cdots, x_n)
-]
+$$
 
 - (y_j) are variables appearing in the axiom; we can generate random values for them.
 - (x_k) are the variables for other argument positions of `f`; we fill them with random values and keep them identical on both sides, because we only care about the substitution effect between `lhs` and `rhs`.
@@ -467,27 +467,27 @@ f(x_1, \cdots, \text{lhs}(y_1,\cdots, y_m), \cdots, x_n) = f(x_1, \cdots, \text{
 ///|
 fn enqueue_1_q3(xq : (Int, Queue)) -> Bool {
   let (x, q) = xq
-  let lhs = front(enqueue(x, empty()))
+  let lhs = empty().enqueue(x).front()
   let rhs = x
-  enqueue(lhs, q) == enqueue(rhs, q)
+  q.enqueue(lhs) == q.enqueue(rhs)
 }
 
 ///|
 fn enqueue_1_q4(xqp : (Int, Queue, Queue)) -> Bool {
   let (x, q, p) = xqp
-  guard !is_empty(q) else { true }
-  let lhs = front(enqueue(x, q))
-  let rhs = front(q)
-  enqueue(lhs, p) == enqueue(rhs, p)
+  guard !q.is_empty() else { true }
+  let lhs = q.enqueue(x).front()
+  let rhs = q.front()
+  p.enqueue(lhs) == p.enqueue(rhs)
 }
 
 ///|
 fn front_1_q6(xq : (Int, Queue)) -> Bool {
   let (x, q) = xq
-  guard !is_empty(q) else { true }
-  let lhs = dequeue(enqueue(x, q))
-  let rhs = enqueue(x, dequeue(q))
-  front(lhs) == front(rhs)
+  guard !q.is_empty() else { true }
+  let lhs = q.enqueue(x).dequeue()
+  let rhs = q.dequeue().enqueue(x)
+  lhs.front() == rhs.front()
 }
 
 ///|
