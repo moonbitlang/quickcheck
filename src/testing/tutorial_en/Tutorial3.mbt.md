@@ -96,13 +96,13 @@ Here is a simple example. Suppose the input domain is "non-negative even integer
 ```mbt check
 ///|
 fn shrink_even_nat(x : Int) -> Iter[Int] {
-  @qc.Shrink::shrink(x).filter(fn(y) { y >= 0 && y % 2 == 0 })
+  @qc.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
 ///|
 test "forall_shrink keeps even invariant" {
-  let gen = @qc.int_range(0, 100).fmap(fn(x) { x * 2 })
-  let prop = @qc.forall_shrink(gen, shrink_even_nat, fn(x) { x < 20 })
+  let gen = @qc.int_range(0, 100).fmap(x => x * 2)
+  let prop = @qc.forall_shrink(gen, shrink_even_nat, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
 ```
@@ -114,8 +114,15 @@ Here the generator only produces even numbers, and the custom shrinker ensures t
 ```mbt check
 ///|
 test "shrinking starts from explicit value" {
-  let prop = @qc.shrinking(shrink_even_nat, 84, fn(x) { x < 20 })
-  @qc.quick_check(prop, expect=Fail)
+  let prop = @qc.shrinking(shrink_even_nat, 84, x => x < 20)
+
+  inspect(
+    @qc.quick_check_silence(prop),
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|
+    ),
+  )
 }
 ```
 
@@ -134,6 +141,11 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
   lo~ : T,
   hi~ : T,
 ) -> Iter[Array[T]] {
+  // Shrinks individual element values while preserving sortedness.
+  // For each position i, it applies the default shrinker to xs[i], then
+  // keeps only candidates that stay within the legal range [lo, hi]
+  // where lo is xs[i-1] (or the global lower bound) and hi is xs[i+1]
+  // (or the global upper bound).
   let shrink_one_val = (nv : Array[T]) => {
     let l = nv.length() - 1
     Array::makei(l + 1, i => i)
@@ -152,6 +164,9 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
       })
     })
   }
+  // Removes one element at a time from the array.
+  // Removing any single element from a sorted array always preserves
+  // sortedness, so no additional filtering is needed.
   let remove_one_val = (v : Array[T]) => {
     let l = v.length() - 1
     Array::makei(l + 1, i => i)
@@ -172,8 +187,8 @@ This code illustrates an important principle. For constrained structures, "small
 ///|
 test "shrink sorted array" {
   let s = shrink_sorted_array([1, 3, 5], lo=0, hi=9)
-  inspect(
-    s,
+  debug_inspect(
+    [..s],
     content=(
       #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
     ),
@@ -187,9 +202,7 @@ Once we attach this shrinker to a property, we get a shrinking process that pres
 ///|
 test "forall_shrink for sorted array" {
   let gen = @qc.sorted_array(6, @qc.int_range(0, 9))
-  let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), fn(
-    xs,
-  ) {
+  let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
   let r = @qc.quick_check_silence(prop)
@@ -218,7 +231,7 @@ QuickCheck provides the combinator `counterexample` for exactly this reason. It 
 ```mbt check
 ///|
 test "counterexample adds derived information" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -254,8 +267,8 @@ fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
 ///|
 test "classify list distribution" {
   let r = @qc.quick_check_silence(
-    @qc.Arrow(fn(xs : @list.List[Int]) {
-      @qc.Arrow(t3_prop_rev_list)
+    @qc.Arrow((xs : @list.List[Int]) => {
+      t3_prop_rev_list(xs)
       |> @qc.classify(xs.length() > 5, "long list")
       |> @qc.classify(xs.length() <= 5, "short list")
     }),
@@ -270,6 +283,8 @@ test "classify list distribution" {
   )
 }
 ```
+
+One subtle point matters here. `@qc.Arrow(f)` is not just a convenient wrapper around an existing value; it introduces a fresh quantified sample for `f`. So if we write `@qc.Arrow(t3_prop_rev_list)` inside another `@qc.Arrow`, the inner property will test a different list from the outer `xs`. That means the classification labels would describe one sample while the property itself runs on another. When we want to classify or label the sample already bound by the outer property, we should call the property function directly on that value, as in `t3_prop_rev_list(xs)`.
 
 The interesting part of this output is not that the property passed. It is that the default generator is clearly biased toward longer lists. If we care about edge cases on empty, singleton, or very short lists, then this output already tells us that the default distribution is probably not enough and the generator needs adjustment.
 
@@ -408,7 +423,7 @@ For more complicated data types, the overall pattern is still fairly mechanical.
 
 ### The Feat Style
 
-The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s realization of the functional-enumeration approach from *Feat: Functional Enumeration of Algebraic Types*. Instead of treating a type as one long linear list of values, Feat represents it as a sequence of finite parts grouped by size. Each part carries two key pieces of information: its cardinality and an indexing function.
+The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s realization of the functional-enumeration approach from _Feat: Functional Enumeration of Algebraic Types_. Instead of treating a type as one long linear list of values, Feat represents it as a sequence of finite parts grouped by size. Each part carries two key pieces of information: its cardinality and an indexing function.
 
 MoonBit’s current implementation follows exactly that shape. Internally, `Enumerate[T]` is a lazy stream of parts, and each `Finite[T]` carries two consumers, `fCard` and `fIndex`. That makes the behavior of global indexing via `en_index` quite clear. The implementation does not generate every earlier value one by one. Instead, it skips whole parts using their cardinalities, then indexes directly inside the part that contains the requested value. This is the "function view" from the paper, and it is fundamentally different from the list view used in many SmallCheck-style implementations.
 

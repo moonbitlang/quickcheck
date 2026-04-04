@@ -625,6 +625,8 @@ test "classes" {
 }
 ```
 
+One caution: `@qc.Arrow(...)` always introduces a fresh generated sample. So inside a property that already bound `x`, writing `@qc.Arrow(prop_rev)` would quantify a second list instead of reusing `x`. In that case the labels would describe `x`, but the property would run on a different value. When you want to classify the current sample, call the property directly on `x` and then pipe into `classify` or `label`.
+
 The `classify` function takes a boolean and a string, and if the boolean is true, the test case is classified with the string.
 
 ```
