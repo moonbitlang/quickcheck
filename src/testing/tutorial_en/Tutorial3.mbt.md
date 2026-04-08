@@ -114,6 +114,7 @@ Here the generator only produces even numbers, and the custom shrinker ensures t
 ```mbt check
 ///|
 test "shrinking starts from explicit value" {
+  // FIXME: newline is not preserved after moon fmt
   let prop = @qc.shrinking(shrink_even_nat, 84, x => x < 20)
 
   inspect(
@@ -148,7 +149,7 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
   // (or the global upper bound).
   let shrink_one_val = (nv : Array[T]) => {
     let l = nv.length() - 1
-    Array::makei(l + 1, i => i)
+    Array::makei(nv.length(), i => i)
     .iter()
     .flat_map(i => {
       let lo = if i == 0 { lo } else { nv[i - 1] }
@@ -168,8 +169,7 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
   // Removing any single element from a sorted array always preserves
   // sortedness, so no additional filtering is needed.
   let remove_one_val = (v : Array[T]) => {
-    let l = v.length() - 1
-    Array::makei(l + 1, i => i)
+    Array::makei(v.length(), i => i)
     .iter()
     .flat_map(i => {
       let nv = v.copy()
@@ -348,7 +348,7 @@ The constraint here is not `Arbitrary + Shrink`, but `Enumerable`. SmallCheck is
 ```mbt check
 ///|
 test "small check fails on first non-zero int" {
-  let r = @qc.small_check_silence(fn(x : Int) { x == 0 }, max_size=5)
+  let r = @qc.small_check_silence((x : Int) => x == 0, max_size=5)
   inspect(
     r,
     content=(
@@ -384,35 +384,35 @@ The second point is especially important for recursive data types. If recursion 
 enum PeanoNat {
   PZero
   PSucc(PeanoNat)
-} derive(Eq)
+} derive(Eq, Debug)
 
 ///|
 impl Show for PeanoNat with output(self, logger) {
-  match self {
-    PZero => logger.write_string("PZero")
-    PSucc(n) => {
-      logger.write_string("PSucc(")
-      n.output(logger)
-      logger.write_string(")")
-    }
-  }
+  logger.write_string("\{to_repr(self)}")
 }
 
 ///|
 impl @feat.Enumerable for PeanoNat with enumerate() {
-  @feat.pay(fn() {
-    @feat.singleton(PZero) +
-    @feat.Enumerable::enumerate().fmap(fn(n) { PeanoNat::PSucc(n) })
-  })
+  @feat.pay <| () => {
+    @feat.singleton(PZero) + @feat.Enumerable::enumerate().fmap(n => PSucc(n))
+  }
 }
 
 ///|
 test "peano enumerate order" {
   let e : @feat.Enumerate[PeanoNat] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4].map(fn(i) { e.en_index(i) })
-  inspect(
+  let xs = [0N, 1, 2, 3, 4].map(i => e.en_index(i))
+  debug_inspect(
     xs,
-    content="[PZero, PSucc(PZero), PSucc(PSucc(PZero)), PSucc(PSucc(PSucc(PZero))), PSucc(PSucc(PSucc(PSucc(PZero))))]",
+    content=(
+      #|[
+      #|  PZero,
+      #|  PSucc(PZero),
+      #|  PSucc(PSucc(PZero)),
+      #|  PSucc(PSucc(PSucc(PZero))),
+      #|  PSucc(PSucc(PSucc(PSucc(PZero)))),
+      #|]
+    ),
   )
 }
 ```
