@@ -278,18 +278,14 @@ fn[T] pick(
   xs : ArrayView[(UInt, Gen[T])],
   n : UInt,
 ) -> (UInt, Gen[T]) {
-  for xs = xs, n = n {
-    match xs {
-      [] => break (0, def)
-      [head, .. tail] => {
-        let (k, x) = head
-        if n < k {
-          break (k, x)
-        } else {
-          continue tail, n - k
-        }
-      }
+  for pair in xs; n = n {
+    let (k, x) = pair
+    if n < k {
+      break (k, x)
     }
+    continue n - k
+  } nobreak {
+    (0, def)
   }
 }
 
