@@ -4,3 +4,4 @@ lib/feat.mbt
 trace.json
 _build
 .moonagent
+.repos/
