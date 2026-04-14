@@ -68,8 +68,9 @@ A `Finite[T]` is a pair of a cardinality and an indexer. No values are stored;
 `fIndex(i)` computes the `i`-th element on demand.
 
 ```moonbit nocheck
+///|
 pub(all) struct Finite[T] {
-  fCard  : BigInt
+  fCard : BigInt
   fIndex : (BigInt) -> T
 }
 ```
@@ -87,9 +88,12 @@ test "fin_finite is the half-open interval" {
 ///|
 test "fin_pure is a single-element universe" {
   let f = @feat.fin_pure("hi")
-  inspect(f.to_array(), content=(
-    #|(1, @list.from_array(["hi"]))
-  ))
+  inspect(
+    f.to_array(),
+    content=(
+      #|(1, @list.from_array(["hi"]))
+    ),
+  )
 }
 
 ///|
@@ -108,10 +112,7 @@ test "disjoint union via fin_union" {
   let left = @feat.fin_finite(3) // [0, 1, 2]
   let right = @feat.fin_finite(2) // [0, 1]
   let joined = @feat.fin_union(left, right) // [0, 1, 2, 0, 1]
-  inspect(
-    joined.to_array(),
-    content="(5, @list.from_array([0, 1, 2, 0, 1]))",
-  )
+  inspect(joined.to_array(), content="(5, @list.from_array([0, 1, 2, 0, 1]))")
 }
 
 ///|
@@ -135,6 +136,7 @@ contains all values of size `k`. Because the tail is lazy, infinite types
 (`List`, `Tree`, recursive enums…) are perfectly legal.
 
 ```moonbit nocheck
+///|
 pub(all) struct Enumerate[T] {
   parts : LazyList[Finite[T]]
 }
@@ -159,10 +161,7 @@ test "pay shifts everything one size up" {
   let shifted = @feat.pay(fn() { @feat.singleton(42) })
   let parts = shifted.eval()
   inspect(parts.head().to_array(), content="(0, @list.from_array([]))")
-  inspect(
-    parts.tail().head().to_array(),
-    content="(1, @list.from_array([42]))",
-  )
+  inspect(parts.tail().head().to_array(), content="(1, @list.from_array([42]))")
 }
 ```
 
@@ -175,6 +174,7 @@ does for exhaustive enumeration what `Arbitrary` does for random generation.
 Primitive types already implement it, and composites compose automatically.
 
 ```moonbit nocheck
+///|
 pub(open) trait Enumerable {
   enumerate() -> Enumerate[Self]
 }
