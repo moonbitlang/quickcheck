@@ -294,11 +294,8 @@ fn[T] pick_drop(
   gs : Array[(UInt, Gen[T?])],
   n : UInt,
 ) -> (UInt, Gen[T?], Array[(UInt, Gen[T?])]) {
-  for i = 0, n = n {
-    if i >= gs.length() {
-      break (0, pure(None), [])
-    }
-    let (k, g) = gs[i]
+  for i, pair in gs; n = n {
+    let (k, g) = pair
     if n < k {
       // Build the "everything except index i" array in one allocation.
       let rest = Array::makei(gs.length() - 1, j => {
@@ -309,9 +306,10 @@ fn[T] pick_drop(
         }
       })
       break (k, g, rest)
-    } else {
-      continue i + 1, n - k
     }
+    continue n - k
+  } nobreak {
+    (0, pure(None), [])
   }
 }
 
