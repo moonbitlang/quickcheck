@@ -169,9 +169,13 @@ test "pay shifts everything one size up" {
 
 ## The `Enumerable` trait — deriving enumerations
 
-Most of the time you want an enumeration for free. Feat's `Enumerable` trait
-does for exhaustive enumeration what `Arbitrary` does for random generation.
-Primitive types already implement it, and composites compose automatically.
+> **This is the main user-facing trait of the package.** Implement
+> `Enumerable` for a type `T` and you get: indexed access
+> (`en_index(i)`), size-bounded sampling via `feat_random`, and a
+> ready-to-use `Gen[T]` for the top-level QuickCheck driver. Everything
+> else in this package either consumes or produces an `Enumerable`.
+
+### Signature
 
 ```moonbit nocheck
 ///|
@@ -180,20 +184,137 @@ pub(open) trait Enumerable {
 }
 ```
 
-Built-in instances ship for `Unit`, `Bool`, `Byte`, `Char`, `Int`, `Int64`,
-`UInt`, `UInt64`, `Option[T]`, `Result[T, E]`, `List[T]`, and pairs `(A, B)`.
+- `pub(open)` — anyone can add an instance for their own type.
+- The method is **nullary**: the enumeration of `T` depends only on `T`,
+  not on any runtime state.
+- Return type `Enumerate[Self]` is the lazy list-of-parts value
+  documented above — see [`Enumerate[T]`](#enumeratet--a-lazy-list-of-finitet).
+
+### The contract
+
+An implementation must guarantee three properties so the driver can
+use it safely:
+
+| # | Property | What breaks if you violate it |
+|---|----------|-------------------------------|
+| 1 | **Cardinalities are non-negative.** Every part has `fCard : BigInt` and must satisfy `fCard >= 0`. Parts with `fCard == 0` are empty and collapse away. | `fin_union` / `fin_concat` treat a negative card as empty; a negative card produced by hand will silently lose values. |
+| 2 | **Productivity under recursion.** Every recursive self-reference inside an `Enumerable` instance must be guarded by a `pay(...)`. An `Enumerate[T]` is a `LazyList` of parts, so it may be infinite — but each part must be reachable in finite time. | Evaluating `enumerate()` blows the stack or loops forever. |
+| 3 | **Total indexing per part.** For every `i` with `0 <= i < part.fCard`, `part.fIndex(i)` must return a valid `T`. | `en_index` aborts with "index out of bounds". |
+
+These are the same invariants that the provided combinators already
+preserve — so if you stick to `singleton`, `union` / `+`, `product`,
+`unary`, `consts`, and `pay`, you get them for free.
+
+### Built-in instances
+
+| Type | Shape | Notes |
+|------|-------|-------|
+| `Unit` | `singleton(())` | Size 0, card 1. |
+| `Bool` | `pay(true + false)` | Size 1, card 2 (inside `pay`). |
+| `Byte` | flat `Finite` of card 256 | Size 0; indexes `0..255` directly. |
+| `Char` | flat `Finite` of card 1,112,064 | Size 0; skips the UTF-16 surrogate range. |
+| `Int` / `Int64` | interleaved `0, 1, -1, 2, -2, ...` | Size 0 through infinity; *infinite* parts each of card 1. |
+| `UInt` / `UInt64` | `0, 1, 2, ...` with `pay` per step | Each successor costs one unit of size. |
+| `Option[E]` where `E : Enumerable` | `pay(None + E::enumerate().fmap(Some))` | `None` at size 1, `Some(x)` at 1 + size(x). |
+| `Result[T, E]` where `T, E : Enumerable` | `pay(Err + Ok)` | Both arms cost one `pay`. |
+| `List[E]` where `E : Enumerable` | `pay(empty + Cons(e, lst))` | Each cons cell costs one `pay`. |
+| `(A, B)` where `A, B : Enumerable` | `pay(product(A::enumerate(), B::enumerate()))` | Size = 1 + sum of component sizes. |
+
+Key observation: **all non-primitive instances insert exactly one `pay`
+per constructor boundary.** That's the rule you follow when writing
+your own impl.
+
+### Implementing `Enumerable` for your own type
 
 ```mermaid
 flowchart TD
-  Primitive["Primitive types<br/>(Bool, Int, Char, …)"] --> Enumerate
-  Sum["Sum types<br/>(Option, Result)"] --> Enumerate
-  Product["Product types<br/>(tuples, structs)"] --> Enumerate
-  Recursive["Recursive types<br/>(List, Tree)"] --> Enumerate
-  Enumerate["Enumerate[T]"] --> Sample["Indexed sampling<br/>Enumerate::en_index"]
-  Enumerate --> Exhaustive["Bounded exhaustive<br/>testing"]
+  UserType["your recursive type T"] --> Constructors["one branch per constructor"]
+  Constructors --> Leaf["Leaf constructor:<br/>singleton(value)"]
+  Constructors --> Recursive["Recursive constructor:<br/>unary or product"]
+  Leaf --> Union["+ (union)"]
+  Recursive --> Union
+  Union --> Pay["pay(() => …)"]
+  Pay --> Result["Enumerate[T]"]
 ```
 
-### Indexing an enumeration
+Three rules, and that's it:
+
+1. **One `+` summand per constructor.** Leaf constructors become
+   `singleton(...)`; constructors that carry children use
+   `unary(@utils.pair_function(...))` or `product(...)`.
+2. **Wrap the whole thing in a `pay(...)`.** The `pay` is what gives the
+   fixpoint a chance to suspend before recursing into `T::enumerate()`
+   again — this is the productivity guarantee (contract item 2).
+3. **Reach child enumerations through `Enumerable::enumerate()`, not by
+   re-constructing them.** That way the compiler's inference picks up
+   user-defined instances and built-ins uniformly.
+
+A minimal recursive example (binary tree of `Leaf | Node`):
+
+```mbt check
+///|
+enum Tree {
+  Leaf
+  Node(Tree, Tree)
+}
+
+///|
+impl @feat.Enumerable for Tree with enumerate() {
+  // One size unit per constructor; the recursive children are reached via
+  // `unary`, which goes through the built-in `Enumerable` instance for
+  // `(Tree, Tree)`. That instance itself inserts a `pay`, which is what keeps
+  // the fixpoint productive.
+  @feat.pay(fn() {
+    let mk = @utils.pair_function((l : Tree, r : Tree) => Node(l, r))
+    @feat.singleton(Leaf) + @feat.unary(mk)
+  })
+}
+
+///|
+impl Show for Tree with output(self, logger) {
+  match self {
+    Leaf => logger.write_string("Leaf")
+    Node(l, r) => {
+      logger.write_string("Node(")
+      l.output(logger)
+      logger.write_string(", ")
+      r.output(logger)
+      logger.write_string(")")
+    }
+  }
+}
+
+///|
+test "enumerate the first few binary trees" {
+  let trees : @feat.Enumerate[Tree] = Enumerable::enumerate()
+  inspect(trees.en_index(0), content="Leaf")
+  inspect(trees.en_index(1), content="Node(Leaf, Leaf)")
+}
+```
+
+### Common pitfalls
+
+| Pitfall | Why it hurts | Fix |
+|---------|--------------|-----|
+| Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(fn() { ... })`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
+| Computing a large Cartesian product with `product` before unioning. | Not wrong, just slow — the resulting parts get large and indexing locality suffers. | Prefer `unary` for a single-pair constructor, or `consts([...])` for a disjunction — these keep the structure flat. |
+| Mixing eager `List` of `Enumerate` with `consts` at the top of a recursive definition. | The `List` itself is eager: its elements are forced when the `consts` is reached, which can run into the recursion before `pay` kicks in. | Ensure the `consts(...)` is inside `pay`, or use `+` between lazy `Enumerate`s. |
+| Forgetting `fin_empty` short-circuits. | `fin_union(empty, x)` returns `x`; composing many empties is cheap but producing them on purpose with a bogus `fIndex` and non-zero `fCard` is a contract-3 bug waiting to fire. | Use `fin_empty()` rather than a hand-rolled zero-cardinality `Finite`. |
+
+### Where the trait is consumed
+
+- `unary(f)` requires the *input* type of `f` to be `Enumerable`.
+- `Gen::feat_random(size)` takes `T : Enumerable` and turns it into a
+  `Gen[T]` by drawing uniformly from parts `0..=size`.
+- The main `moonbitlang/quickcheck` driver bridges `Enumerable` into
+  small-check-style exhaustive testing via the same `feat_random`
+  pipeline.
+
+---
+
+## Using an enumeration
+
+### Indexing
 
 `Enumerate::en_index(i)` is the "i-th value, overall" view. Sizes are walked
 in order: all size-0 values, then all size-1 values, etc.
@@ -277,58 +398,6 @@ fn[T] wrap_finite(f : @feat.Finite[T]) -> @feat.Enumerate[T] {
 }
 ```
 
----
-
-## Deriving `Enumerable` for your own types
-
-Because the building blocks are `singleton`, `pay`, `union` (`+`), and
-`product` / `unary`, defining `Enumerable` for a user type is a direct
-transliteration of its definition.
-
-```mbt check
-///|
-enum Tree {
-  Leaf
-  Node(Tree, Tree)
-}
-
-///|
-impl @feat.Enumerable for Tree with enumerate() {
-  // One size unit per constructor; the recursive children are reached via
-  // `unary`, which goes through the built-in `Enumerable` instance for
-  // `(Tree, Tree)`. That instance itself inserts a `pay`, which is what keeps
-  // the fixpoint productive.
-  @feat.pay(fn() {
-    let mk = @utils.pair_function((l : Tree, r : Tree) => Node(l, r))
-    @feat.singleton(Leaf) + @feat.unary(mk)
-  })
-}
-
-///|
-impl Show for Tree with output(self, logger) {
-  match self {
-    Leaf => logger.write_string("Leaf")
-    Node(l, r) => {
-      logger.write_string("Node(")
-      l.output(logger)
-      logger.write_string(", ")
-      r.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
-
-///|
-test "enumerate the first few binary trees" {
-  let trees : @feat.Enumerate[Tree] = Enumerable::enumerate()
-  inspect(trees.en_index(0), content="Leaf")
-  inspect(trees.en_index(1), content="Node(Leaf, Leaf)")
-}
-```
-
-Notice the pattern: **one `pay` per constructor boundary**. That's what keeps
-the recursion productive — each call through the fixpoint is charged 1 unit of
-size, so size `k` only ever needs finitely many recursive expansions.
 
 ---
 
