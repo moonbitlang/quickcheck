@@ -5,3 +5,5 @@ import {
   "moonbitlang/core/sorted_set",
   "moonbitlang/core/quickcheck/splitmix" @splitmix,
 }
+
+warnings = "+unnecessary_annotation"

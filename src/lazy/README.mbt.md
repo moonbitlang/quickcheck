@@ -234,14 +234,14 @@ test "unfold builds a countdown" {
   let seed = @lazy.from_list(@list.from_array([5]))
   let countdown = seed.unfold(cur => {
     match cur {
-      @lazy.Cons(n, _) =>
+      Cons(n, _) =>
         if n == 0 {
           None
         } else {
           let next = @lazy.from_list(@list.from_array([n - 1]))
           Some((n, next))
         }
-      @lazy.Nil => None
+      Nil => None
     }
   })
   inspect(countdown, content="[5, 4, 3, 2, 1]")

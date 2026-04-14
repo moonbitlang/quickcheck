@@ -2,3 +2,5 @@ import {
   "moonbitlang/quickcheck/lazy",
   "moonbitlang/core/list",
 }
+
+warnings = "+unnecessary_annotation"

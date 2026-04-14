@@ -59,7 +59,7 @@ pub fn[T] Gen::samples(
 fn[T] feat_helper(enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
   for parts = enumerate.parts, bound = size {
     match parts {
-      @lazy.Nil => abort("uniform: empty enumeration")
+      Nil => abort("uniform: empty enumeration")
       _ => {
         let (incl, rest) = parts.split_at(bound)
         let fin = @feat.fin_mconcat(incl)

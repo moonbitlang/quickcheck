@@ -273,7 +273,7 @@ test "product generates pairs, size = sum of component sizes" {
 
 ///|
 fn[T] wrap_finite(f : @feat.Finite[T]) -> @feat.Enumerate[T] {
-  { parts: @lazy.Cons(f, @lazy.LazyRef::from_value(@lazy.Nil)) }
+  { parts: Cons(f, @lazy.LazyRef::from_value(Nil)) }
 }
 ```
 

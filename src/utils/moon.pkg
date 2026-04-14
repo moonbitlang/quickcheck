@@ -2,3 +2,5 @@ import {
   "moonbitlang/core/list",
   "moonbitlang/core/ref",
 }
+
+warnings = "+unnecessary_annotation"

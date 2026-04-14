@@ -115,7 +115,7 @@ test "reject all" {
 
 ///|
 test "label" {
-  let ar : @qc.Arrow[List[Int], Bool] = @qc.Arrow(prop_rev)
+  let ar : @qc.Arrow[List[Int], Bool] = Arrow(prop_rev)
   inspect(
     @qc.quick_check_silence(
       @qc.Arrow(fn(x : List[Int]) {
@@ -266,7 +266,7 @@ impl Show for Nat with output(self, logger) {
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(fn() {
     @feat.singleton(Zero) +
-    @feat.Enumerable::enumerate().fmap(fn(n) { Nat::Succ(n) })
+    @feat.Enumerable::enumerate().fmap(fn(n) { Succ(n) })
   })
 }
 

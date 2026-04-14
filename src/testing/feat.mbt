@@ -83,8 +83,8 @@ impl Show for SingleTree with output(self, logger) {
 impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
     @list.from_array([
-      @feat.Enumerable::enumerate().fmap(x => SingleTree::Leaf(x)),
-      @feat.unary(pair_function((x, y) => SingleTree::Node(x, y))),
+      @feat.Enumerable::enumerate().fmap(x => Leaf(x)),
+      @feat.unary(pair_function((x, y) => Node(x, y))),
     ]),
   )
 }
@@ -138,8 +138,8 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
   @feat.pay(fn() {
-    E::enumerate().fmap(x => Tree::Leaf(x)) +
-    @feat.Enumerable::enumerate().fmap(x => Tree::Branch(x))
+    E::enumerate().fmap(x => Leaf(x)) +
+    @feat.Enumerable::enumerate().fmap(x => Branch(x))
   })
 }
 

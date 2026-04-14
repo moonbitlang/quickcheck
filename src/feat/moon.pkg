@@ -3,3 +3,5 @@ import {
   "moonbitlang/quickcheck/utils",
   "moonbitlang/core/list",
 }
+
+warnings = "+unnecessary_annotation"
