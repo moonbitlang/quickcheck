@@ -316,37 +316,23 @@ fn[T] pick(
 /// `k_i` from `n` until `n < k_i`. Suppose that happens at index `i`;
 /// the result is
 ///
-///     (k_i, g_i, gs[..i] ++ gs[i+1..])
+///     (k_i, g_i, [..gs[:i], ..gs[i+1:]])
 ///
-/// **How the "rest" is built.** Instead of splicing two arrays, we
-/// allocate one array of length `m - 1` and copy directly:
-///
-///     rest[j] = gs[j]     if j < i     // prefix, untouched
-///     rest[j] = gs[j + 1] if j >= i    // suffix shifted down by one
-///
-/// Correctness of that mapping: `j` ranges over `[0, m-1)`. The branch
-/// `j < i` uses `gs[j]`, which is `gs[0..i-1]`. The branch `j >= i`
-/// uses `gs[j+1]`, which is `gs[i+1..m-1]` (since `j` goes up to
-/// `m-2`, so `j+1` goes up to `m-1`). Together that is exactly
-/// `gs[..i] ++ gs[i+1..]` and nothing else — `gs[i]` is skipped,
-/// everything else is emitted once. Order is preserved because `j` is
-/// walked in ascending order.
+/// — the picked bucket plus everything else in original order, built
+/// from two `ArrayView` slices in a single array-literal allocation.
 ///
 /// Edge cases:
-/// - `m == 1`, `n < k_0`: we pick the sole element and return an empty
-///   rest. `Array::makei(0, …)` allocates a length-0 array without
-///   invoking the closure, so no out-of-range access.
-/// - `i == 0`: the `j < i` branch never fires; rest is `gs[1..m]`.
-/// - `i == m-1`: the `j >= i` branch never fires (it would require
-///   `j == m-1`, but `j < m-1` in `makei`); rest is `gs[0..m-1]`.
+/// - `m == 1`, `n < k_0`: both spread slices are empty, `rest = []`.
+/// - `i == 0`: the `gs[:0]` slice is empty, `rest = gs[1:]`.
+/// - `i == m - 1`: the `gs[m:]` slice is empty, `rest = gs[:m-1]`.
 /// - Zero-weight buckets are skipped for the same reason as `pick`.
 /// - `n` past the total (or `gs` empty): falls through to
 ///   `(0, pure(None), [])`.
 ///
-/// Complexity: O(m) — one scan to locate `i`, one allocation to build
-/// `rest`. The previous recursive version was O(m²) because it called
-/// `tail.to_array()` at every recursive step and then re-prepended the
-/// head on the way up.
+/// Complexity: O(m) — one scan to locate `i`, one array-literal
+/// allocation of length `m - 1` for `rest`. The previous recursive
+/// version was O(m²) because it called `tail.to_array()` at every
+/// recursive step and then re-prepended the head on the way up.
 fn[T] pick_drop(
   gs : Array[(UInt, Gen[T?])],
   n : UInt,
@@ -354,15 +340,7 @@ fn[T] pick_drop(
   for i, pair in gs; n = n {
     let (k, g) = pair
     if n < k {
-      // See the doc above for why this produces `gs[..i] ++ gs[i+1..]`
-      // in a single allocation of length `m - 1`.
-      let rest = Array::makei(gs.length() - 1, j => {
-        if j < i {
-          gs[j]
-        } else {
-          gs[j + 1]
-        }
-      })
+      let rest = [..gs[:i], ..gs[i + 1:]]
       break (k, g, rest)
     }
     continue n - k
