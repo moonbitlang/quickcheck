@@ -83,6 +83,7 @@ test "LazyRef::from_value skips computation" {
 ## `LazyList[T]` — infinite lists, finitely
 
 ```moonbit nocheck
+///|
 pub(all) enum LazyList[T] {
   Nil
   Cons(T, LazyRef[LazyList[T]])
@@ -117,14 +118,8 @@ no loop.
 ///|
 test "repeat and infinite_stream are bounded by take" {
   inspect(@lazy.repeat(7).take(4), content="[7, 7, 7, 7]")
-  inspect(
-    @lazy.infinite_stream(0, 1).take(6),
-    content="[0, 1, 2, 3, 4, 5]",
-  )
-  inspect(
-    @lazy.infinite_stream(1, 2).take(5),
-    content="[1, 3, 5, 7, 9]",
-  )
+  inspect(@lazy.infinite_stream(0, 1).take(6), content="[0, 1, 2, 3, 4, 5]")
+  inspect(@lazy.infinite_stream(1, 2).take(5), content="[1, 3, 5, 7, 9]")
 }
 ```
 
@@ -224,10 +219,7 @@ test "zip_with truncates at the shorter list" {
 test "zip_plus keeps the longer tail" {
   let a = @lazy.from_list(@list.from_array([1, 2]))
   let b = @lazy.from_list(@list.from_array([10, 20, 30, 40]))
-  inspect(
-    @lazy.zip_plus((x, y) => x + y, a, b),
-    content="[11, 22, 30, 40]",
-  )
+  inspect(@lazy.zip_plus((x, y) => x + y, a, b), content="[11, 22, 30, 40]")
 }
 ```
 
@@ -240,15 +232,17 @@ test "zip_plus keeps the longer tail" {
 ///|
 test "unfold builds a countdown" {
   let seed = @lazy.from_list(@list.from_array([5]))
-  let countdown = seed.unfold(cur => match cur {
-    @lazy.Cons(n, _) =>
-      if n == 0 {
-        None
-      } else {
-        let next = @lazy.from_list(@list.from_array([n - 1]))
-        Some((n, next))
-      }
-    @lazy.Nil => None
+  let countdown = seed.unfold(cur => {
+    match cur {
+      @lazy.Cons(n, _) =>
+        if n == 0 {
+          None
+        } else {
+          let next = @lazy.from_list(@list.from_array([n - 1]))
+          Some((n, next))
+        }
+      @lazy.Nil => None
+    }
   })
   inspect(countdown, content="[5, 4, 3, 2, 1]")
 }

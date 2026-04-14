@@ -19,6 +19,7 @@ The two have to agree, and keeping them in sync is a known source of bugs.
 Falsify replaces `Gen[T]` with a function:
 
 ```moonbit nocheck
+///|
 struct Gen[T] {
   run_gen : (SampleTree) -> (T, Iter[SampleTree])
 }

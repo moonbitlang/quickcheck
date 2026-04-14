@@ -9,8 +9,9 @@ That's the data structure John Hughes used in the original QuickCheck to tie
 ## The shape
 
 ```moonbit nocheck
+///|
 pub(all) struct Rose[T] {
-  val    : T
+  val : T
   branch : Iter[Rose[T]]
 }
 ```
@@ -64,10 +65,7 @@ test "pure is a leaf with no alternatives" {
 
 ///|
 test "new attaches explicit shrinks" {
-  let rose = @rose.new(
-    3,
-    [@rose.pure(0), @rose.pure(1), @rose.pure(2)].iter(),
-  )
+  let rose = @rose.new(3, [@rose.pure(0), @rose.pure(1), @rose.pure(2)].iter())
   assert_eq(rose.val, 3)
   let children = rose.branch.collect()
   assert_eq(children.length(), 3)
@@ -138,10 +136,7 @@ Maps `f` over every node in the tree. Structure is preserved.
 ```mbt check
 ///|
 test "fmap relabels every node" {
-  let r = @rose.new(
-    2,
-    [@rose.pure(0), @rose.pure(1)].iter(),
-  )
+  let r = @rose.new(2, [@rose.pure(0), @rose.pure(1)].iter())
   let doubled = r.fmap(x => x * 10)
   assert_eq(doubled.val, 20)
   let children : Array[Int] = doubled.branch.map(c => c.val).collect()
@@ -161,10 +156,16 @@ after the new sub-trees.
 test "bind substitutes at every node" {
   let r = @rose.new(1, [@rose.pure(0)].iter())
   // For every node n, emit a Rose that also has "n - 1" as an alternative.
-  let expanded = r.bind(n => @rose.new(
-    n,
-    if n == 0 { Iter::empty() } else { Iter::singleton(@rose.pure(n - 1)) },
-  ))
+  let expanded = r.bind(n => {
+    @rose.new(
+      n,
+      if n == 0 {
+        Iter::empty()
+      } else {
+        Iter::singleton(@rose.pure(n - 1))
+      },
+    )
+  })
   assert_eq(expanded.val, 1)
   // bind preserves the value; the tree gains new alternatives from f.
   let kids : Array[Int] = expanded.branch.map(c => c.val).collect()
@@ -200,10 +201,7 @@ decorate a generated tree.
 ```mbt check
 ///|
 test "apply rewrites a single node" {
-  let r = @rose.new(
-    10,
-    [@rose.pure(5), @rose.pure(0)].iter(),
-  )
+  let r = @rose.new(10, [@rose.pure(5), @rose.pure(0)].iter())
   // Collapse the tree: drop all branches, keep only the root.
   let collapsed = r.apply((v, _) => @rose.pure(v))
   assert_eq(collapsed.val, 10)
