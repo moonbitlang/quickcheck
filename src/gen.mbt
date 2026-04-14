@@ -263,23 +263,31 @@ fn uint_bound(bound : UInt) -> Gen[UInt] {
 
 ///|
 fn[T] sum_backtrack_weights(gs : Array[(UInt, Gen[T?])]) -> UInt {
-  gs.map(gw => gw.0).fold((acc, x) => acc + x, init=0)
+  // gs.map(gw => gw.0).fold((acc, x) => acc + x, init=0)
+  for pair in gs; acc = 0U {
+    let (w, _) = pair
+    continue acc + w
+  } nobreak {
+    acc
+  }
 }
 
 ///|
 fn[T] pick(
   def : Gen[T],
-  xs : Array[(UInt, Gen[T])],
+  xs : ArrayView[(UInt, Gen[T])],
   n : UInt,
 ) -> (UInt, Gen[T]) {
-  match xs[:] {
-    [] => (0, def)
-    [head, .. tail] => {
-      let (k, x) = head
-      if n < k {
-        (k, x)
-      } else {
-        pick(def, tail.to_array(), n - k)
+  for xs = xs, n = n {
+    match xs {
+      [] => break (0, def)
+      [head, .. tail] => {
+        let (k, x) = head
+        if n < k {
+          break (k, x)
+        } else {
+          continue tail, n - k
+        }
       }
     }
   }
@@ -290,17 +298,23 @@ fn[T] pick_drop(
   gs : Array[(UInt, Gen[T?])],
   n : UInt,
 ) -> (UInt, Gen[T?], Array[(UInt, Gen[T?])]) {
-  match gs[:] {
-    [] => (0, pure(None), [])
-    [head, .. tail] => {
-      let (k, g) = head
-      let tail_arr = tail.to_array()
-      if n < k {
-        (k, g, tail_arr)
-      } else {
-        let (k2, g2, tail2) = pick_drop(tail_arr, n - k)
-        (k2, g2, [(k, g), ..tail2])
-      }
+  for i = 0, n = n {
+    if i >= gs.length() {
+      break (0, pure(None), [])
+    }
+    let (k, g) = gs[i]
+    if n < k {
+      // Build the "everything except index i" array in one allocation.
+      let rest = Array::makei(gs.length() - 1, j => {
+        if j < i {
+          gs[j]
+        } else {
+          gs[j + 1]
+        }
+      })
+      break (k, g, rest)
+    } else {
+      continue i + 1, n - k
     }
   }
 }
@@ -339,7 +353,12 @@ pub fn[T] frequency(arr : Array[(UInt, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
   } else {
-    let sum = arr.map(t => t.0).fold((acc, x) => acc + x, init=0)
+    let sum = for pair in arr; acc = 0U {
+      let (w, _) = pair
+      continue acc + w
+    } nobreak {
+      acc
+    }
     if sum == 0 {
       abort("frequency: total weight is zero")
     } else {
@@ -356,13 +375,13 @@ pub fn[T] frequency(arr : Array[(UInt, Gen[T])]) -> Gen[T] {
 /// Chooses one of the given generators, with a weighted random distribution.
 /// @alert unsafe "Panics if the list is empty or total weight is zero"
 pub fn[T] frequency_list(lst : List[(UInt, T)]) -> Gen[T] {
-  lst
-  .to_array()
-  .map(x => {
-    let (w, v) = x
-    (w, pure(v))
-  })
-  |> frequency
+  // Single-pass build instead of `.to_array().map(...)` (two arrays).
+  let arr : Array[(UInt, Gen[T])] = []
+  for pair in lst {
+    let (w, v) = pair
+    arr.push((w, pure(v)))
+  }
+  frequency(arr)
 }
 
 ///|
