@@ -273,6 +273,23 @@ fn[T] sum_backtrack_weights(gs : Array[(UInt, Gen[T?])]) -> UInt {
 }
 
 ///|
+/// Pick one weighted bucket from `xs` given the threshold `n`.
+///
+/// Think of `xs` as a stack of intervals laid end-to-end on the number
+/// line: element `i` occupies `[S_i, S_i + k_i)` where
+/// `S_i = k_0 + k_1 + ... + k_{i-1}` and `k_i = xs[i].0`. Iterates in
+/// order, subtracting `k` from `n` until `n < k` — at that point `n`
+/// falls inside the current bucket and we return `(k, x)`.
+///
+/// If `n >= sum(k_i)` (threshold past the end) or `xs` is empty, falls
+/// through to `(0, def)`. The weight `0` doubles as a sentinel meaning
+/// "ran off the end, `def` used".
+///
+/// Buckets with `k_i == 0` are transparently skipped: `n < 0` is false
+/// for `UInt`, so the loop advances with `n` unchanged.
+///
+/// Complexity: O(i+1) comparisons for the landing index `i`, no
+/// allocation (iterating an `ArrayView` is in-place).
 fn[T] pick(
   def : Gen[T],
   xs : ArrayView[(UInt, Gen[T])],
@@ -290,6 +307,46 @@ fn[T] pick(
 }
 
 ///|
+/// Weighted pick *with* removal: returns the picked bucket plus the
+/// remaining buckets, in original order. Used by `backtrack` to retry
+/// the unused generators when the picked one discards its sample.
+///
+/// Selection semantics are identical to `pick`: given `gs` of length
+/// `m` and threshold `n`, walk `gs` from left to right, subtracting each
+/// `k_i` from `n` until `n < k_i`. Suppose that happens at index `i`;
+/// the result is
+///
+///     (k_i, g_i, gs[..i] ++ gs[i+1..])
+///
+/// **How the "rest" is built.** Instead of splicing two arrays, we
+/// allocate one array of length `m - 1` and copy directly:
+///
+///     rest[j] = gs[j]     if j < i     // prefix, untouched
+///     rest[j] = gs[j + 1] if j >= i    // suffix shifted down by one
+///
+/// Correctness of that mapping: `j` ranges over `[0, m-1)`. The branch
+/// `j < i` uses `gs[j]`, which is `gs[0..i-1]`. The branch `j >= i`
+/// uses `gs[j+1]`, which is `gs[i+1..m-1]` (since `j` goes up to
+/// `m-2`, so `j+1` goes up to `m-1`). Together that is exactly
+/// `gs[..i] ++ gs[i+1..]` and nothing else — `gs[i]` is skipped,
+/// everything else is emitted once. Order is preserved because `j` is
+/// walked in ascending order.
+///
+/// Edge cases:
+/// - `m == 1`, `n < k_0`: we pick the sole element and return an empty
+///   rest. `Array::makei(0, …)` allocates a length-0 array without
+///   invoking the closure, so no out-of-range access.
+/// - `i == 0`: the `j < i` branch never fires; rest is `gs[1..m]`.
+/// - `i == m-1`: the `j >= i` branch never fires (it would require
+///   `j == m-1`, but `j < m-1` in `makei`); rest is `gs[0..m-1]`.
+/// - Zero-weight buckets are skipped for the same reason as `pick`.
+/// - `n` past the total (or `gs` empty): falls through to
+///   `(0, pure(None), [])`.
+///
+/// Complexity: O(m) — one scan to locate `i`, one allocation to build
+/// `rest`. The previous recursive version was O(m²) because it called
+/// `tail.to_array()` at every recursive step and then re-prepended the
+/// head on the way up.
 fn[T] pick_drop(
   gs : Array[(UInt, Gen[T?])],
   n : UInt,
@@ -297,7 +354,8 @@ fn[T] pick_drop(
   for i, pair in gs; n = n {
     let (k, g) = pair
     if n < k {
-      // Build the "everything except index i" array in one allocation.
+      // See the doc above for why this produces `gs[..i] ++ gs[i+1..]`
+      // in a single allocation of length `m - 1`.
       let rest = Array::makei(gs.length() - 1, j => {
         if j < i {
           gs[j]
