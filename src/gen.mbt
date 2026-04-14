@@ -540,3 +540,101 @@ pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen((i, rs) => Array::makei(size, _ => self.run(i, rs)))
 }
+
+// --- boundary tests for pick / pick_drop -----------------------------------
+
+///|
+test "pick selects first element when weight < first k" {
+  let gs : Array[(UInt, Gen[Int])] = [
+    (1, pure(10)),
+    (2, pure(20)),
+    (3, pure(30)),
+  ]
+  let (k, _g) = pick(pure(-1), gs[:], 0)
+  assert_eq(k, 1)
+}
+
+///|
+test "pick selects last element at upper boundary" {
+  let gs : Array[(UInt, Gen[Int])] = [
+    (1, pure(10)),
+    (2, pure(20)),
+    (3, pure(30)),
+  ]
+  // 0, 1, 2 exhaust the first two; 3 lands in the third (card 3).
+  let (k, _g) = pick(pure(-1), gs[:], 3)
+  assert_eq(k, 3)
+}
+
+///|
+test "pick falls through to default when weight exceeds total" {
+  let gs : Array[(UInt, Gen[Int])] = [(1, pure(10)), (2, pure(20))]
+  let (k, _g) = pick(pure(-1), gs[:], 100)
+  assert_eq(k, 0)
+}
+
+///|
+test "pick on empty view returns default with zero weight" {
+  let gs : Array[(UInt, Gen[Int])] = []
+  let (k, _g) = pick(pure(-1), gs[:], 0)
+  assert_eq(k, 0)
+}
+
+///|
+test "pick_drop picks first element and keeps the tail" {
+  let gs : Array[(UInt, Gen[Int?])] = [
+    (1, pure(Some(10))),
+    (2, pure(Some(20))),
+    (3, pure(Some(30))),
+  ]
+  let (k, _g, rest) = pick_drop(gs, 0)
+  assert_eq(k, 1)
+  assert_eq(rest.length(), 2)
+  // Rest preserves the original order, sans the picked element.
+  assert_eq(rest[0].0, 2)
+  assert_eq(rest[1].0, 3)
+}
+
+///|
+test "pick_drop picks last element and keeps the prefix" {
+  let gs : Array[(UInt, Gen[Int?])] = [
+    (1, pure(Some(10))),
+    (2, pure(Some(20))),
+    (3, pure(Some(30))),
+  ]
+  let (k, _g, rest) = pick_drop(gs, 3)
+  assert_eq(k, 3)
+  assert_eq(rest.length(), 2)
+  assert_eq(rest[0].0, 1)
+  assert_eq(rest[1].0, 2)
+}
+
+///|
+test "pick_drop picks middle element and splices the rest" {
+  let gs : Array[(UInt, Gen[Int?])] = [
+    (1, pure(Some(10))),
+    (2, pure(Some(20))),
+    (3, pure(Some(30))),
+  ]
+  let (k, _g, rest) = pick_drop(gs, 1)
+  assert_eq(k, 2)
+  assert_eq(rest.length(), 2)
+  assert_eq(rest[0].0, 1)
+  assert_eq(rest[1].0, 3)
+}
+
+///|
+test "pick_drop on a singleton array leaves rest empty" {
+  let gs : Array[(UInt, Gen[Int?])] = [(5, pure(Some(10)))]
+  let (k, _g, rest) = pick_drop(gs, 0)
+  assert_eq(k, 5)
+  assert_eq(rest.length(), 0)
+}
+
+///|
+test "pick_drop falls through when weight exceeds total" {
+  let gs : Array[(UInt, Gen[Int?])] = [(1, pure(Some(10))), (2, pure(Some(20)))]
+  let (k, _g, rest) = pick_drop(gs, 100)
+  assert_eq(k, 0)
+  assert_eq(rest.length(), 0)
+}
