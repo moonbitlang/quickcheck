@@ -128,6 +128,7 @@ instance needed.
 | `Rose::bind(r, f)` | `Rose[T] -> (T -> Rose[U]) -> Rose[U]` | Dependent substitution |
 | `Rose::join(r)` | `Rose[Rose[T]] -> Rose[T]` | Flatten two levels |
 | `Rose::apply(r, f)` | `Rose[T] -> ((T, Iter[Rose[T]]) -> Rose[T]) -> Rose[T]` | Inspect node + its branch |
+| `Rose::iter(r)` | `Rose[T] -> Iter[T]` | Lazy depth-first walk; enables `for x in r { ... }` |
 
 ### `fmap`
 
@@ -208,6 +209,41 @@ test "apply rewrites a single node" {
   assert_eq(collapsed.branch.count(), 0)
 }
 ```
+
+### `iter` — depth-first walk and `for x in rose { ... }`
+
+`Rose::iter` produces a lazy `Iter[T]` over every value in the tree, root
+first, then each branch depth-first. Because MoonBit's `for x in <expr>`
+loop calls `<expr>.iter()`, you can use `Rose` directly with the loop sugar.
+
+```mbt check
+///|
+test "iter visits root then branches in DFS order" {
+  let tree = @rose.new(
+    1,
+    [
+      @rose.new(2, [@rose.pure(3), @rose.pure(4)].iter()),
+      @rose.new(5, [@rose.pure(6)].iter()),
+    ].iter(),
+  )
+  assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
+}
+
+///|
+test "for .. in walks every value" {
+  let tree = @rose.new(10, [@rose.pure(20), @rose.pure(30)].iter())
+  let seen : Array[Int] = []
+  for x in tree {
+    seen.push(x)
+  }
+  assert_eq(seen, [10, 20, 30])
+}
+```
+
+The traversal is lazy: only as many sub-trees as you actually consume
+get forced. Like every `Iter` in MoonBit it is single-shot, so a second
+walk over the same `Rose` will only see whatever branches were not yet
+consumed by an earlier walk.
 
 ---
 
