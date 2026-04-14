@@ -431,7 +431,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
       (1, @qc.pure(Leaf)),
       (
         4,
-        @qc.Gen::new((i, rs) => {
+        @qc.Gen((i, rs) => {
           let x = @qc.int_range(lo, hi).run(i, rs)
           let nL = @qc.int_range(0, n - 1).run(i, rs)
           let nR = n - 1 - nL

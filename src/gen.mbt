@@ -3,12 +3,13 @@ pub using @splitmix {type RandomState}
 
 ///|
 /// The Gen type represents a generator of values of type T.
-struct Gen[T] {
-  gen : (Int, RandomState) -> T
+pub struct Gen[T] {
+  priv gen : (Int, RandomState) -> T
+
+  fn[T] new(gen : (Int, RandomState) -> T) -> Gen[T]
 }
 
 ///|
-/// Create a new generator from a function
 pub fn[T] Gen::new(gen : (Int, RandomState) -> T) -> Gen[T] {
   { gen, }
 }
@@ -16,7 +17,7 @@ pub fn[T] Gen::new(gen : (Int, RandomState) -> T) -> Gen[T] {
 ///|
 /// Spawn a new generator from an arbitrary instance
 pub fn[T : @coreqc.Arbitrary] Gen::spawn() -> Gen[T] {
-  { gen: T::arbitrary }
+  Gen(T::arbitrary)
 }
 
 ///|
@@ -75,13 +76,13 @@ fn[T] feat_helper(enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
 ///|
 /// Functor instance for Gen[T] (pure)
 pub fn[T] pure(val : T) -> Gen[T] {
-  Gen::new(fn(_n, _s) { val })
+  Gen(fn(_n, _s) { val })
 }
 
 ///|
 /// Functor instance for Gen[T] (fmap)
 pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
-  Gen::new(fn(n, s) { f(self.run(n, s)) })
+  Gen(fn(n, s) { f(self.run(n, s)) })
 }
 
 ///|
@@ -93,7 +94,7 @@ pub fn[T, U] Gen::ap(self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
 ///|
 /// Monad instance for Gen[T]
 pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
-  Gen::new(fn(n, s) {
+  Gen(fn(n, s) {
     let s2 = s.split()
     let t = self.run(n, s)
     f(t).run(n, s2)
@@ -179,7 +180,7 @@ pub fn[A, B, C, D, E, F, G] liftA6(
 
 ///|
 fn[T] delay() -> Gen[(Gen[T]) -> T] {
-  Gen::new(fn(n, rs) { fn(g) { g.run(n, rs) } })
+  Gen(fn(n, rs) { fn(g) { g.run(n, rs) } })
 }
 
 /// Common Combinators
@@ -216,13 +217,13 @@ pub fn[T, U, V, W] quad(
 ///|
 /// Create sized generators
 pub fn[T] sized(f : (Int) -> Gen[T]) -> Gen[T] {
-  Gen::new(fn(i, rs) { f(i).run(i, rs) })
+  Gen(fn(i, rs) { f(i).run(i, rs) })
 }
 
 ///|
 /// Adjust the size parameter of a generator
 pub fn[T] Gen::scale(self : Gen[T], f : (Int) -> Int) -> Gen[T] {
-  Gen::new(fn(i, rs) { self.run(f(i), rs) })
+  Gen(fn(i, rs) { self.run(f(i), rs) })
 }
 
 ///|
@@ -272,7 +273,7 @@ fn uint_bound(bound : UInt) -> Gen[UInt] {
   if bound == 0 {
     pure(0)
   } else {
-    Gen::new(fn(_i, rs) { rs.next_uint() % bound })
+    Gen(fn(_i, rs) { rs.next_uint() % bound })
   }
 }
 
@@ -392,7 +393,7 @@ pub fn[T] flatten_list(lst : List[Gen[T]]) -> Gen[List[T]] {
 ///|
 /// Generate an array of elements from individual generators
 pub fn[T] flatten_array(arr : Array[Gen[T]]) -> Gen[Array[T]] {
-  Gen::new(fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) })
+  Gen(fn(i, rs) { Array::makei(arr.length(), fn(j) { arr[j].run(i, rs) }) })
 }
 
 ///|
@@ -437,7 +438,7 @@ pub fn[T] one_of_array(val : Array[T]) -> Gen[T] {
 ///|
 /// Primitive Generators and Combinators
 pub fn small_int() -> Gen[Int] {
-  Gen::new(fn(_i, rs) {
+  Gen(fn(_i, rs) {
     let p = rs.next_double()
     if p < 0.75 {
       rs.next_int() % 11
@@ -449,7 +450,7 @@ pub fn small_int() -> Gen[Int] {
 
 ///|
 pub fn nat() -> Gen[Int] {
-  Gen::new(fn(_i, rs) {
+  Gen(fn(_i, rs) {
     let p = rs.next_double()
     if p < 0.5 {
       rs.next_int() % 10
@@ -466,19 +467,19 @@ pub fn nat() -> Gen[Int] {
 ///|
 /// Generates a negative integer
 pub fn neg_int() -> Gen[Int] {
-  Gen::new(fn(_i, rs) { -rs.next_int().abs() })
+  Gen(fn(_i, rs) { -rs.next_int().abs() })
 }
 
 ///|
 /// Generates a numeral char
 pub fn numeral() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 10 + 48) })
+  Gen(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 10 + 48) })
 }
 
 ///|
 /// Generates alphabet
 pub fn alphabet() -> Gen[Char] {
-  Gen::new(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 26 + 65) })
+  Gen(fn(_i, rs) { Int::unsafe_to_char(rs.next_int().abs() % 26 + 65) })
 }
 
 ///|
@@ -487,7 +488,7 @@ pub fn int_bound(bound : Int) -> Gen[Int] {
   if bound == 0 {
     pure(0)
   } else {
-    Gen::new(fn(_i, rs) { rs.next_int().abs() % bound })
+    Gen(fn(_i, rs) { rs.next_int().abs() % bound })
   }
 }
 
@@ -497,7 +498,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
   if bound == 0 {
     pure(0)
   } else {
-    Gen::new(fn(_i, rs) { BigInt::from_int64(rs.next_int64().abs()) % bound })
+    Gen(fn(_i, rs) { BigInt::from_int64(rs.next_int64().abs()) % bound })
   }
 }
 
@@ -505,7 +506,7 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
 /// Generates int within given range [lo, hi)
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   guard lo != hi else { pure(lo) }
-  Gen::new(fn(_i, rs) {
+  Gen(fn(_i, rs) {
     let j = rs.next_int().abs() % (hi - lo)
     j + lo
   })
@@ -540,5 +541,5 @@ pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
 
 ///|
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
-  Gen::new(fn(i, rs) { Array::makei(size, fn(_j) { self.run(i, rs) }) })
+  Gen(fn(i, rs) { Array::makei(size, fn(_j) { self.run(i, rs) }) })
 }
