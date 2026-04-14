@@ -13,10 +13,10 @@ pub impl Enumerable for Bool with enumerate() {
 ///|
 pub impl Enumerable for Int with enumerate() {
   letrec int_parts_from: (Int) -> @lazy.LazyList[Finite[Int]] = n => {
-    @lazy.Cons(
+    Cons(
       fin_pure(n),
       @lazy.LazyRef::from_thunk(fn() {
-        @lazy.Cons(
+        Cons(
           fin_pure(-n),
           @lazy.LazyRef::from_thunk(fn() { int_parts_from(n + 1) }),
         )
@@ -25,7 +25,7 @@ pub impl Enumerable for Int with enumerate() {
   }
 
   {
-    parts: @lazy.Cons(
+    parts: Cons(
       fin_pure(0),
       @lazy.LazyRef::from_thunk(fn() { int_parts_from(1) }),
     ),
@@ -35,10 +35,10 @@ pub impl Enumerable for Int with enumerate() {
 ///|
 pub impl Enumerable for Int64 with enumerate() {
   letrec int64_parts_from: (Int64) -> @lazy.LazyList[Finite[Int64]] = n => {
-    @lazy.Cons(
+    Cons(
       fin_pure(n),
       @lazy.LazyRef::from_thunk(fn() {
-        @lazy.Cons(
+        Cons(
           fin_pure(-n),
           @lazy.LazyRef::from_thunk(fn() { int64_parts_from(n + 1) }),
         )
@@ -47,7 +47,7 @@ pub impl Enumerable for Int64 with enumerate() {
   }
 
   {
-    parts: @lazy.Cons(
+    parts: Cons(
       fin_pure(0L),
       @lazy.LazyRef::from_thunk(fn() { int64_parts_from(1L) }),
     ),
@@ -69,9 +69,9 @@ pub impl Enumerable for Byte with enumerate() {
   let byte_card : BigInt = 256
   let byte_from_index = (i : BigInt) => Int::to_byte(i.to_int())
   {
-    parts: @lazy.Cons(
+    parts: Cons(
       { fCard: byte_card, fIndex: byte_from_index },
-      @lazy.LazyRef::from_value(@lazy.Nil),
+      @lazy.LazyRef::from_value(Nil),
     ),
   }
 }
@@ -85,9 +85,9 @@ pub impl Enumerable for Char with enumerate() {
     Int::unsafe_to_char(cp)
   }
   {
-    parts: @lazy.Cons(
+    parts: Cons(
       { fCard: char_card, fIndex: char_from_index },
-      @lazy.LazyRef::from_value(@lazy.Nil),
+      @lazy.LazyRef::from_value(Nil),
     ),
   }
 }
@@ -113,7 +113,7 @@ pub impl[A : Enumerable, B : Enumerable] Enumerable for (A, B) with enumerate() 
 
 ///|
 pub impl[E : Enumerable] Enumerable for E? with enumerate() {
-  pay(fn() { singleton(None) + E::enumerate().fmap(x => Option::Some(x)) })
+  pay(fn() { singleton(None) + E::enumerate().fmap(x => Some(x)) })
 }
 
 ///|

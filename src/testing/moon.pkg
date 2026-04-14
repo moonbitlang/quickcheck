@@ -5,3 +5,5 @@ import {
   "moonbitlang/core/quickcheck" @coreqc,
   "moonbitlang/core/sorted_set",
 }
+
+warnings = "+unnecessary_annotation"

@@ -281,8 +281,8 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
       break st.complete_test(dummy)
     }
     match (parts, finite_opt) {
-      (@lazy.Nil, _) => break st.complete_test(dummy)
-      (@lazy.Cons(finite, rest), None) =>
+      (Nil, _) => break st.complete_test(dummy)
+      (Cons(finite, rest), None) =>
         if finite.fCard == 0 {
           continue rest.force(), None, 0, remaining, idx
         } else {
@@ -390,7 +390,7 @@ pub fn State::give_up(
       output="+++ \{self.counts()} Ok, gave up!",
     )
   } else {
-    raise TestError::GaveUp(
+    raise GaveUp(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
@@ -464,7 +464,7 @@ pub fn State::find_failure(
   self.callback_post_final_failure(ce)
   match res.expect {
     Success | GaveUp =>
-      raise TestError::Fail(
+      raise Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, self.compute_size()),
         num_tests=self.num_success_tests + 1,
@@ -496,7 +496,7 @@ fn State::find_failure_no_shrink(
   self.callback_post_final_failure(res)
   match res.expect {
     Success | GaveUp =>
-      raise TestError::Fail(
+      raise Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, size),
         num_tests=self.num_success_tests + 1,

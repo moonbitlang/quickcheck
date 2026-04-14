@@ -3,3 +3,5 @@ import {
   "moonbitlang/core/quickcheck",
   "moonbitlang/core/sorted_set",
 }
+
+warnings = "+unnecessary_annotation"

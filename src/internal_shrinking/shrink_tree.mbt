@@ -20,7 +20,7 @@ pub fn[T : Show] ShrinkTree::draw(
   fn shift(first : String, other : String, x : @list.List[String]) {
     @lazy.zip_lazy_normal(
       String::add,
-      @lazy.Cons(first, @lazy.LazyRef::from_value(@lazy.repeat(other))),
+      Cons(first, @lazy.LazyRef::from_value(@lazy.repeat(other))),
       x,
     )
   }

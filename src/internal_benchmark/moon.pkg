@@ -3,3 +3,5 @@ import {
   "moonbitlang/quickcheck/feat" @feat,
   "moonbitlang/core/bench" @bench,
 }
+
+warnings = "+unnecessary_annotation"
