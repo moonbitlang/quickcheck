@@ -205,6 +205,28 @@ test "apply_while_array accumulates in reverse order" {
 | `apply_while_list` | `T -> (T -> T) -> (T -> Bool) -> List[T]` |
 | `apply_while_array` | `T -> (T -> T) -> (T -> Bool) -> Array[T]` |
 
+## Traits
+
+This package **exposes no traits, and no trait implementations.** Every
+function listed above is a plain top-level `fn[...]`. That's
+deliberate — these are low-level combinators that sit below the
+trait-driven layers of the ecosystem:
+
+- `@feat.Enumerable` pulls `pair_function` in when expressing recursive
+  instances whose constructors take multiple children; see the `feat`
+  README's "Implementing Enumerable for your own type" section.
+- The classical shrinkers used by `moonbitlang/quickcheck.Shrink`
+  (defined in `src/shrink.mbt`) reach for `removes_array` /
+  `removes_list` to build "drop a chunk" candidates.
+- `fresh_name()` is used by test drivers to generate unique labels; it
+  participates in no trait.
+
+If you're looking for a public trait in the QuickCheck ecosystem, see:
+
+- `moonbitlang/quickcheck.Testable` (property / combinator wrappers)
+- `moonbitlang/quickcheck.Shrink` (value shrinking)
+- `moonbitlang/quickcheck/feat.Enumerable` (exhaustive enumeration)
+
 ## License
 
 Apache-2.0.

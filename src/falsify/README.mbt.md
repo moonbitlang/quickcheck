@@ -308,6 +308,36 @@ shrinker to minimize the counter-example.
 | `ShrinkExplain[P, N]` / `IsValidShrink[P, N]` | Shrink-history inspection |
 | `Either[L, R]` | Used by the selective combinators |
 
+## Traits
+
+Falsify **exposes one trait implementation** and no traits of its own:
+
+- `impl Default for Config` — lets you write `Default::default()` to
+  get the factory configuration (100 tests, 100 max shrinks, max
+  discard ratio 10, non-verbose, non-`expect_failure`). Used in every
+  example in this README.
+
+It is **trait-poor by design**: the whole point of the internal-shrinking
+paradigm is to replace the classical `Arbitrary` + `Shrink` pair with a
+plain `Gen[T]` that does both jobs. So you will *not* find `Arbitrary`
+or `Shrink` instances here — shrinking behaviour is expressed in the
+`Gen`'s `run_gen` function instead.
+
+When you need to cross into the classical trait-based world:
+
+- `moonbitlang/quickcheck.Testable` — wrap a `Property[T, E]` as a
+  `Testable` to hand it to the main driver (not yet automated; you'd
+  write a small adapter).
+- `moonbitlang/core/quickcheck.Arbitrary` — not consumed by Falsify.
+  If you already have an `Arbitrary` instance, you *re-express* it as
+  a Falsify `Gen` to get free shrinking.
+
+All concrete types exposed by this package (`Gen`, `Property`,
+`SampleTree`, `Config`, `ShrinkExplain`, …) are **opaque in the public
+mbti** — no external `Show`, `Eq`, or other trait impls are exported.
+For debugging, use the typed accessors (`ShrinkExplain::shrink_history`,
+`ShrinkExplain::shrink_outcome`, `Sample::sample_value`).
+
 ## References
 
 - Edsko de Vries. _falsify: Internal Shrinking Reimagined for Haskell._

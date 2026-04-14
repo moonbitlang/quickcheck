@@ -282,6 +282,29 @@ test "unfold builds a countdown" {
 | `tails` | `LazyList[T] -> LazyList[LazyList[T]]` | All suffixes, including `Nil` |
 | `sum` | `(LazyList[X], init~ : X) -> X` (where `X : Add`) | Fold over `+`, requires explicit `init` |
 
+## Traits
+
+This package **exposes no traits of its own.** `LazyRef[T]` and
+`LazyList[T]` are deliberately concrete types — every consumer works
+against the `Cons` / `Nil` shape directly.
+
+Downstream, values built here feed into the trait-driven layers of
+`moonbitlang/quickcheck`:
+
+- `@feat.Enumerate[T]` stores its parts as a `LazyList[Finite[T]]`, so
+  every `@feat.Enumerable` instance implicitly relies on `LazyList` to
+  stay productive.
+- `@falsify.Gen[T]` threads `LazyRef` through its `SampleTree` to delay
+  the infinite random prefix (see `@falsify`'s README for the
+  caveats — eager construction of `SampleTree` is a known rough edge).
+- The root `moonbitlang/quickcheck.Shrink` trait returns `Iter[Self]`
+  rather than a `LazyList`, so end users rarely touch this type
+  directly.
+
+If your property-test setup deals with `Testable` or `Shrink`, you're
+one layer up from this package. See the root `moonbitlang/quickcheck`
+README for those traits.
+
 ## Safety notes
 
 - `head`, `tail`, `index` **panic** on an out-of-range or empty input —

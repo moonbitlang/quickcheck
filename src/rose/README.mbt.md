@@ -245,6 +245,28 @@ driver construct the tree for them. You'd reach for `Rose` directly when:
 - Testing your shrinker itself, where the tree shape matters.
 - Porting Haskell/OCaml code that uses integrated shrinking.
 
+## Traits
+
+This package **exposes no traits of its own** — `Rose[T]` is a plain
+struct, and all its operations are ordinary methods.
+
+`Rose` is the *value* that a trait-aware shrinker works with, not the
+trait itself:
+
+- The root package's `Shrink` trait (`shrink(Self) -> Iter[Self]`) is the
+  classical, external counterpart. A `Shrink` impl emits a flat
+  `Iter[Self]`; `Rose` organizes those candidates as a tree so the
+  driver can follow a failing branch without re-running the generator
+  from scratch.
+- The `moonbitlang/quickcheck/falsify` engine goes the other direction:
+  a `@falsify.Gen[T]` produces `(T, Iter[SampleTree])`, which the
+  driver re-interprets *as* a rose tree during shrink-search.
+- `Rose[T]` derives `@debug.Debug`, so `debug_inspect(tree, content=...)`
+  gives you a readable snapshot for tests.
+
+If you see `Testable`, `Shrink`, or `Arbitrary` in a signature, you're
+one layer up from this package.
+
 ## References
 
 - Koen Claessen, John Hughes. _QuickCheck: a lightweight tool for random
