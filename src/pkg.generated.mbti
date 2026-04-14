@@ -214,7 +214,11 @@ pub(all) enum Expected {
   GaveUp
 }
 
-type Gen[T]
+pub struct Gen[T] {
+  // private fields
+
+  fn[T] new((Int, @splitmix.RandomState) -> T) -> Gen[T]
+}
 pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
 pub fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
 pub fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]

@@ -413,7 +413,7 @@ struct Gen[T] {
 }
 ```
 
-QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic ones, we can use `Gen::new(f: (Int, RandomState) -> T)` to create a generator from a function and run it by invoking the `run` method:
+QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic ones, we can use the `Gen(f: (Int, RandomState) -> T)` constructor to create a generator from a function and run it by invoking the `run` method:
 
 ```mbt check
 ///|
@@ -438,7 +438,7 @@ For instance, you can use the `fmap` method to transform the generated value:
 
 ```mbt check
 ///|
-let g1 : @qc.Gen[Int] = @qc.Gen::new(
+let g1 : @qc.Gen[Int] = @qc.Gen(
   {
     ...
   },
@@ -455,7 +455,7 @@ Or create a dependent generator:
 
 ```mbt check
 ///|
-let dg1 : @qc.Gen[Int] = @qc.Gen::new(
+let dg1 : @qc.Gen[Int] = @qc.Gen(
   {
     ...
   },
