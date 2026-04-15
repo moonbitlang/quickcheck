@@ -1,13 +1,15 @@
 # Lazy — Lazy Lists & Memoized Thunks
 
-A small library for **call-by-need** values and **streams** in MoonBit. It is
-the backbone of the `feat` enumeration library (where the sizes of a type are
-an infinite lazy list) and is independently useful whenever you want
-Haskell-style lazy data without pulling in a whole FP runtime.
+> **Internal package** — lives at `moonbitlang/quickcheck/internal/lazy`
+> and is not importable from outside this module (MoonBit enforces
+> Go-style `internal/` visibility at the module boundary). If you need
+> a lazy list in a downstream project, vendor a copy — the whole
+> package is ~300 lines.
 
-> This package is used internally by `moonbitlang/quickcheck/feat` and
-> `moonbitlang/quickcheck/falsify`. If all you need is a lazy list, it is
-> entirely self-contained.
+A small library for **call-by-need** values and **streams**. Used as
+the backbone of the `feat` enumeration library (sizes of a type are an
+infinite lazy list), the `falsify` sample-tree tails, and the
+`internal/shrinking` tree-formatter.
 
 ## What this gives you
 
@@ -23,20 +25,6 @@ flowchart LR
    every call after that returns the cached value without recomputing.
 2. **`LazyList[T]`** — a cons-list whose *tail* is a `LazyRef`, so infinite
    streams (`[0, 1, 2, …]`) are just values.
-
-## Install
-
-```bash
-moon add moonbitlang/quickcheck
-```
-
-```json
-{
-  "import": [
-    { "path": "moonbitlang/quickcheck/lazy", "alias": "lazy" }
-  ]
-}
-```
 
 ---
 

@@ -4,7 +4,7 @@ package "moonbitlang/quickcheck/feat"
 import {
   "moonbitlang/core/bigint",
   "moonbitlang/core/list",
-  "moonbitlang/quickcheck/lazy",
+  "moonbitlang/quickcheck/internal/lazy",
 }
 
 // Values

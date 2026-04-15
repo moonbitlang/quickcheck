@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/quickcheck/lazy"
+package "moonbitlang/quickcheck/internal/lazy"
 
 import {
   "moonbitlang/core/list",

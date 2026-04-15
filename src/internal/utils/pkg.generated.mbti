@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/quickcheck/utils"
+package "moonbitlang/quickcheck/internal/utils"
 
 import {
   "moonbitlang/core/list",
