@@ -11,7 +11,6 @@
   "description": "Automatic testing of MoonBit programs",
   "source": "src",
   "exclude": [
-    "src/internal_benchmark",
-    "src/internal/testing"
+    "src/internal"
   ]
 }

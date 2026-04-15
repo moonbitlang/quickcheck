@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonbitlang/quickcheck/internal_benchmark"
+package "moonbitlang/quickcheck/internal/benchmark"
 
 // Values
 
