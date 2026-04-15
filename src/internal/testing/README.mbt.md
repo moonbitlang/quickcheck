@@ -52,7 +52,7 @@ user-defined type"; that implementation lives in `axiom.mbt`.
 
 ## Sibling internal packages
 
-Five packages live under `src/internal/`. MoonBit's `internal/`
+Six packages live under `src/internal/`. MoonBit's `internal/`
 visibility rule makes them inaccessible to downstream consumers
 automatically — there is no `exclude` list needed, they just can't
 be imported across the module boundary.
@@ -63,6 +63,7 @@ be imported across the module boundary.
 | `internal/benchmark` | Microbenchmarks for the enumeration / generator pipelines |
 | `internal/shrinking` | Experimental `ShrinkTree[T]` pretty-printer used when exploring shrink traces |
 | `internal/lazy` | Call-by-need values and lazy lists used by `feat` and `falsify` |
+| `internal/rose` | Shrink-tree structure used by the main QuickCheck driver |
 | `internal/utils` | Shared combinators (`id`, `flip`, `pair_function`, …) and chunk-wise shrink helpers |
 
 New non-public packages should land under `src/internal/` as well —

@@ -7,7 +7,7 @@ import {
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/quickcheck/feat",
-  "moonbitlang/quickcheck/rose",
+  "moonbitlang/quickcheck/internal/rose",
 }
 
 // Values

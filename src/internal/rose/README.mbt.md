@@ -1,5 +1,8 @@
 # Rose — Rose Trees for Integrated Shrinking
 
+> **Internal package** — lives at `moonbitlang/quickcheck/internal/rose`
+> and is not importable from outside this module.
+
 A tiny package: one data type plus the functor/monad toolkit (`pure`, `new`,
 `fmap`, `bind`, `join`, `apply`). A **rose tree** is a node holding a value
 together with a (possibly infinite) lazy iterator of children rose trees.
@@ -43,7 +46,7 @@ moon add moonbitlang/quickcheck
 ```json
 {
   "import": [
-    { "path": "moonbitlang/quickcheck/rose", "alias": "rose" }
+    { "path": "moonbitlang/quickcheck/internal/rose", "alias": "rose" }
   ]
 }
 ```
