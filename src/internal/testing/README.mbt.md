@@ -50,6 +50,21 @@ pub fn Queue::is_empty(Self) -> Bool
 `Queue` is a worked example of "how to implement `Shrink` for a
 user-defined type"; that implementation lives in `axiom.mbt`.
 
+## Sibling internal packages
+
+Three packages live under `src/internal/`. All are excluded from the
+published module.
+
+| Package | Purpose |
+|---------|---------|
+| `internal/testing` *(this one)* | Black-box regression suite + tutorial fixture |
+| `internal/benchmark` | Microbenchmarks for the enumeration / generator pipelines |
+| `internal/shrinking` | Experimental `ShrinkTree[T]` pretty-printer used when exploring shrink traces |
+
+If you add a fourth non-public package, put it here so the "not
+shipped" boundary stays uniform: one entry in `moon.mod.json`'s
+`exclude` list (`src/internal`) covers everything below.
+
 ## Conventions
 
 - **Test names are descriptive.** We use `inspect(..., content=...)`
