@@ -46,10 +46,16 @@ pub fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
 }
 
 ///|
+#deprecated
+pub fn[T] Finite::op_add(self : Finite[T], other : Finite[T]) -> Finite[T] {
+  fin_union(self, other)
+}
+
+///|
 /// `+` as an alias for `fin_union`. Not an `Add` trait impl, because
 /// it's defined directly as a method on `Finite[T]` for `T` generic
 /// over any type (not constrained to `Add`).
-pub fn[T] Finite::op_add(self : Finite[T], other : Finite[T]) -> Finite[T] {
+pub impl[T] Add for Finite[T] with add(self, other) {
   fin_union(self, other)
 }
 

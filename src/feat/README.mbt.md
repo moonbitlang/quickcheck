@@ -111,8 +111,13 @@ test "fin_empty has cardinality 0" {
 test "disjoint union via fin_union" {
   let left = @feat.fin_finite(3) // [0, 1, 2]
   let right = @feat.fin_finite(2) // [0, 1]
-  let joined = @feat.fin_union(left, right) // [0, 1, 2, 0, 1]
-  inspect(joined.to_array(), content="(5, @list.from_array([0, 1, 2, 0, 1]))")
+  let joined = left + right // [0, 1, 2, 0, 1]
+  inspect(
+    [..joined],
+    content=(
+      #|[0, 1, 2, 0, 1]
+    ),
+  )
 }
 
 ///|
@@ -126,6 +131,22 @@ test "Cartesian product via fin_cart" {
       #|(6, @list.from_array([(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]))
     ),
   )
+}
+```
+
+Every `Finite[T]` is also iterable — `for x in finite { ... }` desugars
+to `finite.iter()`, which walks `fIndex(0)..fIndex(fCard - 1)` lazily.
+Use it whenever you want to stream a chunk's contents without
+materialising the full list via `to_array`:
+
+```mbt check
+///|
+test "for x in finite" {
+  let acc : Array[BigInt] = []
+  for x in @feat.fin_finite(4) {
+    acc.push(x)
+  }
+  assert_eq(acc, [0, 1, 2, 3])
 }
 ```
 
