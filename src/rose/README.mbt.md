@@ -65,7 +65,7 @@ test "pure is a leaf with no alternatives" {
 
 ///|
 test "new attaches explicit shrinks" {
-  let rose = @rose.new(3, [@rose.pure(0), @rose.pure(1), @rose.pure(2)].iter())
+  let rose = @rose.Rose(3, [@rose.pure(0), @rose.pure(1), @rose.pure(2)].iter())
   assert_eq(rose.val, 3)
   let children = rose.branch.collect()
   assert_eq(children.length(), 3)
@@ -86,7 +86,7 @@ fn shrink_int(n : Int) -> @rose.Rose[Int] {
     if x == 0 {
       @rose.pure(0)
     } else {
-      @rose.new(x, Iter::singleton(go(x / 2)))
+      Rose(x, Iter::singleton(go(x / 2)))
     }
   }
 
@@ -137,7 +137,7 @@ Maps `f` over every node in the tree. Structure is preserved.
 ```mbt check
 ///|
 test "fmap relabels every node" {
-  let r = @rose.new(2, [@rose.pure(0), @rose.pure(1)].iter())
+  let r = @rose.Rose(2, [@rose.pure(0), @rose.pure(1)].iter())
   let doubled = r.fmap(x => x * 10)
   assert_eq(doubled.val, 20)
   let children : Array[Int] = doubled.branch.map(c => c.val).collect()
@@ -155,10 +155,10 @@ after the new sub-trees.
 ```mbt check
 ///|
 test "bind substitutes at every node" {
-  let r = @rose.new(1, [@rose.pure(0)].iter())
+  let r = @rose.Rose(1, [@rose.pure(0)].iter())
   // For every node n, emit a Rose that also has "n - 1" as an alternative.
   let expanded = r.bind(n => {
-    @rose.new(
+    Rose(
       n,
       if n == 0 {
         Iter::empty()
@@ -178,8 +178,8 @@ test "bind substitutes at every node" {
 ///|
 test "join flattens Rose[Rose[T]] into Rose[T]" {
   // Outer tree of Roses; the root already carries a Rose[Int].
-  let inner = @rose.new(10, [@rose.pure(5)].iter())
-  let outer : @rose.Rose[@rose.Rose[Int]] = @rose.new(
+  let inner = @rose.Rose(10, [@rose.pure(5)].iter())
+  let outer : @rose.Rose[@rose.Rose[Int]] = Rose(
     inner,
     [@rose.pure(@rose.pure(7))].iter(),
   )
@@ -202,7 +202,7 @@ decorate a generated tree.
 ```mbt check
 ///|
 test "apply rewrites a single node" {
-  let r = @rose.new(10, [@rose.pure(5), @rose.pure(0)].iter())
+  let r = @rose.Rose(10, [@rose.pure(5), @rose.pure(0)].iter())
   // Collapse the tree: drop all branches, keep only the root.
   let collapsed = r.apply((v, _) => @rose.pure(v))
   assert_eq(collapsed.val, 10)
@@ -219,11 +219,11 @@ loop calls `<expr>.iter()`, you can use `Rose` directly with the loop sugar.
 ```mbt check
 ///|
 test "iter visits root then branches in DFS order" {
-  let tree = @rose.new(
+  let tree = @rose.Rose(
     1,
     [
-      @rose.new(2, [@rose.pure(3), @rose.pure(4)].iter()),
-      @rose.new(5, [@rose.pure(6)].iter()),
+      @rose.Rose(2, [@rose.pure(3), @rose.pure(4)].iter()),
+      Rose(5, [@rose.pure(6)].iter()),
     ].iter(),
   )
   assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
@@ -231,7 +231,7 @@ test "iter visits root then branches in DFS order" {
 
 ///|
 test "for .. in walks every value" {
-  let tree = @rose.new(10, [@rose.pure(20), @rose.pure(30)].iter())
+  let tree = @rose.Rose(10, [@rose.pure(20), @rose.pure(30)].iter())
   let seen : Array[Int] = []
   for x in tree {
     seen.push(x)

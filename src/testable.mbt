@@ -142,7 +142,7 @@ pub fn[P : Testable, T] shrinking(
   pf : (T) -> P,
 ) -> Property {
   fn props(x) -> Rose[Gen[RoseRes]] {
-    @rose.new(pf(x) |> run_prop, shrinker(x).map(props))
+    Rose(pf(x) |> run_prop, shrinker(x).map(props))
   }
 
   promote_rose(props(x0)).fmap(fn(x) { x.join() })
