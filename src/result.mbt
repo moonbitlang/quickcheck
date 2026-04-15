@@ -1,16 +1,5 @@
-///|
-pub(all) enum Outcome[T] {
-  Success
-  GaveUp
-  Fail(T) // Counterexample
-}
-
-///|
-pub(all) enum Expected {
-  Fail
-  Success
-  GaveUp
-}
+// `Outcome[T]`, `Expected`, and `Replay` are declared in `types.mbt`.
+// Their Show impl and constructor helpers live here.
 
 ///|
 pub impl[T] Show for Outcome[T] with output(self, logger) {
@@ -19,12 +8,6 @@ pub impl[T] Show for Outcome[T] with output(self, logger) {
     Success => logger.write_string("OK")
     GaveUp => logger.write_string("GAVE UP")
   }
-}
-
-///|
-pub(all) struct Replay {
-  rand_state : RandomState
-  size : Int
 }
 
 ///|

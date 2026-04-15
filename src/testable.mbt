@@ -3,14 +3,8 @@ priv suberror InternalError {
   InternalError(String)
 }
 
-///|
-pub(all) struct Arrow[A, B]((A) -> B)
-
-///|
-pub(all) struct ArrowError[A, B]((A) -> B raise)
-
-///|
-pub(all) struct ArrowAsync[A, B](async (A) -> B)
+// `Arrow`, `ArrowError`, and `ArrowAsync` are declared in `types.mbt`.
+// The `Testable` impls for them live further down in this file.
 
 ///|
 type RoseRes = Rose[SingleResult]
