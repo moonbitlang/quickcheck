@@ -1,4 +1,15 @@
 ///|
+/// Types that can enumerate all of their values in size-indexed order.
+///
+/// `enumerate()` returns an `Enumerate[Self]`: a lazy stream of parts
+/// where the `k`-th part contains every value of size `k`. Primitive
+/// types already implement this trait; algebraic composites (sums,
+/// products, recursive types) compose via `singleton` / `+` /
+/// `product` / `unary` wrapped in a single `pay`.
+///
+/// See the package README for the full contract, the built-in
+/// instance table, and the recipe for implementing `Enumerable` on a
+/// user-defined recursive type.
 pub(open) trait Enumerable {
   enumerate() -> Enumerate[Self]
 }

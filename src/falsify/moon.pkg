@@ -6,4 +6,4 @@ import {
   "moonbitlang/core/quickcheck/splitmix" @splitmix,
 }
 
-warnings = "+unnecessary_annotation"
+warnings = "+unnecessary_annotation+missing_doc"

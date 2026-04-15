@@ -3,4 +3,4 @@ import {
   "moonbitlang/core/ref",
 }
 
-warnings = "+unnecessary_annotation"
+warnings = "+unnecessary_annotation+missing_doc"

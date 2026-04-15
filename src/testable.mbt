@@ -34,6 +34,16 @@ fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {
 struct Property(Gen[RoseRes])
 
 ///|
+/// Anything that can be handed to the `quick_check` driver.
+///
+/// Implementors turn themselves into a `Property` — a `Gen` of a
+/// `Rose` of per-run outcomes — which the driver then evaluates.
+/// Built-in instances exist for `Bool` (treated as pass/fail) and
+/// for `Arrow[A, P]` / `ArrowError[A, P]` when
+/// `A : Arbitrary + Shrink + Show` and `P : Testable`.
+///
+/// The `ArrowAsync[A, P]` newtype exists but no `Testable` impl is
+/// provided yet — async property testing is planned but not wired up.
 pub(open) trait Testable {
   property(Self) -> Property
 }
@@ -104,6 +114,8 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
 }
 
 ///|
+/// `Testable` for a raising function: wraps `raise` as a failure by
+/// catching the error and turning it into the counter-example reason.
 pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for ArrowError[
   A,
   P,
@@ -112,11 +124,17 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
 }
 
 ///|
+/// Project a `Testable` to its underlying `Gen[Rose[SingleResult]]`.
+/// Primarily used by other combinators that want to thread extra
+/// transformations through the property.
 pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
   prop.property().0
 }
 
 ///|
+/// Apply `f` to every `SingleResult` produced by `prop`. Used by the
+/// label / classify / counterexample combinators to decorate the
+/// per-run result without changing the verdict.
 pub fn[P : Testable] map_total_result(
   prop : P,
   f : (SingleResult) -> SingleResult,
@@ -125,11 +143,18 @@ pub fn[P : Testable] map_total_result(
 }
 
 ///|
+/// Adjust the size parameter before running `p`. Equivalent to
+/// `Gen::scale(f)` but lifted to the `Testable` level.
 pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
   run_prop(p).scale(f)
 }
 
 ///|
+/// Manually drive shrinking: given a user-supplied `shrinker` and a
+/// starting value `x0`, build a `Property` whose `Rose` branches mirror
+/// the shrink tree produced by `shrinker`. Rarely needed in user code
+/// — the `Shrink` trait instances drive this automatically — but
+/// useful when a one-off custom shrink sequence is required.
 pub fn[P : Testable, T] shrinking(
   shrinker : (T) -> Iter[T],
   x0 : T,
@@ -143,6 +168,9 @@ pub fn[P : Testable, T] shrinking(
 }
 
 ///|
+/// Attach a post-test (or post-final-failure) callback to `p`. The
+/// callback receives the driver state and result; typical use is to
+/// print diagnostics on a shrunk counter-example.
 pub fn[P : Testable] callback(p : P, cb : Callback) -> Property {
   map_total_result(p, fn(res) { { ..res, callbacks: res.callbacks.add(cb) } })
 }
@@ -188,6 +216,10 @@ pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
 }
 
 ///|
+/// Run a property with an explicit generator and shrinker. `forall`
+/// is a convenience that passes `fn(_) { Iter::empty() }` — use this
+/// version when you want a hand-rolled shrinker without going through
+/// the `Shrink` trait.
 pub fn[T : Testable, A : Show] forall_shrink(
   gen : Gen[A],
   shrinker : (A) -> Iter[A],

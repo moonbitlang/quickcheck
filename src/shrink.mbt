@@ -1,4 +1,14 @@
 ///|
+/// Types that can enumerate "smaller" variants of a given value for
+/// the classical QuickCheck shrinker. Each call to `shrink(x)` returns
+/// an `Iter[Self]` of candidates strictly simpler than `x`; the driver
+/// walks these candidates after a failure, keeping the first one that
+/// still falsifies the property.
+///
+/// The return type is `Iter[Self]` rather than `Array[Self]` so large
+/// or recursive shrink spaces stay lazy. The default body (`= _`)
+/// means "no shrinks" — a conservative starting point for types where
+/// shrinking isn't meaningful.
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self] = _
 }

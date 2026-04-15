@@ -10,6 +10,9 @@ pub struct Gen[T] {
 }
 
 ///|
+/// Build a `Gen[T]` from a `(size, rng) -> T` function. In most cases
+/// you can use the primary constructor syntax `Gen(f)` instead — both
+/// produce an identical generator.
 pub fn[T] Gen::new(gen : (Int, RandomState) -> T) -> Gen[T] {
   { gen, }
 }
@@ -102,6 +105,9 @@ pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 }
 
 ///|
+/// Monadic `join`: collapse `Gen[Gen[T]]` to `Gen[T]` by running the
+/// outer generator to produce an inner generator, then running the
+/// inner one.
 pub fn[T] Gen::join(self : Gen[Gen[T]]) -> Gen[T] {
   self.bind(@utils.id)
 }
@@ -482,6 +488,9 @@ pub fn small_int() -> Gen[Int] {
 }
 
 ///|
+/// Generate a small natural number with heavier weight on smaller
+/// values: 50% draw in `[0, 10)`, 25% in `[10, 100)`, 20% in
+/// `[100, 1000)`, 5% in `[1000, 10_000)`.
 pub fn nat() -> Gen[Int] {
   Gen((_, rs) => {
     let p = rs.next_double()
@@ -552,6 +561,8 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 }
 
 ///|
+/// Lift a per-element generator to a generator of lists with exactly
+/// `size` elements (fixed length, independent draws).
 pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
   for n = size, acc = pure(@list.empty()) {
     if n <= 0 {
@@ -563,16 +574,23 @@ pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
 }
 
 ///|
+/// Generate a sorted `List[T]` of exactly `size` elements — draws
+/// `size` independent values from `gen`, then sorts.
 pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[List[T]] {
   gen.list_with_size(size).fmap(List::sort)
 }
 
 ///|
+/// Generate a sorted `Array[T]` of exactly `size` elements. Array
+/// counterpart of `sorted_list`.
 pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
   gen.array_with_size(size).fmap(a => a..sort())
 }
 
 ///|
+/// Lift a per-element generator to a generator of arrays with exactly
+/// `size` elements. Each element is drawn independently from the same
+/// sample tree.
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen((i, rs) => Array::makei(size, _ => self.run(i, rs)))
 }

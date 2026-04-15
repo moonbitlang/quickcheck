@@ -27,6 +27,9 @@ fn binary(u : UInt) -> Iter[UInt] {
 }
 
 ///|
+/// Map over the second element of a pair, leaving the first untouched.
+/// A convenience because the standard library only exposes `fmap` on
+/// pairs via tuple destructuring.
 pub fn[A, B, C] second(f : (B) -> C, v : (A, B)) -> (A, C) {
   let (a, b) = v
   (a, f(b))
