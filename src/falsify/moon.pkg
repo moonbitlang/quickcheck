@@ -1,5 +1,5 @@
 import {
-  "moonbitlang/quickcheck/lazy",
+  "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/core/list",
   "moonbitlang/core/immut/hashmap" @immut_hashmap,
   "moonbitlang/core/sorted_set",

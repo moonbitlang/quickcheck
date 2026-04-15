@@ -52,18 +52,21 @@ user-defined type"; that implementation lives in `axiom.mbt`.
 
 ## Sibling internal packages
 
-Three packages live under `src/internal/`. All are excluded from the
-published module.
+Five packages live under `src/internal/`. MoonBit's `internal/`
+visibility rule makes them inaccessible to downstream consumers
+automatically — there is no `exclude` list needed, they just can't
+be imported across the module boundary.
 
 | Package | Purpose |
 |---------|---------|
 | `internal/testing` *(this one)* | Black-box regression suite + tutorial fixture |
 | `internal/benchmark` | Microbenchmarks for the enumeration / generator pipelines |
 | `internal/shrinking` | Experimental `ShrinkTree[T]` pretty-printer used when exploring shrink traces |
+| `internal/lazy` | Call-by-need values and lazy lists used by `feat` and `falsify` |
+| `internal/utils` | Shared combinators (`id`, `flip`, `pair_function`, …) and chunk-wise shrink helpers |
 
-If you add a fourth non-public package, put it here so the "not
-shipped" boundary stays uniform: one entry in `moon.mod.json`'s
-`exclude` list (`src/internal`) covers everything below.
+New non-public packages should land under `src/internal/` as well —
+that's the single namespace the visibility rule covers.
 
 ## Conventions
 

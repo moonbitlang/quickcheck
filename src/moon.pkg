@@ -1,7 +1,7 @@
 import {
   "moonbitlang/quickcheck/feat",
-  "moonbitlang/quickcheck/lazy",
-  "moonbitlang/quickcheck/utils",
+  "moonbitlang/quickcheck/internal/lazy",
+  "moonbitlang/quickcheck/internal/utils",
   "moonbitlang/quickcheck/rose",
   "moonbitlang/core/sorted_set",
   "moonbitlang/core/cmp",

@@ -1,9 +1,13 @@
 # Utils — Small helpers shared across QuickCheck
 
+> **Internal package** — lives at `moonbitlang/quickcheck/internal/utils`
+> and is not importable from outside this module (MoonBit enforces
+> Go-style `internal/` visibility at the module boundary).
+
 A grab-bag of tiny, dependency-free helpers used by the rest of the
-`moonbitlang/quickcheck` family. None of this is intellectually deep: these
-are the utilities that kept showing up in more than one place and were
-worth factoring out.
+`moonbitlang/quickcheck` family. None of this is intellectually deep:
+these are the utilities that kept showing up in more than one place
+and were worth factoring out.
 
 ## Why this package exists
 
@@ -11,29 +15,12 @@ worth factoring out.
 flowchart TD
   qc["moonbitlang/quickcheck"] --> utils
   feat["moonbitlang/quickcheck/feat"] --> utils
-  falsify["moonbitlang/quickcheck/falsify"] --> utils
-  rose["moonbitlang/quickcheck/rose"] --> utils
-  utils["moonbitlang/quickcheck/utils<br/>• id, const_, flip, pair_function<br/>• fresh_name<br/>• removes_list / removes_array<br/>• apply_while_list / apply_while_array"]
+  utils["moonbitlang/quickcheck/internal/utils<br/>• id, const_, flip, pair_function<br/>• fresh_name<br/>• removes_list / removes_array<br/>• apply_while_list / apply_while_array"]
 ```
 
-A sub-package keeps these helpers public-but-internal: every QuickCheck
-package can `import` them without polluting the surface area of the main
-library, and you can use them directly if you find yourself reimplementing
-`id` or `flip` for the third time.
-
-## Install
-
-```bash
-moon add moonbitlang/quickcheck
-```
-
-```json
-{
-  "import": [
-    { "path": "moonbitlang/quickcheck/utils", "alias": "utils" }
-  ]
-}
-```
+Keeping these helpers in a single `internal` package means every
+QuickCheck module can `import` them without polluting the published
+surface area of the main library.
 
 ---
 
