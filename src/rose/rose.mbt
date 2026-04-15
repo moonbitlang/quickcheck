@@ -89,3 +89,51 @@ test "for .. in sugar walks every value" {
   }
   assert_eq(acc, [10, 20, 30])
 }
+
+///|
+/// Sibling branches are an infinite stream. `iter().take(n)` must
+/// terminate — a naive eager implementation would try to build an
+/// unbounded prefix before yielding anything.
+test "iter is lazy over an infinite-width tree" {
+  let infinite_siblings = Iter::repeat(pure(7))
+  let tree = Rose::{ val: 0, branch: infinite_siblings }
+  assert_eq(tree.iter().take(5).collect(), [0, 7, 7, 7, 7])
+}
+
+///|
+/// Depth is unbounded: spine(n) has exactly one child, spine(n+1).
+/// The `branch` field is a lazy `Iter::new(...)` so the recursive call
+/// is only forced when the outer iterator pulls a value. If
+/// `Rose::iter` were not lazy, building spine(0) or calling .iter() on
+/// it would non-terminate.
+test "iter is lazy over an infinite-depth spine" {
+  fn spine(n : Int) -> Rose[Int] {
+    let mut pulled = false
+    let branch : Iter[Rose[Int]] = Iter::new(() => {
+      if pulled {
+        None
+      } else {
+        pulled = true
+        Some(spine(n + 1))
+      }
+    })
+    { val: n, branch }
+  }
+
+  assert_eq(spine(0).iter().take(6).collect(), [0, 1, 2, 3, 4, 5])
+}
+
+///|
+/// Early `break` in a `for .. in` loop must also be lazy: we should
+/// never touch the sub-trees past the break point.
+test "for .. in with early break visits only the prefix" {
+  let infinite = Rose::{ val: 0, branch: Iter::repeat(pure(1)) }
+  let acc = []
+  for x in infinite {
+    if acc.length() == 3 {
+      break
+    }
+    acc.push(x)
+  }
+  assert_eq(acc, [0, 1, 1])
+}
