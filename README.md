@@ -1,1 +1,1 @@
-./src/testing/tutorial_en/README.mbt.md
+./src/internal/testing/tutorial_en/README.mbt.md
