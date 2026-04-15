@@ -1,8 +1,5 @@
-///|
-pub(all) struct Equivalence[T] {
-  lhs : T
-  rhs : T
-}
+// `Equivalence[T]` is declared in `types.mbt`. Methods and the `Show`
+// impl for it live here.
 
 ///|
 pub impl[T : Show] Show for Equivalence[T] with output(self, logger) {
