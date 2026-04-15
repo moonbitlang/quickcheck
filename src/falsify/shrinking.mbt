@@ -41,6 +41,10 @@ impl[P : Show, N : Show] Show for ShrinkExplain[P, N] with output(self, logger) 
 }
 
 ///|
+/// Truncate the shrink history to at most `n` steps. Replaces any
+/// `ShrinkTo(_, …)` beyond that depth with `ShrinkStopped`. Used by
+/// the driver to cap the amount of shrink work reported. Passing
+/// `None` is a no-op (keep the full history).
 pub fn[P, N] ShrinkExplain::limit_steps(
   self : ShrinkExplain[P, N],
   n : Int?,
@@ -61,6 +65,10 @@ pub fn[P, N] ShrinkExplain::limit_steps(
 }
 
 ///|
+/// Flatten the shrink record to just the sequence of visited values,
+/// starting with the initial counter-example and ending with the
+/// last successfully-shrunk value. Useful for logging a minimal
+/// trace of the shrink search.
 pub fn[P, N] ShrinkExplain::shrink_history(
   self : ShrinkExplain[P, N],
 ) -> Array[P] {
@@ -78,6 +86,11 @@ pub fn[P, N] ShrinkExplain::shrink_history(
 }
 
 ///|
+/// Reduce the shrink record to its endpoint: the final value and
+/// — if the search ran to exhaustion — the iter of candidates that
+/// were rejected at that step. A `None` second component means the
+/// search was cut short (`limit_steps`) rather than finishing
+/// naturally.
 pub fn[P, N] ShrinkExplain::shrink_outcome(
   self : ShrinkExplain[P, N],
 ) -> (P, Iter[N]?) {
@@ -135,6 +148,14 @@ fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
 }
 
 ///|
+/// The shrink-search driver: starting from counter-example `p` and
+/// the candidate sample trees `shrunk`, re-run `self` against every
+/// candidate, partition the results into valid / invalid shrinks,
+/// and step to the *head* of the valid set (whose order is
+/// determined by `partition_result`'s prepending fold — effectively
+/// "last valid shrink explored is stepped to"). Recurse until no
+/// valid shrink remains. The full trail is recorded in the returned
+/// `ShrinkExplain`.
 pub fn[A, P, N] Gen::shrink_from(
   self : Gen[A],
   prop : (A) -> IsValidShrink[P, N],
@@ -162,6 +183,14 @@ pub fn[A, P, N] Gen::shrink_from(
 }
 
 ///|
+/// Build a generator whose only value is `val` and whose shrink set
+/// is the fixed `xs`. Useful when you need a hand-picked shrink
+/// sequence rather than the default "binary towards zero" one.
+///
+/// **Caveat**: the `NotShrunk` branch is currently an unimplemented
+/// `todo` — the generator only exposes the shrink set via the
+/// `Shrunk(i)` path. Stick to `prim` / `pure` / `bind` if you need
+/// full coverage.
 pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
   let shrinker = fn(s) {
     match s {

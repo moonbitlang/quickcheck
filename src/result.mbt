@@ -11,6 +11,10 @@ pub impl[T] Show for Outcome[T] with output(self, logger) {
 }
 
 ///|
+/// Capture the current RNG state and size parameter as a `Replay` so
+/// that a failing test can be rerun deterministically. Typically used
+/// inside the driver — the `Replay` record also surfaces in the
+/// counter-example reported by `Outcome::Fail`.
 pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
   { rand_state, size }
 }
@@ -34,16 +38,24 @@ struct SingleResult {
 }
 
 ///|
+/// A `SingleResult` that reports the current input passed. Used by
+/// combinators that wrap a `Bool` into a `Testable`.
 pub fn succeed() -> SingleResult {
   { ..Default::default(), ok: Some(true) }
 }
 
 ///|
+/// A `SingleResult` that reports the current input failed. The
+/// `reason` / `test_case` / `labels` can be filled in by chaining
+/// further combinators before handing it to the driver.
 pub fn failed() -> SingleResult {
   { ..Default::default(), ok: Some(false) }
 }
 
 ///|
+/// A `SingleResult` that represents a discarded input — the driver
+/// should skip it and try another. Produced by `filter` when its
+/// precondition fails.
 pub fn rejected() -> SingleResult {
   { ..Default::default(), ok: None }
 }

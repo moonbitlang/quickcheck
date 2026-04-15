@@ -98,6 +98,9 @@ fn[T] append_success(
 }
 
 ///|
+/// Seed a `DriverState[T]` from the configuration: fresh RNG (or the
+/// replay seed if one was supplied), no successes yet, `todo` equal
+/// to the target test count, and no discards.
 pub fn[T] init_state(opt : Config) -> DriverState[T] {
   {
     rng: opt.replay.unwrap_or(@splitmix.new()),
@@ -121,6 +124,23 @@ fn[T, E] result_is_valid_shrink(
 }
 
 ///|
+/// Run `prop` under `opt` and return the outcome:
+///
+/// - the seed that was used (so callers can replay),
+/// - the list of successful runs observed (one entry per passing test),
+/// - the total number of discards encountered,
+/// - `Some(failure)` if a counter-example was found and shrunk,
+///   `None` otherwise.
+///
+/// This is Falsify's top-level entry point. The loop stops on the
+/// first of:
+/// - a failing test (then `shrink_from` minimises it before
+///   returning),
+/// - `opt.tests` successes,
+/// - an exhausted discard budget,
+/// - a *single* successful deterministic run — properties whose
+///   result is fully determined by the sample tree short-circuit
+///   after one pass (no point re-running them).
 pub fn[T, E] falsify(
   opt : Config,
   prop : Property[T, E],

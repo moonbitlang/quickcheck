@@ -1,6 +1,19 @@
 // Rose Tree used for shrinking
 
 ///|
+/// A rose tree: a value plus a (possibly infinite, possibly lazy)
+/// `Iter` of child rose trees. The shape QuickCheck and falsify both
+/// use to represent a *shrinkable* value — `val` is the current
+/// candidate; `branch` enumerates the strictly-simpler alternatives
+/// the driver should try if `val` falsifies a property.
+///
+/// `branch : Iter[Rose[T]]` rather than `Array[Rose[T]]` on purpose —
+/// `Iter` is single-shot and lazy, so an infinite tree (e.g. the
+/// shrink space of `Int` or a recursive data type) is representable
+/// without materialising every candidate.
+///
+/// Primary constructor: `Rose(val, branch)`. `Rose::new` is kept as a
+/// deprecated alias for callers that haven't migrated yet.
 pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
@@ -9,12 +22,20 @@ pub(all) struct Rose[T] {
 } derive(Debug)
 
 ///|
+/// Deprecated: prefer the primary constructor `Rose(val, branch)`.
+/// Kept for backward compatibility with callers that predate the
+/// primary-constructor migration.
 #as_free_fn(deprecated="Use Rose(...) directly")
 pub fn[T] Rose::new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
   { val, branch }
 }
 
 ///|
+/// Flatten `Rose[Rose[T]]` into `Rose[T]` — the monadic `join`.
+///
+/// The inner tree at the root contributes its value and its branches;
+/// the outer tree's branches are recursively joined and prepended to
+/// the inner branches. Used internally to implement `bind`.
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
   let ts = self.val.branch
@@ -22,21 +43,32 @@ pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
 }
 
 ///|
+/// The unit of the `Rose` monad: a leaf carrying `val` with no
+/// alternatives.
 pub fn[T] pure(val : T) -> Rose[T] {
   { val, branch: Iter::empty() }
 }
 
 ///|
+/// Map `f` over every node in the tree, preserving structure. The
+/// result has the same shape as `self`, with each node's value
+/// replaced by `f(value)`.
 pub fn[T, U] Rose::fmap(self : Rose[T], f : (T) -> U) -> Rose[U] {
   { val: f(self.val), branch: self.branch.map(fn(x) { x.fmap(f) }) }
 }
 
 ///|
+/// Monadic bind: replace each node's value with the tree produced by
+/// `f`. Equivalent to `self.fmap(f).join()`.
 pub fn[T, U] Rose::bind(self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {
   self.fmap(f).join()
 }
 
 ///|
+/// Inspect a node — pass its value and its branches to `f` and use
+/// whatever `f` returns as the new node. Essentially a controlled
+/// node-level rewrite; used when a shrinker wants to transform a
+/// rose without descending into every child.
 pub fn[T] Rose::apply(
   self : Rose[T],
   f : (T, Iter[Rose[T]]) -> Rose[T],

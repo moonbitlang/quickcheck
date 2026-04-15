@@ -34,6 +34,22 @@ enum TestSuccess {
 }
 
 ///|
+/// Run a `Testable` property against randomly-generated inputs and
+/// print the outcome. The driver runs up to `max_success` successful
+/// tests, trying increasingly large inputs up to `max_size`, and
+/// discarding no more than `max_success × discard_ratio` inputs
+/// before giving up. On failure it shrinks for up to `max_shrink`
+/// steps before reporting.
+///
+/// `expect` asserts the expected outcome (`Success` by default); the
+/// driver flips the verdict accordingly (a failing property with
+/// `expect=Fail` is a pass). `abort=true` short-circuits the outer
+/// loop after the first test result is processed — note that a
+/// failing result still goes through the full shrink search before
+/// returning.
+///
+/// Raises `Failure` on mismatch with `expect` — so it's the
+/// drop-in entry point inside `test "…"` blocks.
 pub fn[P : Testable] quick_check(
   prop : P,
   max_shrink? : Int = 100,
@@ -71,6 +87,9 @@ pub fn[P : Testable] quick_check(
 }
 
 ///|
+/// Like `quick_check` but returns the formatted outcome as a `String`
+/// instead of printing it or raising. Useful in tests that want to
+/// pin the driver's output with `inspect(..., content=...)`.
 pub fn[P : Testable] quick_check_silence(
   prop : P,
   max_shrink? : Int = 100,
@@ -105,6 +124,9 @@ pub fn[P : Testable] quick_check_silence(
 }
 
 ///|
+/// Thin sugar over `quick_check`: accept a plain `(A) -> B` property
+/// function, wrap it in `Arrow`, and run. The shortest path from a
+/// user-written property to a full QuickCheck run.
 pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   f : (A) -> B,
   max_shrinks? : Int,
@@ -126,6 +148,8 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 }
 
 ///|
+/// `quick_check_fn` variant that returns the formatted outcome as a
+/// `String` instead of raising / printing.
 pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence(
   f : (A) -> B,
   max_shrinks? : Int,
@@ -147,6 +171,9 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silen
 }
 
 ///|
+/// `quick_check_fn` for properties that may `raise`. A raised error
+/// is treated as a counter-example with the error captured as the
+/// reason.
 pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error(
   f : (A) -> B raise,
   max_shrinks? : Int,
@@ -168,6 +195,8 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 }
 
 ///|
+/// `quick_check_fn_error` silent variant that returns the formatted
+/// outcome as a `String`.
 pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error_silence(
   f : (A) -> B raise,
   max_shrinks? : Int,
@@ -189,6 +218,11 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 }
 
 ///|
+/// Low-level driver entry: run a property with a fully-specified
+/// `Config` and return the structured `TestSuccess` / raise a
+/// `TestError`. Most callers prefer `quick_check` or
+/// `quick_check_silence`, which wrap this with sensible defaults and
+/// pretty-printing.
 pub fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P,
@@ -197,6 +231,16 @@ pub fn[P : Testable] quick_check_with_result(
 }
 
 ///|
+/// Exhaustive-ish testing via the `feat` enumeration: walk values of
+/// `A` in ascending size order, checking each one against `f`, up to
+/// **at most `max_size` total test cases** (not all values of size
+/// `≤ max_size` — that would usually be combinatorially huge). So
+/// `small_check` is "enumerate prefix by size, check the first
+/// `max_size` values"; pick `max_size` large enough to cover the
+/// interesting sizes for your type.
+///
+/// Complements `quick_check`: use `small_check` when you want
+/// deterministic, size-indexed coverage rather than random sampling.
 pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
   f : (A) -> B,
   max_size? : Int = 100,
@@ -220,6 +264,8 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
 }
 
 ///|
+/// `small_check` silent variant: returns the formatted outcome as a
+/// `String`.
 pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   f : (A) -> B,
   max_size? : Int = 100,
@@ -240,6 +286,8 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
 }
 
 ///|
+/// `small_check` variant that accepts a property that may `raise`. A
+/// raised error is treated as a counter-example.
 pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
   f : (A) -> B raise,
   max_size? : Int = 100,
@@ -250,6 +298,8 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
 }
 
 ///|
+/// Silent variant of `small_check_error`: returns the formatted
+/// outcome as a `String` instead of raising.
 pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
   f : (A) -> B raise,
   max_size? : Int = 100,
@@ -338,6 +388,10 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
 }
 
 ///|
+/// Run the main QuickCheck loop: draw inputs, evaluate the property,
+/// book-keep successes and discards, and on failure hand off to
+/// `find_failure` for shrinking. Returns the aggregated
+/// `TestSuccess` or raises `TestError`.
 pub fn State::run_test(
   self : State,
   prop : Property,
@@ -358,6 +412,10 @@ pub fn State::run_test(
 }
 
 ///|
+/// Wrap up a finished test run — produce the formatted success
+/// report when the expected outcome matches, or raise the
+/// appropriate `TestError` when it does not (e.g. the property was
+/// supposed to fail but no counter-example appeared).
 pub fn State::complete_test(
   self : State,
   _prop : Property,
@@ -379,6 +437,9 @@ pub fn State::complete_test(
 }
 
 ///|
+/// Abandon the run when too many inputs have been discarded (the
+/// `max_success × discard_ratio` budget is exhausted). Produces the
+/// `GaveUp` outcome with the current coverage snapshot.
 pub fn State::give_up(
   self : State,
   _prop : Property,
@@ -455,6 +516,10 @@ pub fn State::run_single_test(
 }
 
 ///|
+/// Enter the shrink loop on a counter-example: starting from `res`
+/// and the iter of alternative `Rose` sub-trees, walk the shrinkers
+/// to find a minimal failing case, then raise the appropriate
+/// `TestError` (or `TestSuccess` if the failure was expected).
 pub fn State::find_failure(
   self : State,
   res : SingleResult,
@@ -520,6 +585,12 @@ fn State::find_failure_no_shrink(
 }
 
 ///|
+/// The inner shrink-search loop: given a failing `SingleResult` and a
+/// candidate `Rose` branch to explore, walk downward as long as we
+/// keep finding smaller failures, bailing out after
+/// `self.max_shrinks_` total attempts. Returns the full tally
+/// `(successful shrinks, tries without success, last-stage tries,
+/// final result)` that the driver reports in the `Fail` outcome.
 pub fn State::local_min(
   self : State,
   res : SingleResult,
@@ -551,6 +622,10 @@ pub fn State::local_min(
 }
 
 ///|
+/// Finalise the shrink tally when the search terminates (either
+/// because the shrink budget is exhausted or no smaller failure was
+/// found). Returns the counts the driver reports in the `Fail`
+/// outcome.
 pub fn local_min_found(
   st : State,
   res : SingleResult,

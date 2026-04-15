@@ -13,21 +13,32 @@ pub impl Default for Printer with default() {
 }
 
 ///|
+/// Build a `Printer` that writes into an existing buffer. Initial
+/// indent is 0.
 pub fn Printer::from_buffer(buf : @buffer.Buffer) -> Printer {
   { buf, ident: 0 }
 }
 
 ///|
+/// Increase the indent by `size` (default 2) spaces. Every subsequent
+/// `write_string` / `format` call prepends the indent.
 pub fn Printer::ident(self : Printer, size? : Int = 2) -> Unit {
   self.ident += size
 }
 
 ///|
+/// Decrease the indent by exactly 1 space (asymmetric with `ident`,
+/// which adds 2 by default). Present mainly for legacy callers;
+/// prefer `self.ident -= n` directly when you need a specific
+/// reduction.
 pub fn Printer::unident(self : Printer) -> Unit {
   self.ident -= 1
 }
 
 ///|
+/// Produce the indent-prefixed form of `str` without writing it.
+/// Useful when multiple `format` calls need to be composed before
+/// flushing to the buffer.
 pub fn Printer::format(self : Printer, str : String) -> String {
   let mut s = ""
   for i = 0; i < self.ident; i = i + 1 {
@@ -37,6 +48,8 @@ pub fn Printer::format(self : Printer, str : String) -> String {
 }
 
 ///|
+/// Write `str` followed by a newline, with the current indent
+/// prepended.
 pub fn Printer::write_string(self : Printer, str : String) -> Unit {
   self.buf.write_string(self.format(str) + "\n")
 }
