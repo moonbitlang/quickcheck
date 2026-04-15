@@ -12,6 +12,6 @@
   "source": "src",
   "exclude": [
     "src/internal_benchmark",
-    "src/testing"
+    "src/internal/testing"
   ]
 }
