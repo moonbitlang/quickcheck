@@ -19,7 +19,7 @@ pub(all) struct Finite[T] {
 /// The empty chunk: cardinality zero, indexer that aborts. Identity
 /// for `fin_union`; absorbing element for `fin_cart`.
 pub fn[T] fin_empty() -> Finite[T] {
-  { fCard: 0, fIndex: fn(_x) { abort("index empty") } }
+  { fCard: 0, fIndex: _ => abort("index empty") }
 }
 
 ///|
@@ -153,6 +153,63 @@ pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
   } else {
     fin
   }
+}
+
+///|
+/// Lazy traversal over the chunk: walks indices `0, 1, 2, …, fCard-1`
+/// and yields `fIndex(i)` at each step. Because MoonBit's
+/// `for x in <expr>` desugars to `<expr>.iter()`, this is what lets
+/// you use a `Finite[T]` directly with the loop sugar.
+///
+/// The traversal is lazy: early `break` stops calling `fIndex`.
+/// Like every `Iter` in MoonBit it is single-shot.
+pub fn[T] Finite::iter(self : Finite[T]) -> Iter[T] {
+  let card = self.fCard
+  let fi = self.fIndex
+  let mut i : BigInt = 0
+  Iter::new(() => {
+    if i < card {
+      let v = fi(i)
+      i = i + 1
+      Some(v)
+    } else {
+      None
+    }
+  })
+}
+
+///|
+test "iter walks 0..fCard" {
+  assert_eq(fin_finite(5).iter().collect(), [0, 1, 2, 3, 4])
+  let f : Finite[Int] = fin_empty()
+  assert_eq(f.iter().collect(), [])
+}
+
+///|
+test "for x in finite walks every element" {
+  let acc : Array[BigInt] = []
+  for x in fin_finite(3) {
+    acc.push(x)
+  }
+  assert_eq(acc, [0, 1, 2])
+}
+
+///|
+test "iter is lazy — early break stops walking" {
+  let calls = Ref::new(0)
+  let probe : Finite[Int] = {
+    fCard: 1000,
+    fIndex: fn(_i) {
+      calls.val = calls.val + 1
+      42
+    },
+  }
+  for _x in probe {
+    if calls.val == 3 {
+      break
+    }
+  }
+  assert_eq(calls.val, 3)
 }
 
 ///|

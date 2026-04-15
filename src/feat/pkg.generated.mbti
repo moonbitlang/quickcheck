@@ -61,6 +61,7 @@ pub(all) struct Finite[T] {
   fCard : @bigint.BigInt
   fIndex : (@bigint.BigInt) -> T
 }
+pub fn[T] Finite::iter(Self[T]) -> Iter[T]
 pub fn[T] Finite::op_add(Self[T], Self[T]) -> Self[T]
 pub fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
 pub impl[T : Show] Show for Finite[T]
