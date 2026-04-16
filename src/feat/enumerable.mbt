@@ -108,11 +108,7 @@ pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with enum
   consts(
     @list.from_array([
       singleton(@list.empty()),
-      unary(
-        @utils.pair_function(fn(e : E, lst : @moonbitlang/core/list.List[E]) {
-          lst.add(e)
-        }),
-      ),
+      unary((pair : (E, @moonbitlang/core/list.List[E])) => pair.1.add(pair.0)),
     ]),
   )
 }

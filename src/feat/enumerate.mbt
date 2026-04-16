@@ -142,10 +142,10 @@ pub fn[T] consts(ls : @list.List[Enumerate[T]]) -> Enumerate[T] {
 
 ///|
 /// Apply a unary constructor: `unary(f) == T::enumerate().fmap(f)`.
-/// For multi-argument constructors, wrap via `pair_function` so `f`
-/// takes a single tuple argument — then `unary(f)` goes through the
-/// built-in pair `Enumerable` instance which inserts the required
-/// `pay`.
+/// For multi-argument constructors, write a tuple lambda so `f` takes
+/// a single tuple argument — e.g. `unary(p => Node(p.0, p.1))` — then
+/// `unary(f)` goes through the built-in pair `Enumerable` instance
+/// which inserts the required `pay`.
 pub fn[T : Enumerable, U] unary(f : (T) -> U) -> Enumerate[U] {
   T::enumerate().fmap(f)
 }

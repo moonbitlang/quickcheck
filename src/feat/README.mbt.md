@@ -250,7 +250,7 @@ Three rules, and that's it:
 
 1. **One `+` summand per constructor.** Leaf constructors become
    `singleton(...)`; constructors that carry children use
-   `unary(@utils.pair_function(...))` or `product(...)`.
+   `unary(pair => Cons(pair.0, pair.1))` or `product(...)`.
 2. **Wrap the whole thing in a `pay(...)`.** The `pay` is what gives the
    fixpoint a chance to suspend before recursing into `T::enumerate()`
    again — this is the productivity guarantee (contract item 2).
@@ -273,9 +273,9 @@ impl @feat.Enumerable for Tree with enumerate() {
   // `unary`, which goes through the built-in `Enumerable` instance for
   // `(Tree, Tree)`. That instance itself inserts a `pay`, which is what keeps
   // the fixpoint productive.
-  @feat.pay(fn() {
-    let mk = @utils.pair_function((l : Tree, r : Tree) => Node(l, r))
-    @feat.singleton(Leaf) + @feat.unary(mk)
+  @feat.pay(() => {
+    @feat.singleton(Leaf) +
+    @feat.unary((pair : (Tree, Tree)) => Node(pair.0, pair.1))
   })
 }
 

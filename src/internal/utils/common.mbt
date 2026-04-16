@@ -132,10 +132,9 @@ pub fn[T, U] const_(t : T) -> (U) -> T {
 }
 
 ///|
-/// Convert an ordinary 2-argument function into one that accepts a
-/// tuple, i.e. `pair_function(f)((a, b)) == f(a, b)`. Handy for wiring
-/// combinators like `Enumerate::fmap` / `feat.unary` that operate on a
-/// single value but where the callee is expressed as two arguments.
+/// Deprecated. Inline as `tuple => f(tuple.0, tuple.1)` at the call
+/// site — the helper saves no characters and obscures the shape.
+#deprecated("Inline `tuple => f(tuple.0, tuple.1)` at the call site")
 pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
   tuple => f(tuple.0, tuple.1)
 }

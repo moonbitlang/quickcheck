@@ -18,6 +18,7 @@ pub fn fresh_name() -> String
 
 pub fn[T] id(T) -> T
 
+#deprecated
 pub fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
 pub fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
