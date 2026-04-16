@@ -15,7 +15,7 @@ and were worth factoring out.
 flowchart TD
   qc["moonbitlang/quickcheck"] --> utils
   feat["moonbitlang/quickcheck/feat"] --> utils
-  utils["moonbitlang/quickcheck/internal/utils<br/>• id, const_, flip, pair_function<br/>• fresh_name<br/>• removes_list / removes_array<br/>• apply_while_list / apply_while_array"]
+  utils["moonbitlang/quickcheck/internal/utils<br/>• id, const_, flip<br/>• fresh_name<br/>• removes_list / removes_array<br/>• apply_while_list / apply_while_array"]
 ```
 
 Keeping these helpers in a single `internal` package means every
@@ -31,7 +31,8 @@ surface area of the main library.
 | `id(x)` | `T -> T` | The identity function |
 | `const_(t)(_)` | `T -> U -> T` | Ignore the second argument, return the first |
 | `flip(f)(x, y)` | `((A, B) -> C) -> (B, A) -> C` | Swap argument order |
-| `pair_function(f)((a, b))` | `((A, B) -> C) -> ((A, B)) -> C` | Re-pack a 2-arg function to take a tuple |
+
+> `pair_function` is **deprecated** — inline `tuple => f(tuple.0, tuple.1)` at the call site instead.
 
 ```mbt check
 ///|
@@ -53,13 +54,6 @@ test "flip swaps argument order" {
   let rsub = @utils.flip(sub)
   assert_eq(sub(10, 3), 7)
   assert_eq(rsub(10, 3), -7)
-}
-
-///|
-test "pair_function un-curries onto a tuple" {
-  let add = (x : Int, y : Int) => x + y
-  let add_pair = @utils.pair_function(add)
-  assert_eq(add_pair((4, 5)), 9)
 }
 ```
 
@@ -175,7 +169,7 @@ test "apply_while_array accumulates in reverse order" {
 | `id` | `T -> T` |
 | `const_` | `T -> (U -> T)` |
 | `flip` | `((A, B) -> C) -> (B, A) -> C` |
-| `pair_function` | `((A, B) -> C) -> ((A, B)) -> C` |
+| `pair_function` _(deprecated)_ | `((A, B) -> C) -> ((A, B)) -> C` |
 
 ### State & names
 
@@ -199,9 +193,6 @@ function listed above is a plain top-level `fn[...]`. That's
 deliberate — these are low-level combinators that sit below the
 trait-driven layers of the ecosystem:
 
-- `@feat.Enumerable` pulls `pair_function` in when expressing recursive
-  instances whose constructors take multiple children; see the `feat`
-  README's "Implementing Enumerable for your own type" section.
 - The classical shrinkers used by `moonbitlang/quickcheck.Shrink`
   (defined in `src/shrink.mbt`) reach for `removes_array` /
   `removes_list` to build "drop a chunk" candidates.

@@ -64,7 +64,7 @@ be imported across the module boundary.
 | `internal/shrinking` | Experimental `ShrinkTree[T]` pretty-printer used when exploring shrink traces |
 | `internal/lazy` | Call-by-need values and lazy lists used by `feat` and `falsify` |
 | `internal/rose` | Shrink-tree structure used by the main QuickCheck driver |
-| `internal/utils` | Shared combinators (`id`, `flip`, `pair_function`, …) and chunk-wise shrink helpers |
+| `internal/utils` | Shared combinators (`id`, `flip`, …) and chunk-wise shrink helpers |
 
 New non-public packages should land under `src/internal/` as well —
 that's the single namespace the visibility rule covers.

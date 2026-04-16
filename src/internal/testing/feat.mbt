@@ -84,14 +84,9 @@ impl @feat.Enumerable for SingleTree with enumerate() {
   @feat.consts(
     @list.from_array([
       @feat.Enumerable::enumerate().fmap(x => Leaf(x)),
-      @feat.unary(pair_function((x, y) => Node(x, y))),
+      @feat.unary((p : (Bool, SingleTree)) => Node(p.0, p.1)),
     ]),
   )
-}
-
-///|
-fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
-  fn(x : (A, B)) -> C { f(x.0, x.1) }
 }
 
 ///|
