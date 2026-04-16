@@ -29,7 +29,7 @@ pub(all) struct Enumerate[T] {
 pub fn[T] Enumerate::en_index(Self[T], @bigint.BigInt) -> T
 pub fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
 pub fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
-pub fn[T] Enumerate::sample_space(Self[T], Int) -> (@bigint.BigInt, (@bigint.BigInt) -> T)
+pub fn[T] Enumerate::sample_finite(Self[T], Int) -> Finite[T]
 pub impl[T] Add for Enumerate[T]
 
 pub(all) struct Finite[T] {
