@@ -38,6 +38,7 @@ pub fn[T, U] LazyList::fold_left(Self[T], (U, T) -> U, init~ : U) -> U
 pub fn[T, U] LazyList::fold_right(Self[T], (T, U) -> U, init~ : U) -> U
 pub fn[T] LazyList::head(Self[T]) -> T
 pub fn[T] LazyList::index(Self[T], Int) -> T
+pub fn[T] LazyList::iter(Self[T]) -> Iter[T]
 pub fn[T] LazyList::length(Self[T]) -> Int
 pub fn[T, U] LazyList::map(Self[T], (T) -> U) -> Self[U]
 pub fn[T] LazyList::split_at(Self[T], Int) -> (Self[T], Self[T])

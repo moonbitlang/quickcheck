@@ -41,6 +41,31 @@ pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
 }
 
 ///|
+/// Lazy traversal: walks the list head-first, yielding each element
+/// as the iterator is pulled. Because MoonBit's `for x in <expr>`
+/// desugars to `<expr>.iter()`, this enables
+///
+///     for x in lazy_list { ... }
+///
+/// on any `LazyList[T]`.
+///
+/// Only the cells actually consumed are forced — pairing with `take`
+/// or breaking out of the loop early avoids touching the rest. Like
+/// every `Iter` in MoonBit it is single-shot.
+pub fn[T] LazyList::iter(self : LazyList[T]) -> Iter[T] {
+  let mut cur = self
+  Iter::new(() => {
+    match cur {
+      Nil => None
+      Cons(x, xs) => {
+        cur = xs.force()
+        Some(x)
+      }
+    }
+  })
+}
+
+///|
 /// Return the element at position `i`. **O(n)** — walks the list from
 /// the head. Aborts if `i` is negative or past the end.
 pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
