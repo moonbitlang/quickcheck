@@ -16,7 +16,7 @@ pub(open) trait Enumerable {
 
 ///|
 pub impl Enumerable for Bool with enumerate() {
-  pay(fn() { singleton(true) + singleton(false) })
+  pay(() => singleton(true) + singleton(false))
 }
 
 ///|
@@ -26,20 +26,17 @@ pub impl Enumerable for Int with enumerate() {
   letrec int_parts_from: (Int) -> @lazy.LazyList[Finite[Int]] = n => {
     Cons(
       fin_pure(n),
-      @lazy.LazyRef::from_thunk(fn() {
+      @lazy.LazyRef::from_thunk(() => {
         Cons(
           fin_pure(-n),
-          @lazy.LazyRef::from_thunk(fn() { int_parts_from(n + 1) }),
+          @lazy.LazyRef::from_thunk(() => int_parts_from(n + 1)),
         )
       }),
     )
   }
 
   {
-    parts: Cons(
-      fin_pure(0),
-      @lazy.LazyRef::from_thunk(fn() { int_parts_from(1) }),
-    ),
+    parts: Cons(fin_pure(0), @lazy.LazyRef::from_thunk(() => int_parts_from(1))),
   }
 }
 
@@ -48,10 +45,10 @@ pub impl Enumerable for Int64 with enumerate() {
   letrec int64_parts_from: (Int64) -> @lazy.LazyList[Finite[Int64]] = n => {
     Cons(
       fin_pure(n),
-      @lazy.LazyRef::from_thunk(fn() {
+      @lazy.LazyRef::from_thunk(() => {
         Cons(
           fin_pure(-n),
-          @lazy.LazyRef::from_thunk(fn() { int64_parts_from(n + 1) }),
+          @lazy.LazyRef::from_thunk(() => int64_parts_from(n + 1)),
         )
       }),
     )
@@ -60,19 +57,19 @@ pub impl Enumerable for Int64 with enumerate() {
   {
     parts: Cons(
       fin_pure(0L),
-      @lazy.LazyRef::from_thunk(fn() { int64_parts_from(1L) }),
+      @lazy.LazyRef::from_thunk(() => int64_parts_from(1L)),
     ),
   }
 }
 
 ///|
 pub impl Enumerable for UInt with enumerate() {
-  pay(fn() { singleton(0U) + Enumerable::enumerate().fmap(fn(x) { x + 1U }) })
+  pay(() => singleton(0U) + Enumerable::enumerate().fmap(x => x + 1U))
 }
 
 ///|
 pub impl Enumerable for UInt64 with enumerate() {
-  pay(fn() { singleton(0UL) + Enumerable::enumerate().fmap(fn(x) { x + 1UL }) })
+  pay(() => singleton(0UL) + Enumerable::enumerate().fmap(x => x + 1UL))
 }
 
 ///|
@@ -115,19 +112,17 @@ pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with enum
 
 ///|
 pub impl[A : Enumerable, B : Enumerable] Enumerable for (A, B) with enumerate() {
-  pay(fn() { product(A::enumerate(), B::enumerate()) })
+  pay(() => product(A::enumerate(), B::enumerate()))
 }
 
 ///|
 pub impl[E : Enumerable] Enumerable for E? with enumerate() {
-  pay(fn() { singleton(None) + E::enumerate().fmap(x => Some(x)) })
+  pay(() => singleton(None) + E::enumerate().fmap(x => Some(x)))
 }
 
 ///|
 pub impl[T : Enumerable, E : Enumerable] Enumerable for Result[T, E] with enumerate() {
-  pay(fn() {
-    E::enumerate().fmap(x => Err(x)) + T::enumerate().fmap(x => Ok(x))
-  })
+  pay(() => E::enumerate().fmap(x => Err(x)) + T::enumerate().fmap(x => Ok(x)))
 }
 
 ///|

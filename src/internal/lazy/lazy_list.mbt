@@ -104,7 +104,7 @@ pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
       xs,
       match xs {
         Nil => LazyRef::from_value(Nil)
-        Cons(_, xs1) => LazyRef::from_thunk(fn() { go(xs1.force()) })
+        Cons(_, xs1) => LazyRef::from_thunk(() => go(xs1.force()))
       },
     )
   }
@@ -122,8 +122,7 @@ pub fn[T] LazyList::concat(
 ) -> LazyList[T] {
   match self {
     Nil => other
-    Cons(x, xs) =>
-      Cons(x, LazyRef::from_thunk(fn() { xs.force().concat(other) }))
+    Cons(x, xs) => Cons(x, LazyRef::from_thunk(() => xs.force().concat(other)))
   }
 }
 
@@ -136,7 +135,7 @@ pub impl[T] Add for LazyList[T] with add(self, other) {
 ///|
 /// An infinite stream of a single value: `[x, x, x, ...]`.
 pub fn[T] repeat(val : T) -> LazyList[T] {
-  Cons(val, LazyRef::from_thunk(fn() { repeat(val) }))
+  Cons(val, LazyRef::from_thunk(() => repeat(val)))
 }
 
 ///|
@@ -145,7 +144,7 @@ pub fn[T] repeat(val : T) -> LazyList[T] {
 pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   match self {
     Nil => Nil
-    Cons(x, xs) => Cons(f(x), LazyRef::from_thunk(fn() { xs.force().map(f) }))
+    Cons(x, xs) => Cons(f(x), LazyRef::from_thunk(() => xs.force().map(f)))
   }
 }
 
@@ -233,7 +232,7 @@ pub fn[T] LazyList::tail(self : LazyList[T]) -> LazyList[T] {
 /// Number of elements. **Forces the entire list** — don't call on
 /// infinite input.
 pub fn[T] LazyList::length(self : LazyList[T]) -> Int {
-  self.fold_left(fn(acc, _x) { acc + 1 }, init=0)
+  self.fold_left((acc, _x) => acc + 1, init=0)
 }
 
 ///|
@@ -254,7 +253,7 @@ pub fn[A, B, C] zip_with(
     (Cons(x, xs), Cons(y, ys)) =>
       Cons(
         f(x, y),
-        LazyRef::from_thunk(fn() { zip_with(f, xs.force(), ys.force()) }),
+        LazyRef::from_thunk(() => zip_with(f, xs.force(), ys.force())),
       )
     (_, _) => Nil
   }
@@ -271,7 +270,7 @@ pub fn[T] LazyList::take_while(
     Nil => Nil
     Cons(x, xs) =>
       if p(x) {
-        Cons(x, LazyRef::from_thunk(fn() { xs.force().take_while(p) }))
+        Cons(x, LazyRef::from_thunk(() => xs.force().take_while(p)))
       } else {
         Nil
       }
@@ -287,8 +286,7 @@ pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
   } else {
     match self {
       Nil => Nil
-      Cons(x, xs) =>
-        Cons(x, LazyRef::from_thunk(fn() { xs.force().take(n - 1) }))
+      Cons(x, xs) => Cons(x, LazyRef::from_thunk(() => xs.force().take(n - 1)))
     }
   }
 }
@@ -334,7 +332,7 @@ pub fn[T] LazyList::drop_while(
 /// Infinite arithmetic progression: `[start, start + step, start + 2*step, ...]`.
 /// `X` must be `Add`-able. Lazy — consume via `take` / `take_while`.
 pub fn[X : Add] infinite_stream(start : X, step : X) -> LazyList[X] {
-  Cons(start, LazyRef::from_thunk(fn() { infinite_stream(start + step, step) }))
+  Cons(start, LazyRef::from_thunk(() => infinite_stream(start + step, step)))
 }
 
 ///|
@@ -369,7 +367,7 @@ pub fn[T] zip_plus(
     (Cons(x, xs), Cons(y, ys)) =>
       Cons(
         f(x, y),
-        LazyRef::from_thunk(fn() { zip_plus(f, xs.force(), ys.force()) }),
+        LazyRef::from_thunk(() => zip_plus(f, xs.force(), ys.force())),
       )
     (xs, ys) => xs.concat(ys)
   }
@@ -385,7 +383,7 @@ pub fn[T] LazyList::unfold(
 ) -> LazyList[T] {
   match f(self) {
     None => Nil
-    Some((x, y)) => Cons(x, LazyRef::from_thunk(fn() { y.unfold(f) }))
+    Some((x, y)) => Cons(x, LazyRef::from_thunk(() => y.unfold(f)))
   }
 }
 

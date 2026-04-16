@@ -111,7 +111,7 @@ Multi-argument functions are the norm in real systems. `@qc.tuple`, `@qc.triple`
 ///|
 test "gen @qc.tuple for two args" {
   let gen = @qc.tuple(@qc.int_range(-20, 20), @qc.int_range(-20, 20))
-  let prop = @qc.forall(gen, fn(p) {
+  let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a - b + b == a
   })

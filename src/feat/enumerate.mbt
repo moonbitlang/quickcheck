@@ -101,7 +101,7 @@ pub impl[T] Add for Enumerate[T] with add(self, other) {
 /// Rewrite every element without changing the structure: part shapes
 /// stay the same, only the inhabitants are relabelled via `f`.
 pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
-  { parts: self.parts.map(fn(x) { fin_fmap(f, x) }) }
+  { parts: self.parts.map(x => fin_fmap(f, x)) }
 }
 
 ///|
@@ -111,7 +111,7 @@ pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] 
 /// recursive self-reference must be wrapped in `pay` or the fixpoint
 /// diverges.
 pub fn[T] pay(f : () -> Enumerate[T]) -> Enumerate[T] {
-  { parts: Cons(fin_empty(), @lazy.LazyRef::from_thunk(fn() { f().parts })) }
+  { parts: Cons(fin_empty(), @lazy.LazyRef::from_thunk(() => f().parts)) }
 }
 
 ///|
@@ -128,7 +128,7 @@ fn[T, U] prod_helper(
   xs : LazyList[Finite[T]],
   rys : LazyList[LazyList[Finite[U]]],
 ) -> LazyList[Finite[(T, U)]] {
-  rys.map(fn(y) { convolution(xs, y) })
+  rys.map(y => convolution(xs, y))
 }
 
 ///|
@@ -137,7 +137,7 @@ fn[T, U] prod_helper(
 /// with `consts`. The outer `pay` charges one size unit for the
 /// constructor tag.
 pub fn[T] consts(ls : @list.List[Enumerate[T]]) -> Enumerate[T] {
-  pay(fn() { ls.fold(union, init=empty()) })
+  pay(() => ls.fold(union, init=empty()))
 }
 
 ///|

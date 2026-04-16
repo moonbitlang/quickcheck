@@ -27,7 +27,7 @@ priv enum Kind {
 
 ///|
 fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {
-  delay().fmap(fn(m) { s.fmap(m) })
+  delay().fmap(m => s.fmap(m))
 }
 
 ///|
@@ -120,7 +120,7 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
   A,
   P,
 ] with property(self) {
-  forall_shrink(Gen::spawn(), A::shrink, fn(a : A) { try? (self.0)(a) })
+  forall_shrink(Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
 }
 
 ///|
@@ -139,7 +139,7 @@ pub fn[P : Testable] map_total_result(
   prop : P,
   f : (SingleResult) -> SingleResult,
 ) -> Property {
-  run_prop(prop).fmap(fn(rose) { rose.fmap(f) })
+  run_prop(prop).fmap(rose => rose.fmap(f))
 }
 
 ///|
@@ -164,7 +164,7 @@ pub fn[P : Testable, T] shrinking(
     Rose(pf(x) |> run_prop, shrinker(x).map(props))
   }
 
-  promote_rose(props(x0)).fmap(fn(x) { x.join() })
+  promote_rose(props(x0)).fmap(x => x.join())
 }
 
 ///|
@@ -172,13 +172,13 @@ pub fn[P : Testable, T] shrinking(
 /// callback receives the driver state and result; typical use is to
 /// print diagnostics on a shrunk counter-example.
 pub fn[P : Testable] callback(p : P, cb : Callback) -> Property {
-  map_total_result(p, fn(res) { { ..res, callbacks: res.callbacks.add(cb) } })
+  map_total_result(p, res => { ..res, callbacks: res.callbacks.add(cb) })
 }
 
 ///|
 /// Attaches a label to a test case
 pub fn[P : Testable] label(p : P, s : String) -> Property {
-  map_total_result(p, fn(res) { { ..res, labels: res.labels.add(s) } })
+  map_total_result(p, res => { ..res, labels: res.labels.add(s) })
 }
 
 ///|
@@ -190,14 +190,14 @@ pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
 ///|
 /// Classifies a test case based on a condition
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
-  map_total_result(p, fn(res) { { ..res, classes: res.classes.add((s, cond)) } })
+  map_total_result(p, res => { ..res, classes: res.classes.add((s, cond)) })
 }
 
 ///|
 /// Adds a string to the counterexample if the property fails
 pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
-  let cb = callback(p, PostFinalFailure(CounterExample, fn(_st, _res) {  }))
-  map_total_result(cb, fn(res) { { ..res, test_case: res.test_case.add(s) } })
+  let cb = callback(p, PostFinalFailure(CounterExample, (_st, _res) => ()))
+  map_total_result(cb, res => { ..res, test_case: res.test_case.add(s) })
 }
 
 ///|
@@ -212,12 +212,12 @@ pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
 ///|
 /// Run with an explicit generator
 pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
-  forall_shrink(gen, fn(_x) { Iter::empty() }, f)
+  forall_shrink(gen, _x => Iter::empty(), f)
 }
 
 ///|
 /// Run a property with an explicit generator and shrinker. `forall`
-/// is a convenience that passes `fn(_) { Iter::empty() }` — use this
+/// is a convenience that passes `_ => Iter::empty()` — use this
 /// version when you want a hand-rolled shrinker without going through
 /// the `Shrink` trait.
 pub fn[T : Testable, A : Show] forall_shrink(
@@ -225,8 +225,8 @@ pub fn[T : Testable, A : Show] forall_shrink(
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> Property {
-  gen.bind(fn(x) {
-    shrinking(shrinker, x, fn(a : A) {
+  gen.bind(x => {
+    shrinking(shrinker, x, (a : A) => {
       let s = a.to_string()
       counterexample(f(a), s)
     }).0
@@ -238,7 +238,7 @@ pub fn[T : Testable, A : Show] forall_shrink(
 pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
   callback(
     p,
-    PostTest(Nothing, fn(_st, res) {
+    PostTest(Nothing, (_st, res) => {
       match res.ok {
         Some(false) => f()
         _ => ()

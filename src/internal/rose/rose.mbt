@@ -39,7 +39,7 @@ pub fn[T] Rose::new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
   let ts = self.val.branch
-  { val: self.val.val, branch: tss.map(fn(x) { x.join() }).concat(ts) }
+  { val: self.val.val, branch: tss.map(x => x.join()).concat(ts) }
 }
 
 ///|
@@ -54,7 +54,7 @@ pub fn[T] pure(val : T) -> Rose[T] {
 /// result has the same shape as `self`, with each node's value
 /// replaced by `f(value)`.
 pub fn[T, U] Rose::fmap(self : Rose[T], f : (T) -> U) -> Rose[U] {
-  { val: f(self.val), branch: self.branch.map(fn(x) { x.fmap(f) }) }
+  { val: f(self.val), branch: self.branch.map(x => x.fmap(f)) }
 }
 
 ///|

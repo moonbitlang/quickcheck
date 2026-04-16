@@ -117,7 +117,7 @@ test "queue front and dequeue" {
 test "queue roundtrip property" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow(fn(q : Queue) { q.to_list().rev().rev() == q.to_list() }),
+      @qc.Arrow((q : Queue) => q.to_list().rev().rev() == q.to_list()),
     ),
     content="+++ [100/0/100] Ok, passed!",
   )
@@ -125,7 +125,7 @@ test "queue roundtrip property" {
 
 ///|
 test "queue equivalence property" {
-  let prop_eq_queue = fn(eq : EqQueue) {
+  let prop_eq_queue = (eq : EqQueue) => {
     match eq {
       EqQueue(equiv) => {
         let lhs = equiv.lhs.to_list().length()

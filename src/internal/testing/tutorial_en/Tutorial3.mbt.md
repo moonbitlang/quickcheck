@@ -299,7 +299,7 @@ Consider a mild example. Suppose we only want to test non-empty lists, so we add
 ```mbt check
 ///|
 test "discard on non-empty lists" {
-  let prop_non_empty = fn(xs : @list.List[Int]) -> @qc.Property {
+  let prop_non_empty = (xs : @list.List[Int]) => {
     (!xs.is_empty()) |> @qc.filter(!xs.is_empty())
   }
   inspect(
@@ -316,7 +316,7 @@ In the extreme case, the test may give up entirely:
 ```mbt check
 ///|
 test "reject all gives up" {
-  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content="+++ [0/1000/100] Ok, gave up!",
@@ -438,7 +438,7 @@ Once the enumerator is in place, using SmallCheck is straightforward. We decide 
 ```mbt check
 ///|
 test "small check on peano prefix" {
-  let r = @qc.small_check_silence(fn(n : PeanoNat) { n == PZero }, max_size=5)
+  let r = @qc.small_check_silence((n : PeanoNat) => n == PZero, max_size=5)
   inspect(
     r,
     content=(

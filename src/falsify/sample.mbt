@@ -105,7 +105,7 @@ pub fn SampleTree::map(self : SampleTree, f : (UInt) -> UInt) -> SampleTree {
 /// Clamp every sample to `[0, u)` by taking it modulo `u`. Useful for
 /// turning an arbitrary sample tree into one that stays in range.
 pub fn SampleTree::mod(self : SampleTree, u : UInt) -> SampleTree {
-  self.map(fn(x) { x % u })
+  self.map(x => x % u)
 }
 
 ///|
