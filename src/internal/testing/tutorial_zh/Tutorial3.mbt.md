@@ -527,7 +527,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 ///|
 test "nat enumerate order" {
   let e : @feat.Enumerate[Nat] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4].map(fn(i) { e[i] })
+  let xs = [0N, 1, 2, 3, 4].map(i => e[i])
   inspect(
     xs,
     content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero))))]",

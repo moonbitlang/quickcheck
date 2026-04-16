@@ -18,7 +18,7 @@ test "feat nat" {
 
 ///|
 test "feat nat index" {
-  let x = [0N, 1, 2, 3, 4, 5, 6].map(fn(x) {
+  let x = [0N, 1, 2, 3, 4, 5, 6].map(x => {
     (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat])[x]
   })
   inspect(
@@ -30,28 +30,28 @@ test "feat nat index" {
 ///|
 test "feat int index order" {
   let e : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4, 5].map(fn(i) { e[i] })
+  let xs = [0N, 1, 2, 3, 4, 5].map(i => e[i])
   inspect(xs, content="[0, 1, -1, 2, -2, 3]")
 }
 
 ///|
 test "feat byte index order" {
   let e : @feat.Enumerate[Byte] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3].map(fn(i) { e[i] })
+  let xs = [0N, 1, 2, 3].map(i => e[i])
   inspect(xs, content="[b'\\x00', b'\\x01', b'\\x02', b'\\x03']")
 }
 
 ///|
 test "feat char index order" {
   let e : @feat.Enumerate[Char] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3].map(fn(i) { e[i] })
+  let xs = [0N, 1, 2, 3].map(i => e[i])
   inspect(xs, content="['\\u{00}', '\\u{01}', '\\u{02}', '\\u{03}']")
 }
 
 ///|
 test "enumerate int" {
   let gen : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
-  let arr = Array::makei(10, fn(i) { gen[BigInt::from_int(i)] })
+  let arr = Array::makei(10, i => gen[BigInt::from_int(i)])
   inspect(arr, content="[0, 1, -1, 2, -2, 3, -3, 4, -4, 5]")
 }
 
@@ -130,14 +130,12 @@ impl[T : Show] Show for Forest[T] with output(self, logger) {
 
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
-  @feat.pay(fn() {
-    @feat.Enumerable::enumerate().fmap(fn(forest) { { forest, } })
-  })
+  @feat.pay(() => @feat.Enumerable::enumerate().fmap(forest => { forest, }))
 }
 
 ///|
 impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
-  @feat.pay(fn() {
+  @feat.pay(() => {
     E::enumerate().fmap(x => Leaf(x)) +
     @feat.Enumerable::enumerate().fmap(x => Branch(x))
   })

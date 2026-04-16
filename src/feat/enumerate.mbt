@@ -44,7 +44,7 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 ///
 /// **Aborts** on out-of-range indices (reaches `Nil`).
 #alias("_[_]")
-#alias(en_index,deprecated = "Use `_[_]` instead")
+#alias(en_index, deprecated="Use `_[_]` instead")
 pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
   for parts = self.parts, i = idx {
     match parts {
