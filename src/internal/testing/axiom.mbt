@@ -76,7 +76,7 @@ impl @coreqc.Arbitrary for Queue with arbitrary(i, rs) {
 }
 
 ///|
-priv struct EqQueue(@qc.Equivalence[Queue])
+priv struct EqQueue(@laws.Equivalence[Queue])
 
 ///|
 impl Show for EqQueue with output(self, logger) {

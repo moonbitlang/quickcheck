@@ -140,31 +140,31 @@ QuickCheck 并不要求我们先理解复杂的缩减细节，而是提供了一
 关系式具有普适性，能够覆盖更大范围的输入组合。我们可以把「应该相等」、「应当保持顺序」或
 「重复应用后不再变化」这样的语义转化为函数层面的规律，并将其交给 QuickCheck 执行。
 
-QuickCheck 收集了常见的代数规律作为内置性质，这些规律直接对应了需求中常见的模式。例如，
-当需求暗含交换性时，我们可以直接采用 `@qc.commutative` 来表达等式关系。这里我们用整数加法作为示例，
+`@laws` 辅助子包收集了常见的代数规律性质，这些规律直接对应了需求中常见的模式。例如，
+当需求暗含交换性时，我们可以直接采用 `@laws.commutative` 来表达等式关系。这里我们用整数加法作为示例，
 并限制输入范围以避免溢出干扰性质本身。这样的范围设置不是削弱测试，而是帮助我们聚焦在需求语义上。
 
 ```mbt check
 ///|
-test "@qc.commutative for add" {
+test "@laws.commutative for add" {
   let gen = @qc.tuple(@qc.int_range(-200, 200), @qc.int_range(-200, 200))
-  let prop = @qc.forall(gen, @qc.commutative(fn(a, b) { a + b }))
+  let prop = @qc.forall(gen, @laws.commutative(fn(a, b) { a + b }))
   @qc.quick_check(prop)
 }
 ```
 
 需求中常见的「合并不依赖分组方式」可以用结合律表达，这类规律尤其适用于聚合、拼接、合并等函数。
-我们借助 `@qc.associative` 直接表达结合律，并用三元组生成器将多参输入统一为单参性质。
+我们借助 `@laws.associative` 直接表达结合律，并用三元组生成器将多参输入统一为单参性质。
 
 ```mbt check
 ///|
-test "@qc.associative for add" {
+test "@laws.associative for add" {
   let gen = @qc.triple(
     @qc.int_range(-20, 20),
     @qc.int_range(-20, 20),
     @qc.int_range(-20, 20),
   )
-  let prop = @qc.forall(gen, @qc.associative(Int::add))
+  let prop = @qc.forall(gen, @laws.associative(Int::add))
   @qc.quick_check(prop)
 }
 ```
@@ -174,19 +174,19 @@ test "@qc.associative for add" {
 
 ```mbt check
 ///|
-test "@qc.distributive_left for mul/add" {
+test "@laws.distributive_left for mul/add" {
   let gen = @qc.triple(
     @qc.int_range(-12, 12),
     @qc.int_range(-12, 12),
     @qc.int_range(-12, 12),
   )
-  let prop = @qc.forall(gen, @qc.distributive_left(Int::mul, Int::add))
+  let prop = @qc.forall(gen, @laws.distributive_left(Int::mul, Int::add))
   @qc.quick_check(prop)
 }
 ```
 
 除了代数律，很多业务需求本质上是「重复应用不会继续改变结果」。这类需求适合用幂等性刻画，
-如归一化、去噪、裁剪等操作。我们可以先写出一个简单的非负裁剪函数，再用 `@qc.idempotent` 验证其性质。
+如归一化、去噪、裁剪等操作。我们可以先写出一个简单的非负裁剪函数，再用 `@laws.idempotent` 验证其性质。
 
 ```mbt check
 ///|
@@ -196,24 +196,24 @@ fn clamp_nonneg(x : Int) -> Int {
 }
 
 ///|
-test "@qc.idempotent clamp" {
-  let prop = @qc.forall(@qc.int_range(-50, 50), @qc.idempotent(clamp_nonneg))
+test "@laws.idempotent clamp" {
+  let prop = @qc.forall(@qc.int_range(-50, 50), @laws.idempotent(clamp_nonneg))
   @qc.quick_check(prop)
 }
 ```
 
 另一个常见模式是「反演回到原处」，也就是自反或对合性质。许多编码与解码、加密与解密、开关与还原
-都可以用这一结构来建模。我们在此用取负作为最简示例，并用 `@qc.involutory` 表达「再应用一次即可回原值」。
+都可以用这一结构来建模。我们在此用取负作为最简示例，并用 `@laws.involutory` 表达「再应用一次即可回原值」。
 
 ```mbt check
 ///|
-test "@qc.involutory neg" {
-  let prop = @qc.forall(@qc.int_range(-100, 100), @qc.involutory(Int::neg))
+test "@laws.involutory neg" {
+  let prop = @qc.forall(@qc.int_range(-100, 100), @laws.involutory(Int::neg))
   @qc.quick_check(prop)
 }
 ```
 
-当需求描述的是「不同实现应给出相同结果」时，`@qc.ext_equal` 是更直接的表达。它并不关心内部算法，
+当需求描述的是「不同实现应给出相同结果」时，`@laws.ext_equal` 是更直接的表达。它并不关心内部算法，
 而只要求两个实现对所有输入给出相同输出，这一点非常适合重构或优化后的回归验证。
 
 ```mbt check
@@ -228,16 +228,16 @@ fn double2(x : Int) -> Int {
 }
 
 ///|
-test "@qc.ext_equal for double" {
+test "@laws.ext_equal for double" {
   let prop = @qc.forall(
     @qc.int_range(-100, 100),
-    @qc.ext_equal(double1, double2),
+    @laws.ext_equal(double1, double2),
   )
   @qc.quick_check(prop)
 }
 ```
 
-有些需求体现的是「可逆」的含义，这时我们也可以用 `@qc.inverse` 来描述它。我们通过一个增量和减量函数
+有些需求体现的是「可逆」的含义，这时我们也可以用 `@laws.inverse` 来描述它。我们通过一个增量和减量函数
 来表达可逆性，并在受控的输入范围内验证这一关系。注意这里我们仍用生成器限制输入，避免超出语义前提。
 
 ```mbt check
@@ -252,8 +252,8 @@ fn dec(x : Int) -> Int {
 }
 
 ///|
-test "@qc.inverse for inc/dec" {
-  let prop = @qc.forall(@qc.int_range(-100, 100), @qc.inverse(inc, dec))
+test "@laws.inverse for inc/dec" {
+  let prop = @qc.forall(@qc.int_range(-100, 100), @laws.inverse(inc, dec))
   @qc.quick_check(prop)
 }
 ```
@@ -465,7 +465,7 @@ test "queue axioms q1-q6" {
 
 为弥补上述不足，我们引入「操作不变性」测试，即当两个值在 `==` 意义下等价时，任何观察操作的结果
 也应当等价。直接用随机 `q` 与 `q1` 测试这一点往往会失败于「等价样本稀少」，
-因此我们考虑等价对的生成器（`@qc.Equivalence`），
+因此我们考虑等价对的生成器（`@laws.Equivalence`），
 并在此基础上定义兼容性性质：
 
 ```mbt check
@@ -481,7 +481,7 @@ fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
 }
 
 ///|
-fn gen_equiv_queue() -> @qc.Gen[@qc.Equivalence[Queue]] {
+fn gen_equiv_queue() -> @qc.Gen[@laws.Equivalence[Queue]] {
   gen_int_list().bind(fn(z) {
     from_list(z).bind(fn(x) { from_list(z).fmap(fn(y) { { lhs: x, rhs: y } }) })
   })

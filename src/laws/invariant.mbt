@@ -1,5 +1,5 @@
 ///|
-/// Extensional equality for function.
+/// Extensional equality for functions.
 pub fn[A, B : Eq] ext_equal(f : (A) -> B, g : (A) -> B) -> (A) -> Bool {
   fn(x) { f(x) == g(x) }
 }
@@ -63,7 +63,7 @@ pub fn[A : Eq] associative(f : (A, A) -> A) -> ((A, A, A)) -> Bool {
 }
 
 ///|
-/// Distributive binary operation over left
+/// Distributive binary operation over the left.
 pub fn[A : Eq] distributive_left(
   f : (A, A) -> A,
   g : (A, A) -> A,
@@ -75,7 +75,7 @@ pub fn[A : Eq] distributive_left(
 }
 
 ///|
-/// Distributive binary operation over right
+/// Distributive binary operation over the right.
 pub fn[A : Eq] distributive_right(
   f : (A, A) -> A,
   g : (A, A) -> A,

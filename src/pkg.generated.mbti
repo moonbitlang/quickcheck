@@ -13,8 +13,6 @@ import {
 // Values
 pub fn alphabet() -> Gen[Char]
 
-pub fn[A : Eq] associative((A, A) -> A) -> ((A, A, A)) -> Bool
-
 pub fn[T] backtrack(Array[(UInt, Gen[T?])]) -> Gen[T?]
 
 pub fn[P : Testable] callback(P, Callback) -> Property
@@ -25,15 +23,7 @@ pub fn[P : Testable] classify(P, Bool, String) -> Property
 
 pub fn[P : Testable, T : Show] collect(P, T) -> Property
 
-pub fn[A, B : Eq] commutative((A, A) -> B) -> ((A, A)) -> Bool
-
 pub fn[P : Testable] counterexample(P, String) -> Property
-
-pub fn[A : Eq] distributive_left((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
-
-pub fn[A : Eq] distributive_right((A, A) -> A, (A, A) -> A) -> ((A, A, A)) -> Bool
-
-pub fn[A, B : Eq] ext_equal((A) -> B, (A) -> B) -> (A) -> Bool
 
 pub fn failed() -> SingleResult
 
@@ -55,8 +45,6 @@ pub fn[T] frequency(Array[(UInt, Gen[T])]) -> Gen[T]
 
 pub fn[T] frequency_list(@list.List[(UInt, T)]) -> Gen[T]
 
-pub fn[A : Eq] idempotent((A) -> A) -> (A) -> Bool
-
 pub fn[P : Testable] if_fail(P, () -> Unit) -> Property
 
 pub fn int_bound(Int) -> Gen[Int]
@@ -64,10 +52,6 @@ pub fn int_bound(Int) -> Gen[Int]
 pub fn int_range(Int, Int) -> Gen[Int]
 
 pub fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
-
-pub fn[A : Eq, B] inverse((A) -> B, (B) -> A) -> (A) -> Bool
-
-pub fn[A : Eq] involutory((A) -> A) -> (A) -> Bool
 
 pub fn[P : Testable] label(P, String) -> Property
 
@@ -87,10 +71,6 @@ pub fn[P : Testable] map_size(P, (Int) -> Int) -> Property
 
 pub fn[P : Testable] map_total_result(P, (SingleResult) -> SingleResult) -> Property
 
-pub fn[A : Compare, B : Compare] mono_decrease((A) -> B) -> ((A, A)) -> Bool
-
-pub fn[A : Compare, B : Compare] mono_increase((A) -> B) -> ((A, A)) -> Bool
-
 pub fn nat() -> Gen[Int]
 
 pub fn neg_int() -> Gen[Int]
@@ -104,8 +84,6 @@ pub fn[T] one_of_array(Array[T]) -> Gen[T]
 pub fn[T] one_of_list(@list.List[T]) -> Gen[T]
 
 pub fn[T] pure(T) -> Gen[T]
-
-pub fn[T] pure_eq(T) -> Equivalence[T]
 
 pub fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
@@ -181,32 +159,12 @@ pub(all) struct ArrowError[A, B]((A) -> B raise)
 pub fn[A, B] ArrowError::inner(Self[A, B]) -> (A) -> B raise
 pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for ArrowError[A, P]
 
-type Axiom[T]
-pub fn[T] Axiom::new((T) -> Equivalence[T]) -> Self[T]
-pub fn[T] Axiom::run(Self[T], T) -> Equivalence[T]
-pub fn[T, U] Axiom::to_property(Self[T], (T) -> U, (U, U) -> Bool) -> (T) -> Bool
-pub fn[T, U : Eq] Axiom::to_property_eq(Self[T], (T) -> U) -> (T) -> Bool
-pub fn[T, M, N] Axiom::to_property_parametric(Self[T], (T, M) -> N, (N, N) -> Bool) -> ((T, M)) -> Bool
-pub fn[T, M, N : Eq] Axiom::to_property_parametric_eq(Self[T], (T, M) -> N) -> ((T, M)) -> Bool
-
 type Callback
 
 type Config
 
 type Discard derive(Default)
 pub impl Testable for Discard
-
-pub(all) struct Equivalence[T] {
-  lhs : T
-  rhs : T
-}
-pub fn[T, U] Equivalence::ap(Self[(T) -> U], Self[T]) -> Self[U]
-pub fn[T, U] Equivalence::bind(Self[T], (T) -> Self[U]) -> Self[U]
-pub fn[T] Equivalence::equal_by(Self[T], (T, T) -> Bool) -> Bool
-pub fn[T, U] Equivalence::fmap(Self[T], (T) -> U) -> Self[U]
-pub fn[T : Eq] Equivalence::is_equal(Self[T]) -> Bool
-pub fn[T] Equivalence::new(T, T) -> Self[T]
-pub impl[T : Show] Show for Equivalence[T]
 
 pub(all) enum Expected {
   Fail

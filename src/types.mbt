@@ -11,8 +11,7 @@
 //
 //   1. Property outcomes:     Outcome[T], Expected
 //   2. Replay & auditing:     Replay
-//   3. Testable plumbing:     Arrow[A, B], ArrowError, ArrowAsync,
-//                             Equivalence[T]
+//   3. Testable plumbing:     Arrow[A, B], ArrowError, ArrowAsync
 //
 // `Gen[T]` deliberately stays in `gen.mbt` — its struct body carries
 // the primary-constructor declaration plus every combinator method, so
@@ -136,30 +135,3 @@ pub(all) struct ArrowError[A, B]((A) -> B raise)
 /// inner coroutine and threads it through the same shrink loop as the
 /// synchronous path.
 pub(all) struct ArrowAsync[A, B](async (A) -> B)
-
-///|
-/// A pair of values whose *equality under some relation* we are trying
-/// to establish. `Equivalence` is the data type behind the algebraic
-/// laws exposed in `axiom.mbt` — e.g.
-///
-///     // associativity of List concat
-///     fn assoc(xs : List[Int], ys : List[Int], zs : List[Int])
-///       -> Equivalence[List[Int]] {
-///       Equivalence::new((xs + ys) + zs, xs + (ys + zs))
-///     }
-///
-/// The driver then turns the `Equivalence` into a property via
-/// `Equivalence::to_property` (or `to_property_eq` when `T` implements
-/// `Eq` and you want pointwise equality as the relation).
-///
-/// `Equivalence` is a functor / applicative / monad: `fmap`, `ap`,
-/// `bind`, and `pure_eq` all live in `axiom.mbt`.
-///
-/// Fields:
-/// - `lhs`, `rhs`: the two candidates. The convention across the
-///   library is "what the user wrote on the left equals what the
-///   specification says on the right".
-pub(all) struct Equivalence[T] {
-  lhs : T
-  rhs : T
-}

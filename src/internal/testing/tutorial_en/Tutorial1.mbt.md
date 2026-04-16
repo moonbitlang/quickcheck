@@ -107,28 +107,28 @@ Requirements are often expressed in natural language or mathematical notation; t
 
 In property-based testing, the most reliable starting point is an equation-like relationship: it describes constraints between inputs and outputs that should hold over time. Compared to example-based assertions, such relationships are universal and can cover a much larger set of input combinations. We can translate semantics such as “should be equal”, “should preserve order”, or “stops changing after repeated application” into functional laws and hand them to QuickCheck.
 
-QuickCheck provides built-in properties for common algebraic laws, which directly correspond to patterns frequently implied by requirements. For example, when a requirement implies commutativity, we can express it with `@qc.commutative`. Here we use integer addition as an example, and restrict the input range to avoid overflow contaminating the intended semantics. This range restriction does not weaken the test; it helps us stay focused on the property we actually care about.
+The `@laws` helper package provides built-in properties for common algebraic laws, which directly correspond to patterns frequently implied by requirements. For example, when a requirement implies commutativity, we can express it with `@laws.commutative`. Here we use integer addition as an example, and restrict the input range to avoid overflow contaminating the intended semantics. This range restriction does not weaken the test; it helps us stay focused on the property we actually care about.
 
 ```mbt check
 ///|
-test "@qc.commutative for add" {
+test "@laws.commutative for add" {
   let gen = @qc.tuple(@qc.int_range(-200, 200), @qc.int_range(-200, 200))
-  let prop = @qc.forall(gen, @qc.commutative((a, b) => a + b))
+  let prop = @qc.forall(gen, @laws.commutative((a, b) => a + b))
   @qc.quick_check(prop)
 }
 ```
 
-A common requirement is that merging is independent of grouping, which is naturally captured by associativity—especially relevant for aggregation, concatenation, and merge functions. We use `@qc.associative` to state associativity directly, and use a triple generator to keep the property single-argument.
+A common requirement is that merging is independent of grouping, which is naturally captured by associativity—especially relevant for aggregation, concatenation, and merge functions. We use `@laws.associative` to state associativity directly, and use a triple generator to keep the property single-argument.
 
 ```mbt check
 ///|
-test "@qc.associative for add" {
+test "@laws.associative for add" {
   let gen = @qc.triple(
     @qc.int_range(-20, 20),
     @qc.int_range(-20, 20),
     @qc.int_range(-20, 20),
   )
-  let prop = @qc.forall(gen, @qc.associative(Int::add))
+  let prop = @qc.forall(gen, @laws.associative(Int::add))
   @qc.quick_check(prop)
 }
 ```
@@ -137,18 +137,18 @@ When a requirement involves distribution, we typically need to fix the relations
 
 ```mbt check
 ///|
-test "@qc.distributive_left for mul/add" {
+test "@laws.distributive_left for mul/add" {
   let gen = @qc.triple(
     @qc.int_range(-12, 12),
     @qc.int_range(-12, 12),
     @qc.int_range(-12, 12),
   )
-  let prop = @qc.forall(gen, @qc.distributive_left(Int::mul, Int::add))
+  let prop = @qc.forall(gen, @laws.distributive_left(Int::mul, Int::add))
   @qc.quick_check(prop)
 }
 ```
 
-Beyond algebraic laws, many business requirements amount to “reapplying this operation doesn’t change the result further”. This fits idempotence, common in normalization, denoising, clamping, and similar operations. We first define a simple non-negative clamp and then verify idempotence with `@qc.idempotent`.
+Beyond algebraic laws, many business requirements amount to “reapplying this operation doesn’t change the result further”. This fits idempotence, common in normalization, denoising, clamping, and similar operations. We first define a simple non-negative clamp and then verify idempotence with `@laws.idempotent`.
 
 ```mbt check
 ///|
@@ -158,23 +158,23 @@ fn clamp_nonneg(x : Int) -> Int {
 }
 
 ///|
-test "@qc.idempotent clamp" {
-  let prop = @qc.forall(@qc.int_range(-50, 50), @qc.idempotent(clamp_nonneg))
+test "@laws.idempotent clamp" {
+  let prop = @qc.forall(@qc.int_range(-50, 50), @laws.idempotent(clamp_nonneg))
   @qc.quick_check(prop)
 }
 ```
 
-Another common pattern is “apply an operation twice and return to the original”, i.e. an involution. Many encode/decode, encrypt/decrypt, toggle/restore patterns can be modeled this way. We use negation as the simplest example and express this with `@qc.involutory`.
+Another common pattern is “apply an operation twice and return to the original”, i.e. an involution. Many encode/decode, encrypt/decrypt, toggle/restore patterns can be modeled this way. We use negation as the simplest example and express this with `@laws.involutory`.
 
 ```mbt check
 ///|
-test "@qc.involutory neg" {
-  let prop = @qc.forall(@qc.int_range(-100, 100), @qc.involutory(Int::neg))
+test "@laws.involutory neg" {
+  let prop = @qc.forall(@qc.int_range(-100, 100), @laws.involutory(Int::neg))
   @qc.quick_check(prop)
 }
 ```
 
-When a requirement says “different implementations should yield the same result”, `@qc.ext_equal` gives a direct expression. It does not care about internal algorithms; it only requires both implementations to produce identical outputs for all inputs. This is especially useful for regression tests during refactoring or optimization.
+When a requirement says “different implementations should yield the same result”, `@laws.ext_equal` gives a direct expression. It does not care about internal algorithms; it only requires both implementations to produce identical outputs for all inputs. This is especially useful for regression tests during refactoring or optimization.
 
 ```mbt check
 ///|
@@ -188,16 +188,16 @@ fn double2(x : Int) -> Int {
 }
 
 ///|
-test "@qc.ext_equal for double" {
+test "@laws.ext_equal for double" {
   let prop = @qc.forall(
     @qc.int_range(-100, 100),
-    @qc.ext_equal(double1, double2),
+    @laws.ext_equal(double1, double2),
   )
   @qc.quick_check(prop)
 }
 ```
 
-Some requirements express invertibility. In that case, we can use `@qc.inverse`. We express invertibility with increment and decrement, verifying this relationship within a controlled range. Note that we again restrict the generator to avoid leaving the semantic precondition domain.
+Some requirements express invertibility. In that case, we can use `@laws.inverse`. We express invertibility with increment and decrement, verifying this relationship within a controlled range. Note that we again restrict the generator to avoid leaving the semantic precondition domain.
 
 ```mbt check
 ///|
@@ -211,8 +211,8 @@ fn dec(x : Int) -> Int {
 }
 
 ///|
-test "@qc.inverse for inc/dec" {
-  let prop = @qc.forall(@qc.int_range(-100, 100), @qc.inverse(inc, dec))
+test "@laws.inverse for inc/dec" {
+  let prop = @qc.forall(@qc.int_range(-100, 100), @laws.inverse(inc, dec))
   @qc.quick_check(prop)
 }
 ```
@@ -410,7 +410,7 @@ This shows that relying solely on axiom properties is not equivalent to verifyin
 
 The reason is that in equational reasoning over axioms, we implicitly assume that operations are **congruent** with respect to equality; the tests checked only the axioms, not this hidden assumption. Fundamentally, this is a mismatch between **observational equivalence** and **program equivalence**. Users can observe behavior only through public operations. Therefore, when two values are considered equivalent under `==`, we expect any observation operation to produce equivalent results. If this fails, then the external behavior has deviated from the specification, even if the base axioms remain true.
 
-To mitigate this, we introduce **operational invariance** testing: when two values are equivalent under `==`, any observation operation should also yield equivalent results. Testing this directly with random `q` and `q'` often fails due to the scarcity of equivalent pairs. Therefore, we construct a generator for equivalence pairs (`@qc.Equivalence`) and define a compatibility property on top of it:
+To mitigate this, we introduce **operational invariance** testing: when two values are equivalent under `==`, any observation operation should also yield equivalent results. Testing this directly with random `q` and `q'` often fails due to the scarcity of equivalent pairs. Therefore, we construct a generator for equivalence pairs (`@laws.Equivalence`) and define a compatibility property on top of it:
 
 ```mbt check
 ///|
@@ -425,7 +425,7 @@ fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
 }
 
 ///|
-fn gen_equiv_queue() -> @qc.Gen[@qc.Equivalence[Queue]] {
+fn gen_equiv_queue() -> @qc.Gen[@laws.Equivalence[Queue]] {
   gen_int_list().bind(z => {
     from_list(z).bind(x => from_list(z).fmap(y => { lhs: x, rhs: y }))
   })
