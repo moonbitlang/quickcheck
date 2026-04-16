@@ -169,6 +169,38 @@ test "tails exposes every suffix" {
 }
 ```
 
+### Loop sugar with `for x in`
+
+`LazyList::iter(self) -> Iter[T]` walks the list head-first, yielding
+each element on demand. MoonBit's `for x in <expr>` desugars to
+`<expr>.iter()`, so any `LazyList` plays directly with the loop sugar.
+Cells are forced as the iterator advances, so an early `break` (or
+pairing with `take`) avoids touching the rest.
+
+```mbt check
+///|
+test "for x in walks every element" {
+  let xs = @lazy.from_list(@list.from_array([10, 20, 30]))
+  let acc = []
+  for x in xs {
+    acc.push(x)
+  }
+  inspect(acc, content="[10, 20, 30]")
+}
+
+///|
+test "iter is lazy — early break works on infinite input" {
+  let mut last = -1
+  for x in @lazy.infinite_stream(0, 1) {
+    last = x
+    if x == 3 {
+      break
+    }
+  }
+  assert_eq(last, 3)
+}
+```
+
 ### Folding
 
 Standard left/right folds. Right-fold is defined naively so it should be
@@ -259,6 +291,7 @@ test "unfold builds a countdown" {
 | `head` / `tail` | `LazyList[T] -> T` / `LazyList[T]` | Panics on `Nil` |
 | `length` | `LazyList[T] -> Int` | Forces the entire list |
 | `index` | `LazyList[T] -> Int -> T` | O(n) |
+| `iter` | `LazyList[T] -> Iter[T]` | Single-shot lazy traversal — enables `for x in` |
 | `take` / `drop` / `split_at` | count-indexed slicing | Preserves laziness |
 | `take_while` / `drop_while` | predicate-indexed slicing | Stops at first failure |
 | `map` | `(T -> U) -> LazyList[T] -> LazyList[U]` | Lazy |
