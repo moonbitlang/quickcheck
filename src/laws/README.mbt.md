@@ -30,7 +30,7 @@ test "associative helper works on integer addition" {
 
 ///|
 test "idempotent helper works on a clamp" {
-  let clamp = fn(x : Int) { if x < 0 { 0 } else { x } }
+  let clamp = (x : Int) => if x < 0 { 0 } else { x }
   assert_eq(idempotent(clamp)(-5), true)
   assert_eq(idempotent(clamp)(7), true)
 }
@@ -41,12 +41,12 @@ test "idempotent helper works on a clamp" {
 ```mbt check
 ///|
 fn succ_pred_axiom() -> Axiom[Int] {
-  Axiom::new(fn(x) { Equivalence::new(x + 1 - 1, x) })
+  Axiom::new(x => Equivalence::new(x + 1 - 1, x))
 }
 
 ///|
 test "axiom converts to a property-shaped function" {
-  let prop = succ_pred_axiom().to_property_eq(fn(x) { x })
+  let prop = succ_pred_axiom().to_property_eq(x => x)
   assert_eq(prop(42), true)
 }
 ```

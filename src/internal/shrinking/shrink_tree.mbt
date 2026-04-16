@@ -51,8 +51,8 @@ pub fn[T : Show] ShrinkTree::to_string_with_depth(
   }
   let s = self.leaf.to_string()
   let child = self.branch
-    .map(fn(x) { x.to_string_with_depth(depth - 1) })
-    .filter(fn(x) { x != "" })
+    .map(x => x.to_string_with_depth(depth - 1))
+    .filter(x => x != "")
     .collect()
     .join(", ")
   "Node(\{s}, [\{child}])"
@@ -80,14 +80,14 @@ pub fn[T, U] ShrinkTree::smap(
   self : ShrinkTree[T],
   f : (T) -> U,
 ) -> ShrinkTree[U] {
-  { leaf: self.leaf |> f, branch: self.branch.map(fn(x) { x.smap(f) }) }
+  { leaf: self.leaf |> f, branch: self.branch.map(x => x.smap(f)) }
 }
 
 ///|
 pub fn[T] ShrinkTree::join(self : ShrinkTree[ShrinkTree[T]]) -> ShrinkTree[T] {
   let x = self.leaf.leaf
   let ts = self.branch
-    .map(fn(x) { x.join() })
+    .map(x => x.join())
     .concat(
       match self.leaf {
         { branch: ts, .. } => ts

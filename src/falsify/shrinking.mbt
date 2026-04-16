@@ -113,7 +113,7 @@ enum IsValidShrink[P, N] {
 
 ///|
 fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
-  fn(result : Result[A, B]) -> C {
+  (result : Result[A, B]) => {
     match result {
       Ok(x) => f(x)
       Err(y) => g(y)
@@ -126,14 +126,14 @@ fn[A, B, C] either(f : (A) -> C, g : (B) -> C) -> (Result[A, B]) -> C {
 ///|
 fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   fn left(a : T) -> ((Iter[T], Iter[E])) -> (Iter[T], Iter[E]) {
-    fn(p) {
+    p => {
       let (l, r) = p
       (Iter::concat(Iter::singleton(a), l), r)
     }
   }
 
   fn right(a : E) -> ((Iter[T], Iter[E])) -> (Iter[T], Iter[E]) {
-    fn(p) {
+    p => {
       let (l, r) = p
       (l, Iter::concat(Iter::singleton(a), r))
     }
@@ -142,7 +142,7 @@ fn[T, E] partition_result(val : Iter[Result[T, E]]) -> (Iter[T], Iter[E]) {
   let r = either(left, right)
   Iter::fold(
     val,
-    fn(acc, item) { r(item)(acc) },
+    (acc, item) => r(item)(acc),
     init=(Iter::empty(), Iter::empty()),
   )
 }
@@ -171,7 +171,7 @@ pub fn[A, P, N] Gen::shrink_from(
   }
 
   fn go(shrunk : Iter[SampleTree]) -> ShrinkHistory[P, N] {
-    let candidates = shrunk.map(fn(x) { self.run_gen(x) |> consider })
+    let candidates = shrunk.map(x => self.run_gen(x) |> consider)
     let res = partition_result(candidates)
     match res.0.head() {
       None => ShrinkDone(res.1)
@@ -192,14 +192,14 @@ pub fn[A, P, N] Gen::shrink_from(
 /// `Shrunk(i)` path. Stick to `prim` / `pure` / `bind` if you need
 /// full coverage.
 pub fn[T] shrink_to_list(val : T, xs : Iter[T]) -> Gen[T] {
-  let shrinker = fn(s) {
+  let shrinker = s => {
     match s {
       Shrunk(_) => Iter::empty()
       NotShrunk(_) => abort("todo")
-      // @lazy.zip_with(fn(x, _y) { x }, @lazy.infinite_stream(0U, 1), xs)
+      // @lazy.zip_with((x, _y) => x, @lazy.infinite_stream(0U, 1), xs)
     }
   }
-  let aux = fn(s) {
+  let aux = s => {
     match s {
       NotShrunk(_) => val
       Shrunk(i) => xs.drop(i.reinterpret_as_int()).head().unwrap()

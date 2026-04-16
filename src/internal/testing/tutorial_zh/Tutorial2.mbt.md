@@ -43,7 +43,7 @@ $$
 ///|
 test "gen @qc.int_range invariant" {
   let gen = @qc.int_range(-10, 10)
-  let prop = @qc.forall(gen, fn(x) { x >= -10 && x <= 10 })
+  let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
@@ -55,7 +55,7 @@ test "gen @qc.int_range invariant" {
 ///|
 test "gen @qc.pure value" {
   let gen = @qc.pure(7)
-  let prop = @qc.forall(gen, fn(x) { x == 7 })
+  let prop = @qc.forall(gen, x => x == 7)
   @qc.quick_check(prop)
 }
 ```
@@ -145,7 +145,7 @@ test "gen @qc.list_with_size sample" {
 ///|
 test "gen @qc.tuple for two args" {
   let gen = @qc.tuple(@qc.int_range(-20, 20), @qc.int_range(-20, 20))
-  let prop = @qc.forall(gen, fn(p) {
+  let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a - b + b == a
   })
@@ -160,8 +160,8 @@ test "gen @qc.tuple for two args" {
 ```mbt check
 ///|
 test "gen fmap transform" {
-  let gen = @qc.int_range(0, 50).fmap(fn(x) { x * 2 })
-  let prop = @qc.forall(gen, fn(x) { x % 2 == 0 })
+  let gen = @qc.int_range(0, 50).fmap(x => x * 2)
+  let prop = @qc.forall(gen, x => x % 2 == 0)
   @qc.quick_check(prop)
 }
 ```
@@ -184,7 +184,7 @@ test "gen fmap transform" {
 ///|
 test "gen @qc.one_of mix" {
   let gen = @qc.one_of([@qc.pure(0), @qc.pure(1), @qc.int_range(-10, 10)])
-  let prop = @qc.forall(gen, fn(x) { x >= -10 && x <= 10 })
+  let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
@@ -200,7 +200,7 @@ test "gen @qc.frequency weighted" {
     (6, @qc.int_range(-3, 3)),
     (1, @qc.int_range(-30, 30)),
   ])
-  let prop = @qc.forall(gen, fn(x) { x >= -30 && x <= 30 })
+  let prop = @qc.forall(gen, x => x >= -30 && x <= 30)
   @qc.quick_check(prop)
 }
 ```
@@ -214,7 +214,7 @@ test "gen @qc.frequency weighted" {
 test "gen @qc.one_of_array enum" {
   let methods : Array[String] = ["GET", "POST", "PUT"]
   let gen = @qc.one_of_array(methods)
-  let prop = @qc.forall(gen, fn(m) { methods.contains(m) })
+  let prop = @qc.forall(gen, m => methods.contains(m))
   @qc.quick_check(prop)
 }
 ```
@@ -228,10 +228,10 @@ test "gen @qc.one_of_array enum" {
 ```mbt check
 ///|
 test "gen bind dependent" {
-  let gen = @qc.int_range(-10, 10).bind(fn(base) {
-    @qc.int_range(0, 5).fmap(fn(delta) { (base, base + delta) })
+  let gen = @qc.int_range(-10, 10).bind(base => {
+    @qc.int_range(0, 5).fmap(delta => (base, base + delta))
   })
-  let prop = @qc.forall(gen, fn(p) {
+  let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a <= b && b - a <= 5
   })
@@ -262,8 +262,8 @@ test "gen bind dependent" {
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @qc.sized(fn(n) { @qc.small_int().list_with_size(n) })
-  let prop = @qc.forall(gen, fn(xs) { xs.length() >= 0 })
+  let gen = @qc.sized(n => @qc.small_int().list_with_size(n))
+  let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
 ```
@@ -275,7 +275,7 @@ test "@qc.quick_check max_size" {
 ```mbt check
 ///|
 test "@qc.sized array with explicit length" {
-  let gen = @qc.sized(fn(n) {
+  let gen = @qc.sized(n => {
     let len = if n < 0 { 0 } else { n }
     @qc.tuple(@qc.pure(len), @qc.int_range(0, 9).array_with_size(len))
   })
@@ -294,9 +294,9 @@ test "@qc.sized array with explicit length" {
 ```mbt check
 ///|
 test "resize clamps size" {
-  let gen = @qc.sized(fn(n) { @qc.int_range(0, 9).list_with_size(n) })
+  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
   let small = gen.resize(5)
-  let prop = @qc.forall(small, fn(xs) { xs.length() == 5 })
+  let prop = @qc.forall(small, xs => xs.length() == 5)
   @qc.quick_check(prop)
 }
 ```
@@ -308,9 +308,9 @@ test "resize clamps size" {
 ```mbt check
 ///|
 test "scale slows growth" {
-  let gen = @qc.sized(fn(n) { @qc.int_range(0, 9).list_with_size(n) })
-  let scaled = gen.scale(fn(n) { n / 2 })
-  let prop = @qc.forall(scaled, fn(xs) { xs.length() <= 20 })
+  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
+  let scaled = gen.scale(n => n / 2)
+  let prop = @qc.forall(scaled, xs => xs.length() <= 20)
   @qc.quick_check(prop, max_size=40)
 }
 ```
@@ -341,8 +341,8 @@ test "combinator sorted array with filter" {
   }
 
   let base = @qc.int_range(-8, 8).array_with_size(3)
-  let prop = @qc.forall(base, fn(arr) {
-    @qc.forall(@qc.one_of_array(arr), fn(x) {
+  let prop = @qc.forall(base, arr => {
+    @qc.forall(@qc.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     })
     |> @qc.filter(is_non_decreasing(arr))
@@ -362,8 +362,8 @@ QuickCheck 已经提供 `@qc.sorted_array`，我们可以直接利用它：
 ///|
 test "combinator sorted array constructor" {
   let gen = @qc.sorted_array(5, @qc.int_range(-30, 30))
-  let prop = @qc.forall(gen, fn(arr) {
-    @qc.forall(@qc.one_of_array(arr), fn(x) {
+  let prop = @qc.forall(gen, arr => {
+    @qc.forall(@qc.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     })
   })
@@ -477,7 +477,7 @@ fn[T] inorder(tree : Tree[T]) -> Array[T] {
 test "generate BST" {
   let int_arr = @qc.int_range(-100, 100).array_with_size(10)
   let gen_bst = int_arr.fmap(Tree::from_array)
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })
@@ -506,8 +506,8 @@ fn[T] from_sorted(arr : ArrayView[T]) -> Tree[T] {
 ///|
 test "generate balanced BST" {
   let int_arr = @qc.int_range(-100, 100).array_with_size(10)
-  let gen_bst = int_arr.fmap(fn(arr) { arr..sort()..dedup() |> from_sorted })
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let gen_bst = int_arr.fmap(arr => arr..sort()..dedup() |> from_sorted)
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })
@@ -551,7 +551,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
 ///|
 test "generate ranged BST" {
   let gen_bst = gen_bst_ranged(-100, 100)
-  let prop = @qc.forall(gen_bst, fn(t) {
+  let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
   })

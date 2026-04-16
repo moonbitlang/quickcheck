@@ -85,7 +85,7 @@ write one directly:
 test "hand-rolled finite chunk" {
   let f : @feat.Finite[String] = {
     fCard: 2,
-    fIndex: fn(i) {
+    fIndex: i => {
       if i == 0 {
         "left"
       } else {
@@ -130,7 +130,7 @@ materialising the full list via `to_array`:
 ///|
 test "for x in finite" {
   let acc : Array[BigInt] = []
-  let finite : @feat.Finite[BigInt] = { fCard: 4, fIndex: fn(i) { i } }
+  let finite : @feat.Finite[BigInt] = { fCard: 4, fIndex: i => i }
   for x in finite {
     acc.push(x)
   }
@@ -167,7 +167,7 @@ test "singleton has size 0" {
 test "pay shifts everything one size up" {
   // Before pay: part₀ = {42}
   // After pay:  part₀ = {}, part₁ = {42}
-  let shifted = @feat.pay(fn() { @feat.singleton(42) })
+  let shifted = @feat.pay(() => @feat.singleton(42))
   let parts = shifted.eval()
   inspect(parts.head().to_array(), content="(0, @list.from_array([]))")
   inspect(parts.tail().head().to_array(), content="(1, @list.from_array([42]))")
@@ -305,7 +305,7 @@ test "enumerate the first few binary trees" {
 
 | Pitfall | Why it hurts | Fix |
 |---------|--------------|-----|
-| Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(fn() { ... })`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
+| Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(() => ...)`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
 | Computing a large Cartesian product with `product` before unioning. | Not wrong, just slow — the resulting parts get large and indexing locality suffers. | Prefer `unary` for a single-pair constructor, or `consts([...])` for a disjunction — these keep the structure flat. |
 | Mixing eager `List` of `Enumerate` with `consts` at the top of a recursive definition. | The `List` itself is eager: its elements are forced when the `consts` is reached, which can run into the recursion before `pay` kicks in. | Ensure the `consts(...)` is inside `pay`, or use `+` between lazy `Enumerate`s. |
 | Forgetting that zero-cardinality parts short-circuit. | Empty parts are skipped cheaply, but a hand-rolled `Finite` with a bogus non-zero `fCard` will still be indexed. | If you need an empty part, set `fCard: 0` and use an aborting `fIndex`. |
@@ -377,7 +377,7 @@ size-aware Cartesian `product`:
 | `Enumerate::fmap(e, f)` | `Enumerate[T] -> (T -> U) -> Enumerate[U]` | Re-label every element |
 | `e1 + e2` | `Enumerate[T] -> Enumerate[T] -> Enumerate[T]` | Interleave by size |
 | `product(e1, e2)` | `Enumerate[A] -> Enumerate[B] -> Enumerate[(A, B)]` | Pair every A with every B, still size-indexed |
-| `pay(fn() { … })` | `(() -> Enumerate[T]) -> Enumerate[T]` | Charge 1 unit of size |
+| `pay(() => …)` | `(() -> Enumerate[T]) -> Enumerate[T]` | Charge 1 unit of size |
 | `unary(f)` | `(T -> U) -> Enumerate[U]` where `T : Enumerable` | Shortcut for `T::enumerate().fmap(f)` |
 
 ```mbt check
@@ -400,12 +400,7 @@ test "product generates every pair in part order" {
 
 ///|
 fn zero_or_one_part() -> @feat.Enumerate[BigInt] {
-  {
-    parts: Cons(
-      { fCard: 2, fIndex: fn(i) { i } },
-      @lazy.LazyRef::from_value(Nil),
-    ),
-  }
+  { parts: Cons({ fCard: 2, fIndex: i => i }, @lazy.LazyRef::from_value(Nil)) }
 }
 ```
 

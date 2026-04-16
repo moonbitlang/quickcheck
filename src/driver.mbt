@@ -294,7 +294,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
   expect? : Expected = Success,
   abort? : Bool = false,
 ) -> Unit raise Failure {
-  small_check(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
+  small_check((a : A) => try? f(a), max_size~, expect~, abort~)
 }
 
 ///|
@@ -306,7 +306,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
   expect? : Expected = Success,
   abort? : Bool = false,
 ) -> String {
-  small_check_silence(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
+  small_check_silence((a : A) => try? f(a), max_size~, expect~, abort~)
 }
 
 ///|
