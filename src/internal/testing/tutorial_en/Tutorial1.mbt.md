@@ -267,7 +267,7 @@ A very naive testing strategy is to implement `Queue` and test these axioms dire
 ///|
 /// `gen_queue()` is a generator that produces random Queue instances
 test "property Q2" {
-  let prop = @qc.forall(@qc.tuple(@qc.small_int(), gen_queue()), fn(p) {
+  let prop = @qc.forall(@qc.tuple(@qc.small_int(), gen_queue()), p => {
     let (x, q) = p
     q.enqueue(x).is_empty() == false
   })
@@ -544,7 +544,7 @@ fn[T : Eq] ModelSet::insert(self : ModelSet[T], x : T) -> ModelSet[T] {
 
 ///|
 fn[T : Eq] ModelSet::remove(self : ModelSet[T], x : T) -> ModelSet[T] {
-  ModelSet(self.0.filter(fn(y) { y != x }))
+  ModelSet(self.0.filter(y => y != x))
 }
 ```
 
@@ -622,7 +622,7 @@ pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
 ///|
 test "model-based testing for Set" {
   let gen = @qc.Gen::spawn().list_with_size(20)
-  let prop = @qc.forall(gen, fn(cmds) {
+  let prop = @qc.forall(gen, cmds => {
     let (model_set, model_trace) = run_model(cmds)
     let (sut_set, sut_trace) = run_sut(cmds)
     let model_set_arr = model_set.0.sort()

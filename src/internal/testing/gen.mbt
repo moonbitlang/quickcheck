@@ -79,7 +79,7 @@ test "backtrack ignores zero-weight candidate" {
 ///|
 test "sized trivial" {
   let gen : @qc.Gen[Int] = @qc.sized(@qc.pure)
-  let arr = Array::makei(10, fn(i) { gen.sample(size=i) })
+  let arr = Array::makei(10, i => gen.sample(size=i))
   inspect(arr, content="[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]")
 }
 

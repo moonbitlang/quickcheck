@@ -94,16 +94,14 @@ pub fn[T, E] run_property(
 /// driver to try another. Useful inside `bind` where a precondition
 /// doesn't hold.
 pub fn[T, E] discard() -> Property[T, E] {
-  mk_property(fn(run) { pure((TestDiscarded, run)) })
+  mk_property(run => pure((TestDiscarded, run)))
 }
 
 ///|
 /// Emit a diagnostic message to the run log. The property still
 /// "passes" at this step — `info` is orthogonal to the verdict.
 pub fn info(msg : String) -> Property[Unit, String] {
-  mk_property(fn(run) {
-    pure((TestPassed(()), { ..run, log: run.log.add(msg) }))
-  })
+  mk_property(run => pure((TestPassed(()), { ..run, log: run.log.add(msg) })))
 }
 
 ///|
@@ -118,7 +116,7 @@ pub fn[E] label(label : String, vals : List[String]) -> Property[Unit, E] {
     s.union(@sorted_set.from_iter(vals.iter()))
   }
 
-  mk_property(fn(r) {
+  mk_property(r => {
     let set = r.labels.get(label)
     pure(
       (TestPassed(()), { ..r, labels: r.labels.add(label, add_values(set)) }),
@@ -143,7 +141,7 @@ pub fn[T : Show, E] collect(l : String, ls : List[T]) -> Property[Unit, E] {
 /// `msg` to the run log.
 pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
   fn aux(run : TestRun) -> (T) -> (TestResult[T, E], TestRun) {
-    fn(x) {
+    x => {
       match f(x) {
         None => (TestPassed(x), { ..run, deterministic: false })
         Some(msg) => (TestPassed(x), { ..run, log: run.log.add(msg) })
@@ -151,7 +149,7 @@ pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
     }
   }
 
-  mk_property(fn(run) { g.fmap(aux(run)) })
+  mk_property(run => g.fmap(aux(run)))
 }
 
 ///|
@@ -160,7 +158,7 @@ pub fn[T, E] gen(f : (T) -> String?, g : Gen[T]) -> Property[T, E] {
 /// otherwise. The quickest way to hand a generator to `falsify`.
 pub fn[T] test_gen(f : (T) -> Bool, gen : Gen[T]) -> Property[T, String] {
   fn aux(run : TestRun) {
-    fn(a) {
+    a => {
       (
         match f(a) {
           true => TestPassed(a)
@@ -171,5 +169,5 @@ pub fn[T] test_gen(f : (T) -> Bool, gen : Gen[T]) -> Property[T, String] {
     }
   }
 
-  { run: fn(r) { gen.fmap(aux(r)) } }
+  { run: r => gen.fmap(aux(r)) }
 }

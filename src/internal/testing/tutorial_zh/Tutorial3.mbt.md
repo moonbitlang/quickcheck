@@ -136,13 +136,13 @@ fn[P : Testable, T] @qc.shrinking(
 ```mbt check
 ///|
 fn shrink_even_nat(x : Int) -> Iter[Int] {
-  @qc.Shrink::shrink(x).filter(fn(y) { y >= 0 && y % 2 == 0 })
+  @qc.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
 ///|
 test "forall_shrink keeps even invariant" {
-  let gen = @qc.int_range(0, 100).fmap(fn(x) { x * 2 })
-  let prop = @qc.forall_shrink(gen, shrink_even_nat, fn(x) { x < 20 })
+  let gen = @qc.int_range(0, 100).fmap(x => x * 2)
+  let prop = @qc.forall_shrink(gen, shrink_even_nat, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
 ```
@@ -158,7 +158,7 @@ test "forall_shrink keeps even invariant" {
 ```mbt check
 ///|
 test "shrinking starts from explicit value" {
-  let prop = @qc.shrinking(shrink_even_nat, 84, fn(x) { x < 20 })
+  let prop = @qc.shrinking(shrink_even_nat, 84, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
 ```
@@ -246,9 +246,7 @@ test "shrink sorted array" {
 ///|
 test "forall_shrink for sorted array" {
   let gen = @qc.sorted_array(6, @qc.int_range(0, 9))
-  let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), fn(
-    xs,
-  ) {
+  let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
   let r = @qc.quick_check_silence(prop)
@@ -290,7 +288,7 @@ QuickCheck 为此提供了 `counterexample` 这个组合子。
 ```mbt check
 ///|
 test "counterexample adds derived information" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -339,7 +337,7 @@ fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
 ///|
 test "classify list distribution" {
   let r = @qc.quick_check_silence(
-    @qc.Arrow(fn(xs : @list.List[Int]) {
+    @qc.Arrow((xs : @list.List[Int]) => {
       t3_prop_rev_list(xs)
       |> @qc.classify(xs.length() > 5, "long list")
       |> @qc.classify(xs.length() <= 5, "short list")
@@ -383,7 +381,7 @@ test "classify list distribution" {
 ```mbt check
 ///|
 test "discard on non-empty lists" {
-  let prop_non_empty = fn(xs : @list.List[Int]) -> @qc.Property {
+  let prop_non_empty = (xs : @list.List[Int]) => {
     (!xs.is_empty()) |> @qc.filter(!xs.is_empty())
   }
   inspect(
@@ -402,7 +400,7 @@ test "discard on non-empty lists" {
 ```mbt check
 ///|
 test "reject all gives up" {
-  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content="+++ [0/1000/100] Ok, gave up!",
@@ -449,7 +447,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] @qc.small_check(
 ```mbt check
 ///|
 test "small check fails on first non-zero int" {
-  let r = @qc.small_check_silence(fn(x : Int) { x == 0 }, max_size=5)
+  let r = @qc.small_check_silence((x : Int) => x == 0, max_size=5)
   inspect(
     r,
     content=(
@@ -518,9 +516,9 @@ impl Show for Nat with output(self, logger) {
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
-  @feat.pay(fn() {
+  @feat.pay(() => {
     @feat.singleton(Zero) +
-    @feat.Enumerable::enumerate().fmap(fn(n) { Nat::Succ(n) })
+    @feat.Enumerable::enumerate().fmap(n => Nat::Succ(n))
   })
 }
 
@@ -588,7 +586,7 @@ MoonBit 当前的实现也正是这样组织的。
 ```mbt check
 ///|
 test "small check on nat prefix" {
-  let r = @qc.small_check_silence(fn(n : Nat) { n == Zero }, max_size=5)
+  let r = @qc.small_check_silence((n : Nat) => n == Zero, max_size=5)
   inspect(
     r,
     content=(

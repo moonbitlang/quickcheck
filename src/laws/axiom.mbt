@@ -114,7 +114,7 @@ pub fn[T, U] Axiom::to_property(
   cong : (T) -> U,
   eq : (U, U) -> Bool,
 ) -> (T) -> Bool {
-  fn(x : T) { self.run(x).fmap(cong).equal_by(eq) }
+  (x : T) => self.run(x).fmap(cong).equal_by(eq)
 }
 
 ///|
@@ -135,7 +135,7 @@ pub fn[T, M, N] Axiom::to_property_parametric(
   cong : (T, M) -> N,
   eq : (N, N) -> Bool,
 ) -> ((T, M)) -> Bool {
-  fn(x : (T, M)) { self.run(x.0).fmap(fn(y) { cong(y, x.1) }).equal_by(eq) }
+  (x : (T, M)) => self.run(x.0).fmap(y => cong(y, x.1)).equal_by(eq)
 }
 
 ///|
