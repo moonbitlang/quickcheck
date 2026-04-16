@@ -482,7 +482,7 @@ pub(open) trait Enumerable {
   enumerate() -> @feat.Enumerate[Self]
 }
 
-pub fn[T] @feat.Enumerate::en_index(Self[T], BigInt) -> T
+pub fn[T] @feat.Enumerate::at(Self[T], BigInt) -> T
 ```
 
 一个好的 enumerator 至少要满足三点。第一，枚举结果不应重复，
@@ -527,7 +527,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 ///|
 test "nat enumerate order" {
   let e : @feat.Enumerate[Nat] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4].map(fn(i) { e.en_index(i) })
+  let xs = [0N, 1, 2, 3, 4].map(fn(i) { e[i] })
   inspect(
     xs,
     content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero))))]",
@@ -561,7 +561,7 @@ SmallCheck 在理论上甚至无法完成这一层的枚举。
 MoonBit 当前的实现也正是这样组织的。
 `Enumerate[T]` 内部是一条惰性的 parts 序列，而每个 `Finite[T]`
 则携带 `fCard` 与 `fIndex` 两个消费者。
-于是全局索引 `en_index` 的语义就很清楚了：
+于是全局索引 `Enumerate::at`（即 `_[_]` 算符）的语义就很清楚了：
 它不是从头把所有值一个个生成出来，而是先根据各 part 的基数跳过整层，
 再在命中的那一层里直接做索引。
 这正是论文所谓的 function view，它和 SmallCheck 常见的 list view 有本质差异。

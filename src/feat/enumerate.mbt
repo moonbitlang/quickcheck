@@ -43,7 +43,9 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 /// inside the current part, then read the value via `fIndex`.
 ///
 /// **Aborts** on out-of-range indices (reaches `Nil`).
-pub fn[T] Enumerate::en_index(self : Enumerate[T], idx : BigInt) -> T {
+#alias("_[_]")
+#alias(en_index,deprecated = "Use `_[_]` instead")
+pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
   for parts = self.parts, i = idx {
     match parts {
       Nil => abort("index out of bounds")

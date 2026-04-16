@@ -146,17 +146,11 @@ type TestError
 
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
-#deprecated
-pub fn[A, B] Arrow::inner(Self[A, B]) -> (A) -> B
 pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for Arrow[A, P]
 
 pub(all) struct ArrowAsync[A, B](async (A) -> B)
-#deprecated
-pub fn[A, B] ArrowAsync::inner(Self[A, B]) -> async (A) -> B
 
 pub(all) struct ArrowError[A, B]((A) -> B raise)
-#deprecated
-pub fn[A, B] ArrowError::inner(Self[A, B]) -> (A) -> B raise
 pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for ArrowError[A, P]
 
 type Callback
