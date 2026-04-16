@@ -15,5 +15,5 @@ impl @feat.Enumerable for Nat with enumerate() {
 ///|
 test (b : @bench.T) {
   let f : @feat.Enumerate[Nat] = @feat.Enumerable::enumerate()
-  b.bench(name="feat nat", fn() { f.en_index(200) |> ignore })
+  b.bench(name="feat nat", fn() { f[200] |> ignore })
 }

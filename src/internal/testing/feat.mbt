@@ -19,7 +19,7 @@ test "feat nat" {
 ///|
 test "feat nat index" {
   let x = [0N, 1, 2, 3, 4, 5, 6].map(fn(x) {
-    (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat]).en_index(x)
+    (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat])[x]
   })
   inspect(
     x,
@@ -30,28 +30,28 @@ test "feat nat index" {
 ///|
 test "feat int index order" {
   let e : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4, 5].map(fn(i) { e.en_index(i) })
+  let xs = [0N, 1, 2, 3, 4, 5].map(fn(i) { e[i] })
   inspect(xs, content="[0, 1, -1, 2, -2, 3]")
 }
 
 ///|
 test "feat byte index order" {
   let e : @feat.Enumerate[Byte] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3].map(fn(i) { e.en_index(i) })
+  let xs = [0N, 1, 2, 3].map(fn(i) { e[i] })
   inspect(xs, content="[b'\\x00', b'\\x01', b'\\x02', b'\\x03']")
 }
 
 ///|
 test "feat char index order" {
   let e : @feat.Enumerate[Char] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3].map(fn(i) { e.en_index(i) })
+  let xs = [0N, 1, 2, 3].map(fn(i) { e[i] })
   inspect(xs, content="['\\u{00}', '\\u{01}', '\\u{02}', '\\u{03}']")
 }
 
 ///|
 test "enumerate int" {
   let gen : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
-  let arr = Array::makei(10, fn(i) { gen.en_index(BigInt::from_int(i)) })
+  let arr = Array::makei(10, fn(i) { gen[BigInt::from_int(i)] })
   inspect(arr, content="[0, 1, -1, 2, -2, 3, -3, 4, -4, 5]")
 }
 
@@ -156,7 +156,7 @@ test "feat tree random" {
 test "feat tree" {
   let fe : @qc.Gen[Tree[Nat]] = @qc.Gen::feat_random(11)
   inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
-  let x : SingleTree = @feat.Enumerable::enumerate().en_index(196606)
+  let x : SingleTree = @feat.Enumerable::enumerate()[196606]
   inspect(
     x,
     content="Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Leaf(true)))))))))))))))))",
@@ -167,6 +167,6 @@ test "feat tree" {
 test "index large" {
   let eTree : @feat.Enumerate[SingleTree] = @feat.Enumerable::enumerate()
   for i = 100000N; i > 0; i = i - 1 {
-    eTree.en_index(i) |> ignore
+    eTree[i] |> ignore
   }
 }
