@@ -31,12 +31,6 @@ pub fn[T] empty() -> Enumerate[T] {
 }
 
 ///|
-/// Alias for `empty()` — used where `Default`-style zero is expected.
-pub fn[T] default() -> Enumerate[T] {
-  empty()
-}
-
-///|
 /// One-value enumeration at size 0. Building block for `Enumerable`
 /// instances of leaf constructors.
 pub fn[T] singleton(val : T) -> Enumerate[T] {
@@ -64,10 +58,34 @@ pub fn[T] Enumerate::en_index(self : Enumerate[T], idx : BigInt) -> T {
 }
 
 ///|
+/// Finite sampling domain used by `Gen::feat_random`. It aggregates
+/// the first `size` parts; if they are all empty, it continues to the
+/// next non-empty part so the result is still finite.
+pub fn[T] Enumerate::sample_finite(
+  self : Enumerate[T],
+  size : Int,
+) -> Finite[T] {
+  for parts = self.parts, bound = size {
+    match parts {
+      Nil => break fin_empty()
+      _ => {
+        let (incl, rest) = parts.split_at(bound)
+        let fin = fin_mconcat(incl)
+        if fin.fCard == 0 {
+          continue rest, 1
+        } else {
+          break fin
+        }
+      }
+    }
+  }
+}
+
+///|
 /// Interleave two enumerations by size: the `k`-th part of `union(a, b)`
 /// is `fin_union(a.parts[k], b.parts[k])`. If one enumeration runs out
 /// of parts, the other's remaining parts carry through unchanged.
-pub fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
+fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
   { parts: @lazy.zip_plus(fin_union, e1.parts, e2.parts) }
 }
 
@@ -109,14 +127,6 @@ fn[T, U] prod_helper(
   rys : LazyList[LazyList[Finite[U]]],
 ) -> LazyList[Finite[(T, U)]] {
   rys.map(fn(y) { convolution(xs, y) })
-}
-
-///|
-/// Applicative apply: given an enumeration of functions and an
-/// enumeration of arguments, produce the enumeration of all `f(x)`
-/// combinations, sized by the sum of component sizes.
-pub fn[T, U] app(f : Enumerate[(T) -> U], e : Enumerate[T]) -> Enumerate[U] {
-  product(f, e).fmap(fn(t) { (t.0)(t.1) })
 }
 
 ///|

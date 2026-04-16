@@ -75,60 +75,47 @@ pub(all) struct Finite[T] {
 }
 ```
 
-The simplest `Finite`s are `fin_empty()` (cardinality 0), `fin_pure(x)`
-(cardinality 1), and `fin_finite(n)` (the interval `[0, n)` of `BigInt`):
+Most users do not construct `Finite`s via helper functions. Instead, they
+usually get them out of `Enumerate::eval()` and inspect them with
+`Finite::iter` / `Finite::to_array`. If you do need a custom chunk, you can
+write one directly:
 
 ```mbt check
 ///|
-test "fin_finite is the half-open interval" {
-  let f = @feat.fin_finite(5)
-  inspect(f.to_array(), content="(5, @list.from_array([0, 1, 2, 3, 4]))")
-}
-
-///|
-test "fin_pure is a single-element universe" {
-  let f = @feat.fin_pure("hi")
+test "hand-rolled finite chunk" {
+  let f : @feat.Finite[String] = {
+    fCard: 2,
+    fIndex: fn(i) {
+      if i == 0 {
+        "left"
+      } else {
+        guard i == 1 else { abort("index out of bounds") }
+        "right"
+      }
+    },
+  }
   inspect(
     f.to_array(),
     content=(
-      #|(1, @list.from_array(["hi"]))
+      #|(2, @list.from_array(["left", "right"]))
     ),
   )
-}
-
-///|
-test "fin_empty has cardinality 0" {
-  let f : @feat.Finite[Int] = @feat.fin_empty()
-  inspect(f.to_array(), content="(0, @list.from_array([]))")
 }
 ```
 
-`Finite`s compose as a disjoint union (`+`) and a Cartesian product
-(`fin_cart`):
+`Finite`s are still composable once you have them. The most common case is
+to combine parts produced by enumerations:
 
 ```mbt check
 ///|
-test "disjoint union via fin_union" {
-  let left = @feat.fin_finite(3) // [0, 1, 2]
-  let right = @feat.fin_finite(2) // [0, 1]
-  let joined = left + right // [0, 1, 2, 0, 1]
+test "disjoint union of two singleton parts" {
+  let left = @feat.singleton("left").eval().head()
+  let right = @feat.singleton("right").eval().head()
+  let joined = left + right
   inspect(
-    [..joined],
+    joined.to_array(),
     content=(
-      #|[0, 1, 2, 0, 1]
-    ),
-  )
-}
-
-///|
-test "Cartesian product via fin_cart" {
-  let xs = @feat.fin_finite(2) // [0, 1]
-  let ys = @feat.fin_finite(3) // [0, 1, 2]
-  let pairs = @feat.fin_cart(xs, ys)
-  inspect(
-    pairs.to_array(),
-    content=(
-      #|(6, @list.from_array([(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]))
+      #|(2, @list.from_array(["left", "right"]))
     ),
   )
 }
@@ -143,7 +130,8 @@ materialising the full list via `to_array`:
 ///|
 test "for x in finite" {
   let acc : Array[BigInt] = []
-  for x in @feat.fin_finite(4) {
+  let finite : @feat.Finite[BigInt] = { fCard: 4, fIndex: fn(i) { i } }
+  for x in finite {
     acc.push(x)
   }
   assert_eq(acc, [0, 1, 2, 3])
@@ -218,7 +206,7 @@ use it safely:
 
 | # | Property | What breaks if you violate it |
 |---|----------|-------------------------------|
-| 1 | **Cardinalities are non-negative.** Every part has `fCard : BigInt` and must satisfy `fCard >= 0`. Parts with `fCard == 0` are empty and collapse away. | `fin_union` / `fin_concat` treat a negative card as empty; a negative card produced by hand will silently lose values. |
+| 1 | **Cardinalities are non-negative.** Every part has `fCard : BigInt` and must satisfy `fCard >= 0`. Parts with `fCard == 0` are empty and collapse away. | The package assumes every part behaves like a finite set; a negative card produced by hand breaks that model and will lead to wrong indexing behaviour. |
 | 2 | **Productivity under recursion.** Every recursive self-reference inside an `Enumerable` instance must be guarded by a `pay(...)`. An `Enumerate[T]` is a `LazyList` of parts, so it may be infinite — but each part must be reachable in finite time. | Evaluating `enumerate()` blows the stack or loops forever. |
 | 3 | **Total indexing per part.** For every `i` with `0 <= i < part.fCard`, `part.fIndex(i)` must return a valid `T`. | `en_index` aborts with "index out of bounds". |
 
@@ -320,7 +308,7 @@ test "enumerate the first few binary trees" {
 | Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(fn() { ... })`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
 | Computing a large Cartesian product with `product` before unioning. | Not wrong, just slow — the resulting parts get large and indexing locality suffers. | Prefer `unary` for a single-pair constructor, or `consts([...])` for a disjunction — these keep the structure flat. |
 | Mixing eager `List` of `Enumerate` with `consts` at the top of a recursive definition. | The `List` itself is eager: its elements are forced when the `consts` is reached, which can run into the recursion before `pay` kicks in. | Ensure the `consts(...)` is inside `pay`, or use `+` between lazy `Enumerate`s. |
-| Forgetting `fin_empty` short-circuits. | `fin_union(empty, x)` returns `x`; composing many empties is cheap but producing them on purpose with a bogus `fIndex` and non-zero `fCard` is a contract-3 bug waiting to fire. | Use `fin_empty()` rather than a hand-rolled zero-cardinality `Finite`. |
+| Forgetting that zero-cardinality parts short-circuit. | Empty parts are skipped cheaply, but a hand-rolled `Finite` with a bogus non-zero `fCard` will still be indexed. | If you need an empty part, set `fCard: 0` and use an aborting `fIndex`. |
 
 ### Where the trait is consumed
 
@@ -381,14 +369,14 @@ test "materialize every Bool at size 1" {
 
 ### Mapping and combining
 
-`Enumerate[T]` is a functor, an applicative, and a (disjoint) monoid:
+`Enumerate[T]` is a functor together with a disjoint-union `+` and a
+size-aware Cartesian `product`:
 
 | Operation | Signature | Meaning |
 |-----------|-----------|---------|
 | `Enumerate::fmap(e, f)` | `Enumerate[T] -> (T -> U) -> Enumerate[U]` | Re-label every element |
 | `e1 + e2` | `Enumerate[T] -> Enumerate[T] -> Enumerate[T]` | Interleave by size |
 | `product(e1, e2)` | `Enumerate[A] -> Enumerate[B] -> Enumerate[(A, B)]` | Pair every A with every B, still size-indexed |
-| `app(ef, ea)` | `Enumerate[A -> B] -> Enumerate[A] -> Enumerate[B]` | Applicative apply |
 | `pay(fn() { … })` | `(() -> Enumerate[T]) -> Enumerate[T]` | Charge 1 unit of size |
 | `unary(f)` | `(T -> U) -> Enumerate[U]` where `T : Enumerable` | Shortcut for `T::enumerate().fmap(f)` |
 
@@ -402,11 +390,8 @@ test "fmap rewrites every element in place" {
 }
 
 ///|
-test "product generates pairs, size = sum of component sizes" {
-  let xs = @feat.fin_finite(2) |> wrap_finite // [0, 1]
-  let ys = @feat.fin_finite(2) |> wrap_finite // [0, 1]
-  let pairs = @feat.product(xs, ys)
-  // Size 0: (0,0). Size 1: (0,1), (1,0). Size 2: (1,1).
+test "product generates every pair in part order" {
+  let pairs = @feat.product(zero_or_one_part(), zero_or_one_part())
   inspect(pairs.en_index(0), content="(0, 0)")
   inspect(pairs.en_index(1), content="(0, 1)")
   inspect(pairs.en_index(2), content="(1, 0)")
@@ -414,8 +399,13 @@ test "product generates pairs, size = sum of component sizes" {
 }
 
 ///|
-fn[T] wrap_finite(f : @feat.Finite[T]) -> @feat.Enumerate[T] {
-  { parts: Cons(f, @lazy.LazyRef::from_value(Nil)) }
+fn zero_or_one_part() -> @feat.Enumerate[BigInt] {
+  {
+    parts: Cons(
+      { fCard: 2, fIndex: fn(i) { i } },
+      @lazy.LazyRef::from_value(Nil),
+    ),
+  }
 }
 ```
 
@@ -440,23 +430,20 @@ which is then handed to the random driver.
 
 | Name | What it does |
 |------|-------------|
-| `empty()` / `default()` | `Enumerate[T]` with no elements |
+| `empty()` | `Enumerate[T]` with no elements |
 | `singleton(x)` | One-element enumeration at size 0 |
 | `pay(thunk)` | Shift every part one size up |
-| `union(a, b)` / `a + b` | Interleaved disjoint union of two enumerations |
+| `a + b` | Interleaved disjoint union of two enumerations |
 | `product(a, b)` | Pair-up enumeration; size is the **sum** of component sizes |
-| `app(ef, ea)` | Applicative apply |
 | `consts(list)` | `pay`-wrapped union of a `List` of enumerations |
 | `unary(f)` | `T::enumerate().fmap(f)` for `T : Enumerable` |
-| `fin_pure`, `fin_empty`, `fin_finite` | Base `Finite[T]`s |
-| `fin_union`, `fin_cart`, `fin_fmap`, `fin_app`, `fin_bind` | `Finite` combinators |
-| `fin_concat`, `fin_mconcat` | Flatten `Array`/`LazyList` of `Finite` |
+| `Finite::iter`, `Finite::to_array` | Inspect a `Finite[T]` part once you have one |
 
 ### Types
 
 | Type | Purpose |
 |------|---------|
-| `Finite[T]` | Cardinality + indexer (`BigInt -> T`); O(log n) random access |
+| `Finite[T]` | Cardinality + indexer (`BigInt -> T`); usually obtained from `eval()` |
 | `Enumerate[T]` | `LazyList[Finite[T]]`; one element per size |
 | `Enumerable` trait | `enumerate() -> Enumerate[Self]` |
 

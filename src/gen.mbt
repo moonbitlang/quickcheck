@@ -27,7 +27,9 @@ pub fn[T : @coreqc.Arbitrary] Gen::spawn() -> Gen[T] {
 /// Generate a value from an enumerable instance (up to a size bound)
 /// @alert unsafe "Experimental: May cause stack overflow"
 pub fn[T : @feat.Enumerable] Gen::feat_random(size : Int) -> Gen[T] {
-  feat_helper(T::enumerate(), size)
+  let { fCard, fIndex } = T::enumerate().sample_finite(size)
+  guard fCard != 0 else { abort("uniform: empty enumeration") }
+  integer_bound(fCard).fmap(fIndex)
 }
 
 ///|
@@ -56,24 +58,6 @@ pub fn[T] Gen::samples(
 ) -> Array[T] {
   let state = @splitmix.new(seed~)
   Array::makei(size, _ => self.run(size, state))
-}
-
-///|
-/// Helper function for feat_random
-fn[T] feat_helper(enumerate : @feat.Enumerate[T], size : Int) -> Gen[T] {
-  for parts = enumerate.parts, bound = size {
-    match parts {
-      Nil => abort("uniform: empty enumeration")
-      _ => {
-        let (incl, rest) = parts.split_at(bound)
-        let fin = @feat.fin_mconcat(incl)
-        match fin.fCard {
-          0 => continue rest, 1
-          _ => break integer_bound(fin.fCard).fmap(i => (fin.fIndex)(i))
-        }
-      }
-    }
-  }
 }
 
 ///|

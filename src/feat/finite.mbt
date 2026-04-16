@@ -18,7 +18,7 @@ pub(all) struct Finite[T] {
 ///|
 /// The empty chunk: cardinality zero, indexer that aborts. Identity
 /// for `fin_union`; absorbing element for `fin_cart`.
-pub fn[T] fin_empty() -> Finite[T] {
+fn[T] fin_empty() -> Finite[T] {
   { fCard: 0, fIndex: _ => abort("index empty") }
 }
 
@@ -26,7 +26,7 @@ pub fn[T] fin_empty() -> Finite[T] {
 /// Disjoint union: append `f2` after `f1`. Elements of `f1` keep
 /// their positions `[0, f1.fCard)`; elements of `f2` move up to
 /// `[f1.fCard, f1.fCard + f2.fCard)`. Empty operands short-circuit.
-pub fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
+fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
   if f1.fCard == 0 {
     f2
   } else if f2.fCard == 0 {
@@ -46,12 +46,6 @@ pub fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
 }
 
 ///|
-#deprecated
-pub fn[T] Finite::op_add(self : Finite[T], other : Finite[T]) -> Finite[T] {
-  fin_union(self, other)
-}
-
-///|
 /// `+` as an alias for `fin_union`. Not an `Add` trait impl, because
 /// it's defined directly as a method on `Finite[T]` for `T` generic
 /// over any type (not constrained to `Add`).
@@ -61,14 +55,14 @@ pub impl[T] Add for Finite[T] with add(self, other) {
 
 ///|
 /// Map `f` over the indexer: same cardinality, each element rewritten.
-pub fn[T, U] fin_fmap(f : (T) -> U, f1 : Finite[T]) -> Finite[U] {
+fn[T, U] fin_fmap(f : (T) -> U, f1 : Finite[T]) -> Finite[U] {
   { fCard: f1.fCard, fIndex: fn(i) { f((f1.fIndex)(i)) } }
 }
 
 ///|
 /// One-element chunk carrying exactly `x`. Indexer accepts `0`, aborts
 /// otherwise.
-pub fn[T] fin_pure(x : T) -> Finite[T] {
+fn[T] fin_pure(x : T) -> Finite[T] {
   {
     fCard: 1,
     fIndex: fn(i) {
@@ -82,7 +76,7 @@ pub fn[T] fin_pure(x : T) -> Finite[T] {
 /// Cartesian product: cardinality is the product, index decomposes
 /// `i` into `(i / f2.fCard, i % f2.fCard)` so the result walks `f1`
 /// in the outer loop and `f2` in the inner loop.
-pub fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
+fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
   {
     fCard: f1.fCard * f2.fCard,
     fIndex: fn(i) {
@@ -91,29 +85,6 @@ pub fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
       ((f1.fIndex)(j), (f2.fIndex)(k))
     },
   }
-}
-
-///|
-/// Applicative apply on `Finite`: combine a chunk of functions with a
-/// chunk of arguments into a chunk of results. Cardinality multiplies.
-pub fn[M, N] fin_app(f : Finite[(M) -> N], e : Finite[M]) -> Finite[N] {
-  fin_fmap(
-    fn(p) {
-      let (g, x) = p
-      g(x)
-    },
-    fin_cart(f, e),
-  )
-}
-
-///|
-/// Monadic bind on `Finite`: unlike `fin_cart`, this collapses to a
-/// single element per `m` (it uses `f((m.fIndex)(i)).fIndex(0)`), so
-/// the cardinality stays equal to `m.fCard`. Used by internal feat
-/// machinery that needs to sequence a computation without multiplying
-/// the chunk size.
-pub fn[M, N] fin_bind(m : Finite[M], f : (M) -> Finite[N]) -> Finite[N] {
-  { fCard: m.fCard, fIndex: fn(i) { (f((m.fIndex)(i)).fIndex)(0) } }
 }
 
 ///|
@@ -132,7 +103,7 @@ fn[M] sum_sel(a : Array[Finite[M]]) -> (BigInt) -> M {
 ///|
 /// Concatenate an `Array` of chunks end-to-end. Empty chunks are
 /// filtered before indexing so the resulting selector skips them.
-pub fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
+fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
   {
     fCard: sum(m.map(fn(x) { x.fCard })),
     fIndex: sum_sel(m.filter(fn(x) { x.fCard > 0 })),
@@ -142,7 +113,7 @@ pub fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
 ///|
 /// Concatenate a `LazyList` of chunks end-to-end. Forces the spine of
 /// the list, so only safe on finite inputs.
-pub fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
+fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
   let acc : Array[Finite[M]] = []
   for cur = val {
     match cur {
@@ -243,7 +214,7 @@ pub impl[T : Show] Show for Finite[T] with output(self, logger) {
 ///|
 /// The interval `[0, i)` as a `Finite[BigInt]`: cardinality `i`,
 /// `fIndex(j) = j`. Negative `i` collapses to `fin_empty`.
-pub fn fin_finite(i : BigInt) -> Finite[BigInt] {
+fn fin_finite(i : BigInt) -> Finite[BigInt] {
   if i < 0 {
     fin_empty()
   } else {
