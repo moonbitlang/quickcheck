@@ -120,7 +120,7 @@ pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 /// outer generator to produce an inner generator, then running the
 /// inner one.
 pub fn[T] Gen::join(self : Gen[Gen[T]]) -> Gen[T] {
-  self.bind(@utils.id)
+  self.bind(x => x)
 }
 
 ///|

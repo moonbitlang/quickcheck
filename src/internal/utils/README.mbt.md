@@ -28,19 +28,13 @@ surface area of the main library.
 
 | Name | Signature | Meaning |
 |------|-----------|---------|
-| `id(x)` | `T -> T` | The identity function |
 | `const_(t)(_)` | `T -> U -> T` | Ignore the second argument, return the first |
 | `flip(f)(x, y)` | `((A, B) -> C) -> (B, A) -> C` | Swap argument order |
 
-> `pair_function` is **deprecated** — inline `tuple => f(tuple.0, tuple.1)` at the call site instead.
+> `id` and `pair_function` are **deprecated** — inline `x => x` and
+> `tuple => f(tuple.0, tuple.1)` at the call site instead.
 
 ```mbt check
-///|
-test "id returns its argument" {
-  assert_eq(@utils.id(42), 42)
-  assert_eq(@utils.id("hi"), "hi")
-}
-
 ///|
 test "const_ ignores the second argument" {
   let always_7 : (String) -> Int = @utils.const_(7)
