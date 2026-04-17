@@ -2,65 +2,10 @@
 using @list {type List}
 
 ///|
-struct Printer {
-  buf : &Logger
-  mut ident : Int
-}
-
-///|
-pub impl Default for Printer with default() {
-  { buf: @buffer.new(), ident: 0 }
-}
-
-///|
-/// Build a `Printer` that writes into an existing buffer. Initial
-/// indent is 0.
-pub fn Printer::from_buffer(buf : @buffer.Buffer) -> Printer {
-  { buf, ident: 0 }
-}
-
-///|
-/// Increase the indent by `size` (default 2) spaces. Every subsequent
-/// `write_string` / `format` call prepends the indent.
-pub fn Printer::ident(self : Printer, size? : Int = 2) -> Unit {
-  self.ident += size
-}
-
-///|
-/// Decrease the indent by exactly 1 space (asymmetric with `ident`,
-/// which adds 2 by default). Present mainly for legacy callers;
-/// prefer `self.ident -= n` directly when you need a specific
-/// reduction.
-pub fn Printer::unident(self : Printer) -> Unit {
-  self.ident -= 1
-}
-
-///|
-/// Produce the indent-prefixed form of `str` without writing it.
-/// Useful when multiple `format` calls need to be composed before
-/// flushing to the buffer.
-pub fn Printer::format(self : Printer, str : String) -> String {
-  let mut s = ""
-  for i = 0; i < self.ident; i = i + 1 {
-    s += " "
-  }
-  s + str
-}
-
-///|
-/// Write `str` followed by a newline, with the current indent
-/// prepended.
-pub fn Printer::write_string(self : Printer, str : String) -> Unit {
-  self.buf.write_string(self.format(str) + "\n")
-}
-
-///|
 /// Internal State of Compiler
 struct State {
   // Name of the test
   name : String
-  // Printer that collects output of the test
-  // static_writer : Printer
   // Top bound of test size (immutable, the argument of the Gen)
   mut max_test_size_ : Int
   // Maximum number of successful tests (immutable)
@@ -104,7 +49,6 @@ fn from_config(cfg : Config) -> State {
   }
   {
     name: @utils.fresh_name(),
-    // static_writer: Default::default(),
     max_test_size_: cfg.max_size,
     max_success_tests_: cfg.max_success,
     max_discarded_ratio_: cfg.max_discard_ratio,

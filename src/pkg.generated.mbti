@@ -3,7 +3,6 @@ package "moonbitlang/quickcheck"
 
 import {
   "moonbitlang/core/bigint",
-  "moonbitlang/core/buffer",
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/quickcheck/feat",
@@ -201,14 +200,6 @@ pub(all) enum Outcome[T] {
   Fail(T)
 }
 pub impl[T] Show for Outcome[T]
-
-type Printer
-pub fn Printer::format(Self, String) -> String
-pub fn Printer::from_buffer(@buffer.Buffer) -> Self
-pub fn Printer::ident(Self, size? : Int) -> Unit
-pub fn Printer::unident(Self) -> Unit
-pub fn Printer::write_string(Self, String) -> Unit
-pub impl Default for Printer
 
 type Property
 pub impl Testable for Property
