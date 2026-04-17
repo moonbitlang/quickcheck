@@ -92,6 +92,14 @@ pub(all) enum Expected {
 }
 
 type Property
+pub fn Property::callback(Self, Callback) -> Self
+pub fn Property::classify(Self, Bool, String) -> Self
+pub fn[T : Show] Property::collect(Self, T) -> Self
+pub fn Property::counterexample(Self, String) -> Self
+pub fn Property::filter(Self, Bool) -> Self
+pub fn Property::if_fail(Self, () -> Unit) -> Self
+pub fn Property::label(Self, String) -> Self
+pub fn Property::map_size(Self, (Int) -> Int) -> Self
 pub impl Testable for Property
 
 pub(all) struct Replay {
