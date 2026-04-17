@@ -1,4 +1,5 @@
 import {
+  "moonbitlang/quickcheck/gen" @gen,
   "moonbitlang/quickcheck/feat",
   "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/quickcheck/internal/utils",

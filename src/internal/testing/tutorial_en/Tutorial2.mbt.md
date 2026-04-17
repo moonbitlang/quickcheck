@@ -20,23 +20,23 @@ Let’s start with a class of simple generators—the building blocks of more co
 
 ### Range Control
 
-In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@qc.int_range`, `@qc.small_int`, `@qc.nat`, and `@qc.neg_int` to express different integer domains, as well as `@qc.char_range`, `@qc.alphabet`, and `@qc.numeral` for constraining character domains. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
+In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@gen.int_range`, `@gen.small_int`, `@gen.nat`, and `@gen.neg_int` to express different integer domains, as well as `@gen.char_range`, `@gen.alphabet`, and `@gen.numeral` for constraining character domains. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
 
 ```mbt check
 ///|
-test "gen @qc.int_range invariant" {
-  let gen = @qc.int_range(-10, 10)
+test "gen @gen.int_range invariant" {
+  let gen = @gen.int_range(-10, 10)
   let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
 
-Generators are not always "random". We can also construct a constant generator with `@qc.pure`, which is useful for representing boundary cases or fixing certain preconditions. This kind of generator is crucial when composing generators: it lets us hold some inputs steady so we can focus on variation in the rest.
+Generators are not always "random". We can also construct a constant generator with `@gen.pure`, which is useful for representing boundary cases or fixing certain preconditions. This kind of generator is crucial when composing generators: it lets us hold some inputs steady so we can focus on variation in the rest.
 
 ```mbt check
 ///|
-test "gen @qc.pure value" {
-  let gen = @qc.pure(7)
+test "gen @gen.pure value" {
+  let gen = @gen.pure(7)
   let prop = @qc.forall(gen, x => x == 7)
   @qc.quick_check(prop)
 }
@@ -59,13 +59,13 @@ enum Color {
 // }
 ```
 
-If a type already has an `Arbitrary` instance, then `@qc.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
+If a type already has an `Arbitrary` instance, then `@gen.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
 
 ```mbt check
 ///|
 test "gen spawn for arbitrary" {
-  let gc : @qc.Gen[Color] = @qc.Gen::spawn()
-  let gen : @qc.Gen[Int] = @qc.Gen::spawn()
+  let gc : @gen.Gen[Color] = @gen.Gen::spawn()
+  let gen : @gen.Gen[Int] = @gen.Gen::spawn()
   debug_inspect(
     gc.samples(size=5),
     content=(
@@ -83,12 +83,12 @@ test "gen spawn for arbitrary" {
 
 ### Collections and Multi-Argument Composition
 
-When a task involves collection structures, a basic generator needs to express both "length" and "where elements come from". `@qc.Gen::array_with_size` generates fixed-length arrays, and `@qc.list_with_size` constructs lists of a specified length. Fixed length is not just for convenience; it often corresponds directly to preconditions in protocols, formats, or algorithms.
+When a task involves collection structures, a basic generator needs to express both "length" and "where elements come from". `@gen.Gen::array_with_size` generates fixed-length arrays, and `@qc.list_with_size` constructs lists of a specified length. Fixed length is not just for convenience; it often corresponds directly to preconditions in protocols, formats, or algorithms.
 
 ```mbt check
 ///|
 test "gen array_with_size" {
-  let gen = @qc.int_range(0, 9).array_with_size(5)
+  let gen = @gen.int_range(0, 9).array_with_size(5)
   json_inspect(gen.samples(size=5), content=[
     [0, 6, 4, 3, 8],
     [0, 4, 6, 5, 7],
@@ -100,17 +100,17 @@ test "gen array_with_size" {
 
 ///|
 test "gen @qc.list_with_size sample" {
-  let gen = @qc.char_range('a', 'f').list_with_size(3)
+  let gen = @gen.char_range('a', 'f').list_with_size(3)
   json_inspect(gen.sample(), content=["a", "b", "f"])
 }
 ```
 
-Multi-argument functions are the norm in real systems. `@qc.tuple`, `@qc.triple`, and `@qc.quad` let us combine multiple generators into a single input, so we can keep the uniform "single-argument property" execution model. This not only simplifies the property itself, but also allows shrinking to consider interactions between multiple parameters at the same time.
+Multi-argument functions are the norm in real systems. `@gen.tuple`, `@gen.triple`, and `@gen.quad` let us combine multiple generators into a single input, so we can keep the uniform "single-argument property" execution model. This not only simplifies the property itself, but also allows shrinking to consider interactions between multiple parameters at the same time.
 
 ```mbt check
 ///|
-test "gen @qc.tuple for two args" {
-  let gen = @qc.tuple(@qc.int_range(-20, 20), @qc.int_range(-20, 20))
+test "gen @gen.tuple for two args" {
+  let gen = @gen.tuple(@gen.int_range(-20, 20), @gen.int_range(-20, 20))
   let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a - b + b == a
@@ -119,12 +119,12 @@ test "gen @qc.tuple for two args" {
 }
 ```
 
-The last key step in these building blocks is transformation. `@qc.Gen::fmap` lets us apply a pure function to certain results, mapping an existing domain into a new one. This capability looks simple, but it’s central to building business-specific inputs; later distribution control and conditional filtering will also be built on top of this layer.
+The last key step in these building blocks is transformation. `@gen.Gen::fmap` lets us apply a pure function to certain results, mapping an existing domain into a new one. This capability looks simple, but it’s central to building business-specific inputs; later distribution control and conditional filtering will also be built on top of this layer.
 
 ```mbt check
 ///|
 test "gen fmap transform" {
-  let gen = @qc.int_range(0, 50).fmap(x => x * 2)
+  let gen = @gen.int_range(0, 50).fmap(x => x * 2)
   let prop = @qc.forall(gen, x => x % 2 == 0)
   @qc.quick_check(prop)
 }
@@ -136,52 +136,52 @@ With these basic structures, we can already cover the commonest input shapes in 
 
 Once we can generate inputs with "valid shapes", the next question is: do those inputs appear with frequencies that resemble the real world? That’s where distribution control comes in. Real data is often multimodal, skewed, or structurally biased. If we rely on a single range generator, coverage will feel thin. We need composition and weighting to bring the input distribution closer to realistic scenarios, while keeping properties concise.
 
-When the domain has multiple categories or paths, `@qc.one_of` is the directest combinator. It chooses uniformly among several generators. This is useful for placing boundary samples alongside normal cases, so a property can hit extreme conditions while still covering ordinary variations.
+When the domain has multiple categories or paths, `@gen.one_of` is the directest combinator. It chooses uniformly among several generators. This is useful for placing boundary samples alongside normal cases, so a property can hit extreme conditions while still covering ordinary variations.
 
 ```mbt check
 ///|
-test "gen @qc.one_of mix" {
-  let gen = @qc.one_of([@qc.pure(0), @qc.pure(1), @qc.int_range(-10, 10)])
+test "gen @gen.one_of mix" {
+  let gen = @gen.one_of([@gen.pure(0), @gen.pure(1), @gen.int_range(-10, 10)])
   let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
 
-Uniform choice is often not ideal: real data usually has clear mainstream ranges or "hot" values. In that case, we can use `@qc.frequency` to weight branches. This lets us express a distribution like "most cases come from one range; a few come from another," concentrating test budget where bugs are likelier, while still keeping coverage of rare paths.
+Uniform choice is often not ideal: real data usually has clear mainstream ranges or "hot" values. In that case, we can use `@gen.frequency` to weight branches. This lets us express a distribution like "most cases come from one range; a few come from another," concentrating test budget where bugs are likelier, while still keeping coverage of rare paths.
 
 ```mbt check
 ///|
-test "gen @qc.frequency weighted" {
-  let gen = @qc.frequency([
-    (6, @qc.int_range(-3, 3)),
-    (1, @qc.int_range(-30, 30)),
+test "gen @gen.frequency weighted" {
+  let gen = @gen.frequency([
+    (6, @gen.int_range(-3, 3)),
+    (1, @gen.int_range(-30, 30)),
   ])
   let prop = @qc.forall(gen, x => x >= -30 && x <= 30)
   @qc.quick_check(prop)
 }
 ```
 
-For discrete enumerations, `@qc.one_of_array` and `@qc.one_of_list` are more natural: they sample directly from a given set, without requiring overly elaborate generator construction. We often use them to simulate protocol fields, status codes, or configuration values from a fixed set, making properties closer to real inputs.
+For discrete enumerations, `@gen.one_of_array` and `@gen.one_of_list` are more natural: they sample directly from a given set, without requiring overly elaborate generator construction. We often use them to simulate protocol fields, status codes, or configuration values from a fixed set, making properties closer to real inputs.
 
 ```mbt check
 ///|
-test "gen @qc.one_of_array enum" {
+test "gen @gen.one_of_array enum" {
   let methods : Array[String] = ["GET", "POST", "PUT"]
-  let gen = @qc.one_of_array(methods)
+  let gen = @gen.one_of_array(methods)
   let prop = @qc.forall(gen, m => methods.contains(m))
   @qc.quick_check(prop)
 }
 ```
 
-When multiple fields have dependencies, `@qc.Gen::bind` allows us to encode those dependencies during generation. It lets us generate one value first, then generate subsequent fields based on it—satisfying constraints at the data level and avoiding large stacks of precondition checks inside the property.
+When multiple fields have dependencies, `@gen.Gen::bind` allows us to encode those dependencies during generation. It lets us generate one value first, then generate subsequent fields based on it—satisfying constraints at the data level and avoiding large stacks of precondition checks inside the property.
 
 > `bind` is a powerful monadic operation. It allows us to dynamically adjust distributions and structure during generation, producing inputs that satisfy complex relationships directly. At the same time, it’s harder to understand and debug, so we should keep the structure layered and clear—avoiding excessive nesting or relying on `bind` as a catch-all way to express complicated logic.
 
 ```mbt check
 ///|
 test "gen bind dependent" {
-  let gen = @qc.int_range(-10, 10).bind(base => {
-    @qc.int_range(0, 5).fmap(delta => (base, base + delta))
+  let gen = @gen.int_range(-10, 10).bind(base => {
+    @gen.int_range(0, 5).fmap(delta => (base, base + delta))
   })
   let prop = @qc.forall(gen, p => {
     let (a, b) = p
@@ -191,9 +191,9 @@ test "gen bind dependent" {
 }
 ```
 
-We already introduced `@qc.Gen::fmap`, and it remains a fundamental tool for composition: without changing branch probabilities, it maps generated values into a business-level structure. This mapping preserves the shape of the distribution while making the data better match interface semantics, so it’s commonly used to construct identifiers, normalized inputs, or derived fields.
+We already introduced `@gen.Gen::fmap`, and it remains a fundamental tool for composition: without changing branch probabilities, it maps generated values into a business-level structure. This mapping preserves the shape of the distribution while making the data better match interface semantics, so it’s commonly used to construct identifiers, normalized inputs, or derived fields.
 
-In practice, we often use `@qc.one_of` or `@qc.frequency` to set the "macro distribution", and then use `bind` and `fmap` to handle "micro structure" constraints and derivations. This two-level structure balances coverage and realism while keeping generators readable. Composition and distribution do not change the property itself, but they can significantly affect test effectiveness. Distribution design should follow the intended semantics: avoid being overly uniform, and avoid being overly biased, so that random testing can discover defects more reliably under a limited budget.
+In practice, we often use `@gen.one_of` or `@gen.frequency` to set the "macro distribution", and then use `bind` and `fmap` to handle "micro structure" constraints and derivations. This two-level structure balances coverage and realism while keeping generators readable. Composition and distribution do not change the property itself, but they can significantly affect test effectiveness. Distribution design should follow the intended semantics: avoid being overly uniform, and avoid being overly biased, so that random testing can discover defects more reliably under a limited budget.
 
 On top of that, we still need to control size and complexity. That involves how the `size` parameter evolves and how we scale generators—this will be the focus of the next section.
 
@@ -206,21 +206,21 @@ This section discusses how the `size` parameter affects data size and test compl
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @qc.sized(n => @qc.small_int().list_with_size(n))
+  let gen = @gen.sized(n => @gen.small_int().list_with_size(n))
   let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
 ```
 
-When we want "data structures to grow in sync with `size`", `@qc.sized` is the most explicit tool. It passes `size` into the generation logic, letting us encode size constraints inside the generator and avoid dealing with size-related preconditions in the property. This is especially effective for arrays, lists, trees, and similar structures, because it internalizes complexity control into the construction rules of the input domain.
+When we want "data structures to grow in sync with `size`", `@gen.sized` is the most explicit tool. It passes `size` into the generation logic, letting us encode size constraints inside the generator and avoid dealing with size-related preconditions in the property. This is especially effective for arrays, lists, trees, and similar structures, because it internalizes complexity control into the construction rules of the input domain.
 
 ```mbt check
 ///|
-test "@qc.sized array with explicit length" {
+test "@gen.sized array with explicit length" {
   // <| works here
-  let gen = @qc.sized <| n => {
+  let gen = @gen.sized <| n => {
       let len = if n < 0 { 0 } else { n }
-      @qc.tuple(@qc.pure(len), @qc.int_range(0, 9).array_with_size(len))
+      @gen.tuple(@gen.pure(len), @gen.int_range(0, 9).array_with_size(len))
     }
   inspect(
     gen.sample(),
@@ -231,24 +231,24 @@ test "@qc.sized array with explicit length" {
 }
 ```
 
-When we want to restrict size without changing the generator’s structure, we can use `@qc.Gen::resize`. It fixes `size` to a specific value, making complexity stable and predictable. This is often useful during debugging or regression testing, where we want counterexamples to be more concentrated and runtime more consistent.
+When we want to restrict size without changing the generator’s structure, we can use `@gen.Gen::resize`. It fixes `size` to a specific value, making complexity stable and predictable. This is often useful during debugging or regression testing, where we want counterexamples to be more concentrated and runtime more consistent.
 
 ```mbt check
 ///|
 test "resize clamps size" {
-  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
+  let gen = @gen.sized(n => @gen.int_range(0, 9).list_with_size(n))
   let small = gen.resize(5)
   let prop = @qc.forall(small, xs => xs.length() == 5)
   @qc.quick_check(prop)
 }
 ```
 
-If we want size to vary with `size` but grow less steeply, we can use `@qc.Gen::scale` to adjust the size mapping. This effectively adds a function on top of the "complexity growth curve", letting input size grow more gradually as test rounds progress, resulting in more stable coverage and more controllable runtime within a limited budget.
+If we want size to vary with `size` but grow less steeply, we can use `@gen.Gen::scale` to adjust the size mapping. This effectively adds a function on top of the "complexity growth curve", letting input size grow more gradually as test rounds progress, resulting in more stable coverage and more controllable runtime within a limited budget.
 
 ```mbt check
 ///|
 test "scale slows growth" {
-  let gen = @qc.sized(n => @qc.int_range(0, 9).list_with_size(n))
+  let gen = @gen.sized(n => @gen.int_range(0, 9).list_with_size(n))
   let scaled = gen.scale(n => n / 2)
   let prop = @qc.forall(scaled, xs => xs.length() <= 20)
   @qc.quick_check(prop, max_size=40)
@@ -276,10 +276,10 @@ test "combinator sorted array with filter" {
     go(0)
   }
 
-  let base = @qc.int_range(-8, 8).array_with_size(3)
+  let base = @gen.int_range(-8, 8).array_with_size(3)
   let prop = @qc.forall(base, arr => {
     @qc.filter(
-      @qc.forall(@qc.one_of_array(arr), x => {
+      @qc.forall(@gen.one_of_array(arr), x => {
         arr[0] <= x && x <= arr[arr.length() - 1]
       }),
       is_non_decreasing(arr),
@@ -292,14 +292,14 @@ test "combinator sorted array with filter" {
 
 This example has three layers of composition: first, `array_with_size` fixes the structure; then, nested `forall + one_of_array` sets up a dependency between an element and its container; finally, `filter` enforces the "sorted" constraint. The style is intuitive and works well for quickly validating an idea, but it still discards some samples.
 
-When the discard rate is high, it’s usually better to move constraints into the construction phase. QuickCheck already provides `@qc.sorted_array`, which we can use directly:
+When the discard rate is high, it’s usually better to move constraints into the construction phase. QuickCheck already provides `@gen.sorted_array`, which we can use directly:
 
 ```mbt check
 ///|
 test "combinator sorted array constructor" {
-  let gen = @qc.sorted_array(5, @qc.int_range(-30, 30))
+  let gen = @gen.sorted_array(5, @gen.int_range(-30, 30))
   let prop = @qc.forall(gen, arr => {
-    @qc.forall(@qc.one_of_array(arr), x => {
+    @qc.forall(@gen.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     })
   })
@@ -324,14 +324,14 @@ QuickCheck’s `Gen` has an implicit `size` parameter: as the number of tests in
 
 ```mbt check
 ///|
-fn[T] _gen_t() -> @qc.Gen[T] {
+fn[T] _gen_t() -> @gen.Gen[T] {
   letrec go = (s : Int) => {
     match s {
       0 => ... // base case
       _n => ... // recursive case, can call go(n - 1) for smaller substructures
     }
   }
-  @qc.sized(go)
+  @gen.sized(go)
 }
 ```
 
@@ -354,7 +354,7 @@ impl[T : Debug] Show for Tree[T] with output(self, logger) {
 }
 ```
 
-If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@qc.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).
+If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@gen.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).
 
 ```mbt check
 ///|
@@ -383,7 +383,7 @@ fn[T] inorder(tree : Tree[T]) -> Array[T] {
 
 ///|
 test "generate BST" {
-  let int_arr = @qc.int_range(-100, 100).array_with_size(10)
+  let int_arr = @gen.int_range(-100, 100).array_with_size(10)
   let gen_bst = int_arr.fmap(Tree::from_array)
   let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
@@ -408,7 +408,7 @@ fn[T] from_sorted(arr : ArrayView[T]) -> Tree[T] {
 
 ///|
 test "generate balanced BST" {
-  let int_arr = @qc.int_range(-100, 100).array_with_size(10)
+  let int_arr = @gen.int_range(-100, 100).array_with_size(10)
   let gen_bst = int_arr.fmap(arr => arr..sort()..dedup() |> from_sorted)
   let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
@@ -424,16 +424,16 @@ The next approach is **range-based recursive generation**, where we grow the tre
 
 ```mbt check
 ///|
-fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
+fn gen_bst_ranged(min : Int, max : Int) -> @gen.Gen[Tree[Int]] {
   fn go(n : Int, lo : Int, hi : Int) {
-    guard lo <= hi && n > 0 else { @qc.pure(Leaf) }
-    @qc.frequency([
-      (1, @qc.pure(Leaf)),
+    guard lo <= hi && n > 0 else { @gen.pure(Leaf) }
+    @gen.frequency([
+      (1, @gen.pure(Leaf)),
       (
         4,
-        @qc.Gen((i, rs) => {
-          let x = @qc.int_range(lo, hi).run(i, rs)
-          let nL = @qc.int_range(0, n - 1).run(i, rs)
+        @gen.Gen((i, rs) => {
+          let x = @gen.int_range(lo, hi).run(i, rs)
+          let nL = @gen.int_range(0, n - 1).run(i, rs)
           let nR = n - 1 - nL
           let l = go(nL, lo, x - 1).run(i, rs)
           let r = go(nR, x + 1, hi).run(i, rs)
@@ -442,7 +442,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @qc.Gen[Tree[Int]] {
       ),
     ])
   }
-  @qc.sized(n => go(n, min, max))
+  @gen.sized(n => go(n, min, max))
 }
 
 ///|

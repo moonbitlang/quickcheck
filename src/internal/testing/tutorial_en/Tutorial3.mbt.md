@@ -80,7 +80,7 @@ QuickCheck provides two directly relevant APIs:
 
 ```mbt nocheck
 fn[T : Testable, A : Show] @qc.forall_shrink(
-  gen : @qc.Gen[A],
+  gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> @qc.Property
@@ -104,7 +104,7 @@ fn shrink_even_nat(x : Int) -> Iter[Int] {
 
 ///|
 test "forall_shrink keeps even invariant" {
-  let gen = @qc.int_range(0, 100).fmap(x => x * 2)
+  let gen = @gen.int_range(0, 100).fmap(x => x * 2)
   let prop = @qc.forall_shrink(gen, shrink_even_nat, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
@@ -205,7 +205,7 @@ Once we attach this shrinker to a property, we get a shrinking process that pres
 ```mbt check
 ///|
 test "forall_shrink for sorted array" {
-  let gen = @qc.sorted_array(6, @qc.int_range(0, 9))
+  let gen = @gen.sorted_array(6, @gen.int_range(0, 9))
   let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
@@ -238,7 +238,7 @@ QuickCheck provides the combinator `counterexample` for exactly this reason. It 
 ```mbt check
 ///|
 test "counterexample adds derived information" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), iarr => {
+  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -440,7 +440,7 @@ The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s re
 
 MoonBit’s current implementation follows exactly that shape. Internally, `Enumerate[T]` is a lazy stream of parts, and each `Finite[T]` carries two consumers, `fCard` and `fIndex`. That makes the behavior of global indexing via `Enumerate::at` (the `_[_]` operator) quite clear. The implementation does not generate every earlier value one by one. Instead, it skips whole parts using their cardinalities, then indexes directly inside the part that contains the requested value. This is the "function view" from the paper, and it is fundamentally different from the list view used in many SmallCheck-style implementations.
 
-That design has two immediate benefits. First, enumeration is not limited to scanning from the front; it also supports random access. Second, the same enumerator can support multiple testing strategies, including prefix enumeration and size-bounded random sampling through APIs such as `@qc.Gen::feat_random`. In that sense, Feat is not a separate testing framework. It is a shared data-generation substrate.
+That design has two immediate benefits. First, enumeration is not limited to scanning from the front; it also supports random access. Second, the same enumerator can support multiple testing strategies, including prefix enumeration and size-bounded random sampling through APIs such as `@gen.Gen::feat_random`. In that sense, Feat is not a separate testing framework. It is a shared data-generation substrate.
 
 From the paper’s perspective, this is also the main way Feat improves on traditional SmallCheck. Classical SmallCheck often relies on constructor depth, but depth is not always a good proxy for semantic complexity. Functional enumeration instead encodes "smallness" directly into the construction of parts. For mutually recursive ASTs, syntax trees, and the sum-of-products structures common in type-system tooling, that style of layering is usually more stable and easier to compose mechanically than a plain depth bound.
 

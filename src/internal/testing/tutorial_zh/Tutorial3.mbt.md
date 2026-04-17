@@ -115,7 +115,7 @@ QuickCheck 提供了两个直接相关的接口：
 
 ```mbt nocheck
 fn[T : Testable, A : Show] @qc.forall_shrink(
-  gen : @qc.Gen[A],
+  gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> @qc.Property
@@ -144,7 +144,7 @@ fn shrink_even_nat(x : Int) -> Iter[Int] {
 
 ///|
 test "forall_shrink keeps even invariant" {
-  let gen = @qc.int_range(0, 100).fmap(x => x * 2)
+  let gen = @gen.int_range(0, 100).fmap(x => x * 2)
   let prop = @qc.forall_shrink(gen, shrink_even_nat, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
@@ -248,7 +248,7 @@ test "shrink sorted array" {
 ```mbt check
 ///|
 test "forall_shrink for sorted array" {
-  let gen = @qc.sorted_array(6, @qc.int_range(0, 9))
+  let gen = @gen.sorted_array(6, @gen.int_range(0, 9))
   let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
@@ -294,7 +294,7 @@ QuickCheck 为此提供了 `counterexample` 这个组合子。
 ```mbt check
 ///|
 test "counterexample adds derived information" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), iarr => {
+  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -583,7 +583,7 @@ MoonBit 当前的实现也正是这样组织的。
 这样设计有两个直接好处。
 其一，枚举不再局限于「从头扫到尾」，而是具备了随机访问能力。
 其二，同一份 enumerator 可以同时支撑多种测试策略，
-包括 SmallCheck 风格的前缀枚举，以及 `@qc.Gen::feat_random` 这类 size-bounded random sampling。
+包括 SmallCheck 风格的前缀枚举，以及 `@gen.Gen::feat_random` 这类 size-bounded random sampling。
 换句话说，Feat 并不是另一个单独的测试框架，而是一种共享的数据生成基础设施。
 
 从论文角度看，Feat 对传统 SmallCheck 的修正也主要在这里。

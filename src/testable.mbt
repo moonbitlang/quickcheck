@@ -13,6 +13,9 @@ type RoseRes = Rose[SingleResult]
 using @rose {type Rose}
 
 ///|
+using @gen {type Gen, pure}
+
+///|
 /// TODO: determine the execution of callback by kind
 enum Callback {
   PostTest(Kind, (State, SingleResult) -> Unit)
@@ -27,7 +30,7 @@ priv enum Kind {
 
 ///|
 fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {
-  delay().fmap(m => s.fmap(m))
+  Gen((n, rs) => (g : Gen[T]) => g.run(n, rs)).fmap(m => s.fmap(m))
 }
 
 ///|

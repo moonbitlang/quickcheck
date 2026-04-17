@@ -51,12 +51,13 @@ moon add moonbitlang/quickcheck
 moon install
 ```
 
-To use the library, you need to import it in your `moon.pkg.json` file,
-and for convenience we give an alias `qc` to the library:
+To use the library, import the root package as `qc` and the generator
+subpackage as `gen` in your `moon.pkg.json` file:
 
 ```
 import {
   "moonbitlang/quickcheck" @qc
+  "moonbitlang/quickcheck/gen" @gen
 }
 
 import {
@@ -354,7 +355,7 @@ impl Show for Nat with output(self, logger) {
 
 ///|
 test {
-  let nat_gen : @qc.Gen[Nat] = @qc.Gen::spawn()
+  let nat_gen : @gen.Gen[Nat] = @gen.Gen::spawn()
   let nats = nat_gen.samples(size=4)
   inspect(
     nats,
@@ -417,7 +418,7 @@ QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic o
 
 ```mbt check
 ///|
-let g : @qc.Gen[Int] = {
+let g : @gen.Gen[Int] = {
   ...
 } // Suppose we have a generator for Int
 
@@ -438,36 +439,36 @@ For instance, you can use the `fmap` method to transform the generated value:
 
 ```mbt check
 ///|
-let g1 : @qc.Gen[Int] = @qc.Gen(
+let g1 : @gen.Gen[Int] = @gen.Gen(
   {
     ...
   },
 )
 
 ///|
-let _g2 : @qc.Gen[Int] = g1.fmap(x => x + 1)
+let _g2 : @gen.Gen[Int] = g1.fmap(x => x + 1)
 
 ///|
-let _g3 : @qc.Gen[String] = g1.fmap(x => x.to_string())
+let _g3 : @gen.Gen[String] = g1.fmap(x => x.to_string())
 ```
 
 Or create a dependent generator:
 
 ```mbt check
 ///|
-let dg1 : @qc.Gen[Int] = @qc.Gen(
+let dg1 : @gen.Gen[Int] = @gen.Gen(
   {
     ...
   },
 )
 
 ///|
-let _dg2 : @qc.Gen[Int] = dg1.bind(x => {
+let _dg2 : @gen.Gen[Int] = dg1.bind(x => {
   // TODO(upstream) <| does not work here
   if x == 0 {
-    @qc.pure(100)
+    @gen.pure(100)
   } else {
-    @qc.pure(200)
+    @gen.pure(200)
   }
 })
 ```
@@ -480,16 +481,16 @@ A generator may take the form `one_of` which chooses among the generators in the
 
 ```mbt check
 ///|
-let _gen_bool : @qc.Gen[Bool] = @qc.one_of([@qc.pure(true), @qc.pure(false)])
+let _gen_bool : @gen.Gen[Bool] = @gen.one_of([@gen.pure(true), @gen.pure(false)])
 ```
 
 If you want to control the distribution of results using frequency instead. We have `frequency` which chooses a generator from the array randomly, but weighs the probability of choosing each alternative by the factor given. For example, this generates true in the probability of $4/5$.
 
 ```mbt check
 ///|
-let _gen_freq : @qc.Gen[Bool] = @qc.frequency([
-  (4, @qc.pure(true)),
-  (1, @qc.pure(false)),
+let _gen_freq : @gen.Gen[Bool] = @gen.frequency([
+  (4, @gen.pure(true)),
+  (1, @gen.pure(false)),
 ])
 ```
 
@@ -500,14 +501,14 @@ We have pointed out that test data generators have an size parameter. QuickCheck
 You can obtain the value of the size parameter using `sized` combinator.
 
 ```mbt nocheck
-pub fn sized[T](f : (Int) ->  @qc.Gen[T]) ->  @qc.Gen[T]
+pub fn sized[T](f : (Int) ->  @gen.Gen[T]) ->  @gen.Gen[T]
 ```
 
 For example, we can make a trivial generator for a list of integers with a given length:
 
 ```mbt check
 ///|
-let gen : @qc.Gen[Int] = @qc.sized(@qc.pure)
+let gen : @gen.Gen[Int] = @gen.sized(@gen.pure)
 
 ///|
 let arr : Array[Int] = Array::makei(20, i => gen.sample(size=i))
@@ -536,7 +537,7 @@ let prop_rev : (List[Int]) -> Bool = (x : List[Int]) => x.rev().rev() == x
 
 ///|
 test "List reverse" {
-  @qc.quick_check(@qc.forall(@qc.Gen::spawn(), prop_rev))
+  @qc.quick_check(@qc.forall(@gen.Gen::spawn(), prop_rev))
 }
 ```
 
@@ -554,9 +555,9 @@ Recall the `remove` function we wanted to test before. The QuickCheck do report 
 ///|
 test {
   @qc.quick_check(
-    @qc.forall(@qc.Gen::spawn(), (a : Array[Int]) => {
+    @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
       @qc.filter(
-        @qc.forall(@qc.one_of_array(a), y => !remove(a, y).contains(y)),
+        @qc.forall(@gen.one_of_array(a), y => !remove(a, y).contains(y)),
         a.length() != 0,
       )
     }),
@@ -593,7 +594,7 @@ test {
   }
 
   @qc.quick_check(
-    @qc.forall(@qc.Gen::spawn(), (iarr : (Int, Array[Int])) => {
+    @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
       let (x, arr) = iarr
       @qc.filter(!remove(arr.copy(), x).contains(x), no_duplicate(arr))
     }),

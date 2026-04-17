@@ -1,20 +1,11 @@
-// `Outcome[T]`, `Expected`, and `Replay` are declared in `types.mbt`.
-// Their Show impl and constructor helpers live here.
-
-///|
-pub impl[T] Show for Outcome[T] with output(self, logger) {
-  match self {
-    Fail(_) => logger.write_string("FAIL")
-    Success => logger.write_string("OK")
-    GaveUp => logger.write_string("GAVE UP")
-  }
-}
+// `Expected` and `Replay` are declared in `types.mbt`.
+// Constructor helpers and internal result modeling live here.
 
 ///|
 /// Capture the current RNG state and size parameter as a `Replay` so
 /// that a failing test can be rerun deterministically. Typically used
 /// inside the driver — the `Replay` record also surfaces in the
-/// counter-example reported by `Outcome::Fail`.
+/// counter-example reported by a failing check.
 pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
   { rand_state, size }
 }

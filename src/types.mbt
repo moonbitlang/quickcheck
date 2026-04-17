@@ -9,47 +9,21 @@
 //
 // The types fall into three conceptual groups:
 //
-//   1. Property outcomes:     Outcome[T], Expected
+//   1. Driver expectations:   Expected
 //   2. Replay & auditing:     Replay
 //   3. Testable plumbing:     Arrow[A, B], ArrowError, ArrowAsync
 //
-// `Gen[T]` deliberately stays in `gen.mbt` — its struct body carries
-// the primary-constructor declaration plus every combinator method, so
-// splitting it would cost more than it saves.
-// -----------------------------------------------------------------------
-
-// ========================================================================
-//  Property outcomes
-// ========================================================================
+// Generator APIs now live in the dedicated `moonbitlang/quickcheck/gen`
+// package. The root package keeps property DSL and driver types only.
 
 ///|
-/// The outcome the driver reports for a single `quick_check` run.
-///
-/// The classical QuickCheck trichotomy:
-///
-/// - `Success`: every test passed; no counterexample was found within
-///   the configured budget.
-/// - `GaveUp`: too many inputs were discarded (via preconditions or
-///   `@qc.filter`) before we could run the requested number of tests.
-/// - `Fail(t)`: at least one generated input falsified the property.
-///   `t` carries the already-shrunk counterexample in whatever shape
-///   the driver chose — typically a pretty-printable record of the
-///   failing case, the seed, and the shrink trail.
-///
-/// The `Show` implementation (defined in `result.mbt`) renders `OK`,
-/// `GAVE UP`, or `FAIL`, irrespective of the payload of `Fail`. Users
-/// who need the payload should pattern-match on the `Outcome`
-/// directly.
-pub(all) enum Outcome[T] {
-  Success
-  GaveUp
-  Fail(T) // Counterexample
-}
+using @gen {type RandomState}
+// -----------------------------------------------------------------------
 
 ///|
 /// What the *author* of a property *expects* to happen. This is the
 /// knob behind `quick_check_fn(..., expect=Fail)` and friends: if the
-/// driver's actual `Outcome` matches `Expected`, the check is
+/// driver's actual verdict matches `Expected`, the check is
 /// considered a pass even when the property raises.
 ///
 /// Use cases:
@@ -75,17 +49,17 @@ pub(all) enum Expected {
 /// A snapshot of the RNG state and size parameter sufficient to rerun
 /// a property on the exact same input sequence.
 ///
-/// Every failing `Outcome::Fail` in the driver carries a `Replay`
-/// inside its counterexample record — copy it into a test, pass it
-/// back via the driver's replay hook, and you will deterministically
-/// reproduce the failure on any machine. This is how the project's
-/// test suite pins previously-found counterexamples.
+/// Every failing report in the driver carries a `Replay` inside its
+/// counterexample record — copy it into a test, pass it back via the
+/// driver's replay hook, and you will deterministically reproduce the
+/// failure on any machine. This is how the project's test suite pins
+/// previously-found counterexamples.
 ///
 /// Fields:
 /// - `rand_state`: SplitMix seed captured just before the offending
 ///   sample was drawn.
 /// - `size`: the size parameter the property was running at (the same
-///   value threaded through `sized` / `scale`).
+///   value threaded through `@gen.sized` / `@gen.Gen::scale`).
 ///
 /// Constructor: `Replay::new(rand_state, size)` (see `result.mbt`).
 pub(all) struct Replay {

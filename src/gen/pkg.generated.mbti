@@ -1,0 +1,104 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/gen"
+
+import {
+  "moonbitlang/core/bigint",
+  "moonbitlang/core/list",
+  "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/quickcheck/feat",
+}
+
+// Values
+pub fn alphabet() -> Gen[Char]
+
+pub fn[T] backtrack(Array[(UInt, Gen[T?])]) -> Gen[T?]
+
+pub fn char_range(Char, Char) -> Gen[Char]
+
+pub fn[T] flatten_array(Array[Gen[T]]) -> Gen[Array[T]]
+
+pub fn[T] flatten_list(@list.List[Gen[T]]) -> Gen[@list.List[T]]
+
+pub fn[T] flatten_option(Gen[T]?) -> Gen[T?]
+
+pub fn[T, E] flatten_result(Result[Gen[T], E]) -> Gen[Result[T, E]]
+
+pub fn[T] frequency(Array[(UInt, Gen[T])]) -> Gen[T]
+
+pub fn[T] frequency_list(@list.List[(UInt, T)]) -> Gen[T]
+
+pub fn int_bound(Int) -> Gen[Int]
+
+pub fn int_range(Int, Int) -> Gen[Int]
+
+pub fn integer_bound(@bigint.BigInt) -> Gen[@bigint.BigInt]
+
+pub fn[A, B, C] liftA2((A, B) -> C, Gen[A], Gen[B]) -> Gen[C]
+
+pub fn[A, B, C, D] liftA3((A, B, C) -> D, Gen[A], Gen[B], Gen[C]) -> Gen[D]
+
+pub fn[A, B, C, D, E] liftA4((A, B, C, D) -> E, Gen[A], Gen[B], Gen[C], Gen[D]) -> Gen[E]
+
+pub fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E]) -> Gen[F]
+
+pub fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
+
+pub fn nat() -> Gen[Int]
+
+pub fn neg_int() -> Gen[Int]
+
+pub fn numeral() -> Gen[Char]
+
+pub fn[T] one_of(Array[Gen[T]]) -> Gen[T]
+
+pub fn[T] one_of_array(Array[T]) -> Gen[T]
+
+pub fn[T] one_of_list(@list.List[T]) -> Gen[T]
+
+pub fn[T] pure(T) -> Gen[T]
+
+pub fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
+
+pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
+
+pub fn small_int() -> Gen[Int]
+
+pub fn[T : Compare] sorted_array(Int, Gen[T]) -> Gen[Array[T]]
+
+pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
+
+pub fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
+
+pub fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
+
+// Errors
+
+// Types and methods
+pub struct Gen[T] {
+  // private fields
+
+  fn[T] new((Int, @splitmix.RandomState) -> T) -> Gen[T]
+}
+pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
+pub fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
+pub fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
+pub fn[T : @feat.Enumerable] Gen::feat_random(Int) -> Self[T]
+pub fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
+pub fn[T] Gen::join(Self[Self[T]]) -> Self[T]
+pub fn[T] Gen::list_with_size(Self[T], Int) -> Self[@list.List[T]]
+pub fn[T] Gen::new((Int, @splitmix.RandomState) -> T) -> Self[T]
+pub fn[T] Gen::resize(Self[T], Int) -> Self[T]
+pub fn[T] Gen::run(Self[T], Int, @splitmix.RandomState) -> T
+pub fn[T] Gen::sample(Self[T], size? : Int, seed? : UInt64) -> T
+pub fn[T] Gen::samples(Self[T], size? : Int, seed? : UInt64) -> Array[T]
+pub fn[T] Gen::scale(Self[T], (Int) -> Int) -> Self[T]
+pub fn[T : @quickcheck.Arbitrary] Gen::spawn() -> Self[T]
+pub fn[T] Gen::such_that(Self[T], (T) -> Bool) -> Self[T]
+pub fn[T] Gen::such_that_maybe(Self[T], (T) -> Bool) -> Self[T?]
+
+// Type aliases
+pub using @splitmix {type RandomState}
+
+// Traits
+

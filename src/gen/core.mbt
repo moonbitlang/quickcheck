@@ -2,6 +2,9 @@
 pub using @splitmix {type RandomState}
 
 ///|
+using @list {type List}
+
+///|
 /// The Gen type represents a generator of values of type T.
 pub struct Gen[T] {
   priv gen : (Int, RandomState) -> T
@@ -182,11 +185,6 @@ pub fn[A, B, C, D, E, F, G] liftA6(
       })
     })
   })
-}
-
-///|
-fn[T] delay() -> Gen[(Gen[T]) -> T] {
-  Gen((n, rs) => g => g.run(n, rs))
 }
 
 /// Common Combinators

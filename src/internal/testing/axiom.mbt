@@ -93,7 +93,7 @@ impl @coreqc.Arbitrary for EqQueue with arbitrary(i, rs) {
   }
 
   fn from(xs : List[Int]) {
-    let n = @qc.int_bound(xs.length() - 1).run(i, rs)
+    let n = @gen.int_bound(xs.length() - 1).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }

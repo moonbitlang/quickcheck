@@ -149,7 +149,7 @@ test "nested arrow uses fresh sample" {
   // that nested Arrow does not share the outer sample.
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.pure(0), x => @qc.Arrow((y : Int) => y == x)),
+      @qc.forall(@gen.pure(0), x => @qc.Arrow((y : Int) => y == x)),
       expect=Fail,
     ),
     content="+++ [2/0/100] Ok! Failed as expected.",
@@ -268,7 +268,7 @@ test "label + classes" {
 
 ///|
 test "failure report is concise by default" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -285,7 +285,7 @@ test "failure report is concise by default" {
 
 ///|
 test "failure report renders details" {
-  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
@@ -363,7 +363,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 
 ///|
 impl @coreqc.Arbitrary for Nat with arbitrary(i, rs) {
-  @qc.Gen::feat_random(i).run(i, rs)
+  @gen.Gen::feat_random(i).run(i, rs)
 }
 
 ///|
@@ -469,7 +469,7 @@ test "prop remove not presence with max success" {
 test "custom generator" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), (i_arr : (Int, Array[Int])) => {
+      @qc.forall(@gen.Gen::spawn(), (i_arr : (Int, Array[Int])) => {
         let (x, arr) = i_arr
         !remove(arr, x).contains(x)
       }),
@@ -487,7 +487,7 @@ test "no_duplicate" {
 
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), (iarr : (Int, Array[Int])) => {
+      @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
         let (x, arr) = iarr
         (!remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
       }),
@@ -501,8 +501,8 @@ test "no_duplicate" {
 test "use one_of" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), (a : Array[Int]) => {
-        @qc.forall(@qc.one_of_array(a), (y : Int) => !remove(a, y).contains(y))
+      @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
+        @qc.forall(@gen.one_of_array(a), (y : Int) => !remove(a, y).contains(y))
         |> @qc.filter(a.length() != 0)
       }),
       expect=Fail,
@@ -515,7 +515,7 @@ test "use one_of" {
 test "explicit universal qualification" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), (x : List[Int]) => x.rev().rev() == x),
+      @qc.forall(@gen.Gen::spawn(), (x : List[Int]) => x.rev().rev() == x),
     ),
     content="+++ [100/0/100] Ok, passed!",
   )
