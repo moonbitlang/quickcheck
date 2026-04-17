@@ -20,7 +20,7 @@ fn prop_rev(l : List[Int]) -> Bool {
 
 ///|
 test "prop reverse (fail)" {
-  let prop_rev = fn(l : List[Int]) { l.rev().rev() == l.rev() }
+  let prop_rev = (l : List[Int]) => l.rev().rev() == l.rev()
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
     content="+++ [9/0/100] Ok! Failed as expected.",
@@ -77,7 +77,7 @@ test "add assoc double (expect fail)" {
 
 ///|
 test "small check pass" {
-  let prop = fn(x : Int) { x + 0 == x }
+  let prop = (x : Int) => x + 0 == x
   inspect(
     @qc.small_check_silence(prop, max_size=1000000),
     content="+++ [1000000/0/1000000] Ok, passed!",
@@ -86,7 +86,7 @@ test "small check pass" {
 
 ///|
 test "small check expect fail" {
-  let prop = fn(x : Int) { x == 0 }
+  let prop = (x : Int) => x == 0
   inspect(
     @qc.small_check_silence(prop, max_size=5, expect=Fail),
     content="+++ [1/0/5] Ok! Failed as expected.",
@@ -95,7 +95,7 @@ test "small check expect fail" {
 
 ///|
 test "non empty list (with filter)" {
-  let prop_is_non_empty = fn(l : List[Int]) -> @qc.Property {
+  let prop_is_non_empty = (l : List[Int]) => {
     (!l.is_empty()) |> @qc.filter(!l.is_empty())
   }
   inspect(
@@ -106,7 +106,7 @@ test "non empty list (with filter)" {
 
 ///|
 test "reject all" {
-  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content="+++ [0/1000/100] Ok, gave up!",
@@ -118,7 +118,7 @@ test "label" {
   let ar : @qc.Arrow[List[Int], Bool] = Arrow(prop_rev)
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow(fn(x : List[Int]) {
+      @qc.Arrow((x : List[Int]) => {
         @qc.label(ar, if x.is_empty() { "trivial" } else { "non-trivial" })
       }),
     ),
@@ -160,7 +160,7 @@ test "nested arrow uses fresh sample" {
 test "classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow(fn(x : List[Int]) {
+      @qc.Arrow((x : List[Int]) => {
         prop_rev(x)
         |> @qc.classify(x.length() > 5, "long list")
         |> @qc.classify(x.length() <= 5, "short list")
@@ -356,9 +356,8 @@ impl Show for Nat with output(self, logger) {
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
-  @feat.pay(fn() {
-    @feat.singleton(Zero) +
-    @feat.Enumerable::enumerate().fmap(fn(n) { Succ(n) })
+  @feat.pay(() => {
+    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(n => Succ(n))
   })
 }
 
@@ -470,7 +469,7 @@ test "prop remove not presence with max success" {
 test "custom generator" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), fn(i_arr : (Int, Array[Int])) {
+      @qc.forall(@qc.Gen::spawn(), (i_arr : (Int, Array[Int])) => {
         let (x, arr) = i_arr
         !remove(arr, x).contains(x)
       }),
@@ -488,7 +487,7 @@ test "no_duplicate" {
 
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), fn(iarr : (Int, Array[Int])) {
+      @qc.forall(@qc.Gen::spawn(), (iarr : (Int, Array[Int])) => {
         let (x, arr) = iarr
         (!remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
       }),
@@ -502,10 +501,8 @@ test "no_duplicate" {
 test "use one_of" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), fn(a : Array[Int]) {
-        @qc.forall(@qc.one_of_array(a), fn(y : Int) {
-          !remove(a, y).contains(y)
-        })
+      @qc.forall(@qc.Gen::spawn(), (a : Array[Int]) => {
+        @qc.forall(@qc.one_of_array(a), (y : Int) => !remove(a, y).contains(y))
         |> @qc.filter(a.length() != 0)
       }),
       expect=Fail,
@@ -518,7 +515,7 @@ test "use one_of" {
 test "explicit universal qualification" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@qc.Gen::spawn(), fn(x : List[Int]) { x.rev().rev() == x }),
+      @qc.forall(@qc.Gen::spawn(), (x : List[Int]) => x.rev().rev() == x),
     ),
     content="+++ [100/0/100] Ok, passed!",
   )

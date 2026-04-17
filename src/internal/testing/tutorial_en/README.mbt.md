@@ -532,7 +532,7 @@ QuickCheck defines default test data generators and shrinkers for some often use
 using @list {type List}
 
 ///|
-let prop_rev : (List[Int]) -> Bool = fn(x : List[Int]) { x.rev().rev() == x }
+let prop_rev : (List[Int]) -> Bool = (x : List[Int]) => x.rev().rev() == x
 
 ///|
 test "List reverse" {
@@ -593,7 +593,7 @@ test {
   }
 
   @qc.quick_check(
-    @qc.forall(@qc.Gen::spawn(), fn(iarr : (Int, Array[Int])) {
+    @qc.forall(@qc.Gen::spawn(), (iarr : (Int, Array[Int])) => {
       let (x, arr) = iarr
       @qc.filter(!remove(arr.copy(), x).contains(x), no_duplicate(arr))
     }),
@@ -640,7 +640,7 @@ The `label` function takes a string and classifies the test case with the string
 ```mbt check
 ///|
 test "label" {
-  @qc.quick_check_fn(fn(x : List[Int]) {
+  @qc.quick_check_fn((x : List[Int]) => {
     prop_rev(x)
     |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
   })

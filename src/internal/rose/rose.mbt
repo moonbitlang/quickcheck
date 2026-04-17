@@ -36,15 +36,30 @@ pub fn[T] Rose::new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 /// The inner tree at the root contributes its value and its branches;
 /// the outer tree's branches are recursively joined and prepended to
 /// the inner branches. Used internally to implement `bind`.
+///
+/// ```mbt check
+/// test {
+///   let nested : Rose[Rose[Int]] = pure(pure(42))
+///   assert_eq(nested.join().iter().collect(), [42])
+/// }
+/// ```
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
   let ts = self.val.branch
-  { val: self.val.val, branch: tss.map(fn(x) { x.join() }).concat(ts) }
+  { val: self.val.val, branch: tss.map(x => x.join()).concat(ts) }
 }
 
 ///|
 /// The unit of the `Rose` monad: a leaf carrying `val` with no
 /// alternatives.
+///
+/// ```mbt check
+/// test {
+///   let r : Rose[String] = pure("hello")
+///   assert_eq(r.val, "hello")
+///   assert_eq(r.branch.collect().length(), 0)
+/// }
+/// ```
 pub fn[T] pure(val : T) -> Rose[T] {
   { val, branch: Iter::empty() }
 }
@@ -53,13 +68,28 @@ pub fn[T] pure(val : T) -> Rose[T] {
 /// Map `f` over every node in the tree, preserving structure. The
 /// result has the same shape as `self`, with each node's value
 /// replaced by `f(value)`.
+///
+/// ```mbt check
+/// test {
+///   let tree = Rose::{ val: 1, branch: [pure(2), pure(3)].iter() }
+///   let doubled = tree.fmap(x => x * 2)
+///   assert_eq(doubled.iter().collect(), [2, 4, 6])
+/// }
+/// ```
 pub fn[T, U] Rose::fmap(self : Rose[T], f : (T) -> U) -> Rose[U] {
-  { val: f(self.val), branch: self.branch.map(fn(x) { x.fmap(f) }) }
+  { val: f(self.val), branch: self.branch.map(x => x.fmap(f)) }
 }
 
 ///|
 /// Monadic bind: replace each node's value with the tree produced by
 /// `f`. Equivalent to `self.fmap(f).join()`.
+///
+/// ```mbt check
+/// test {
+///   let r = pure(3).bind(x => pure(x * x))
+///   assert_eq(r.iter().collect(), [9])
+/// }
+/// ```
 pub fn[T, U] Rose::bind(self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {
   self.fmap(f).join()
 }

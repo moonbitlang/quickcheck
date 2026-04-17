@@ -53,7 +53,7 @@ fn from_config(cfg : Config) -> State {
     max_success_tests_: cfg.max_success,
     max_discarded_ratio_: cfg.max_discard_ratio,
     max_shrinks_: cfg.max_shrink,
-    replay_start_size_: cfg.replay.map(fn(x) { x.1 }),
+    replay_start_size_: cfg.replay.map(x => x.1),
     num_success_tests: 0,
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
@@ -148,7 +148,7 @@ fn State::discarded_too_much(self : State) -> Bool {
 
 ///|
 fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(fn(cb) {
+  res.callbacks.each(cb => {
     match cb {
       PostTest(_, f) => f(self, res)
       _ => ()
@@ -158,7 +158,7 @@ fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
 
 ///|
 fn State::callback_post_final_failure(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(fn(cb) {
+  res.callbacks.each(cb => {
     match cb {
       PostFinalFailure(_, f) => f(self, res)
       _ => ()
@@ -250,7 +250,7 @@ fn format_percent(count : Int, total : Int) -> String {
 ///|
 fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
-  self.labels.each(fn(list, i) {
+  self.labels.each((list, i) => {
     if list.0.is_empty() {
       return
     } else {

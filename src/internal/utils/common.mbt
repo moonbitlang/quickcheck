@@ -14,7 +14,7 @@ let global_counter : Ref[Int] = @ref.new(0)
 /// is *not* a stable handle — don't pattern-match on it.
 pub fn fresh_name() -> String {
   let counter = global_counter.val
-  global_counter.update(fn(x) { x + 1 })
+  global_counter.update(x => x + 1)
   "test-" + counter.to_string()
 }
 
@@ -35,6 +35,16 @@ pub fn fresh_name() -> String {
 /// Part of the classical QuickCheck list shrinker: combining the
 /// outputs for different chunk sizes produces a "halve toward empty"
 /// shrinking strategy.
+///
+/// ```mbt check
+/// test {
+///   let xs = @list.from_array([1, 2, 3, 4, 5, 6])
+///   inspect(
+///     removes_list(2, 6, xs),
+///     content="@list.from_array([@list.from_array([3, 4, 5, 6]), @list.from_array([1, 2, 5, 6])])",
+///   )
+/// }
+/// ```
 pub fn[T] removes_list(
   k : Int,
   n : Int,
@@ -48,9 +58,7 @@ pub fn[T] removes_list(
       @list.empty()
     } else {
       let xs_take = xs.take(k)
-      removes_list(k, n - k, xs_drop)
-      .map(fn(x) { xs_take.concat(x) })
-      .add(xs_drop)
+      removes_list(k, n - k, xs_drop).map(x => xs_take.concat(x)).add(xs_drop)
     }
   }
 }
@@ -60,6 +68,15 @@ pub fn[T] removes_list(
 /// semantics: emit one `xs[:i] ++ xs[i+k:]` per chunk boundary `i`,
 /// skipping the trailing chunk whose removal would leave the prefix
 /// unchanged.
+///
+/// ```mbt check
+/// test {
+///   assert_eq(removes_array(2, 6, [1, 2, 3, 4, 5, 6]), [
+///     [3, 4, 5, 6],
+///     [1, 2, 5, 6],
+///   ])
+/// }
+/// ```
 pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
   if k > n {
     []
@@ -69,7 +86,7 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
     if xs1.is_empty() {
       []
     } else {
-      [xs1, ..removes_array(k, n - k, xs1).map(fn(x) { xs2 + x })]
+      [xs1, ..removes_array(k, n - k, xs1).map(x => xs2 + x)]
     }
   }
 }
@@ -85,6 +102,15 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
 ///
 ///     apply_while_list(16, z => z / 2, z => z > 0)
 ///     // yields [1, 2, 4, 8]   -- note: 1 is newest, 8 is oldest
+///
+/// ```mbt check
+/// test {
+///   inspect(
+///     apply_while_list(16, z => z / 2, z => z > 0),
+///     content="@list.from_array([1, 2, 4, 8])",
+///   )
+/// }
+/// ```
 pub fn[T] apply_while_list(
   x : T,
   f : (T) -> T,
@@ -103,6 +129,12 @@ pub fn[T] apply_while_list(
 ///|
 /// Array-shaped counterpart of `apply_while_list`. Same reverse-order
 /// accumulation: newest-kept value first, oldest last.
+///
+/// ```mbt check
+/// test {
+///   assert_eq(apply_while_array(16, z => z / 2, z => z > 0), [1, 2, 4, 8])
+/// }
+/// ```
 pub fn[T] apply_while_array(
   x : T,
   f : (T) -> T,
@@ -121,21 +153,35 @@ pub fn[T] apply_while_array(
 ///|
 /// The identity function: returns its argument unchanged. Bound to the
 /// `%identity` intrinsic, so it compiles to a no-op.
+///
+/// ```mbt check
+/// test {
+///   assert_eq(id(42), 42)
+///   assert_eq(id("moon"), "moon")
+/// }
+/// ```
 pub fn[T] id(x : T) -> T = "%identity"
 
 ///|
 /// `const_(t)` is the constant function at `t`: it ignores whatever
 /// argument it receives and returns `t`. Typical use is currying away
 /// an unused parameter, e.g. `scale(const_(10))` fixes the size at 10.
+///
+/// ```mbt check
+/// test {
+///   let always_seven : (Int) -> Int = const_(7)
+///   assert_eq(always_seven(0), 7)
+///   assert_eq(always_seven(999), 7)
+/// }
+/// ```
 pub fn[T, U] const_(t : T) -> (U) -> T {
-  fn(_) { t }
+  _ => t
 }
 
 ///|
-/// Convert an ordinary 2-argument function into one that accepts a
-/// tuple, i.e. `pair_function(f)((a, b)) == f(a, b)`. Handy for wiring
-/// combinators like `Enumerate::fmap` / `feat.unary` that operate on a
-/// single value but where the callee is expressed as two arguments.
+/// Deprecated. Inline as `tuple => f(tuple.0, tuple.1)` at the call
+/// site — the helper saves no characters and obscures the shape.
+#deprecated("Inline `tuple => f(tuple.0, tuple.1)` at the call site")
 pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
   tuple => f(tuple.0, tuple.1)
 }
@@ -144,6 +190,14 @@ pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
 /// Swap the argument order of a binary function:
 /// `flip(f)(y, x) == f(x, y)`. Used where a combinator takes a binary
 /// callback in the "wrong" order for a particular idiom.
+///
+/// ```mbt check
+/// test {
+///   let sub = (a : Int, b : Int) => a - b
+///   assert_eq(sub(3, 10), -7)
+///   assert_eq(flip(sub)(3, 10), 7)
+/// }
+/// ```
 pub fn[M, N, Z] flip(f : (M, N) -> Z) -> (N, M) -> Z {
-  fn(x, y) { f(y, x) }
+  (x, y) => f(y, x)
 }

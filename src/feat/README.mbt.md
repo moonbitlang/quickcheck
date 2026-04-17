@@ -85,7 +85,7 @@ write one directly:
 test "hand-rolled finite chunk" {
   let f : @feat.Finite[String] = {
     fCard: 2,
-    fIndex: fn(i) {
+    fIndex: i => {
       if i == 0 {
         "left"
       } else {
@@ -130,7 +130,7 @@ materialising the full list via `to_array`:
 ///|
 test "for x in finite" {
   let acc : Array[BigInt] = []
-  let finite : @feat.Finite[BigInt] = { fCard: 4, fIndex: fn(i) { i } }
+  let finite : @feat.Finite[BigInt] = { fCard: 4, fIndex: i => i }
   for x in finite {
     acc.push(x)
   }
@@ -167,7 +167,7 @@ test "singleton has size 0" {
 test "pay shifts everything one size up" {
   // Before pay: part₀ = {42}
   // After pay:  part₀ = {}, part₁ = {42}
-  let shifted = @feat.pay(fn() { @feat.singleton(42) })
+  let shifted = @feat.pay(() => @feat.singleton(42))
   let parts = shifted.eval()
   inspect(parts.head().to_array(), content="(0, @list.from_array([]))")
   inspect(parts.tail().head().to_array(), content="(1, @list.from_array([42]))")
@@ -180,7 +180,7 @@ test "pay shifts everything one size up" {
 
 > **This is the main user-facing trait of the package.** Implement
 > `Enumerable` for a type `T` and you get: indexed access
-> (`en_index(i)`), size-bounded sampling via `feat_random`, and a
+> (`enumerate()[i]`), size-bounded sampling via `feat_random`, and a
 > ready-to-use `Gen[T]` for the top-level QuickCheck driver. Everything
 > else in this package either consumes or produces an `Enumerable`.
 
@@ -208,7 +208,7 @@ use it safely:
 |---|----------|-------------------------------|
 | 1 | **Cardinalities are non-negative.** Every part has `fCard : BigInt` and must satisfy `fCard >= 0`. Parts with `fCard == 0` are empty and collapse away. | The package assumes every part behaves like a finite set; a negative card produced by hand breaks that model and will lead to wrong indexing behaviour. |
 | 2 | **Productivity under recursion.** Every recursive self-reference inside an `Enumerable` instance must be guarded by a `pay(...)`. An `Enumerate[T]` is a `LazyList` of parts, so it may be infinite — but each part must be reachable in finite time. | Evaluating `enumerate()` blows the stack or loops forever. |
-| 3 | **Total indexing per part.** For every `i` with `0 <= i < part.fCard`, `part.fIndex(i)` must return a valid `T`. | `en_index` aborts with "index out of bounds". |
+| 3 | **Total indexing per part.** For every `i` with `0 <= i < part.fCard`, `part.fIndex(i)` must return a valid `T`. | Indexing aborts with "index out of bounds". |
 
 These are the same invariants that the provided combinators already
 preserve — so if you stick to `singleton`, `union` / `+`, `product`,
@@ -250,7 +250,7 @@ Three rules, and that's it:
 
 1. **One `+` summand per constructor.** Leaf constructors become
    `singleton(...)`; constructors that carry children use
-   `unary(@utils.pair_function(...))` or `product(...)`.
+   `unary(pair => Cons(pair.0, pair.1))` or `product(...)`.
 2. **Wrap the whole thing in a `pay(...)`.** The `pay` is what gives the
    fixpoint a chance to suspend before recursing into `T::enumerate()`
    again — this is the productivity guarantee (contract item 2).
@@ -273,9 +273,9 @@ impl @feat.Enumerable for Tree with enumerate() {
   // `unary`, which goes through the built-in `Enumerable` instance for
   // `(Tree, Tree)`. That instance itself inserts a `pay`, which is what keeps
   // the fixpoint productive.
-  @feat.pay(fn() {
-    let mk = @utils.pair_function((l : Tree, r : Tree) => Node(l, r))
-    @feat.singleton(Leaf) + @feat.unary(mk)
+  @feat.pay(() => {
+    @feat.singleton(Leaf) +
+    @feat.unary((pair : (Tree, Tree)) => Node(pair.0, pair.1))
   })
 }
 
@@ -296,8 +296,8 @@ impl Show for Tree with output(self, logger) {
 ///|
 test "enumerate the first few binary trees" {
   let trees : @feat.Enumerate[Tree] = Enumerable::enumerate()
-  inspect(trees.en_index(0), content="Leaf")
-  inspect(trees.en_index(1), content="Node(Leaf, Leaf)")
+  inspect(trees[0], content="Leaf")
+  inspect(trees[1], content="Node(Leaf, Leaf)")
 }
 ```
 
@@ -305,7 +305,7 @@ test "enumerate the first few binary trees" {
 
 | Pitfall | Why it hurts | Fix |
 |---------|--------------|-----|
-| Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(fn() { ... })`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
+| Unguarded self-reference: `T::enumerate()` called without a surrounding `pay`. | Recursion diverges (contract #2). | Wrap the body in `@feat.pay(() => ...)`. Going through `unary` + the pair instance achieves the same because the built-in `(A, B)` instance inserts its own `pay`. |
 | Computing a large Cartesian product with `product` before unioning. | Not wrong, just slow — the resulting parts get large and indexing locality suffers. | Prefer `unary` for a single-pair constructor, or `consts([...])` for a disjunction — these keep the structure flat. |
 | Mixing eager `List` of `Enumerate` with `consts` at the top of a recursive definition. | The `List` itself is eager: its elements are forced when the `consts` is reached, which can run into the recursion before `pay` kicks in. | Ensure the `consts(...)` is inside `pay`, or use `+` between lazy `Enumerate`s. |
 | Forgetting that zero-cardinality parts short-circuit. | Empty parts are skipped cheaply, but a hand-rolled `Finite` with a bogus non-zero `fCard` will still be indexed. | If you need an empty part, set `fCard: 0` and use an aborting `fIndex`. |
@@ -325,25 +325,25 @@ test "enumerate the first few binary trees" {
 
 ### Indexing
 
-`Enumerate::en_index(i)` is the "i-th value, overall" view. Sizes are walked
-in order: all size-0 values, then all size-1 values, etc.
+`Enumerate::at(i)` (also written `e[i]`) is the "i-th value, overall" view.
+Sizes are walked in order: all size-0 values, then all size-1 values, etc.
 
 ```mbt check
 ///|
 test "index into Bool's enumeration" {
   // Enumerable::enumerate() for Bool yields [true, false] (inside pay).
   let e : @feat.Enumerate[Bool] = Enumerable::enumerate()
-  inspect(e.en_index(0), content="true")
-  inspect(e.en_index(1), content="false")
+  inspect(e[0], content="true")
+  inspect(e[1], content="false")
 }
 
 ///|
 test "index into a list enumeration" {
   let e : @feat.Enumerate[@list.List[Bool]] = Enumerable::enumerate()
   // Sizes grow as more cons cells are added.
-  inspect(e.en_index(0), content="@list.from_array([])")
-  inspect(e.en_index(1), content="@list.from_array([true])")
-  inspect(e.en_index(2), content="@list.from_array([false])")
+  inspect(e[0], content="@list.from_array([])")
+  inspect(e[1], content="@list.from_array([true])")
+  inspect(e[2], content="@list.from_array([false])")
 }
 ```
 
@@ -377,7 +377,7 @@ size-aware Cartesian `product`:
 | `Enumerate::fmap(e, f)` | `Enumerate[T] -> (T -> U) -> Enumerate[U]` | Re-label every element |
 | `e1 + e2` | `Enumerate[T] -> Enumerate[T] -> Enumerate[T]` | Interleave by size |
 | `product(e1, e2)` | `Enumerate[A] -> Enumerate[B] -> Enumerate[(A, B)]` | Pair every A with every B, still size-indexed |
-| `pay(fn() { … })` | `(() -> Enumerate[T]) -> Enumerate[T]` | Charge 1 unit of size |
+| `pay(() => …)` | `(() -> Enumerate[T]) -> Enumerate[T]` | Charge 1 unit of size |
 | `unary(f)` | `(T -> U) -> Enumerate[U]` where `T : Enumerable` | Shortcut for `T::enumerate().fmap(f)` |
 
 ```mbt check
@@ -385,27 +385,22 @@ size-aware Cartesian `product`:
 test "fmap rewrites every element in place" {
   let bools : @feat.Enumerate[Bool] = Enumerable::enumerate()
   let labels = bools.fmap(b => if b { "yes" } else { "no" })
-  assert_eq(labels.en_index(0), "yes")
-  assert_eq(labels.en_index(1), "no")
+  assert_eq(labels[0], "yes")
+  assert_eq(labels[1], "no")
 }
 
 ///|
 test "product generates every pair in part order" {
   let pairs = @feat.product(zero_or_one_part(), zero_or_one_part())
-  inspect(pairs.en_index(0), content="(0, 0)")
-  inspect(pairs.en_index(1), content="(0, 1)")
-  inspect(pairs.en_index(2), content="(1, 0)")
-  inspect(pairs.en_index(3), content="(1, 1)")
+  inspect(pairs[0], content="(0, 0)")
+  inspect(pairs[1], content="(0, 1)")
+  inspect(pairs[2], content="(1, 0)")
+  inspect(pairs[3], content="(1, 1)")
 }
 
 ///|
 fn zero_or_one_part() -> @feat.Enumerate[BigInt] {
-  {
-    parts: Cons(
-      { fCard: 2, fIndex: fn(i) { i } },
-      @lazy.LazyRef::from_value(Nil),
-    ),
-  }
+  { parts: Cons({ fCard: 2, fIndex: i => i }, @lazy.LazyRef::from_value(Nil)) }
 }
 ```
 
@@ -416,7 +411,7 @@ fn zero_or_one_part() -> @feat.Enumerate[BigInt] {
 
 | Situation | Prefer |
 |-----------|--------|
-| "Try every value up to size 10." | Feat (`en_index` in a loop) |
+| "Try every value up to size 10." | Feat (indexing in a loop) |
 | "Find a counterexample in a space I can't enumerate in reasonable time." | QuickCheck (random `Arbitrary`) |
 | "Deterministic, reproducible fuzz corpus across runs." | Feat (size-indexed, no RNG) |
 | "I need shrinking to a small counterexample." | QuickCheck + `Shrink` or `falsify` |

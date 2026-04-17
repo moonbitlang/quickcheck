@@ -34,7 +34,7 @@ fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
   } else {
     {
       fCard: f1.fCard + f2.fCard,
-      fIndex: fn(i) {
+      fIndex: i => {
         if i < f1.fCard {
           (f1.fIndex)(i)
         } else {
@@ -56,7 +56,7 @@ pub impl[T] Add for Finite[T] with add(self, other) {
 ///|
 /// Map `f` over the indexer: same cardinality, each element rewritten.
 fn[T, U] fin_fmap(f : (T) -> U, f1 : Finite[T]) -> Finite[U] {
-  { fCard: f1.fCard, fIndex: fn(i) { f((f1.fIndex)(i)) } }
+  { fCard: f1.fCard, fIndex: i => f((f1.fIndex)(i)) }
 }
 
 ///|
@@ -65,7 +65,7 @@ fn[T, U] fin_fmap(f : (T) -> U, f1 : Finite[T]) -> Finite[U] {
 fn[T] fin_pure(x : T) -> Finite[T] {
   {
     fCard: 1,
-    fIndex: fn(i) {
+    fIndex: i => {
       guard i == 0 else { abort("index out of bounds") }
       x
     },
@@ -79,7 +79,7 @@ fn[T] fin_pure(x : T) -> Finite[T] {
 fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
   {
     fCard: f1.fCard * f2.fCard,
-    fIndex: fn(i) {
+    fIndex: i => {
       let j = i / f2.fCard
       let k = i % f2.fCard
       ((f1.fIndex)(j), (f2.fIndex)(k))
@@ -89,7 +89,7 @@ fn[T, U] fin_cart(f1 : Finite[T], f2 : Finite[U]) -> Finite[(T, U)] {
 
 ///|
 fn[M] sum_sel(a : Array[Finite[M]]) -> (BigInt) -> M {
-  fn(idx) {
+  idx => {
     for j = 0, i = idx {
       if i < a[j].fCard || j >= a.length() {
         break (a[j].fIndex)(i)
@@ -105,8 +105,8 @@ fn[M] sum_sel(a : Array[Finite[M]]) -> (BigInt) -> M {
 /// filtered before indexing so the resulting selector skips them.
 fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
   {
-    fCard: sum(m.map(fn(x) { x.fCard })),
-    fIndex: sum_sel(m.filter(fn(x) { x.fCard > 0 })),
+    fCard: sum(m.map(x => x.fCard)),
+    fIndex: sum_sel(m.filter(x => x.fCard > 0)),
   }
 }
 
@@ -140,6 +140,13 @@ fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 ///
 /// The traversal is lazy: early `break` stops calling `fIndex`.
 /// Like every `Iter` in MoonBit it is single-shot.
+///
+/// ```mbt check
+/// test {
+///   let squares : Finite[BigInt] = { fCard: 4, fIndex: j => j * j }
+///   assert_eq(squares.iter().collect(), [0, 1, 4, 9])
+/// }
+/// ```
 pub fn[T] Finite::iter(self : Finite[T]) -> Iter[T] {
   let card = self.fCard
   let fi = self.fIndex
@@ -176,7 +183,7 @@ test "iter is lazy — early break stops walking" {
   let calls = Ref::new(0)
   let probe : Finite[Int] = {
     fCard: 1000,
-    fIndex: fn(_i) {
+    fIndex: _i => {
       calls.val = calls.val + 1
       42
     },
@@ -192,6 +199,13 @@ test "iter is lazy — early break stops walking" {
 ///|
 /// Materialise a `Finite` to `(cardinality, list of all elements)`.
 /// Eagerly evaluates every element — only suitable for small chunks.
+///
+/// ```mbt check
+/// test {
+///   let f : Finite[BigInt] = { fCard: 3, fIndex: j => j }
+///   inspect(f.to_array(), content="(3, @list.from_array([0, 1, 2]))")
+/// }
+/// ```
 pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
   (
     self.fCard,
@@ -218,7 +232,7 @@ fn fin_finite(i : BigInt) -> Finite[BigInt] {
   if i < 0 {
     fin_empty()
   } else {
-    { fCard: i, fIndex: fn(j) { j } }
+    { fCard: i, fIndex: j => j }
   }
 }
 

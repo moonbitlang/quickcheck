@@ -26,7 +26,9 @@ pub fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 pub(all) struct Enumerate[T] {
   parts : @lazy.LazyList[Finite[T]]
 }
-pub fn[T] Enumerate::en_index(Self[T], @bigint.BigInt) -> T
+#alias("_[_]")
+#alias(en_index, deprecated)
+pub fn[T] Enumerate::at(Self[T], @bigint.BigInt) -> T
 pub fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
 pub fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T] Enumerate::sample_finite(Self[T], Int) -> Finite[T]

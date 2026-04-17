@@ -9,6 +9,18 @@
 /// or recursive shrink spaces stay lazy. The default body (`= _`)
 /// means "no shrinks" — a conservative starting point for types where
 /// shrinking isn't meaningful.
+///
+/// ```mbt check
+/// test {
+///   // `Int` has a built-in Shrink instance that walks toward 0.
+///   let candidates : Array[Int] = Shrink::shrink(100).collect()
+///   assert_true(candidates.contains(0))
+///   assert_true(candidates.length() > 0)
+///   // `Bool` shrinks `true` to `false`, and `false` has no shrinks.
+///   assert_eq(Shrink::shrink(true).collect(), [false])
+///   assert_eq(Shrink::shrink(false).collect(), [])
+/// }
+/// ```
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self] = _
 }
@@ -20,11 +32,11 @@ impl Shrink with shrink(_a) {
 
 ///|
 pub impl Shrink for Int with shrink(x) {
-  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
-  .map(fn(i) { x - i })
+  @utils.apply_while_list(x, z => z / 2, z => (x - z).abs() < x.abs())
+  .map(i => x - i)
   .iter()
   .concat(Iter::singleton(0))
-  .filter(fn(u) { u != x })
+  .filter(u => u != x)
 }
 
 ///|
@@ -35,11 +47,11 @@ test "shrink int" {
 
 ///|
 pub impl Shrink for Int64 with shrink(x) {
-  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { (x - z).abs() < x.abs() })
-  .map(fn(i) { x - i })
+  @utils.apply_while_list(x, z => z / 2, z => (x - z).abs() < x.abs())
+  .map(i => x - i)
   .iter()
   .concat(Iter::singleton(0))
-  .filter(fn(u) { u != x })
+  .filter(u => u != x)
 }
 
 ///|
@@ -52,11 +64,11 @@ test "shrink int64" {
 
 ///|
 pub impl Shrink for UInt with shrink(x) {
-  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
-  .map(fn(i) { x - i })
+  @utils.apply_while_list(x, z => z / 2, z => z > 0)
+  .map(i => x - i)
   .iter()
   .concat(Iter::singleton(0))
-  .filter(fn(u) { u != x })
+  .filter(u => u != x)
 }
 
 ///|
@@ -69,11 +81,11 @@ test "shrink uint" {
 
 ///|
 pub impl Shrink for UInt64 with shrink(x) {
-  @utils.apply_while_list(x, fn(z) { z / 2 }, fn(z) { z > 0 })
-  .map(fn(i) { x - i })
+  @utils.apply_while_list(x, z => z / 2, z => z > 0)
+  .map(i => x - i)
   .iter()
   .concat(Iter::singleton(0))
-  .filter(fn(u) { u != x })
+  .filter(u => u != x)
 }
 
 ///|
@@ -134,7 +146,7 @@ pub impl[T : Shrink] Shrink for T? with shrink(x) {
   match x {
     None => Iter::empty()
     Some(v) =>
-      Shrink::shrink(v).map(fn(v1) { Some(v1) }).concat(Iter::singleton(None))
+      Shrink::shrink(v).map(v1 => Some(v1)).concat(Iter::singleton(None))
   }
 }
 
@@ -164,8 +176,8 @@ test "shrink option" {
 ///|
 pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
   match x {
-    Ok(v) => Shrink::shrink(v).map(fn(v1) { Ok(v1) })
-    Err(e) => Shrink::shrink(e).map(fn(e1) { Err(e1) })
+    Ok(v) => Shrink::shrink(v).map(v1 => Ok(v1))
+    Err(e) => Shrink::shrink(e).map(e1 => Err(e1))
   }
 }
 
@@ -189,8 +201,8 @@ test "shrink result" {
 pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
   let (a, b) = x
   Shrink::shrink(a)
-  .map(fn(a1) { (a1, b) })
-  .concat(Shrink::shrink(b).map(fn(b1) { (a, b1) }))
+  .map(a1 => (a1, b))
+  .concat(Shrink::shrink(b).map(b1 => (a, b1)))
 }
 
 ///|
@@ -211,7 +223,7 @@ test "shrink tuple" {
 ///|
 pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with shrink(x) {
   let (a, b, c) = x
-  Shrink::shrink((a, (b, c))).map(fn(y) {
+  Shrink::shrink((a, (b, c))).map(y => {
     let (a1, (b1, c1)) = y
     (a1, b1, c1)
   })
@@ -222,7 +234,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D)
   x,
 ) {
   let (a, b, c, d) = x
-  Shrink::shrink((a, (b, c, d))).map(fn(y) {
+  Shrink::shrink((a, (b, c, d))).map(y => {
     let (a1, (b1, c1, d1)) = y
     (a1, b1, c1, d1)
   })
@@ -237,7 +249,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for 
   E,
 ) with shrink(x) {
   let (a, b, c, d, e) = x
-  Shrink::shrink((a, (b, c, d, e))).map(fn(y) {
+  Shrink::shrink((a, (b, c, d, e))).map(y => {
     let (a1, (b1, c1, d1, e1)) = y
     (a1, b1, c1, d1, e1)
   })
@@ -253,7 +265,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
   F,
 ) with shrink(x) {
   let (a, b, c, d, e, f) = x
-  Shrink::shrink((a, (b, c, d, e, f))).map(fn(y) {
+  Shrink::shrink((a, (b, c, d, e, f))).map(y => {
     let (a1, (b1, c1, d1, e1, f1)) = y
     (a1, b1, c1, d1, e1, f1)
   })
@@ -349,8 +361,8 @@ pub fn[T : Shrink + Compare] shrink_sorted_distinct_array(
     Array::makei(l + 1, i => i)
     .iter()
     .flat_map(i => {
-      let lower_ok = fn(x) { if i == 0 { lo <= x } else { nv[i - 1] < x } }
-      let upper_ok = fn(x) { if i == l { x <= hi } else { x < nv[i + 1] } }
+      let lower_ok = x => if i == 0 { lo <= x } else { nv[i - 1] < x }
+      let upper_ok = x => if i == l { x <= hi } else { x < nv[i + 1] }
       T::shrink(nv[i]).flat_map(x => {
         if lower_ok(x) && upper_ok(x) && x != nv[i] {
           let nv1 = nv.copy()
@@ -405,13 +417,13 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
       Empty => Iter::empty()
       More(x, tail=xs) =>
         T::shrink(x)
-        .map(fn(x_) { xs.add(x_) })
-        .concat(shr_sub_terms(xs).map(fn(xs_) { xs_.add(x) }))
+        .map(x_ => xs.add(x_))
+        .concat(shr_sub_terms(xs).map(xs_ => xs_.add(x)))
     }
   }
 
-  @utils.apply_while_list(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { @utils.removes_list(k, n, xs) })
+  @utils.apply_while_list(n, x => x / 2, x => x > 0)
+  .map(k => @utils.removes_list(k, n, xs))
   .flatten()
   .iter()
   .concat(shr_sub_terms(xs))
@@ -419,8 +431,16 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 
 ///|
 /// Shrink non-empty list without producing the empty list.
+///
+/// ```mbt check
+/// test {
+///   let xs : @list.List[Int] = @list.from_array([5])
+///   // Default list shrink would produce [], which is filtered out here.
+///   assert_true(shrink_non_empty_list(xs).all(ys => !ys.is_empty()))
+/// }
+/// ```
 pub fn[T : Shrink] shrink_non_empty_list(xs : List[T]) -> Iter[List[T]] {
-  Shrink::shrink(xs).filter(fn(ys) { !ys.is_empty() })
+  Shrink::shrink(xs).filter(ys => !ys.is_empty())
 }
 
 ///|
@@ -466,13 +486,13 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
       [] => Iter::empty()
       [x, .. xs] =>
         X::shrink(x)
-        .map(fn(x_) { [x_, ..xs] })
-        .concat(shr_sub_terms(xs).map(fn(xs_) { [x, ..xs_] }))
+        .map(x_ => [x_, ..xs])
+        .concat(shr_sub_terms(xs).map(xs_ => [x, ..xs_]))
     }
   }
 
-  @utils.apply_while_array(n, fn(x) { x / 2 }, fn(x) { x > 0 })
-  .map(fn(k) { @utils.removes_array(k, n, xs) })
+  @utils.apply_while_array(n, x => x / 2, x => x > 0)
+  .map(k => @utils.removes_array(k, n, xs))
   .flatten()
   .iter()
   .concat(shr_sub_terms(view))
@@ -480,6 +500,12 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
 
 ///|
 /// Shrink non-empty array without producing the empty array.
+///
+/// ```mbt check
+/// test {
+///   assert_true(shrink_non_empty_array([1, 2, 3]).all(ys => ys.length() > 0))
+/// }
+/// ```
 pub fn[X : Shrink] shrink_non_empty_array(xs : Array[X]) -> Iter[Array[X]] {
   Shrink::shrink(xs).filter(ys => ys.length() > 0)
 }
@@ -520,16 +546,16 @@ test "shrink non-empty array" {
 ///|
 pub impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
   let arr = xs.to_array()
-  let its : Array[_] = Array::makei(arr.length(), fn(x) {
+  let its : Array[_] = Array::makei(arr.length(), x => {
     X::shrink(arr[x])
-    .map(fn(y) {
+    .map(y => {
       let cp = arr.copy()
       cp[x] = y
       cp.iter()
     })
     .to_array()
   }).flatten()
-  let rms : Array[Iter[X]] = arr.mapi(fn(i, _) {
+  let rms : Array[Iter[X]] = arr.mapi((i, _) => {
     let a = arr.copy()
     a.remove(i) |> ignore
     a.iter()

@@ -116,7 +116,7 @@ impl Show for Replay with output(self, logger) {
 /// For the user this shows up as `@qc.Arrow(prop)` at the driver
 /// boundary:
 ///
-///     @qc.quick_check(@qc.Arrow(fn(x : Int) -> Bool { x == x }))
+///     @qc.quick_check(@qc.Arrow((x : Int) => x == x))
 ///
 /// Most users never see `Arrow` directly because `quick_check_fn`
 /// wraps the function for them. Reach for the explicit form only when

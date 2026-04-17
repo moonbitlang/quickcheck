@@ -174,9 +174,7 @@ pub fn[T, E] falsify(
             ((e, run), shrunk),
           )
           // Correctly accessing tuple second element
-          let explain = sf
-            .e_fmap(fn(t) { t.1 })
-            .limit_steps(Some(opt.max_shrinks))
+          let explain = sf.e_fmap(t => t.1).limit_steps(Some(opt.max_shrinks))
           let failure = { seed: acc.rng.clone(), run: explain }
           (acc.success, acc.total_discard, Some(failure))
         }

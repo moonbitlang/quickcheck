@@ -33,7 +33,7 @@ pub fn[T] Gen::run_gen(self : Gen[T], x : SampleTree) -> (T, Iter[SampleTree]) {
 /// Functor `fmap`: transform the generated value without touching the
 /// shrink set. Shrinks go through unchanged.
 pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
-  new(fn(x) {
+  new(x => {
     let (v, rest) = self.run_gen(x)
     (f(v), rest)
   })
@@ -42,7 +42,7 @@ pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
 ///|
 /// The constant generator: always yields `v`, never shrinks.
 pub fn[T] pure(v : T) -> Gen[T] {
-  new(fn(_x) { (v, Iter::empty()) })
+  new(_x => (v, Iter::empty()))
 }
 
 ///|
@@ -78,11 +78,11 @@ pub fn combine_shrunk(
   }
 
   unless_minimal(l, ls)
-  .map(fn(l1) {
+  .map(l1 => {
     SampleTree(s, @lazy.LazyRef::from_value(l1), @lazy.LazyRef::from_value(r))
   })
   .concat(
-    unless_minimal(r, rs).map(fn(_r1) {
+    unless_minimal(r, rs).map(_r1 => {
       SampleTree(s, @lazy.LazyRef::from_value(l), @lazy.LazyRef::from_value(r))
     }),
   )
@@ -95,7 +95,7 @@ pub fn combine_shrunk(
 /// stage draws from an independent sub-tree, and the returned shrink
 /// set is composed with `combine_shrunk`.
 pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
-  new(fn(st) {
+  new(st => {
     let (s, l, r) = st.view()
     let (a, ls) = self.run_gen(l)
     let (b, rs) = f(a).run_gen(r)
@@ -108,7 +108,7 @@ pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
 /// `bind` under the hood, so it inherits the same sample-tree
 /// splitting and shrink composition.
 pub fn[T, U] Gen::ap(self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
-  self.bind(fn(f) { g.bind(fn(x) { pure(f(x)) }) })
+  self.bind(f => g.bind(x => pure(f(x))))
 }
 
 ///|
@@ -117,11 +117,11 @@ pub fn[T, U] Gen::ap(self : Gen[(T) -> U], g : Gen[T]) -> Gen[U] {
 /// those get wrapped in `Shrunk(u)` sub-trees so the driver can
 /// distinguish them from the original draw.
 pub fn prim_with(f : (Sample) -> Iter[UInt]) -> Gen[Sample] {
-  new(fn(x) {
+  new(x => {
     let (s, l, r) = x.view()
     (
       s,
-      f(s).map(fn(s1) {
+      f(s).map(s1 => {
         SampleTree(
           Shrunk(s1),
           @lazy.LazyRef::from_value(l),
@@ -137,5 +137,5 @@ pub fn prim_with(f : (Sample) -> Iter[UInt]) -> Gen[Sample] {
 /// of the sample tree and expose the standard "binary towards zero"
 /// shrink sequence.
 pub fn prim() -> Gen[UInt] {
-  prim_with(fn(s) { s.sample_value() |> binary() }).fmap(Sample::sample_value)
+  prim_with(s => s.sample_value() |> binary()).fmap(Sample::sample_value)
 }

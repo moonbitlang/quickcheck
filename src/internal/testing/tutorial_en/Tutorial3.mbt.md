@@ -309,7 +309,7 @@ Consider a mild example. Suppose we only want to test non-empty lists, so we add
 ```mbt check
 ///|
 test "discard on non-empty lists" {
-  let prop_non_empty = fn(xs : @list.List[Int]) -> @qc.Property {
+  let prop_non_empty = (xs : @list.List[Int]) => {
     (!xs.is_empty()) |> @qc.filter(!xs.is_empty())
   }
   inspect(
@@ -326,7 +326,7 @@ In the extreme case, the test may give up entirely:
 ```mbt check
 ///|
 test "reject all gives up" {
-  let prop_reject = fn(_x : Int) { @qc.filter(true, false) }
+  let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content="+++ [0/1000/100] Ok, gave up!",
@@ -385,7 +385,7 @@ pub(open) trait Enumerable {
   enumerate() -> @feat.Enumerate[Self]
 }
 
-pub fn[T] @feat.Enumerate::en_index(Self[T], BigInt) -> T
+pub fn[T] @feat.Enumerate::at(Self[T], BigInt) -> T
 ```
 
 A good enumerator should satisfy at least three conditions. First, it should avoid duplicates. Otherwise the supposedly exhaustive prefix wastes budget revisiting the same values. Second, each size layer should be finite. Otherwise SmallCheck can get stuck on one layer forever and never reach larger values. Third, the enumeration order should track a reasonable notion of complexity, so that early values really do look like the small samples we want to prioritize.
@@ -414,7 +414,7 @@ impl @feat.Enumerable for PeanoNat with enumerate() {
 ///|
 test "peano enumerate order" {
   let e : @feat.Enumerate[PeanoNat] = @feat.Enumerable::enumerate()
-  let xs = [0N, 1, 2, 3, 4].map(i => e.en_index(i))
+  let xs = [0N, 1, 2, 3, 4].map(i => e[i])
   debug_inspect(
     xs,
     content=(
@@ -438,7 +438,7 @@ For more complicated data types, the overall pattern is still fairly mechanical.
 
 The `Enumerable` interface above is not ad hoc. It is essentially MoonBit’s realization of the functional-enumeration approach from _Feat: Functional Enumeration of Algebraic Types_. Instead of treating a type as one long linear list of values, Feat represents it as a sequence of finite parts grouped by size. Each part carries two key pieces of information: its cardinality and an indexing function.
 
-MoonBit’s current implementation follows exactly that shape. Internally, `Enumerate[T]` is a lazy stream of parts, and each `Finite[T]` carries two consumers, `fCard` and `fIndex`. That makes the behavior of global indexing via `en_index` quite clear. The implementation does not generate every earlier value one by one. Instead, it skips whole parts using their cardinalities, then indexes directly inside the part that contains the requested value. This is the "function view" from the paper, and it is fundamentally different from the list view used in many SmallCheck-style implementations.
+MoonBit’s current implementation follows exactly that shape. Internally, `Enumerate[T]` is a lazy stream of parts, and each `Finite[T]` carries two consumers, `fCard` and `fIndex`. That makes the behavior of global indexing via `Enumerate::at` (the `_[_]` operator) quite clear. The implementation does not generate every earlier value one by one. Instead, it skips whole parts using their cardinalities, then indexes directly inside the part that contains the requested value. This is the "function view" from the paper, and it is fundamentally different from the list view used in many SmallCheck-style implementations.
 
 That design has two immediate benefits. First, enumeration is not limited to scanning from the front; it also supports random access. Second, the same enumerator can support multiple testing strategies, including prefix enumeration and size-bounded random sampling through APIs such as `@qc.Gen::feat_random`. In that sense, Feat is not a separate testing framework. It is a shared data-generation substrate.
 

@@ -83,7 +83,7 @@ test "@qc.tuple property" {
 ///|
 test "@qc.forall with @qc.int_range" {
   let gen = @qc.int_range(-10, 10)
-  let prop = @qc.forall(gen, fn(x) { x + 1 > x })
+  let prop = @qc.forall(gen, x => x + 1 > x)
   @qc.quick_check(prop)
 }
 ```
@@ -117,7 +117,7 @@ test "peek generator" {
 ```mbt check
 ///|
 test "@qc.quick_check_silence" {
-  let prop = @qc.forall(@qc.int_range(0, 5), fn(x) { x >= 0 })
+  let prop = @qc.forall(@qc.int_range(0, 5), x => x >= 0)
   inspect(@qc.quick_check_silence(prop), content="+++ [100/0/100] Ok, passed!")
 }
 ```
@@ -148,7 +148,7 @@ QuickCheck 并不要求我们先理解复杂的缩减细节，而是提供了一
 ///|
 test "@laws.commutative for add" {
   let gen = @qc.tuple(@qc.int_range(-200, 200), @qc.int_range(-200, 200))
-  let prop = @qc.forall(gen, @laws.commutative(fn(a, b) { a + b }))
+  let prop = @qc.forall(gen, @laws.commutative((a, b) => a + b))
   @qc.quick_check(prop)
 }
 ```
@@ -312,7 +312,7 @@ declare fn dequeue(q : Queue) -> Queue
 ///|
 /// `gen_queue()` 是一个生成随机 Queue 实例的生成器
 test "property Q2" {
-  let prop = @qc.forall(@qc.tuple(@qc.small_int(), gen_queue()), fn(p) {
+  let prop = @qc.forall(@qc.tuple(@qc.small_int(), gen_queue()), p => {
     let (x, q) = p
     is_empty(enqueue(x, q)) == false
   })
@@ -429,13 +429,13 @@ fn q6(xq : (Int, Queue)) -> Bool {
 ```mbt check
 ///|
 fn gen_int_list() -> @qc.Gen[@list.List[Int]] {
-  @qc.sized(fn(n) { @qc.small_int().list_with_size(n) })
+  @qc.sized(n => @qc.small_int().list_with_size(n))
 }
 
 ///|
 fn gen_queue() -> @qc.Gen[Queue] {
   let gl = gen_int_list()
-  gl.bind(fn(f) { gl.bind(fn(r) { @qc.pure(bq(f, r)) }) })
+  gl.bind(f => gl.bind(r => @qc.pure(bq(f, r))))
 }
 
 ///|
@@ -473,7 +473,7 @@ test "queue axioms q1-q6" {
 fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
   let len = xs.length()
   let gen_i = if len <= 0 { @qc.pure(0) } else { @qc.int_range(0, len + 1) }
-  gen_i.fmap(fn(i) {
+  gen_i.fmap(i => {
     let xs1 = xs.take(i)
     let xs2 = xs.drop(i)
     bq(xs1, xs2.rev())
@@ -482,8 +482,8 @@ fn from_list(xs : @list.List[Int]) -> @qc.Gen[Queue] {
 
 ///|
 fn gen_equiv_queue() -> @qc.Gen[@laws.Equivalence[Queue]] {
-  gen_int_list().bind(fn(z) {
-    from_list(z).bind(fn(x) { from_list(z).fmap(fn(y) { { lhs: x, rhs: y } }) })
+  gen_int_list().bind(z => {
+    from_list(z).bind(x => from_list(z).fmap(y => { lhs: x, rhs: y }))
   })
 }
 
@@ -622,7 +622,7 @@ fn[T : Eq] ModelSet::insert(self : ModelSet[T], x : T) -> ModelSet[T] {
 
 ///|
 fn[T : Eq] ModelSet::remove(self : ModelSet[T], x : T) -> ModelSet[T] {
-  ModelSet(self.0.filter(fn(y) { y != x }))
+  ModelSet(self.0.filter(y => y != x))
 }
 ```
 
@@ -696,7 +696,7 @@ pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
 ///|
 test "model-based testing for Set" {
   let gen = @qc.Gen::spawn().list_with_size(20)
-  let prop = @qc.forall(gen, fn(cmds) {
+  let prop = @qc.forall(gen, cmds => {
     let (model_set, model_trace) = run_model(cmds)
     let (sut_set, sut_trace) = run_sut(cmds)
     let model_set_arr = model_set.0.sort()
