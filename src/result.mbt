@@ -6,7 +6,7 @@
 /// that a failing test can be rerun deterministically. Typically used
 /// inside the driver — the `Replay` record also surfaces in the
 /// counter-example reported by a failing check.
-pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
+pub fn Replay::new(rand_state : @gen.RandomState, size : Int) -> Replay {
   { rand_state, size }
 }
 
@@ -27,12 +27,12 @@ priv struct SingleResult {
   maybe_discarded_ratio : Int?
   maybe_max_shrinks : Int?
   maybe_max_test_size : Int?
-  labels : List[String]
-  classes : List[(String, Bool)]
-  tables : List[(String, String)]
-  test_case : List[String]
+  labels : @list.List[String]
+  classes : @list.List[(String, Bool)]
+  tables : @list.List[(String, String)]
+  test_case : @list.List[String]
   error : Error
-  callbacks : List[Callback]
+  callbacks : @list.List[Callback]
 }
 
 ///|

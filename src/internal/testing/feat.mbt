@@ -97,7 +97,7 @@ priv enum Tree[T] {
 
 ///|
 priv struct Forest[T] {
-  forest : List[Tree[T]]
+  forest : @list.List[Tree[T]]
 }
 
 ///|

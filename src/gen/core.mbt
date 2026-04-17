@@ -2,9 +2,6 @@
 pub using @splitmix {type RandomState}
 
 ///|
-using @list {type List}
-
-///|
 /// The Gen type represents a generator of values of type T.
 pub struct Gen[T] {
   priv gen : (Int, RandomState) -> T
@@ -435,7 +432,7 @@ pub fn[T] frequency(arr : Array[(UInt, Gen[T])]) -> Gen[T] {
 ///|
 /// Chooses one of the given generators, with a weighted random distribution.
 /// @alert unsafe "Panics if the list is empty or total weight is zero"
-pub fn[T] frequency_list(lst : List[(UInt, T)]) -> Gen[T] {
+pub fn[T] frequency_list(lst : @list.List[(UInt, T)]) -> Gen[T] {
   // Single-pass build instead of `.to_array().map(...)` (two arrays).
   let arr : Array[(UInt, Gen[T])] = []
   for pair in lst {
@@ -447,10 +444,10 @@ pub fn[T] frequency_list(lst : List[(UInt, T)]) -> Gen[T] {
 
 ///|
 /// Generate a list of elements from individual generators
-pub fn[T] flatten_list(lst : List[Gen[T]]) -> Gen[List[T]] {
+pub fn[T] flatten_list(lst : @list.List[Gen[T]]) -> Gen[@list.List[T]] {
   match lst {
     Empty => pure(@list.empty())
-    More(x, tail=xs) => liftA2(List::add, flatten_list(xs), x)
+    More(x, tail=xs) => liftA2(@list.List::add, flatten_list(xs), x)
   }
 }
 
@@ -497,7 +494,7 @@ pub fn[T] one_of(arr : Array[Gen[T]]) -> Gen[T] {
 ///|
 /// Randomly uses one of the given generators in list
 /// @alert unsafe "Panics if the list is empty"
-pub fn[T] one_of_list(lst : List[T]) -> Gen[T] {
+pub fn[T] one_of_list(lst : @list.List[T]) -> Gen[T] {
   int_bound(lst.length()).fmap(x => lst.unsafe_nth(x))
 }
 
@@ -621,12 +618,12 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 ///   inspect(g.sample(), content="@list.from_array([42, 42, 42])")
 /// }
 /// ```
-pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
+pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[@list.List[T]] {
   for n = size, acc = pure(@list.empty()) {
     if n <= 0 {
       break acc
     } else {
-      continue n - 1, liftA2(List::add, acc, gen)
+      continue n - 1, liftA2(@list.List::add, acc, gen)
     }
   }
 }
@@ -634,8 +631,8 @@ pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
 ///|
 /// Generate a sorted `List[T]` of exactly `size` elements — draws
 /// `size` independent values from `gen`, then sorts.
-pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[List[T]] {
-  gen.list_with_size(size).fmap(List::sort)
+pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[@list.List[T]] {
+  gen.list_with_size(size).fmap(@list.List::sort)
 }
 
 ///|

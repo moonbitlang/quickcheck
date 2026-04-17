@@ -314,10 +314,10 @@ pub fn[T : Shrink + Compare] shrink_sorted_array(
 ///|
 /// Shrink sorted list, requires the List[T] to be sorted.
 pub fn[T : Shrink + Compare] shrink_sorted_list(
-  xs : List[T],
+  xs : @list.List[T],
   lo~ : T,
   hi~ : T,
-) -> Iter[List[T]] {
+) -> Iter[@list.List[T]] {
   shrink_sorted_array(xs.to_array(), lo~, hi~).map(a => @list.from_array(a))
 }
 
@@ -410,9 +410,9 @@ test "shrink 6-tuple" {
 }
 
 ///|
-pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
+pub impl[T : Shrink] Shrink for @list.List[T] with shrink(xs) {
   let n = xs.length()
-  fn shr_sub_terms(lst : List[T]) {
+  fn shr_sub_terms(lst : @list.List[T]) {
     match lst {
       Empty => Iter::empty()
       More(x, tail=xs) =>
@@ -439,13 +439,15 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 ///   assert_true(shrink_non_empty_list(xs).all(ys => !ys.is_empty()))
 /// }
 /// ```
-pub fn[T : Shrink] shrink_non_empty_list(xs : List[T]) -> Iter[List[T]] {
+pub fn[T : Shrink] shrink_non_empty_list(
+  xs : @list.List[T],
+) -> Iter[@list.List[T]] {
   Shrink::shrink(xs).filter(ys => !ys.is_empty())
 }
 
 ///|
 test "shrink int list" {
-  let il : List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
+  let il : @list.List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
   let s = Shrink::shrink(il)
   json_inspect(s, content=[
     [2, 3, 4, 5, 6],
@@ -473,7 +475,7 @@ test "shrink int list" {
 
 ///|
 test "shrink non-empty list" {
-  let il : List[Int] = @list.from_array([1])
+  let il : @list.List[Int] = @list.from_array([1])
   json_inspect(shrink_non_empty_list(il), content=[[0]])
 }
 
@@ -641,7 +643,7 @@ test "shrink sorted distinct array" {
 
 ///|
 test "shrink sorted list" {
-  let xs : List[Int] = @list.from_array([1, 3, 5])
+  let xs : @list.List[Int] = @list.from_array([1, 3, 5])
   json_inspect(shrink_sorted_list(xs, lo=0, hi=9), content=[
     [3, 5],
     [1, 5],
