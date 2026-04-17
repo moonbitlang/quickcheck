@@ -1,7 +1,7 @@
 ///|
 struct Queue {
-  f : List[Int]
-  r : List[Int]
+  f : @list.List[Int]
+  r : @list.List[Int]
 }
 
 ///|
@@ -17,7 +17,7 @@ impl Show for Queue with output(self, logger) {
 impl @qc.Shrink for Queue
 
 ///|
-fn build_queue(f : List[Int], r : List[Int]) -> Queue {
+fn build_queue(f : @list.List[Int], r : @list.List[Int]) -> Queue {
   match f {
     Empty => { f: r, r: @list.empty() }
     f => { f, r }
@@ -59,7 +59,7 @@ fn Queue::dequeue(self : Queue) -> Queue {
 }
 
 ///|
-fn Queue::to_list(self : Queue) -> List[Int] {
+fn Queue::to_list(self : Queue) -> @list.List[Int] {
   self.f.concat(self.r.rev())
 }
 
@@ -70,8 +70,8 @@ fn Queue::op_equal(self : Queue, other : Queue) -> Bool {
 
 ///|
 impl @coreqc.Arbitrary for Queue with arbitrary(i, rs) {
-  let f : List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
-  let r : List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let f : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let r : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
   build_queue(f, r)
 }
 
@@ -88,17 +88,17 @@ impl @qc.Shrink for EqQueue
 
 ///|
 impl @coreqc.Arbitrary for EqQueue with arbitrary(i, rs) {
-  fn split(xs : List[Int], i) {
+  fn split(xs : @list.List[Int], i) {
     (xs.take(i), xs.drop(i))
   }
 
-  fn from(xs : List[Int]) {
+  fn from(xs : @list.List[Int]) {
     let n = @gen.int_bound(xs.length() - 1).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }
 
-  let z : List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let z : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
   EqQueue({ lhs, rhs })

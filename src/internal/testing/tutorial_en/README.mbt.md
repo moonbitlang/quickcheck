@@ -530,10 +530,9 @@ QuickCheck defines default test data generators and shrinkers for some often use
 
 ```mbt check
 ///|
-using @list {type List}
-
-///|
-let prop_rev : (List[Int]) -> Bool = (x : List[Int]) => x.rev().rev() == x
+let prop_rev : (@list.List[Int]) -> Bool = (x : @list.List[Int]) => {
+  x.rev().rev() == x
+}
 
 ///|
 test "List reverse" {
@@ -618,7 +617,7 @@ We may also be interested in the distribution of the generated data: sometimes t
 ```mbt check
 ///|
 test "classes" {
-  @qc.quick_check_fn((x : List[Int]) => {
+  @qc.quick_check_fn((x : @list.List[Int]) => {
     prop_rev(x)
     |> @qc.classify(x.length() > 5, "long list")
     |> @qc.classify(x.length() <= 5, "short list")
@@ -641,7 +640,7 @@ The `label` function takes a string and classifies the test case with the string
 ```mbt check
 ///|
 test "label" {
-  @qc.quick_check_fn((x : List[Int]) => {
+  @qc.quick_check_fn((x : @list.List[Int]) => {
     prop_rev(x)
     |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
   })

@@ -1,7 +1,4 @@
 ///|
-using @list {type List}
-
-///|
 /// Internal State of Compiler
 priv struct State {
   // Name of the test
@@ -32,7 +29,7 @@ priv struct State {
   // Expected result of the test
   mut expected : Expected
   // Current random state
-  mut random_state : RandomState
+  mut random_state : @gen.RandomState
   // Number of successful shrinks
   mut num_success_shrinks : Int
   // Number of shrinks tried since last successful shrink
@@ -172,7 +169,7 @@ fn State::counts(self : State) -> String {
 }
 
 ///|
-priv struct ListCompare[T](List[T]) derive(Eq)
+priv struct ListCompare[T](@list.List[T]) derive(Eq)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
@@ -208,7 +205,7 @@ fn Coverage::new() -> Coverage {
 }
 
 ///|
-fn Coverage::label_incr(self : Coverage, key : List[String]) -> Unit {
+fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
   match self.labels.get(key) {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
@@ -218,7 +215,7 @@ fn Coverage::label_incr(self : Coverage, key : List[String]) -> Unit {
 ///|
 fn Coverage::class_incr(
   self : Coverage,
-  classes : List[(String, Bool)],
+  classes : @list.List[(String, Bool)],
 ) -> Unit {
   classes.each(item => {
     let (s, b) = item
@@ -292,7 +289,7 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
 ///|
 /// Internal configuration for initializing a test runner.
 priv struct Config {
-  replay : (RandomState, Int)?
+  replay : (@gen.RandomState, Int)?
   max_success : Int
   max_discard_ratio : Int
   max_size : Int

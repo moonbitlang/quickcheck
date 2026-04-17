@@ -1,7 +1,4 @@
 ///|
-using @list {type List}
-
-///|
 fn add_comm_double(xy : (Double, Double)) -> Bool {
   let (x, y) = xy
   x + y == y + x
@@ -14,13 +11,13 @@ fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
 }
 
 ///|
-fn prop_rev(l : List[Int]) -> Bool {
+fn prop_rev(l : @list.List[Int]) -> Bool {
   l.rev().rev() == l
 }
 
 ///|
 test "prop reverse (fail)" {
-  let prop_rev = (l : List[Int]) => l.rev().rev() == l.rev()
+  let prop_rev = (l : @list.List[Int]) => l.rev().rev() == l.rev()
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
     content="+++ [9/0/100] Ok! Failed as expected.",
@@ -95,7 +92,7 @@ test "small check expect fail" {
 
 ///|
 test "non empty list (with filter)" {
-  let prop_is_non_empty = (l : List[Int]) => {
+  let prop_is_non_empty = (l : @list.List[Int]) => {
     (!l.is_empty()) |> @qc.filter(!l.is_empty())
   }
   inspect(
@@ -115,10 +112,10 @@ test "reject all" {
 
 ///|
 test "label" {
-  let ar : @qc.Arrow[List[Int], Bool] = Arrow(prop_rev)
+  let ar : @qc.Arrow[@list.List[Int], Bool] = Arrow(prop_rev)
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : List[Int]) => {
+      @qc.Arrow((x : @list.List[Int]) => {
         @qc.label(ar, if x.is_empty() { "trivial" } else { "non-trivial" })
       }),
     ),
@@ -160,7 +157,7 @@ test "nested arrow uses fresh sample" {
 test "classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : List[Int]) => {
+      @qc.Arrow((x : @list.List[Int]) => {
         prop_rev(x)
         |> @qc.classify(x.length() > 5, "long list")
         |> @qc.classify(x.length() <= 5, "short list")
@@ -515,7 +512,7 @@ test "use one_of" {
 test "explicit universal qualification" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.Gen::spawn(), (x : List[Int]) => x.rev().rev() == x),
+      @qc.forall(@gen.Gen::spawn(), (x : @list.List[Int]) => x.rev().rev() == x),
     ),
     content="+++ [100/0/100] Ok, passed!",
   )

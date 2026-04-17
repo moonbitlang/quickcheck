@@ -16,8 +16,6 @@
 // Generator APIs now live in the dedicated `moonbitlang/quickcheck/gen`
 // package. The root package keeps property DSL and driver types only.
 
-///|
-using @gen {type RandomState}
 // -----------------------------------------------------------------------
 
 ///|
@@ -63,7 +61,7 @@ pub(all) enum Expected {
 ///
 /// Constructor: `Replay::new(rand_state, size)` (see `result.mbt`).
 pub(all) struct Replay {
-  rand_state : RandomState
+  rand_state : @gen.RandomState
   size : Int
 }
 

@@ -7,13 +7,7 @@ priv suberror InternalError {
 // The `Testable` impls for them live further down in this file.
 
 ///|
-type RoseRes = Rose[SingleResult]
-
-///|
-using @rose {type Rose}
-
-///|
-using @gen {type Gen, pure}
+type RoseRes = @rose.Rose[SingleResult]
 
 ///|
 /// TODO: determine the execution of callback by kind
@@ -29,12 +23,12 @@ priv enum Kind {
 }
 
 ///|
-fn[T] promote_rose(s : Rose[Gen[T]]) -> Gen[Rose[T]] {
-  Gen((n, rs) => (g : Gen[T]) => g.run(n, rs)).fmap(m => s.fmap(m))
+fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
+  @gen.Gen((n, rs) => (g : @gen.Gen[T]) => g.run(n, rs)).fmap(m => s.fmap(m))
 }
 
 ///|
-struct Property(Gen[RoseRes])
+struct Property(@gen.Gen[RoseRes])
 
 ///|
 /// Anything that can be handed to the `quick_check` driver.
@@ -71,7 +65,7 @@ pub impl Testable for Unit with property(_self) {
 
 ///|
 impl Testable for SingleResult with property(self) {
-  pure(@rose.pure(self))
+  @gen.pure(@rose.pure(self))
 }
 
 ///|
@@ -83,7 +77,7 @@ pub impl Testable for Bool with property(self) {
 }
 
 ///|
-pub impl[P : Testable] Testable for Gen[P] with property(self) {
+pub impl[P : Testable] Testable for @gen.Gen[P] with property(self) {
   self.bind(run_prop)
 }
 
@@ -108,7 +102,7 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
   A,
   P,
 ] with property(self) {
-  forall_shrink(Gen::spawn(), A::shrink, self.0)
+  forall_shrink(@gen.Gen::spawn(), A::shrink, self.0)
 }
 
 ///|
@@ -118,14 +112,14 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
   A,
   P,
 ] with property(self) {
-  forall_shrink(Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
+  forall_shrink(@gen.Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
 }
 
 ///|
-/// Project a `Testable` to its underlying `Gen[Rose[SingleResult]]`.
+/// Project a `Testable` to its underlying `@gen.Gen[Rose[SingleResult]]`.
 /// Primarily used by other combinators that want to thread extra
 /// transformations through the property.
-fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
+fn[P : Testable] run_prop(prop : P) -> @gen.Gen[@rose.Rose[SingleResult]] {
   prop.property().0
 }
 
@@ -158,8 +152,8 @@ pub fn[P : Testable, T] shrinking(
   x0 : T,
   pf : (T) -> P,
 ) -> Property {
-  fn props(x) -> Rose[Gen[RoseRes]] {
-    Rose(pf(x) |> run_prop, shrinker(x).map(props))
+  fn props(x) -> @rose.Rose[@gen.Gen[RoseRes]] {
+    { val: pf(x) |> run_prop, branch: shrinker(x).map(props) }
   }
 
   promote_rose(props(x0)).fmap(x => x.join())
@@ -209,7 +203,10 @@ pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
 
 ///|
 /// Run with an explicit generator
-pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
+pub fn[T : Testable, A : Show] forall(
+  gen : @gen.Gen[A],
+  f : (A) -> T,
+) -> Property {
   forall_shrink(gen, _x => Iter::empty(), f)
 }
 
@@ -219,7 +216,7 @@ pub fn[T : Testable, A : Show] forall(gen : Gen[A], f : (A) -> T) -> Property {
 /// version when you want a hand-rolled shrinker without going through
 /// the `Shrink` trait.
 pub fn[T : Testable, A : Show] forall_shrink(
-  gen : Gen[A],
+  gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> Property {

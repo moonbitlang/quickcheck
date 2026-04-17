@@ -519,7 +519,7 @@ fn State::run_single_test(
 fn State::find_failure(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]],
+  ts : Iter[@rose.Rose[SingleResult]],
 ) -> TestSuccess raise TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   self.callback_post_final_failure(ce)
@@ -592,7 +592,7 @@ fn State::find_failure_no_shrink(
 fn State::local_min(
   self : State,
   res : SingleResult,
-  ts : Iter[Rose[SingleResult]],
+  ts : Iter[@rose.Rose[SingleResult]],
 ) -> (Int, Int, Int, SingleResult) {
   if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
     local_min_found(self, res)
