@@ -54,12 +54,16 @@ fn prop_remove_all(iarr : (Int, Array[Int])) -> Bool {
 
 ///|
 test "default shrink for tuple and array" {
-  let x = @qc.quick_check_fn_silence(prop_remove_all)
+  let x = @qc.quick_check_fn_silence(prop_remove_all, verbose=true)
   inspect(
     x,
     content=(
       #|*** [8/0/100] Failed! Falsified.
+      #|Counterexample:
       #|(0, [0, 0, -1])
+      #|Replay: { state : {seed: 15849969052034214729, gamma: 16934044424796929712}, size : 8 }
+      #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
+
     ),
   )
 }
@@ -118,10 +122,12 @@ test "shrinking starts from explicit value" {
   let prop = @qc.shrinking(shrink_even_nat, 84, x => x < 20)
 
   inspect(
-    @qc.quick_check_silence(prop),
+    @qc.quick_check_silence(prop, verbose=true),
     content=(
       #|*** [0/0/100] Failed! Falsified.
-      #|
+      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
+      #|Shrinks: 11 successful, 0 unsuccessful, 1 final attempts
+
     ),
   )
 }
@@ -205,12 +211,16 @@ test "forall_shrink for sorted array" {
   let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
-  let r = @qc.quick_check_silence(prop)
+  let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Counterexample:
       #|[0, 0, 0]
+      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
+      #|Shrinks: 9 successful, 12 unsuccessful, 2 final attempts
+
     ),
   )
 }
@@ -236,13 +246,17 @@ test "counterexample adds derived information" {
     let out = remove_first_only(arr.copy(), x)
     @qc.counterexample(!out.contains(x), "after remove: \{out}")
   })
-  let r = @qc.quick_check_silence(prop)
+  let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
+      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+
     ),
   )
 }
@@ -277,8 +291,8 @@ test "classify list distribution" {
     r,
     content=(
       #|+++ [100/0/100] Ok, passed!
-      #|21% : short list
       #|79% : long list
+      #|21% : short list
     ),
   )
 }
@@ -348,12 +362,16 @@ The constraint here is not `Arbitrary + Shrink`, but `Enumerable`. SmallCheck is
 ```mbt check
 ///|
 test "small check fails on first non-zero int" {
-  let r = @qc.small_check_silence((x : Int) => x == 0, max_size=5)
+  let r = @qc.small_check_silence((x : Int) => x == 0, max_size=5, verbose=true)
   inspect(
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Counterexample:
       #|1
+      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+
     ),
   )
 }
@@ -438,12 +456,20 @@ Once the enumerator is in place, using SmallCheck is straightforward. We decide 
 ```mbt check
 ///|
 test "small check on peano prefix" {
-  let r = @qc.small_check_silence(fn(n : PeanoNat) { n == PZero }, max_size=5)
+  let r = @qc.small_check_silence(
+    fn(n : PeanoNat) { n == PZero },
+    max_size=5,
+    verbose=true,
+  )
   inspect(
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Counterexample:
       #|PSucc(PZero)
+      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+
     ),
   )
 }

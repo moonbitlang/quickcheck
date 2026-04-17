@@ -131,6 +131,18 @@ test "label" {
 }
 
 ///|
+test "collect" {
+  inspect(
+    @qc.small_check_silence(fn(x : Int) { @qc.collect(true, x) }, max_size=2),
+    content=(
+      #|+++ [2/0/2] Ok, passed!
+      #|50% : 0
+      #|50% : 1
+    ),
+  )
+}
+
+///|
 test "nested arrow uses fresh sample" {
   // The outer forall fixes x = 0, but the nested Arrow quantifies a fresh Int.
   // If Arrow reused x, then y == x would always pass. The expected failure shows
@@ -156,8 +168,27 @@ test "classes" {
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
-      #|21% : short list
       #|79% : long list
+      #|21% : short list
+    ),
+  )
+}
+
+///|
+test "classes can overlap" {
+  inspect(
+    @qc.small_check_silence(
+      fn(x : Int) {
+        true
+        |> @qc.classify(x != 0, "non-zero")
+        |> @qc.classify(x >= 0, "non-negative")
+      },
+      max_size=3,
+    ),
+    content=(
+      #|+++ [3/0/3] Ok, passed!
+      #|66.66% : non-zero
+      #|66.66% : non-negative
     ),
   )
 }
@@ -183,7 +214,7 @@ test "label + classes" {
       #|3% : length is 5
       #|2% : length is 6
       #|2% : length is 7
-      #|7.000000000000001% : length is 8
+      #|7% : length is 8
       #|1% : length is 9
       #|1% : length is 10
       #|1% : length is 11
@@ -229,8 +260,71 @@ test "label + classes" {
       #|1% : length is 89
       #|1% : length is 93
       #|1% : length is 97
-      #|21% : short list
       #|79% : long list
+      #|21% : short list
+    ),
+  )
+}
+
+///|
+test "failure report is concise by default" {
+  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+    let (x, arr) = iarr
+    let out = remove(arr.copy(), x)
+    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+  })
+  inspect(
+    @qc.quick_check_silence(prop),
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|(0, [0, 0, -1])
+      #|after remove: [0, -1]
+    ),
+  )
+}
+
+///|
+test "failure report renders details" {
+  let prop = @qc.forall(@qc.pure((0, [0, 0, -1])), fn(iarr) {
+    let (x, arr) = iarr
+    let out = remove(arr.copy(), x)
+    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+  })
+  inspect(
+    @qc.quick_check_silence(prop, verbose=true),
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|Counterexample:
+      #|(0, [0, 0, -1])
+      #|after remove: [0, -1]
+      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+
+    ),
+  )
+}
+
+///|
+test "failure coverage excludes the failing sample" {
+  inspect(
+    @qc.small_check_silence(
+      fn(x : Int) {
+        @qc.collect(x != 1, if x == 0 { "zero" } else { "non-zero" })
+      },
+      max_size=3,
+      verbose=true,
+    ),
+    content=(
+      #|*** [1/0/3] Failed! Falsified.
+      #|Counterexample:
+      #|1
+      #|Labels:
+      #|non-zero
+      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+      #|Coverage:
+      #|100% : zero
+
     ),
   )
 }

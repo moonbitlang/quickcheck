@@ -20,8 +20,15 @@ pub fn Replay::new(rand_state : RandomState, size : Int) -> Replay {
 }
 
 ///|
+priv enum Status {
+  Passed
+  Failed
+  Rejected
+}
+
+///|
 struct SingleResult {
-  ok : Bool?
+  status : Status
   expect : Expected
   reason : String
   abort : Bool
@@ -41,7 +48,7 @@ struct SingleResult {
 /// A `SingleResult` that reports the current input passed. Used by
 /// combinators that wrap a `Bool` into a `Testable`.
 pub fn succeed() -> SingleResult {
-  { ..Default::default(), ok: Some(true) }
+  { ..Default::default(), status: Passed }
 }
 
 ///|
@@ -49,7 +56,7 @@ pub fn succeed() -> SingleResult {
 /// `reason` / `test_case` / `labels` can be filled in by chaining
 /// further combinators before handing it to the driver.
 pub fn failed() -> SingleResult {
-  { ..Default::default(), ok: Some(false) }
+  { ..Default::default(), status: Failed }
 }
 
 ///|
@@ -57,13 +64,13 @@ pub fn failed() -> SingleResult {
 /// should skip it and try another. Produced by `filter` when its
 /// precondition fails.
 pub fn rejected() -> SingleResult {
-  { ..Default::default(), ok: None }
+  { ..Default::default(), status: Rejected }
 }
 
 ///|
 impl Default for SingleResult with default() {
   {
-    ok: None,
+    status: Rejected,
     expect: Success,
     reason: "unknown",
     abort: false,

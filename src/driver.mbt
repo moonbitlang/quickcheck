@@ -10,6 +10,7 @@ suberror TestError {
     reason~ : String,
     error~ : Error,
     output~ : String,
+    coverage~ : Coverage,
     failing_case~ : Array[String],
     failing_labels~ : Array[String],
     failing_classes~ : @sorted_set.SortedSet[String]
@@ -31,6 +32,16 @@ suberror TestError {
 ///|
 enum TestSuccess {
   Success(num_tests~ : Int, coverage~ : Coverage, output~ : String)
+}
+
+///|
+fn finish_report(report : CheckReport, verbose : Bool) -> Unit raise Failure {
+  let rendered = render_report(report, verbose~)
+  if report is Ok(_) {
+    println(rendered)
+  } else {
+    fail(rendered)
+  }
 }
 
 ///|
@@ -58,32 +69,20 @@ pub fn[P : Testable] quick_check(
   discard_ratio? : Int = 10,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  try {
-    let result = quick_check_with_result(
-      {
-        replay: None,
-        max_shrink,
-        max_success,
-        max_size,
-        max_discard_ratio: discard_ratio,
-      },
-      prop,
-    )
-    match result {
-      Success(output~, coverage~, num_tests~) => {
-        println(output)
-        println(coverage.to_string(num_tests))
-      }
-    }
-  } catch {
-    // TODO: Print coverage
-    GaveUp(output~, ..) => fail(output)
-    Fail(output~, failing_case~, ..) =>
-      fail(output + "\n" + failing_case.join("\n"))
-    NoneExpectedFail(output~, ..) => fail(output)
-  }
+  let report : CheckReport = try? quick_check_with_result(
+    {
+      replay: None,
+      max_shrink,
+      max_success,
+      max_size,
+      max_discard_ratio: discard_ratio,
+    },
+    prop,
+  )
+  finish_report(report, verbose)
 }
 
 ///|
@@ -98,29 +97,20 @@ pub fn[P : Testable] quick_check_silence(
   discard_ratio? : Int = 10,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  try {
-    let result = quick_check_with_result(
-      {
-        replay: None,
-        max_shrink,
-        max_success,
-        max_size,
-        max_discard_ratio: discard_ratio,
-      },
-      prop,
-    )
-    match result {
-      Success(output~, coverage~, num_tests~) =>
-        return output + coverage.to_string(num_tests)
-    }
-  } catch {
-    // TODO: Print coverage
-    GaveUp(output~, ..) => output
-    Fail(output~, failing_case~, ..) => output + "\n" + failing_case.join("\n")
-    NoneExpectedFail(output~, ..) => output
-  }
+  let report : CheckReport = try? quick_check_with_result(
+    {
+      replay: None,
+      max_shrink,
+      max_success,
+      max_size,
+      max_discard_ratio: discard_ratio,
+    },
+    prop,
+  )
+  render_report(report, verbose~)
 }
 
 ///|
@@ -135,6 +125,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   discard_ratio? : Int,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
@@ -144,6 +135,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
     discard_ratio?,
     expect~,
     abort~,
+    verbose~,
   )
 }
 
@@ -158,6 +150,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silen
   discard_ratio? : Int,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> String {
   quick_check_silence(
     Arrow(f),
@@ -167,6 +160,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silen
     discard_ratio?,
     expect~,
     abort~,
+    verbose~,
   )
 }
 
@@ -182,6 +176,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
   discard_ratio? : Int,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     ArrowError(f),
@@ -191,6 +186,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
     discard_ratio?,
     expect~,
     abort~,
+    verbose~,
   )
 }
 
@@ -205,6 +201,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
   discard_ratio? : Int,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> String {
   quick_check_silence(
     ArrowError(f),
@@ -214,6 +211,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
     discard_ratio?,
     expect~,
     abort~,
+    verbose~,
   )
 }
 
@@ -246,21 +244,12 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
   max_size? : Int = 100,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
-  try {
-    let result = small_check_with_result(f, max_size, expect, abort)
-    match result {
-      Success(output~, coverage~, num_tests~) => {
-        println(output)
-        println(coverage.to_string(num_tests))
-      }
-    }
-  } catch {
-    GaveUp(output~, ..) => fail(output)
-    Fail(output~, failing_case~, ..) =>
-      fail(output + "\n" + failing_case.join("\n"))
-    NoneExpectedFail(output~, ..) => fail(output)
-  }
+  let report : CheckReport = try? small_check_with_result(
+    f, max_size, expect, abort,
+  )
+  finish_report(report, verbose)
 }
 
 ///|
@@ -271,18 +260,12 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   max_size? : Int = 100,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> String {
-  try {
-    let result = small_check_with_result(f, max_size, expect, abort)
-    match result {
-      Success(output~, coverage~, num_tests~) =>
-        return output + coverage.to_string(num_tests)
-    }
-  } catch {
-    GaveUp(output~, ..) => output
-    Fail(output~, failing_case~, ..) => output + "\n" + failing_case.join("\n")
-    NoneExpectedFail(output~, ..) => output
-  }
+  let report : CheckReport = try? small_check_with_result(
+    f, max_size, expect, abort,
+  )
+  render_report(report, verbose~)
 }
 
 ///|
@@ -293,8 +276,9 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
   max_size? : Int = 100,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
-  small_check(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
+  small_check(a => try? f(a), max_size~, expect~, abort~, verbose~)
 }
 
 ///|
@@ -305,8 +289,9 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
   max_size? : Int = 100,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> String {
-  small_check_silence(fn(a : A) { try? f(a) }, max_size~, expect~, abort~)
+  small_check_silence(a => try? f(a), max_size~, expect~, abort~, verbose~)
 }
 
 ///|
@@ -354,8 +339,8 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
           st.random_state = rnd2
           st.update_state_from_res(res)
           st.callback_post_test(res)
-          match res.ok {
-            Some(true) => {
+          match res.status {
+            Passed => {
               st.add_coverages(res)
               st = {
                 ..st,
@@ -368,8 +353,8 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
                 continue parts, Some(finite), j + 1, remaining - 1, idx + 1
               }
             }
-            Some(false) => break st.find_failure_no_shrink(res, idx)
-            None => {
+            Failed => break st.find_failure_no_shrink(res, idx)
+            Rejected => {
               st = {
                 ..st,
                 num_discarded_tests: st.num_discarded_tests + 1,
@@ -385,6 +370,20 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
         }
     }
   }
+}
+
+///|
+fn active_classes(
+  classes : @list.List[(String, Bool)],
+) -> @sorted_set.SortedSet[String] {
+  let acc : Array[String] = []
+  classes.each(fn(pair) {
+    let (name, active) = pair
+    if active {
+      acc.push(name)
+    }
+  })
+  @sorted_set.from_iter(acc.iter())
 }
 
 ///|
@@ -491,7 +490,7 @@ pub fn State::run_single_test(
   stc.add_coverages(res) // The failure should not be counted.
   self.callback_post_test(res)
   match res {
-    { ok: Some(true), .. } =>
+    { status: Passed, .. } =>
       next(
         State::complete_test,
         {
@@ -501,8 +500,8 @@ pub fn State::run_single_test(
         },
         prop,
       )
-    { ok: Some(false), .. } => Ok(self.find_failure(res, ts))
-    { ok: None, .. } =>
+    { status: Failed, .. } => Ok(self.find_failure(res, ts))
+    { status: Rejected, .. } =>
       next(
         State::give_up,
         {
@@ -532,20 +531,21 @@ pub fn State::find_failure(
       raise Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, self.compute_size()),
-        num_tests=self.num_success_tests + 1,
+        num_tests=self.num_success_tests,
         num_discarded=self.num_discarded_tests,
         num_shrinks=n,
         num_shrink_tries=tf,
         num_shrink_final=lf,
         reason=res.reason,
         output="*** \{self.counts()} Failed! \{res.reason}",
+        coverage=self.collects,
         failing_case=ce.test_case.to_array(),
         failing_labels=ce.labels.to_array(),
-        failing_classes=@sorted_set.new(), // TODO: Add classes
+        failing_classes=active_classes(ce.classes),
       )
     Fail =>
       Success(
-        num_tests=self.num_success_tests + 1,
+        num_tests=self.num_success_tests,
         coverage=self.collects,
         output="+++ \{self.counts()} Ok! Failed as expected.",
       )
@@ -564,20 +564,21 @@ fn State::find_failure_no_shrink(
       raise Fail(
         error=res.error,
         replay_info=Replay::new(self.random_state, size),
-        num_tests=self.num_success_tests + 1,
+        num_tests=self.num_success_tests,
         num_discarded=self.num_discarded_tests,
         num_shrinks=0,
         num_shrink_tries=0,
         num_shrink_final=0,
         reason=res.reason,
         output="*** \{self.counts()} Failed! \{res.reason}",
+        coverage=self.collects,
         failing_case=res.test_case.to_array(),
         failing_labels=res.labels.to_array(),
-        failing_classes=@sorted_set.new(), // TODO: Add classes
+        failing_classes=active_classes(res.classes),
       )
     Fail =>
       Success(
-        num_tests=self.num_success_tests + 1,
+        num_tests=self.num_success_tests,
         coverage=self.collects,
         output="+++ \{self.counts()} Ok! Failed as expected.",
       )
@@ -603,8 +604,8 @@ pub fn State::local_min(
     match t {
       Some({ val, branch }) => {
         self.callback_post_test(val)
-        match val.ok {
-          Some(false) => {
+        match val.status {
+          Failed => {
             self.num_success_shrinks += 1
             self.num_try_shrinks = 0
             self.local_min(val, branch)

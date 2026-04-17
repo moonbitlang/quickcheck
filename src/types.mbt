@@ -93,6 +93,13 @@ pub(all) struct Replay {
   size : Int
 }
 
+///|
+impl Show for Replay with output(self, logger) {
+  logger.write_string(
+    "Replay: { state : \{self.rand_state}, size : \{self.size} }",
+  )
+}
+
 // ========================================================================
 //  Testable plumbing
 // ========================================================================

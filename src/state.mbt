@@ -255,12 +255,12 @@ priv struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
   labels : @sorted_map.SortedMap[ListCompare[String], Int]
-  classes : Map[String, Int]
+  classes : @sorted_map.SortedMap[String, Int]
 }
 
 ///|
 fn Coverage::new() -> Coverage {
-  { labels: @sorted_map.new(), classes: Map::new() }
+  { labels: @sorted_map.new(), classes: @sorted_map.new() }
 }
 
 ///|
@@ -287,6 +287,23 @@ fn Coverage::class_incr(
 }
 
 ///|
+fn format_percent(count : Int, total : Int) -> String {
+  guard total > 0 else { "0%" }
+  let scaled = count * 10000
+  let whole = scaled / total / 100
+  let frac = scaled / total % 100
+  if frac == 0 {
+    "\{whole}%"
+  } else if frac % 10 == 0 {
+    "\{whole}.\{frac / 10}%"
+  } else if frac < 10 {
+    "\{whole}.0\{frac}%"
+  } else {
+    "\{whole}.\{frac}%"
+  }
+}
+
+///|
 fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each(fn(list, i) {
@@ -294,7 +311,7 @@ fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
       return
     } else {
       let l = list.0.to_array().join(", ")
-      res.push("\{i.to_double() / success.to_double () * 100}% : \{l}")
+      res.push("\{format_percent(i, success)} : \{l}")
     }
   })
   res.join("\n")
@@ -304,7 +321,7 @@ fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
 fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.classes.each(fn(s, i) {
-    res.push("\{i.to_double() / success.to_double() * 100}% : \{s}")
+    res.push("\{format_percent(i, success)} : \{s}")
   })
   res.join("\n")
 }
@@ -325,8 +342,7 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
     ]
     .filter(x => x != "")
     .join("\n")
-  guard res != "" else { "" }
-  "\n\{res}"
+  res
 }
 
 ///|

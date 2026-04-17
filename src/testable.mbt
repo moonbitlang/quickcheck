@@ -239,10 +239,8 @@ pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
   callback(
     p,
     PostTest(Nothing, fn(_st, res) {
-      match res.ok {
-        Some(false) => f()
-        _ => ()
-      }
+      guard res.status is Failed else { () }
+      f()
     }),
   )
 }
