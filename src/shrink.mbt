@@ -9,6 +9,18 @@
 /// or recursive shrink spaces stay lazy. The default body (`= _`)
 /// means "no shrinks" — a conservative starting point for types where
 /// shrinking isn't meaningful.
+///
+/// ```mbt check
+/// test {
+///   // `Int` has a built-in Shrink instance that walks toward 0.
+///   let candidates : Array[Int] = Shrink::shrink(100).collect()
+///   assert_true(candidates.contains(0))
+///   assert_true(candidates.length() > 0)
+///   // `Bool` shrinks `true` to `false`, and `false` has no shrinks.
+///   assert_eq(Shrink::shrink(true).collect(), [false])
+///   assert_eq(Shrink::shrink(false).collect(), [])
+/// }
+/// ```
 pub(open) trait Shrink {
   shrink(Self) -> Iter[Self] = _
 }
@@ -419,6 +431,14 @@ pub impl[T : Shrink] Shrink for List[T] with shrink(xs) {
 
 ///|
 /// Shrink non-empty list without producing the empty list.
+///
+/// ```mbt check
+/// test {
+///   let xs : @list.List[Int] = @list.from_array([5])
+///   // Default list shrink would produce [], which is filtered out here.
+///   assert_true(shrink_non_empty_list(xs).all(ys => !ys.is_empty()))
+/// }
+/// ```
 pub fn[T : Shrink] shrink_non_empty_list(xs : List[T]) -> Iter[List[T]] {
   Shrink::shrink(xs).filter(ys => !ys.is_empty())
 }
@@ -480,6 +500,12 @@ pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
 
 ///|
 /// Shrink non-empty array without producing the empty array.
+///
+/// ```mbt check
+/// test {
+///   assert_true(shrink_non_empty_array([1, 2, 3]).all(ys => ys.length() > 0))
+/// }
+/// ```
 pub fn[X : Shrink] shrink_non_empty_array(xs : Array[X]) -> Iter[Array[X]] {
   Shrink::shrink(xs).filter(ys => ys.length() > 0)
 }

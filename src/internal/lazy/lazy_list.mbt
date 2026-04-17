@@ -68,6 +68,14 @@ pub fn[T] LazyList::iter(self : LazyList[T]) -> Iter[T] {
 ///|
 /// Return the element at position `i`. **O(n)** — walks the list from
 /// the head. Aborts if `i` is negative or past the end.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([10, 20, 30]))
+///   assert_eq(xs.index(0), 10)
+///   assert_eq(xs.index(2), 30)
+/// }
+/// ```
 pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
   if i < 0 {
     abort("index out of bounds")
@@ -86,6 +94,13 @@ pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
 /// Promote an eager `@list.List[T]` to its lazy counterpart. The
 /// resulting `LazyList` has its tails in `LazyRef::from_value` form,
 /// so no delayed computation is involved — just a type conversion.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = to_lazy(@list.from_array([1, 2, 3]))
+///   assert_eq(xs.iter().collect(), [1, 2, 3])
+/// }
+/// ```
 pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
   match ls {
     Empty => Nil
@@ -98,6 +113,14 @@ pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
 /// with `Nil`. The outer result is also a `LazyList`, so `tails` is
 /// safe to apply to an infinite input — only the suffixes you inspect
 /// are forced.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3]))
+///   let lens = xs.tails().iter().map(t => t.length()).collect()
+///   assert_eq(lens, [3, 2, 1, 0])
+/// }
+/// ```
 pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
   fn go(xs) {
     Cons(
@@ -116,6 +139,14 @@ pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
 /// Lazy append. `(xs.concat(ys)).take(n)` only forces as many cells
 /// as are consumed; the right-hand list is not touched until the left
 /// runs out.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2]))
+///   let ys : LazyList[Int] = from_list(@list.from_array([3, 4]))
+///   assert_eq(xs.concat(ys).iter().collect(), [1, 2, 3, 4])
+/// }
+/// ```
 pub fn[T] LazyList::concat(
   self : LazyList[T],
   other : LazyList[T],
@@ -134,6 +165,12 @@ pub impl[T] Add for LazyList[T] with add(self, other) {
 
 ///|
 /// An infinite stream of a single value: `[x, x, x, ...]`.
+///
+/// ```mbt check
+/// test {
+///   assert_eq(repeat('a').take(4).iter().collect(), ['a', 'a', 'a', 'a'])
+/// }
+/// ```
 pub fn[T] repeat(val : T) -> LazyList[T] {
   Cons(val, LazyRef::from_thunk(() => repeat(val)))
 }
@@ -141,6 +178,13 @@ pub fn[T] repeat(val : T) -> LazyList[T] {
 ///|
 /// Apply `f` to every element. Lazy — `map(f, xs).take(n)` only
 /// forces the first `n` cells.
+///
+/// ```mbt check
+/// test {
+///   let squared = infinite_stream(1, 1).map(x => x * x).take(4)
+///   assert_eq(squared.iter().collect(), [1, 4, 9, 16])
+/// }
+/// ```
 pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
   match self {
     Nil => Nil
@@ -151,6 +195,15 @@ pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
 ///|
 /// Split at index `i`: returns `(take(i), drop(i))` in a single pass.
 /// The prefix is eagerly collected; the suffix stays lazy.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3, 4]))
+///   let (lhs, rhs) = xs.split_at(2)
+///   assert_eq(lhs.iter().collect(), [1, 2])
+///   assert_eq(rhs.iter().collect(), [3, 4])
+/// }
+/// ```
 pub fn[T] LazyList::split_at(
   self : LazyList[T],
   i : Int,
@@ -183,6 +236,13 @@ pub fn[T] LazyList::split_at(
 ///|
 /// Left fold. **Forces the entire list** before returning — not safe
 /// on infinite input.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3, 4]))
+///   assert_eq(xs.fold_left((acc, x) => acc + x, init=0), 10)
+/// }
+/// ```
 pub fn[T, U] LazyList::fold_left(
   self : LazyList[T],
   f : (U, T) -> U,
@@ -231,6 +291,15 @@ pub fn[T] LazyList::tail(self : LazyList[T]) -> LazyList[T] {
 ///|
 /// Number of elements. **Forces the entire list** — don't call on
 /// infinite input.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3]))
+///   assert_eq(xs.length(), 3)
+///   let ys : LazyList[Int] = Nil
+///   assert_eq(ys.length(), 0)
+/// }
+/// ```
 pub fn[T] LazyList::length(self : LazyList[T]) -> Int {
   self.fold_left((acc, _x) => acc + 1, init=0)
 }
@@ -244,6 +313,15 @@ pub fn[X : Add] sum(l : LazyList[X], init~ : X) -> X {
 ///|
 /// Element-wise combine. Stops when either input ends — the shorter
 /// list wins and the rest of the longer one is ignored.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3]))
+///   let ys : LazyList[Int] = from_list(@list.from_array([10, 20]))
+///   let zs = zip_with((a, b) => a + b, xs, ys)
+///   assert_eq(zs.iter().collect(), [11, 22])
+/// }
+/// ```
 pub fn[A, B, C] zip_with(
   f : (A, B) -> C,
   xs : LazyList[A],
@@ -262,6 +340,14 @@ pub fn[A, B, C] zip_with(
 ///|
 /// Prefix of the list whose elements satisfy `p`. Stops at the first
 /// element that fails; the rest is not forced.
+///
+/// ```mbt check
+/// test {
+///   let nats : LazyList[Int] = infinite_stream(0, 1)
+///   let small = nats.take_while(x => x < 4)
+///   assert_eq(small.iter().collect(), [0, 1, 2, 3])
+/// }
+/// ```
 pub fn[T] LazyList::take_while(
   self : LazyList[T],
   p : (T) -> Bool,
@@ -280,6 +366,13 @@ pub fn[T] LazyList::take_while(
 ///|
 /// First `n` elements (or fewer, if the list is shorter). Lazy in the
 /// tail — subsequent cells aren't forced unless requested.
+///
+/// ```mbt check
+/// test {
+///   let nats : LazyList[Int] = infinite_stream(0, 1)
+///   assert_eq(nats.take(3).iter().collect(), [0, 1, 2])
+/// }
+/// ```
 pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
   if n <= 0 {
     Nil
@@ -294,6 +387,13 @@ pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
 ///|
 /// Everything after the first `n` elements. Walks the first `n` cells
 /// (forcing them) and returns the remaining suspension.
+///
+/// ```mbt check
+/// test {
+///   let nats : LazyList[Int] = infinite_stream(0, 1)
+///   assert_eq(nats.drop(3).take(3).iter().collect(), [3, 4, 5])
+/// }
+/// ```
 pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
   if n <= 0 {
     self
@@ -331,6 +431,13 @@ pub fn[T] LazyList::drop_while(
 ///|
 /// Infinite arithmetic progression: `[start, start + step, start + 2*step, ...]`.
 /// `X` must be `Add`-able. Lazy — consume via `take` / `take_while`.
+///
+/// ```mbt check
+/// test {
+///   let evens = infinite_stream(0, 2).take(5)
+///   assert_eq(evens.iter().collect(), [0, 2, 4, 6, 8])
+/// }
+/// ```
 pub fn[X : Add] infinite_stream(start : X, step : X) -> LazyList[X] {
   Cons(start, LazyRef::from_thunk(() => infinite_stream(start + step, step)))
 }
@@ -358,6 +465,14 @@ pub fn[A, B, C] zip_lazy_normal(
 /// the size-indexed parts of two `Enumerate`s in `feat` — if one
 /// enumeration runs out of parts, the other's remaining parts pass
 /// through unchanged.
+///
+/// ```mbt check
+/// test {
+///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2]))
+///   let ys : LazyList[Int] = from_list(@list.from_array([10, 20, 30, 40]))
+///   assert_eq(zip_plus((a, b) => a + b, xs, ys).iter().collect(), [11, 22, 30, 40])
+/// }
+/// ```
 pub fn[T] zip_plus(
   f : (T, T) -> T,
   ls1 : LazyList[T],
