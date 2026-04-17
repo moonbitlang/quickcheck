@@ -62,12 +62,27 @@ pub fn[T] Gen::samples(
 
 ///|
 /// Functor instance for Gen[T] (pure)
+///
+/// ```mbt check
+/// test {
+///   // A pure generator ignores size and rng and always yields the value.
+///   assert_eq(pure(42).sample(), 42)
+///   assert_eq(pure("hi").sample(), "hi")
+/// }
+/// ```
 pub fn[T] pure(val : T) -> Gen[T] {
   Gen((_, _) => val)
 }
 
 ///|
 /// Functor instance for Gen[T] (fmap)
+///
+/// ```mbt check
+/// test {
+///   let doubled = pure(21).fmap(x => x * 2)
+///   assert_eq(doubled.sample(), 42)
+/// }
+/// ```
 pub fn[T, U] Gen::fmap(self : Gen[T], f : (T) -> U) -> Gen[U] {
   Gen((n, s) => f(self.run(n, s)))
 }
@@ -80,6 +95,15 @@ pub fn[T, U] Gen::ap(self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
 
 ///|
 /// Monad instance for Gen[T]
+///
+/// ```mbt check
+/// test {
+///   // Use bind to sequence generators: first pick `n`, then draw an
+///   // `n`-element list of the fixed value 0.
+///   let g = pure(3).bind(n => pure(0).list_with_size(n))
+///   inspect(g.sample(), content="@list.from_array([0, 0, 0])")
+/// }
+/// ```
 pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
   Gen((n, s) => {
     let s2 = s.split()
@@ -169,6 +193,13 @@ fn[T] delay() -> Gen[(Gen[T]) -> T] {
 
 ///|
 /// Create tuple generator from two generators
+///
+/// ```mbt check
+/// test {
+///   let g : Gen[(Int, String)] = tuple(pure(7), pure("x"))
+///   assert_eq(g.sample(), (7, "x"))
+/// }
+/// ```
 pub fn[T, U] tuple(gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
   gen1.bind(x => gen2.fmap(y => (x, y)))
 }
@@ -369,6 +400,18 @@ pub fn[T] backtrack(gs : Array[(UInt, Gen[T?])]) -> Gen[T?] {
 ///|
 /// Chooses one of the given generators, with a weighted random distribution.
 /// @alert unsafe "Panics if the array is empty or total weight is zero"
+///
+/// ```mbt check
+/// test {
+///   // 90% chance of "common", 10% chance of "rare". With a fixed seed
+///   // the draws are deterministic — over 10 samples we expect mostly
+///   // "common".
+///   let g = frequency([(9U, pure("common")), (1U, pure("rare"))])
+///   for x in g.samples() {
+///     assert_true(x == "common" || x == "rare")
+///   }
+/// }
+/// ```
 pub fn[T] frequency(arr : Array[(UInt, Gen[T])]) -> Gen[T] {
   if arr.is_empty() {
     abort("frequency: empty array")
@@ -438,8 +481,17 @@ pub fn[T, E] flatten_result(res : Result[Gen[T], E]) -> Gen[Result[T, E]] {
 }
 
 ///|
-/// Randomly uses one of the given generators. 
+/// Randomly uses one of the given generators.
 /// @alert unsafe "Panics if the array is empty"
+///
+/// ```mbt check
+/// test {
+///   let g = one_of([pure(1), pure(2), pure(3)])
+///   for x in g.samples() {
+///     assert_true(x == 1 || x == 2 || x == 3)
+///   }
+/// }
+/// ```
 pub fn[T] one_of(arr : Array[Gen[T]]) -> Gen[T] {
   int_bound(arr.length()).bind(x => arr[x])
 }
@@ -510,6 +562,14 @@ pub fn alphabet() -> Gen[Char] {
 
 ///|
 /// Generates int within given bound [0, bound)
+///
+/// ```mbt check
+/// test {
+///   for x in int_bound(100).samples() {
+///     assert_true(x >= 0 && x < 100)
+///   }
+/// }
+/// ```
 pub fn int_bound(bound : Int) -> Gen[Int] {
   if bound == 0 {
     pure(0)
@@ -530,6 +590,15 @@ pub fn integer_bound(bound : BigInt) -> Gen[BigInt] {
 
 ///|
 /// Generates int within given range [lo, hi)
+///
+/// ```mbt check
+/// test {
+///   let g = int_range(10, 20)
+///   for x in g.samples() {
+///     assert_true(x >= 10 && x < 20)
+///   }
+/// }
+/// ```
 pub fn int_range(lo : Int, hi : Int) -> Gen[Int] {
   guard lo != hi else { pure(lo) }
   Gen((_, rs) => {
@@ -547,6 +616,13 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 ///|
 /// Lift a per-element generator to a generator of lists with exactly
 /// `size` elements (fixed length, independent draws).
+///
+/// ```mbt check
+/// test {
+///   let g = pure(42).list_with_size(3)
+///   inspect(g.sample(), content="@list.from_array([42, 42, 42])")
+/// }
+/// ```
 pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[List[T]] {
   for n = size, acc = pure(@list.empty()) {
     if n <= 0 {
@@ -575,6 +651,13 @@ pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
 /// Lift a per-element generator to a generator of arrays with exactly
 /// `size` elements. Each element is drawn independently from the same
 /// sample tree.
+///
+/// ```mbt check
+/// test {
+///   let g = pure(0).array_with_size(4)
+///   assert_eq(g.sample(), [0, 0, 0, 0])
+/// }
+/// ```
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {
   Gen((i, rs) => Array::makei(size, _ => self.run(i, rs)))
 }

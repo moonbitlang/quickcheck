@@ -26,6 +26,13 @@ pub fn[T] Enumerate::eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
 
 ///|
 /// The empty enumeration: no values at any size. Identity for `union`.
+///
+/// ```mbt check
+/// test {
+///   let e : Enumerate[Int] = empty()
+///   inspect(e.eval(), content="[]")
+/// }
+/// ```
 pub fn[T] empty() -> Enumerate[T] {
   { parts: Nil }
 }
@@ -33,6 +40,13 @@ pub fn[T] empty() -> Enumerate[T] {
 ///|
 /// One-value enumeration at size 0. Building block for `Enumerable`
 /// instances of leaf constructors.
+///
+/// ```mbt check
+/// test {
+///   let e : Enumerate[String] = singleton("leaf")
+///   assert_eq(e.at(0), "leaf")
+/// }
+/// ```
 pub fn[T] singleton(val : T) -> Enumerate[T] {
   { parts: Cons(fin_pure(val), @lazy.LazyRef::from_value(Nil)) }
 }
@@ -43,6 +57,14 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 /// inside the current part, then read the value via `fIndex`.
 ///
 /// **Aborts** on out-of-range indices (reaches `Nil`).
+///
+/// ```mbt check
+/// test {
+///   let bools : Enumerate[Bool] = Enumerable::enumerate()
+///   assert_eq(bools[0], true)
+///   assert_eq(bools[1], false)
+/// }
+/// ```
 #alias("_[_]")
 #alias(en_index, deprecated="Use `_[_]` instead")
 pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
@@ -100,6 +122,15 @@ pub impl[T] Add for Enumerate[T] with add(self, other) {
 ///|
 /// Rewrite every element without changing the structure: part shapes
 /// stay the same, only the inhabitants are relabelled via `f`.
+///
+/// ```mbt check
+/// test {
+///   let bools : Enumerate[Bool] = Enumerable::enumerate()
+///   let labels = bools.fmap(b => if b { "yes" } else { "no" })
+///   assert_eq(labels[0], "yes")
+///   assert_eq(labels[1], "no")
+/// }
+/// ```
 pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
   { parts: self.parts.map(x => fin_fmap(f, x)) }
 }

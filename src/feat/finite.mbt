@@ -140,6 +140,13 @@ fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 ///
 /// The traversal is lazy: early `break` stops calling `fIndex`.
 /// Like every `Iter` in MoonBit it is single-shot.
+///
+/// ```mbt check
+/// test {
+///   let squares : Finite[BigInt] = { fCard: 4, fIndex: j => j * j }
+///   assert_eq(squares.iter().collect(), [0, 1, 4, 9])
+/// }
+/// ```
 pub fn[T] Finite::iter(self : Finite[T]) -> Iter[T] {
   let card = self.fCard
   let fi = self.fIndex
@@ -192,6 +199,13 @@ test "iter is lazy — early break stops walking" {
 ///|
 /// Materialise a `Finite` to `(cardinality, list of all elements)`.
 /// Eagerly evaluates every element — only suitable for small chunks.
+///
+/// ```mbt check
+/// test {
+///   let f : Finite[BigInt] = { fCard: 3, fIndex: j => j }
+///   inspect(f.to_array(), content="(3, @list.from_array([0, 1, 2]))")
+/// }
+/// ```
 pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
   (
     self.fCard,
