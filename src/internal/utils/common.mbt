@@ -151,15 +151,9 @@ pub fn[T] apply_while_array(
 }
 
 ///|
-/// The identity function: returns its argument unchanged. Bound to the
-/// `%identity` intrinsic, so it compiles to a no-op.
-///
-/// ```mbt check
-/// test {
-///   assert_eq(id(42), 42)
-///   assert_eq(id("moon"), "moon")
-/// }
-/// ```
+/// Deprecated. Inline as `x => x` at the call site — the helper is a
+/// no-op that obscures the shape.
+#deprecated("Inline `x => x` at the call site")
 pub fn[T] id(x : T) -> T = "%identity"
 
 ///|

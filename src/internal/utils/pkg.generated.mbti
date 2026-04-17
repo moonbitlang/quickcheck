@@ -16,6 +16,7 @@ pub fn[M, N, Z] flip((M, N) -> Z) -> (N, M) -> Z
 
 pub fn fresh_name() -> String
 
+#deprecated
 pub fn[T] id(T) -> T
 
 #deprecated
