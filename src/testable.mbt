@@ -7,7 +7,32 @@ priv suberror InternalError {
 // The `Testable` impls for them live further down in this file.
 
 ///|
-type RoseRes = @rose.Rose[SingleResult]
+/// The per-sample output of a property: a *tree* of `SingleResult`s
+/// rather than a bare verdict.
+///
+/// - The **root** carries the verdict on the value the generator
+///   originally produced — pass, fail, or discard.
+/// - Each **child** carries the verdict on a strictly-simpler
+///   candidate reached by one shrinking step. The tree is rooted at
+///   the value the user's property was *actually* called with and
+///   branches outward through every alternative a `Shrink` instance
+///   (or a hand-rolled shrinker passed to `shrinking` / `forall_shrink`)
+///   has to offer.
+///
+/// The driver's shrink loop (`State::local_min` in `driver.mbt`) is
+/// precisely a walk of this tree: when the root reports `Failed` it
+/// dives into the branches, keeps the first child that still falsifies
+/// the property, and recurses — producing the minimal counter-example
+/// the user sees in the failure report.
+///
+/// The choice of `@rose.Rose` (branches are `Iter[Rose[T]]`, not
+/// `Array[Rose[T]]`) is what lets the shrink space of e.g. `Array[Int]`
+/// or a recursive datatype stay lazy: we only force the candidates
+/// we actually explore.
+///
+/// Package-private. External code talks to `Property` or to the
+/// `Testable` trait rather than building `RoseResult`s directly.
+type RoseResult = @rose.Rose[SingleResult]
 
 ///|
 /// TODO: determine the execution of callback by kind
@@ -28,7 +53,40 @@ fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
 }
 
 ///|
-struct Property(@gen.Gen[RoseRes])
+/// The shape every `Testable` collapses to before the driver runs it:
+/// a generator of a shrink tree of per-run outcomes.
+///
+/// Unpacking the definition — `Property` wraps
+/// `@gen.Gen[@rose.Rose[SingleResult]]` — exposes the three layered
+/// concerns the library composes independently:
+///
+/// 1. **`@gen.Gen[_]`** — *where does the input come from?* The
+///    generator layer takes the driver-supplied `(size, RandomState)`
+///    and produces one concrete test input per sample. `forall`,
+///    `Gen::bind`, `Arbitrary::arbitrary`, and the size-scaling
+///    combinators (`map_size`, `scale`) act at this layer.
+/// 2. **`@rose.Rose[_]`** — *once input is fixed, how would we
+///    shrink it?* The rose tree layer encodes the lazy space of
+///    simpler candidates. `shrinking` and the `Shrink`-trait-backed
+///    `forall_shrink` are the builders; the driver's shrink loop is
+///    the consumer.
+/// 3. **`SingleResult`** — *what happened for one concrete run?*
+///    The leaf of each tree node records pass/fail/discard plus
+///    label, classify, counter-example, and callback metadata. The
+///    combinators `label` / `classify` / `collect` / `counterexample`
+///    / `callback` all funnel through `map_total_result`, which
+///    `rose.fmap`s a `SingleResult -> SingleResult` across every
+///    node without touching the tree structure.
+///
+/// Because `Property` itself has a trivial `Testable` instance
+/// (`property(self) = self`), every user-facing combinator can accept
+/// any `P : Testable` and return a `Property` — the canonical,
+/// driver-ready form.
+///
+/// Newtype rather than a raw alias so that the `Testable` trait can
+/// name it in its signature without callers having to spell out the
+/// layered `Gen[Rose[SingleResult]]` type.
+struct Property(@gen.Gen[RoseResult])
 
 ///|
 /// Anything that can be handed to the `quick_check` driver.
@@ -152,7 +210,7 @@ pub fn[P : Testable, T] shrinking(
   x0 : T,
   pf : (T) -> P,
 ) -> Property {
-  fn props(x) -> @rose.Rose[@gen.Gen[RoseRes]] {
+  fn props(x) -> @rose.Rose[@gen.Gen[RoseResult]] {
     { val: pf(x) |> run_prop, branch: shrinker(x).map(props) }
   }
 
