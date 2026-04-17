@@ -67,12 +67,7 @@ pub impl Testable for Unit with property(_self) {
 }
 
 ///|
-pub impl Testable for RoseRes with property(self) {
-  pure(self)
-}
-
-///|
-pub impl Testable for SingleResult with property(self) {
+impl Testable for SingleResult with property(self) {
   pure(@rose.pure(self))
 }
 
@@ -127,7 +122,7 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
 /// Project a `Testable` to its underlying `Gen[Rose[SingleResult]]`.
 /// Primarily used by other combinators that want to thread extra
 /// transformations through the property.
-pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
+fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
   prop.property().0
 }
 
@@ -135,7 +130,7 @@ pub fn[P : Testable] run_prop(prop : P) -> Gen[Rose[SingleResult]] {
 /// Apply `f` to every `SingleResult` produced by `prop`. Used by the
 /// label / classify / counterexample combinators to decorate the
 /// per-run result without changing the verdict.
-pub fn[P : Testable] map_total_result(
+fn[P : Testable] map_total_result(
   prop : P,
   f : (SingleResult) -> SingleResult,
 ) -> Property {

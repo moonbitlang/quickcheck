@@ -3,7 +3,7 @@ using @list {type List}
 
 ///|
 /// Internal State of Compiler
-struct State {
+priv struct State {
   // Name of the test
   name : String
   // Top bound of test size (immutable, the argument of the Gen)
@@ -290,8 +290,8 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-/// Configuration for initializing a test runner.
-struct Config {
+/// Internal configuration for initializing a test runner.
+priv struct Config {
   replay : (RandomState, Int)?
   max_success : Int
   max_discard_ratio : Int

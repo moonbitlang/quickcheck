@@ -1,5 +1,5 @@
 ///|
-suberror TestError {
+priv suberror TestError {
   Fail(
     num_tests~ : Int,
     num_discarded~ : Int,
@@ -30,7 +30,7 @@ suberror TestError {
 }
 
 ///|
-enum TestSuccess {
+priv enum TestSuccess {
   Success(num_tests~ : Int, coverage~ : Coverage, output~ : String)
 }
 
@@ -216,12 +216,9 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 }
 
 ///|
-/// Low-level driver entry: run a property with a fully-specified
-/// `Config` and return the structured `TestSuccess` / raise a
-/// `TestError`. Most callers prefer `quick_check` or
-/// `quick_check_silence`, which wrap this with sensible defaults and
-/// pretty-printing.
-pub fn[P : Testable] quick_check_with_result(
+/// Internal helper: run a property with a fully-specified `Config`
+/// and return the structured `TestSuccess` / raise `TestError`.
+fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P,
 ) -> TestSuccess raise TestError {
@@ -391,7 +388,7 @@ fn active_classes(
 /// book-keep successes and discards, and on failure hand off to
 /// `find_failure` for shrinking. Returns the aggregated
 /// `TestSuccess` or raises `TestError`.
-pub fn State::run_test(
+fn State::run_test(
   self : State,
   prop : Property,
 ) -> TestSuccess raise TestError {
@@ -415,7 +412,7 @@ pub fn State::run_test(
 /// report when the expected outcome matches, or raise the
 /// appropriate `TestError` when it does not (e.g. the property was
 /// supposed to fail but no counter-example appeared).
-pub fn State::complete_test(
+fn State::complete_test(
   self : State,
   _prop : Property,
 ) -> TestSuccess raise TestError {
@@ -439,7 +436,7 @@ pub fn State::complete_test(
 /// Abandon the run when too many inputs have been discarded (the
 /// `max_success × discard_ratio` budget is exhausted). Produces the
 /// `GaveUp` outcome with the current coverage snapshot.
-pub fn State::give_up(
+fn State::give_up(
   self : State,
   _prop : Property,
 ) -> TestSuccess raise TestError {
@@ -461,7 +458,7 @@ pub fn State::give_up(
 
 ///|
 /// Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
-pub fn State::run_single_test(
+fn State::run_single_test(
   self : State,
   prop : Property,
 ) -> Result[TestSuccess, State] raise TestError {
@@ -519,7 +516,7 @@ pub fn State::run_single_test(
 /// and the iter of alternative `Rose` sub-trees, walk the shrinkers
 /// to find a minimal failing case, then raise the appropriate
 /// `TestError` (or `TestSuccess` if the failure was expected).
-pub fn State::find_failure(
+fn State::find_failure(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]],
@@ -592,7 +589,7 @@ fn State::find_failure_no_shrink(
 /// `self.max_shrinks_` total attempts. Returns the full tally
 /// `(successful shrinks, tries without success, last-stage tries,
 /// final result)` that the driver reports in the `Fail` outcome.
-pub fn State::local_min(
+fn State::local_min(
   self : State,
   res : SingleResult,
   ts : Iter[Rose[SingleResult]],
@@ -627,7 +624,7 @@ pub fn State::local_min(
 /// because the shrink budget is exhausted or no smaller failure was
 /// found). Returns the counts the driver reports in the `Fail`
 /// outcome.
-pub fn local_min_found(
+fn local_min_found(
   st : State,
   res : SingleResult,
 ) -> (Int, Int, Int, SingleResult) {

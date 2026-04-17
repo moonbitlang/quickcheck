@@ -27,7 +27,7 @@ priv enum Status {
 }
 
 ///|
-struct SingleResult {
+priv struct SingleResult {
   status : Status
   expect : Expected
   reason : String
@@ -47,7 +47,7 @@ struct SingleResult {
 ///|
 /// A `SingleResult` that reports the current input passed. Used by
 /// combinators that wrap a `Bool` into a `Testable`.
-pub fn succeed() -> SingleResult {
+fn succeed() -> SingleResult {
   { ..Default::default(), status: Passed }
 }
 
@@ -55,7 +55,7 @@ pub fn succeed() -> SingleResult {
 /// A `SingleResult` that reports the current input failed. The
 /// `reason` / `test_case` / `labels` can be filled in by chaining
 /// further combinators before handing it to the driver.
-pub fn failed() -> SingleResult {
+fn failed() -> SingleResult {
   { ..Default::default(), status: Failed }
 }
 
@@ -63,7 +63,7 @@ pub fn failed() -> SingleResult {
 /// A `SingleResult` that represents a discarded input — the driver
 /// should skip it and try another. Produced by `filter` when its
 /// precondition fails.
-pub fn rejected() -> SingleResult {
+fn rejected() -> SingleResult {
   { ..Default::default(), status: Rejected }
 }
 

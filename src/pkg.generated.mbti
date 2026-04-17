@@ -6,7 +6,6 @@ import {
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/quickcheck/feat",
-  "moonbitlang/quickcheck/internal/rose",
 }
 
 // Values
@@ -23,8 +22,6 @@ pub fn[P : Testable] classify(P, Bool, String) -> Property
 pub fn[P : Testable, T : Show] collect(P, T) -> Property
 
 pub fn[P : Testable] counterexample(P, String) -> Property
-
-pub fn failed() -> SingleResult
 
 pub fn[P : Testable] filter(P, Bool) -> Property
 
@@ -64,11 +61,7 @@ pub fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Ge
 
 pub fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-pub fn local_min_found(State, SingleResult) -> (Int, Int, Int, SingleResult)
-
 pub fn[P : Testable] map_size(P, (Int) -> Int) -> Property
-
-pub fn[P : Testable] map_total_result(P, (SingleResult) -> SingleResult) -> Property
 
 pub fn nat() -> Gen[Int]
 
@@ -97,12 +90,6 @@ pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable]
 pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool, verbose? : Bool) -> String
 
 pub fn[P : Testable] quick_check_silence(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : Expected, abort? : Bool, verbose? : Bool) -> String
-
-pub fn[P : Testable] quick_check_with_result(Config, P) -> TestSuccess raise TestError
-
-pub fn rejected() -> SingleResult
-
-pub fn[P : Testable] run_prop(P) -> Gen[@rose.Rose[SingleResult]]
 
 pub fn[X : Shrink + Eq] shrink_distinct_array(Array[X]) -> Iter[Array[X]]
 
@@ -134,14 +121,11 @@ pub fn[T : Compare] sorted_array(Int, Gen[T]) -> Gen[Array[T]]
 
 pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
 
-pub fn succeed() -> SingleResult
-
 pub fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 
 pub fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
 
 // Errors
-type TestError
 
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
@@ -159,8 +143,6 @@ pub fn[A, B] ArrowError::inner(Self[A, B]) -> (A) -> B raise
 pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + Shrink + Show] Testable for ArrowError[A, P]
 
 type Callback
-
-type Config
 
 type Discard derive(Default)
 pub impl Testable for Discard
@@ -210,19 +192,6 @@ pub(all) struct Replay {
 }
 pub fn Replay::new(@splitmix.RandomState, Int) -> Self
 
-type SingleResult
-pub impl Testable for SingleResult
-
-type State
-pub fn State::complete_test(Self, Property) -> TestSuccess raise TestError
-pub fn State::find_failure(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> TestSuccess raise TestError
-pub fn State::give_up(Self, Property) -> TestSuccess raise TestError
-pub fn State::local_min(Self, SingleResult, Iter[@rose.Rose[SingleResult]]) -> (Int, Int, Int, SingleResult)
-pub fn State::run_single_test(Self, Property) -> Result[TestSuccess, Self] raise TestError
-pub fn State::run_test(Self, Property) -> TestSuccess raise TestError
-
-type TestSuccess
-
 // Type aliases
 pub using @splitmix {type RandomState}
 
@@ -259,5 +228,4 @@ pub impl Testable for Unit
 pub impl Testable for Bool
 pub impl[P : Testable] Testable for P?
 pub impl[P : Testable, E : Show] Testable for Result[P, E]
-pub impl Testable for @rose.Rose[SingleResult]
 
