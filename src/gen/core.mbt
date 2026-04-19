@@ -666,7 +666,7 @@ test "pick selects first element when weight < first k" {
     (2, pure(20)),
     (3, pure(30)),
   ]
-  let (k, _g) = pick(pure(-1), gs[:], 0)
+  let (k, _g) = pick(pure(-1), gs, 0)
   assert_eq(k, 1)
 }
 
@@ -678,21 +678,21 @@ test "pick selects last element at upper boundary" {
     (3, pure(30)),
   ]
   // 0, 1, 2 exhaust the first two; 3 lands in the third (card 3).
-  let (k, _g) = pick(pure(-1), gs[:], 3)
+  let (k, _g) = pick(pure(-1), gs, 3)
   assert_eq(k, 3)
 }
 
 ///|
 test "pick falls through to default when weight exceeds total" {
   let gs : Array[(UInt, Gen[Int])] = [(1, pure(10)), (2, pure(20))]
-  let (k, _g) = pick(pure(-1), gs[:], 100)
+  let (k, _g) = pick(pure(-1), gs, 100)
   assert_eq(k, 0)
 }
 
 ///|
 test "pick on empty view returns default with zero weight" {
   let gs : Array[(UInt, Gen[Int])] = []
-  let (k, _g) = pick(pure(-1), gs[:], 0)
+  let (k, _g) = pick(pure(-1), gs, 0)
   assert_eq(k, 0)
 }
 
