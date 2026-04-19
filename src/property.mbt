@@ -25,11 +25,7 @@
 /// Attach a label to the current test run. See the deprecated `label`
 /// free function for the raw-expression form.
 pub fn Property::label(self : Property, s : String) -> Property {
-  Property(
-    run_prop(self).fmap(rose => {
-      rose.fmap(res => { ..res, labels: res.labels.add(s) })
-    }),
-  )
+  map_total_result(self, res => { ..res, labels: res.labels.add(s) })
 }
 
 ///|
@@ -42,11 +38,7 @@ pub fn[T : Show] Property::collect(self : Property, t : T) -> Property {
 ///|
 /// Classify the current test run by a boolean condition.
 pub fn Property::classify(self : Property, cond : Bool, s : String) -> Property {
-  Property(
-    run_prop(self).fmap(rose => {
-      rose.fmap(res => { ..res, classes: res.classes.add((s, cond)) })
-    }),
-  )
+  map_total_result(self, res => { ..res, classes: res.classes.add((s, cond)) })
 }
 
 ///|
@@ -56,11 +48,7 @@ pub fn Property::counterexample(self : Property, s : String) -> Property {
   let with_cb = self.callback(
     PostFinalFailure(CounterExample, (_st, _res) => ()),
   )
-  Property(
-    run_prop(with_cb).fmap(rose => {
-      rose.fmap(res => { ..res, test_case: res.test_case.add(s) })
-    }),
-  )
+  map_total_result(with_cb, res => { ..res, test_case: res.test_case.add(s) })
 }
 
 ///|
@@ -76,11 +64,7 @@ pub fn Property::filter(self : Property, cond : Bool) -> Property {
 ///|
 /// Attach a driver callback (post-test or post-final-failure hook).
 pub fn Property::callback(self : Property, cb : Callback) -> Property {
-  Property(
-    run_prop(self).fmap(rose => {
-      rose.fmap(res => { ..res, callbacks: res.callbacks.add(cb) })
-    }),
-  )
+  map_total_result(self, res => { ..res, callbacks: res.callbacks.add(cb) })
 }
 
 ///|
