@@ -86,7 +86,6 @@ test "default shrink for tuple and array" {
       #|*** [8/0/100] Failed! Falsified.
       #|Counterexample:
       #|(0, [0, 0, -1])
-      #|Replay: { state : {seed: 15849969052034214729, gamma: 16934044424796929712}, size : 8 }
       #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
     ),
   )
@@ -259,7 +258,6 @@ test "forall_shrink for sorted array" {
       #|*** [0/0/100] Failed! Falsified.
       #|Counterexample:
       #|[0, 0, 0]
-      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
       #|Shrinks: 9 successful, 12 unsuccessful, 2 final attempts
     ),
   )
@@ -307,7 +305,6 @@ test "counterexample adds derived information" {
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
-      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
     ),
   )
@@ -467,7 +464,6 @@ test "small check fails on first non-zero int" {
       #|*** [1/0/5] Failed! Falsified.
       #|Counterexample:
       #|1
-      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
     ),
   )
@@ -613,7 +609,6 @@ test "small check on nat prefix" {
       #|*** [1/0/5] Failed! Falsified.
       #|Counterexample:
       #|Succ(Zero)
-      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
     ),
   )

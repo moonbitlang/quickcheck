@@ -1,14 +1,5 @@
-// `Expected` and `Replay` are declared in `types.mbt`.
-// Constructor helpers and internal result modeling live here.
-
-///|
-/// Capture the current RNG state and size parameter as a `Replay` so
-/// that a failing test can be rerun deterministically. Typically used
-/// inside the driver — the `Replay` record also surfaces in the
-/// counter-example reported by a failing check.
-pub fn Replay::new(rand_state : @gen.RandomState, size : Int) -> Replay {
-  { rand_state, size }
-}
+// `Expected` is declared in `types.mbt`.
+// Internal result modeling lives here.
 
 ///|
 priv enum Status {

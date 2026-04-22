@@ -6,7 +6,6 @@ priv suberror TestError {
     num_shrinks~ : Int,
     num_shrink_tries~ : Int,
     num_shrink_final~ : Int,
-    replay_info~ : Replay,
     reason~ : String,
     error~ : Error,
     output~ : String,
@@ -73,13 +72,7 @@ pub fn[P : Testable] quick_check(
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
   let report : CheckReport = try? quick_check_with_result(
-    {
-      replay: None,
-      max_shrink,
-      max_success,
-      max_size,
-      max_discard_ratio: discard_ratio,
-    },
+    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
     prop,
   )
   finish_report(report, verbose)
@@ -101,13 +94,7 @@ pub fn[P : Testable] quick_check_silence(
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
   let report : CheckReport = try? quick_check_with_result(
-    {
-      replay: None,
-      max_shrink,
-      max_success,
-      max_size,
-      max_discard_ratio: discard_ratio,
-    },
+    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
     prop,
   )
   render_report(report, verbose~)
@@ -300,7 +287,6 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
 ) -> TestSuccess raise TestError {
   let limit = if max_size < 0 { 0 } else { max_size }
   let mut st = from_config({
-    replay: None,
     max_shrink: 0,
     max_success: limit,
     max_size: limit,
@@ -350,7 +336,7 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
                 continue parts, Some(finite), j + 1, remaining - 1, idx + 1
               }
             }
-            Failed => break st.find_failure_no_shrink(res, idx)
+            Failed => break st.find_failure_no_shrink(res)
             Rejected => {
               st = {
                 ..st,
@@ -527,7 +513,6 @@ fn State::find_failure(
     Success | GaveUp =>
       raise Fail(
         error=res.error,
-        replay_info=Replay::new(self.random_state, self.compute_size()),
         num_tests=self.num_success_tests,
         num_discarded=self.num_discarded_tests,
         num_shrinks=n,
@@ -553,14 +538,12 @@ fn State::find_failure(
 fn State::find_failure_no_shrink(
   self : State,
   res : SingleResult,
-  size : Int,
 ) -> TestSuccess raise TestError {
   self.callback_post_final_failure(res)
   match res.expect {
     Success | GaveUp =>
       raise Fail(
         error=res.error,
-        replay_info=Replay::new(self.random_state, size),
         num_tests=self.num_success_tests,
         num_discarded=self.num_discarded_tests,
         num_shrinks=0,

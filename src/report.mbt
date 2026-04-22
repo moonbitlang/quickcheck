@@ -36,7 +36,6 @@ fn render_error(error : TestError, verbose : Bool) -> String {
       output~,
       coverage~,
       num_tests~,
-      replay_info~,
       num_shrinks~,
       num_shrink_tries~,
       num_shrink_final~,
@@ -63,7 +62,6 @@ fn render_error(error : TestError, verbose : Bool) -> String {
         if classes != "" {
           lines.push(classes)
         }
-        lines.push(replay_info.to_string())
         lines.push(
           "Shrinks: \{num_shrinks} successful, \{num_shrink_tries} unsuccessful, \{num_shrink_final} final attempts",
         )

@@ -10,8 +10,7 @@
 // The types fall into three conceptual groups:
 //
 //   1. Driver expectations:   Expected
-//   2. Replay & auditing:     Replay
-//   3. Testable plumbing:     Arrow[A, B], ArrowError, ArrowAsync
+//   2. Testable plumbing:     Arrow[A, B], ArrowError, ArrowAsync
 //
 // Generator APIs now live in the dedicated `moonbitlang/quickcheck/gen`
 // package. The root package keeps property DSL and driver types only.
@@ -37,39 +36,6 @@ pub(all) enum Expected {
   Fail
   Success
   GaveUp
-}
-
-// ========================================================================
-//  Replay & auditing
-// ========================================================================
-
-///|
-/// A snapshot of the RNG state and size parameter sufficient to rerun
-/// a property on the exact same input sequence.
-///
-/// Every failing report in the driver carries a `Replay` inside its
-/// counterexample record — copy it into a test, pass it back via the
-/// driver's replay hook, and you will deterministically reproduce the
-/// failure on any machine. This is how the project's test suite pins
-/// previously-found counterexamples.
-///
-/// Fields:
-/// - `rand_state`: SplitMix seed captured just before the offending
-///   sample was drawn.
-/// - `size`: the size parameter the property was running at (the same
-///   value threaded through `@gen.sized` / `@gen.Gen::scale`).
-///
-/// Constructor: `Replay::new(rand_state, size)` (see `result.mbt`).
-pub(all) struct Replay {
-  rand_state : @gen.RandomState
-  size : Int
-}
-
-///|
-impl Show for Replay with output(self, logger) {
-  logger.write_string(
-    "Replay: { state : \{self.rand_state}, size : \{self.size} }",
-  )
 }
 
 // ========================================================================

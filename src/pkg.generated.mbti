@@ -3,7 +3,6 @@ package "moonbitlang/quickcheck"
 
 import {
   "moonbitlang/core/list",
-  "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/quickcheck/feat",
   "moonbitlang/quickcheck/gen",
 }
@@ -93,12 +92,6 @@ pub(all) enum Expected {
 
 type Property
 pub impl Testable for Property
-
-pub(all) struct Replay {
-  rand_state : @splitmix.RandomState
-  size : Int
-}
-pub fn Replay::new(@splitmix.RandomState, Int) -> Self
 
 // Type aliases
 

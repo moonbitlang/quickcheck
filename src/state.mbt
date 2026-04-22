@@ -13,8 +13,6 @@ priv struct State {
   mut max_discarded_ratio_ : Int
   // Maximum number of shrinks (immutable)
   mut max_shrinks_ : Int
-  // Size of the test to start replaying from (immutable, the argument of the Gen)
-  replay_start_size_ : Int?
 
   // Number of tests that have succeeded (mutable)
   num_success_tests : Int
@@ -40,23 +38,18 @@ priv struct State {
 
 ///|
 fn from_config(cfg : Config) -> State {
-  let rs = match cfg.replay {
-    Some((rng, _)) => rng
-    None => @splitmix.new()
-  }
   {
     name: @utils.fresh_name(),
     max_test_size_: cfg.max_size,
     max_success_tests_: cfg.max_success,
     max_discarded_ratio_: cfg.max_discard_ratio,
     max_shrinks_: cfg.max_shrink,
-    replay_start_size_: cfg.replay.map(x => x.1),
     num_success_tests: 0,
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
     collects: Coverage::new(),
     expected: Success,
-    random_state: rs,
+    random_state: @splitmix.new(),
     num_success_shrinks: 0,
     num_try_shrinks: 0,
     num_to_try_shrinks: 0,
@@ -75,12 +68,6 @@ fn State::clone(self : State) -> State {
 ///|
 fn State::compute_size(self : State) -> Int {
   match self {
-    {
-      replay_start_size_: Some(x),
-      num_success_tests: 0,
-      num_recent_discarded_tests: 0,
-      ..,
-    } => x
     {
       max_success_tests_: mss,
       max_test_size_: mts,
@@ -289,7 +276,6 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
 ///|
 /// Internal configuration for initializing a test runner.
 priv struct Config {
-  replay : (@gen.RandomState, Int)?
   max_success : Int
   max_discard_ratio : Int
   max_size : Int

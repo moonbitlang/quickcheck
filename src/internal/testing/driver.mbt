@@ -294,7 +294,6 @@ test "failure report renders details" {
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
-      #|Replay: { state : {seed: 3159675287217061961, gamma: 16934044424796929712}, size : 0 }
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
     ),
   )
@@ -316,7 +315,6 @@ test "failure coverage excludes the failing sample" {
       #|1
       #|Labels:
       #|non-zero
-      #|Replay: { state : {seed: 134275989391818153, gamma: 16934044424796929712}, size : 1 }
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
       #|Coverage:
       #|100% : zero
