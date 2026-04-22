@@ -1,9 +1,0 @@
-import {
-  "moonbitlang/quickcheck/internal/lazy",
-  "moonbitlang/core/list",
-  "moonbitlang/core/immut/hashmap" @immut_hashmap,
-  "moonbitlang/core/sorted_set",
-  "moonbitlang/core/quickcheck/splitmix" @splitmix,
-}
-
-warnings = "+unnecessary_annotation+missing_doc"
