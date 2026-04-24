@@ -170,9 +170,9 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Show] Testable f
   A,
   P,
 ] with property(self) {
-  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, (a : A) => try? (self.0)(
-    a,
-  ))
+  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, (a : A) => {
+    try? (self.0)(a)
+  })
 }
 
 ///|
