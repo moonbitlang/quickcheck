@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/quickcheck/gen",
+  "moonbitlang/quickcheck/internal/utils",
+  "moonbitlang/core/cmp",
+  "moonbitlang/core/list",
+  "moonbitlang/core/sorted_map",
+  "moonbitlang/core/quickcheck/splitmix",
+}
+
+warnings = "+unnecessary_annotation"

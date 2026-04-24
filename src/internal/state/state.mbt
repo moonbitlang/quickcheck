@@ -1,6 +1,144 @@
+// Package-private driver internals: the mutable test-runner state,
+// its configuration, accumulated coverage, per-run result, and the
+// callback types. Consolidated here because they are mutually
+// recursive (State holds SingleResult-taking callbacks; SingleResult
+// holds a list of Callback; Callback closes over State/SingleResult)
+// and because none of them are user-facing.
+//
+// `Expected` is the one exception: it's part of the public driver
+// API (`quick_check(..., expect=Fail)`) and lives here only so its
+// `Expected` field on State doesn't re-introduce a cycle with the
+// root package. The root re-exports it via `pub using`.
+
 ///|
-/// Internal State of Compiler
-priv struct State {
+/// Internal suberror used as a placeholder for `SingleResult.error`
+/// before a real error is attached.
+pub(all) suberror InternalError {
+  InternalError(String)
+}
+
+///|
+/// What the *author* of a property *expects* to happen. This is the
+/// knob behind `quick_check_fn(..., expect=Fail)` and friends: if the
+/// driver's actual verdict matches `Expected`, the check is
+/// considered a pass even when the property raises.
+///
+/// Use cases:
+///
+/// - `Success` (the default) — property must hold on every generated
+///   input.
+/// - `Fail` — the property *should* fail; useful when you want to
+///   demonstrate a known bug or lock in a regression check. The test
+///   fails if the driver *can't* find a counterexample.
+/// - `GaveUp` — the property is expected to discard too many cases.
+///   Rarely useful in isolation; handy for testing the driver itself.
+pub(all) enum Expected {
+  Fail
+  Success
+  GaveUp
+}
+
+///|
+/// Pass / fail / rejected for a single generated input.
+pub(all) enum Status {
+  Passed
+  Failed
+  Rejected
+}
+
+///|
+/// Two flavours of callback the driver may invoke:
+/// - `PostTest` fires after every generated input regardless of
+///   outcome (used by `classify`, `label`, etc.).
+/// - `PostFinalFailure` fires only after shrinking has settled on
+///   its minimal counter-example (used by `counterexample`).
+pub(all) enum Callback {
+  PostTest(Kind, (State, SingleResult) -> Unit)
+  PostFinalFailure(Kind, (State, SingleResult) -> Unit)
+}
+
+///|
+pub(all) enum Kind {
+  CounterExample
+  Nothing
+}
+
+///|
+/// Outcome of a single generated input before shrinking: the verdict
+/// plus every piece of metadata the combinators may have attached
+/// (labels, classifications, counter-example text, callbacks, …).
+pub(all) struct SingleResult {
+  status : Status
+  expect : Expected
+  reason : String
+  abort : Bool
+  maybe_num_tests : Int?
+  maybe_discarded_ratio : Int?
+  maybe_max_shrinks : Int?
+  maybe_max_test_size : Int?
+  labels : @list.List[String]
+  classes : @list.List[(String, Bool)]
+  tables : @list.List[(String, String)]
+  test_case : @list.List[String]
+  error : Error
+  callbacks : @list.List[Callback]
+}
+
+///|
+/// A `SingleResult` that reports the current input passed. Used by
+/// combinators that wrap a `Bool` into a `Testable`.
+pub fn succeed() -> SingleResult {
+  { ..Default::default(), status: Passed }
+}
+
+///|
+/// A `SingleResult` that reports the current input failed. The
+/// `reason` / `test_case` / `labels` can be filled in by chaining
+/// further combinators before handing it to the driver.
+pub fn failed() -> SingleResult {
+  { ..Default::default(), status: Failed }
+}
+
+///|
+/// A `SingleResult` that represents a discarded input — the driver
+/// should skip it and try another. Produced by `filter` when its
+/// precondition fails.
+pub fn rejected() -> SingleResult {
+  { ..Default::default(), status: Rejected }
+}
+
+///|
+impl Default for SingleResult with default() {
+  {
+    status: Rejected,
+    expect: Success,
+    reason: "unknown",
+    abort: false,
+    maybe_num_tests: None,
+    maybe_discarded_ratio: None,
+    maybe_max_shrinks: None,
+    maybe_max_test_size: None,
+    labels: @list.empty(),
+    classes: @list.empty(),
+    tables: @list.empty(),
+    test_case: @list.empty(),
+    error: InternalError("none"),
+    callbacks: @list.empty(),
+  }
+}
+
+///|
+/// Internal configuration for initializing a test runner.
+pub(all) struct Config {
+  max_success : Int
+  max_discard_ratio : Int
+  max_size : Int
+  max_shrink : Int
+}
+
+///|
+/// Internal State of the driver.
+pub(all) struct State {
   // Name of the test
   name : String
   // Top bound of test size (immutable, the argument of the Gen)
@@ -37,7 +175,7 @@ priv struct State {
 }
 
 ///|
-fn from_config(cfg : Config) -> State {
+pub fn from_config(cfg : Config) -> State {
   {
     name: @utils.fresh_name(),
     max_test_size_: cfg.max_size,
@@ -56,17 +194,13 @@ fn from_config(cfg : Config) -> State {
   }
 }
 
-// Deep copy of the state
-
 ///|
-fn State::clone(self : State) -> State {
+pub fn State::clone(self : State) -> State {
   { ..self }
 }
 
-// Computes the test size from the state
-
 ///|
-fn State::compute_size(self : State) -> Int {
+pub fn State::compute_size(self : State) -> Int {
   match self {
     {
       max_success_tests_: mss,
@@ -95,13 +229,16 @@ fn State::compute_size(self : State) -> Int {
 }
 
 ///|
-fn State::add_coverages(self : State, res : SingleResult) -> Unit {
+pub fn State::add_coverages(self : State, res : SingleResult) -> Unit {
   self.collects.label_incr(res.labels)
   self.collects.class_incr(res.classes)
 }
 
 ///|
-fn State::update_state_from_res(self : State, result : SingleResult) -> Unit {
+pub fn State::update_state_from_res(
+  self : State,
+  result : SingleResult,
+) -> Unit {
   self.max_success_tests_ = result.maybe_num_tests.unwrap_or(
     self.max_success_tests_,
   )
@@ -116,12 +253,12 @@ fn State::update_state_from_res(self : State, result : SingleResult) -> Unit {
 }
 
 ///|
-fn State::finished_successfully(self : State) -> Bool {
+pub fn State::finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
 }
 
 ///|
-fn State::discarded_too_much(self : State) -> Bool {
+pub fn State::discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
     @cmp.maximum(self.num_success_tests, self.max_success_tests_)
@@ -131,7 +268,7 @@ fn State::discarded_too_much(self : State) -> Bool {
 }
 
 ///|
-fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
+pub fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
   res.callbacks.each(cb => {
     match cb {
       PostTest(_, f) => f(self, res)
@@ -141,7 +278,10 @@ fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
 }
 
 ///|
-fn State::callback_post_final_failure(self : State, res : SingleResult) -> Unit {
+pub fn State::callback_post_final_failure(
+  self : State,
+  res : SingleResult,
+) -> Unit {
   res.callbacks.each(cb => {
     match cb {
       PostFinalFailure(_, f) => f(self, res)
@@ -151,12 +291,12 @@ fn State::callback_post_final_failure(self : State, res : SingleResult) -> Unit 
 }
 
 ///|
-fn State::counts(self : State) -> String {
+pub fn State::counts(self : State) -> String {
   "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
 
 ///|
-priv struct ListCompare[T](@list.List[T]) derive(Eq)
+pub(all) struct ListCompare[T](@list.List[T]) derive(Eq)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
@@ -179,7 +319,7 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 ///|
-priv struct Coverage {
+pub(all) struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
   labels : @sorted_map.SortedMap[ListCompare[String], Int]
@@ -187,12 +327,12 @@ priv struct Coverage {
 }
 
 ///|
-fn Coverage::new() -> Coverage {
+pub fn Coverage::new() -> Coverage {
   { labels: @sorted_map.new(), classes: @sorted_map.new() }
 }
 
 ///|
-fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
+pub fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
   match self.labels.get(key) {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
@@ -200,7 +340,7 @@ fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
 }
 
 ///|
-fn Coverage::class_incr(
+pub fn Coverage::class_incr(
   self : Coverage,
   classes : @list.List[(String, Bool)],
 ) -> Unit {
@@ -232,7 +372,7 @@ fn format_percent(count : Int, total : Int) -> String {
 }
 
 ///|
-fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
+pub fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each((list, i) => {
     if list.0.is_empty() {
@@ -246,7 +386,7 @@ fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
+pub fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.classes.each(fn(s, i) {
     res.push("\{format_percent(i, success)} : \{s}")
@@ -255,7 +395,7 @@ fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-fn Coverage::to_string(self : Coverage, success : Int) -> String {
+pub fn Coverage::to_string(self : Coverage, success : Int) -> String {
   let res = [
       if self.labels.length() == 0 {
         ""
@@ -271,13 +411,4 @@ fn Coverage::to_string(self : Coverage, success : Int) -> String {
     .filter(x => x != "")
     .join("\n")
   res
-}
-
-///|
-/// Internal configuration for initializing a test runner.
-priv struct Config {
-  max_success : Int
-  max_discard_ratio : Int
-  max_size : Int
-  max_shrink : Int
 }
