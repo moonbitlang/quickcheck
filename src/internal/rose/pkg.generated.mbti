@@ -14,16 +14,14 @@ pub fn[T] pure(T) -> Rose[T]
 pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
-
-  fn[T] new(T, Iter[Rose[T]]) -> Rose[T]
 } derive(@debug.Debug)
+#as_free_fn(deprecated)
+pub fn[T] Rose::Rose(T, Iter[Self[T]]) -> Self[T]
 pub fn[T] Rose::apply(Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
 pub fn[T, U] Rose::bind(Self[T], (T) -> Self[U]) -> Self[U]
 pub fn[T, U] Rose::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T] Rose::iter(Self[T]) -> Iter[T]
 pub fn[T] Rose::join(Self[Self[T]]) -> Self[T]
-#as_free_fn(deprecated)
-pub fn[T] Rose::new(T, Iter[Self[T]]) -> Self[T]
 
 // Type aliases
 
