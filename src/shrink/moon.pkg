@@ -1,0 +1,6 @@
+import {
+  "moonbitlang/quickcheck/internal/utils" @utils,
+  "moonbitlang/core/list",
+}
+
+warnings = "+unnecessary_annotation+missing_doc"

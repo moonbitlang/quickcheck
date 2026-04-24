@@ -156,21 +156,23 @@ pub impl[P : Testable, E : Show] Testable for Result[P, E] with property(self) {
 }
 
 ///|
-pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow[
+pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Show] Testable for Arrow[
   A,
   P,
 ] with property(self) {
-  forall_shrink(@gen.Gen::spawn(), A::shrink, self.0)
+  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, self.0)
 }
 
 ///|
 /// `Testable` for a raising function: wraps `raise` as a failure by
 /// catching the error and turning it into the counter-example reason.
-pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for ArrowError[
+pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Show] Testable for ArrowError[
   A,
   P,
 ] with property(self) {
-  forall_shrink(@gen.Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
+  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, (a : A) => try? (self.0)(
+    a,
+  ))
 }
 
 ///|
