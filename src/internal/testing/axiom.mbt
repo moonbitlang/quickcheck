@@ -14,7 +14,7 @@ impl Show for Queue with output(self, logger) {
 }
 
 ///|
-impl @qc.Shrink for Queue
+impl @shrink.Shrink for Queue
 
 ///|
 fn build_queue(f : @list.List[Int], r : @list.List[Int]) -> Queue {
@@ -84,7 +84,7 @@ impl Show for EqQueue with output(self, logger) {
 }
 
 ///|
-impl @qc.Shrink for EqQueue
+impl @shrink.Shrink for EqQueue
 
 ///|
 impl @coreqc.Arbitrary for EqQueue with arbitrary(i, rs) {

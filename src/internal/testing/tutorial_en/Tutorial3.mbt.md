@@ -30,7 +30,7 @@ Let us start with the simplest case. For integers, default shrinking does not bl
 ```mbt check
 ///|
 test "shrink int sample" {
-  json_inspect(@qc.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
+  json_inspect(@shrink.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
 }
 ```
 
@@ -98,7 +98,7 @@ Here is a simple example. Suppose the input domain is "non-negative even integer
 ```mbt check
 ///|
 fn shrink_even_nat(x : Int) -> Iter[Int] {
-  @qc.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
+  @shrink.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
 ///|
@@ -139,7 +139,7 @@ Take a `sorted array`. Default array shrinking does two things: it removes eleme
 
 ```mbt check
 ///|
-pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
+pub fn[T : @shrink.Shrink + Compare] shrink_sorted_array(
   xs : Array[T],
   lo~ : T,
   hi~ : T,
@@ -156,7 +156,7 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
     .flat_map(i => {
       let lo = if i == 0 { lo } else { nv[i - 1] }
       let hi = if i == l { hi } else { nv[i + 1] }
-      @qc.Shrink::shrink(nv[i]).flat_map(x => {
+      @shrink.Shrink::shrink(nv[i]).flat_map(x => {
         if lo <= x && x <= hi && x != nv[i] {
           let nv1 = nv.copy()
           nv1[i] = x
