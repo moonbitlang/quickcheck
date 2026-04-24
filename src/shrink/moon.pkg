@@ -1,5 +1,5 @@
 import {
-  "moonbitlang/quickcheck/internal/utils" @utils,
+  "moonbitlang/quickcheck/internal/utils",
   "moonbitlang/core/list",
 }
 
