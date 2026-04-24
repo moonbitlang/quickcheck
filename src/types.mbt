@@ -18,6 +18,12 @@
 // -----------------------------------------------------------------------
 
 ///|
+/// Re-export the `Shrink` trait so existing callers can keep writing
+/// `@quickcheck.Shrink` after the trait's definition moved to the
+/// `moonbitlang/quickcheck/shrink` subpackage.
+pub using @shrink {trait Shrink}
+
+///|
 /// What the *author* of a property *expects* to happen. This is the
 /// knob behind `quick_check_fn(..., expect=Fail)` and friends: if the
 /// driver's actual verdict matches `Expected`, the check is

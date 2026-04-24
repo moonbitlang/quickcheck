@@ -76,6 +76,7 @@ type Property
 pub impl Testable for Property
 
 // Type aliases
+pub using @shrink {trait Shrink}
 
 // Traits
 pub(open) trait Testable {
