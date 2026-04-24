@@ -1,0 +1,113 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/internal/state"
+
+import {
+  "moonbitlang/core/list",
+  "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/core/sorted_map",
+}
+
+// Values
+pub fn failed() -> SingleResult
+
+pub fn from_config(Config) -> State
+
+pub fn rejected() -> SingleResult
+
+pub fn succeed() -> SingleResult
+
+// Errors
+pub(all) suberror InternalError {
+  InternalError(String)
+}
+
+// Types and methods
+pub(all) enum Callback {
+  PostTest(Kind, (State, SingleResult) -> Unit)
+  PostFinalFailure(Kind, (State, SingleResult) -> Unit)
+}
+
+pub(all) struct Config {
+  max_success : Int
+  max_discard_ratio : Int
+  max_size : Int
+  max_shrink : Int
+}
+
+pub(all) struct Coverage {
+  labels : @sorted_map.SortedMap[ListCompare[String], Int]
+  classes : @sorted_map.SortedMap[String, Int]
+}
+pub fn Coverage::class_incr(Self, @list.List[(String, Bool)]) -> Unit
+pub fn Coverage::class_to_string(Self, Int) -> String
+pub fn Coverage::label_incr(Self, @list.List[String]) -> Unit
+pub fn Coverage::label_to_string(Self, Int) -> String
+pub fn Coverage::new() -> Self
+pub fn Coverage::to_string(Self, Int) -> String
+
+pub(all) enum Expected {
+  Fail
+  Success
+  GaveUp
+}
+
+pub(all) enum Kind {
+  CounterExample
+  Nothing
+}
+
+pub(all) struct ListCompare[T](@list.List[T]) derive(Eq)
+
+pub(all) struct SingleResult {
+  status : Status
+  expect : Expected
+  reason : String
+  abort : Bool
+  maybe_num_tests : Int?
+  maybe_discarded_ratio : Int?
+  maybe_max_shrinks : Int?
+  maybe_max_test_size : Int?
+  labels : @list.List[String]
+  classes : @list.List[(String, Bool)]
+  tables : @list.List[(String, String)]
+  test_case : @list.List[String]
+  error : Error
+  callbacks : @list.List[Callback]
+}
+
+pub(all) struct State {
+  name : String
+  mut max_test_size_ : Int
+  mut max_success_tests_ : Int
+  mut max_discarded_ratio_ : Int
+  mut max_shrinks_ : Int
+  num_success_tests : Int
+  num_discarded_tests : Int
+  num_recent_discarded_tests : Int
+  collects : Coverage
+  mut expected : Expected
+  mut random_state : @splitmix.RandomState
+  mut num_success_shrinks : Int
+  mut num_try_shrinks : Int
+  mut num_to_try_shrinks : Int
+}
+pub fn State::add_coverages(Self, SingleResult) -> Unit
+pub fn State::callback_post_final_failure(Self, SingleResult) -> Unit
+pub fn State::callback_post_test(Self, SingleResult) -> Unit
+pub fn State::clone(Self) -> Self
+pub fn State::compute_size(Self) -> Int
+pub fn State::counts(Self) -> String
+pub fn State::discarded_too_much(Self) -> Bool
+pub fn State::finished_successfully(Self) -> Bool
+pub fn State::update_state_from_res(Self, SingleResult) -> Unit
+
+pub(all) enum Status {
+  Passed
+  Failed
+  Rejected
+}
+
+// Type aliases
+
+// Traits
+

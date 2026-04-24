@@ -24,24 +24,22 @@
 pub using @shrink {trait Shrink}
 
 ///|
-/// What the *author* of a property *expects* to happen. This is the
-/// knob behind `quick_check_fn(..., expect=Fail)` and friends: if the
-/// driver's actual verdict matches `Expected`, the check is
-/// considered a pass even when the property raises.
-///
-/// Use cases:
-///
-/// - `Success` (the default) — property must hold on every generated
-///   input.
-/// - `Fail` — the property *should* fail; useful when you want to
-///   demonstrate a known bug or lock in a regression check. The test
-///   fails if the driver *can't* find a counterexample.
-/// - `GaveUp` — the property is expected to discard too many cases.
-///   Rarely useful in isolation; handy for testing the driver itself.
-pub(all) enum Expected {
-  Fail
-  Success
-  GaveUp
+/// Re-export `Expected` from `internal/state` so the public driver
+/// API (`quick_check(..., expect=Fail)`) stays spelled as
+/// `@quickcheck.Expected` even though the enum now lives in the
+/// internal package alongside the rest of the driver state.
+pub using @state {type Expected}
+
+// Private aliases so the rest of the root package can keep referring
+// to the driver-internal types by their short names.
+
+///|
+using @state {
+  type State,
+  type Config,
+  type Coverage,
+  type SingleResult,
+  type Callback,
 }
 
 // ========================================================================

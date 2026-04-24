@@ -1,10 +1,11 @@
-///|
-priv suberror InternalError {
-  InternalError(String)
-}
-
 // `Arrow`, `ArrowError`, and `ArrowAsync` are declared in `types.mbt`.
 // The `Testable` impls for them live further down in this file.
+//
+// The driver-internal types (`State`, `Config`, `Coverage`,
+// `SingleResult`, `Callback`, `Expected`, …) live in
+// `moonbitlang/quickcheck/internal/state`. They're brought into the
+// root namespace via `using @state { type ... }` in `types.mbt` so
+// they read unqualified here.
 
 ///|
 /// The per-sample output of a property: a *tree* of `SingleResult`s
@@ -33,19 +34,6 @@ priv suberror InternalError {
 /// Package-private. External code talks to `Property` or to the
 /// `Testable` trait rather than building `RoseResult`s directly.
 type RoseResult = @rose.Rose[SingleResult]
-
-///|
-/// TODO: determine the execution of callback by kind
-enum Callback {
-  PostTest(Kind, (State, SingleResult) -> Unit)
-  PostFinalFailure(Kind, (State, SingleResult) -> Unit)
-}
-
-///|
-priv enum Kind {
-  CounterExample
-  Nothing
-}
 
 ///|
 fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
@@ -113,24 +101,24 @@ pub impl Testable for Property with property(self) {
 
 ///|
 pub impl Testable for Discard with property(_self) {
-  rejected().property()
+  Testable::property(@state.rejected())
 }
 
 ///|
 pub impl Testable for Unit with property(_self) {
-  succeed().property()
+  Testable::property(@state.succeed())
 }
 
 ///|
-impl Testable for SingleResult with property(self) {
+pub impl Testable for SingleResult with property(self) {
   @gen.pure(@rose.pure(self))
 }
 
 ///|
 pub impl Testable for Bool with property(self) {
   match self {
-    true => succeed().property()
-    false => { ..failed(), reason: "Falsified." }.property()
+    true => Testable::property(@state.succeed())
+    false => Testable::property({ ..@state.failed(), reason: "Falsified." })
   }
 }
 
@@ -142,7 +130,7 @@ pub impl[P : Testable] Testable for @gen.Gen[P] with property(self) {
 ///|
 pub impl[P : Testable] Testable for P? with property(self) {
   match self {
-    None => rejected().property()
+    None => Testable::property(@state.rejected())
     Some(x) => x.property()
   }
 }
@@ -151,7 +139,7 @@ pub impl[P : Testable] Testable for P? with property(self) {
 pub impl[P : Testable, E : Show] Testable for Result[P, E] with property(self) {
   match self {
     Ok(p) => p.property()
-    Err(e) => { ..failed(), reason: e.to_string() }.property()
+    Err(e) => Testable::property({ ..@state.failed(), reason: e.to_string() })
   }
 }
 
