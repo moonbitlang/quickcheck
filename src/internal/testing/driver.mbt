@@ -379,7 +379,7 @@ impl Eq for Nat with equal(self, other) {
 }
 
 ///|
-impl @shrink.Shrink for Nat
+impl @qc.Shrink for Nat
 
 ///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {

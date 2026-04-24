@@ -104,7 +104,7 @@ pub fn[P : Testable] quick_check_silence(
 /// Thin sugar over `quick_check`: accept a plain `(A) -> B` property
 /// function, wrap it in `Arrow`, and run. The shortest path from a
 /// user-written property to a full QuickCheck run.
-pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn(
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -129,7 +129,7 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_
 ///|
 /// `quick_check_fn` variant that returns the formatted outcome as a
 /// `String` instead of raising / printing.
-pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_silence(
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -155,7 +155,7 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_
 /// `quick_check_fn` for properties that may `raise`. A raised error
 /// is treated as a counter-example with the error captured as the
 /// reason.
-pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_error(
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error(
   f : (A) -> B raise,
   max_shrinks? : Int,
   max_success? : Int,
@@ -180,7 +180,7 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_
 ///|
 /// `quick_check_fn_error` silent variant that returns the formatted
 /// outcome as a `String`.
-pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_error_silence(
+pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error_silence(
   f : (A) -> B raise,
   max_shrinks? : Int,
   max_success? : Int,
