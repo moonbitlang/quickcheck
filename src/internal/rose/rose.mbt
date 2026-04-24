@@ -17,8 +17,6 @@
 pub(all) struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
-
-  fn[T] new(val : T, branch : Iter[Rose[T]]) -> Rose[T]
 } derive(Debug)
 
 ///|
@@ -26,7 +24,7 @@ pub(all) struct Rose[T] {
 /// Kept for backward compatibility with callers that predate the
 /// primary-constructor migration.
 #as_free_fn(deprecated="Use Rose(...) directly")
-pub fn[T] Rose::new(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
+pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
   { val, branch }
 }
 

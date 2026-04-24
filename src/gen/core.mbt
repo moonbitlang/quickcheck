@@ -3,17 +3,15 @@ pub using @splitmix {type RandomState}
 
 ///|
 /// The Gen type represents a generator of values of type T.
-pub struct Gen[T] {
-  priv gen : (Int, RandomState) -> T
-
-  fn[T] new(gen : (Int, RandomState) -> T) -> Gen[T]
+struct Gen[T] {
+  gen : (Int, RandomState) -> T
 }
 
 ///|
 /// Build a `Gen[T]` from a `(size, rng) -> T` function. In most cases
 /// you can use the primary constructor syntax `Gen(f)` instead — both
 /// produce an identical generator.
-pub fn[T] Gen::new(gen : (Int, RandomState) -> T) -> Gen[T] {
+pub fn[T] Gen::Gen(gen : (Int, RandomState) -> T) -> Gen[T] {
   { gen, }
 }
 
