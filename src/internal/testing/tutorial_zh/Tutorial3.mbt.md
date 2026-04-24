@@ -52,7 +52,7 @@ pub trait Shrink {
 ```mbt check
 ///|
 test "shrink int sample" {
-  json_inspect(@shrink.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
+  json_inspect(@qc.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
 }
 ```
 
@@ -138,7 +138,7 @@ fn[P : Testable, T] @qc.shrinking(
 ```mbt check
 ///|
 fn shrink_even_nat(x : Int) -> Iter[Int] {
-  @shrink.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
+  @qc.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
 ///|
@@ -187,7 +187,7 @@ Part 2 我们已经看到，`sorted array`、BST、平衡树这类输入都带�
 
 ```mbt check
 ///|
-pub fn[T : @shrink.Shrink + Compare] shrink_sorted_array(
+pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
   xs : Array[T],
   lo~ : T,
   hi~ : T,
@@ -199,7 +199,7 @@ pub fn[T : @shrink.Shrink + Compare] shrink_sorted_array(
     .flat_map(i => {
       let lo = if i == 0 { lo } else { nv[i - 1] }
       let hi = if i == l { hi } else { nv[i + 1] }
-      @shrink.Shrink::shrink(nv[i]).flat_map(x => {
+      @qc.Shrink::shrink(nv[i]).flat_map(x => {
         if lo <= x && x <= hi && x != nv[i] {
           let nv1 = nv.copy()
           nv1[i] = x
