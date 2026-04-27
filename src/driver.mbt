@@ -209,7 +209,7 @@ fn[P : Testable] quick_check_with_result(
   cfg : Config,
   prop : P,
 ) -> TestSuccess raise TestError {
-  from_config(cfg).run_test(prop.property())
+  @state.from_config(cfg).run_test(prop.property())
 }
 
 ///|
@@ -286,14 +286,14 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
   abort : Bool,
 ) -> TestSuccess raise TestError {
   let limit = if max_size < 0 { 0 } else { max_size }
-  let mut st = from_config({
+  let mut st = @state.from_config({
     max_shrink: 0,
     max_success: limit,
     max_size: limit,
     max_discard_ratio: 0,
   })
   st.expected = expect
-  let dummy : Property = succeed().property()
+  let dummy : Property = Testable::property(@state.succeed())
   for parts = A::enumerate().eval(), finite_opt = None, j = 0, remaining = limit, idx = 0 {
     if remaining <= 0 {
       break st.complete_test(dummy)

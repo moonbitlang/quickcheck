@@ -1,9 +1,9 @@
 import {
   "moonbitlang/quickcheck" @qc,
-  "moonbitlang/quickcheck/gen" @gen,
-  "moonbitlang/quickcheck/laws" @laws,
-  "moonbitlang/quickcheck/feat" @feat,
+  "moonbitlang/quickcheck/gen",
+  "moonbitlang/quickcheck/laws",
+  "moonbitlang/quickcheck/feat",
   "moonbitlang/core/quickcheck" @coreqc,
   "moonbitlang/core/list",
-  "moonbitlang/core/immut/sorted_set" @sorted_set,
+  "moonbitlang/core/immut/sorted_set",
 } for "test"
