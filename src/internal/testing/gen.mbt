@@ -52,7 +52,7 @@ test "backtrack fallback to next generator" {
     (1, @gen.pure(Some(42))),
     (1, @gen.pure(Some(100))),
   ])
-  inspect(gen.sample(), content="Some(42)")
+  debug_inspect(gen.sample(), content="Some(42)")
 }
 
 ///|
@@ -61,13 +61,13 @@ test "backtrack all failed" {
     (3, @gen.pure((None : Int?))),
     (1, @gen.pure((None : Int?))),
   ])
-  inspect(gen.sample(), content="None")
+  debug_inspect(gen.sample(), content="None")
 }
 
 ///|
 test "backtrack empty input" {
   let gen : @gen.Gen[Int?] = @gen.backtrack([])
-  inspect(gen.sample(), content="None")
+  debug_inspect(gen.sample(), content="None")
 }
 
 ///|
@@ -76,7 +76,7 @@ test "backtrack ignores zero-weight candidate" {
     (0, @gen.pure(Some(1))),
     (1, @gen.pure(Some(2))),
   ])
-  inspect(gen.sample(), content="Some(2)")
+  debug_inspect(gen.sample(), content="Some(2)")
 }
 
 ///|

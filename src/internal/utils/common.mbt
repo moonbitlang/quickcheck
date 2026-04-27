@@ -81,8 +81,8 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
   if k > n {
     []
   } else {
-    let xs2 = xs[:k].to_array()
-    let xs1 = xs[k:].to_array()
+    let xs2 = xs[:k].to_owned()
+    let xs1 = xs[k:].to_owned()
     if xs1.is_empty() {
       []
     } else {
