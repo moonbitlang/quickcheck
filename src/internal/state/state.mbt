@@ -11,9 +11,11 @@
 // root package. The root re-exports it via `pub using`.
 
 ///|
-/// Internal suberror used as a placeholder for `SingleResult.error`
-/// before a real error is attached.
-pub(all) suberror InternalError {
+/// Placeholder value for `SingleResult.error`. The field is typed as
+/// the abstract `Error`, so any suberror works; this one is used only
+/// to initialise a fresh `SingleResult` before the real error (if any)
+/// is filled in.
+priv suberror InternalError {
   InternalError(String)
 }
 
@@ -58,15 +60,37 @@ pub(all) enum Callback {
 }
 
 ///|
+/// Which lifecycle stage a `Callback` wants to fire at. Used by the
+/// driver to decide whether a callback's role is to decorate the
+/// counter-example (`CounterExample`) or to stay quiet
+/// (`Nothing`) — the dispatch happens inside
+/// `State::callback_post_test` / `State::callback_post_final_failure`.
 pub(all) enum Kind {
   CounterExample
   Nothing
 }
 
 ///|
-/// Outcome of a single generated input before shrinking: the verdict
-/// plus every piece of metadata the combinators may have attached
-/// (labels, classifications, counter-example text, callbacks, …).
+/// Everything the driver learns about a single generated input. The
+/// leaf payload of the `@rose.Rose[SingleResult]` tree that every
+/// `Testable` collapses to — so each node in the shrink tree
+/// (the original sample plus every candidate tried during shrinking)
+/// carries one of these.
+///
+/// Fields split into three groups:
+///
+/// - The verdict: `status` (pass / fail / reject), `expect` (what
+///   the author predicted), `reason` (free-text explanation shown on
+///   failure), `abort` (stop the outer loop after this sample?),
+///   `error` (the raised exception when `status = Failed`).
+/// - Driver-option overrides: the `maybe_*` fields let a combinator
+///   reconfigure the run from *inside* the property (e.g.
+///   `with_max_success(50)`); `State::update_state_from_res`
+///   copies any `Some` back onto `State`.
+/// - Metadata attached by combinators: `labels` / `classes` /
+///   `tables` feed the coverage report, `test_case` collects
+///   counter-example lines, and `callbacks` carries the `PostTest`
+///   / `PostFinalFailure` hooks to run later.
 pub(all) struct SingleResult {
   status : Status
   expect : Expected
@@ -128,7 +152,18 @@ impl Default for SingleResult with default() {
 }
 
 ///|
-/// Internal configuration for initializing a test runner.
+/// Immutable driver configuration: the four caps a caller passes via
+/// `quick_check(max_success=..., max_size=..., discard_ratio=...,
+/// max_shrink=...)`. Consumed by `from_config` to seed an initial
+/// `State`; never mutated afterwards.
+///
+/// - `max_success`: target number of passing inputs before the run
+///   reports success.
+/// - `max_discard_ratio`: how many discards per success we tolerate
+///   before giving up (`discarded > max_discard_ratio * success`).
+/// - `max_size`: upper bound on the `size` argument handed to the
+///   generator; larger values ask for bigger inputs.
+/// - `max_shrink`: cap on the total shrink attempts after a failure.
 pub(all) struct Config {
   max_success : Int
   max_discard_ratio : Int
@@ -137,7 +172,28 @@ pub(all) struct Config {
 }
 
 ///|
-/// Internal State of the driver.
+/// Mutable driver state kept across the main test loop and the shrink
+/// search. A fresh `State` is built once via `from_config` and then
+/// threaded through every step: `run_test` reads the caps, increments
+/// the success / discard counters, and updates `random_state` between
+/// draws; `find_failure` / `local_min` bump the shrink counters as
+/// they descend the rose tree.
+///
+/// Field groups:
+///
+/// - `name` — a fresh identifier for the run (for diagnostics).
+/// - `max_*_` — immutable caps copied from `Config`.
+/// - `num_success_tests` / `num_discarded_tests` /
+///   `num_recent_discarded_tests` — progress counters the driver
+///   updates after each sample.
+/// - `collects` — the running `Coverage` tally (labels + classes)
+///   accumulated by `add_coverages`.
+/// - `expected` — the author-supplied expected outcome; the driver
+///   flips the verdict against this at the end of the run.
+/// - `random_state` — mutable PRNG the driver splits off for each
+///   generated sample.
+/// - `num_success_shrinks` / `num_try_shrinks` / `num_to_try_shrinks`
+///   — shrink-loop counters reported in the final `Fail` payload.
 pub(all) struct State {
   // Name of the test
   name : String
@@ -175,6 +231,9 @@ pub(all) struct State {
 }
 
 ///|
+/// Build a fresh `State` from the caller-supplied caps. All counters
+/// start at zero, `expected` defaults to `Success`, and the PRNG is
+/// seeded from `@splitmix.new()`.
 pub fn from_config(cfg : Config) -> State {
   {
     name: @utils.fresh_name(),
@@ -195,11 +254,19 @@ pub fn from_config(cfg : Config) -> State {
 }
 
 ///|
+/// Shallow-copy the `State`. Used by the driver to fork a snapshot
+/// before a step that may need to be rolled back on discard /
+/// failure.
 pub fn State::clone(self : State) -> State {
   { ..self }
 }
 
 ///|
+/// Pick the `size` argument to hand to the generator on the next
+/// draw. Grows with the number of successful tests so far (so later
+/// inputs are larger) while staying bounded by `max_test_size_`, and
+/// nudges up for every recently-discarded case so discards don't
+/// stall at a trivial size.
 pub fn State::compute_size(self : State) -> Int {
   match self {
     {
@@ -229,12 +296,19 @@ pub fn State::compute_size(self : State) -> Int {
 }
 
 ///|
+/// Fold the labels / classes carried by `res` into the running
+/// `Coverage` tally. Called after each passing test so the final
+/// report can print label-and-class percentages.
 pub fn State::add_coverages(self : State, res : SingleResult) -> Unit {
   self.collects.label_incr(res.labels)
   self.collects.class_incr(res.classes)
 }
 
 ///|
+/// Propagate any `maybe_*` overrides that combinators (e.g.
+/// `with_max_tests`) attached to `result` back onto `State`, and
+/// sync `expected` with whatever the property annotated itself with.
+/// Called once per sample before the verdict is inspected.
 pub fn State::update_state_from_res(
   self : State,
   result : SingleResult,
@@ -253,11 +327,15 @@ pub fn State::update_state_from_res(
 }
 
 ///|
+/// `true` once the run has gathered enough passing samples to stop.
 pub fn State::finished_successfully(self : State) -> Bool {
   self.num_success_tests >= self.max_success_tests_
 }
 
 ///|
+/// `true` once the discard budget
+/// (`num_discarded / max_discarded_ratio_`) has overrun the current
+/// success count — the driver then bails out with `GaveUp`.
 pub fn State::discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
@@ -268,6 +346,9 @@ pub fn State::discarded_too_much(self : State) -> Bool {
 }
 
 ///|
+/// Fire every `PostTest` callback attached to `res`. Called once per
+/// generated sample (success, failure, or discard), before the driver
+/// decides what to do next.
 pub fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
   res.callbacks.each(cb => {
     match cb {
@@ -278,6 +359,10 @@ pub fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
 }
 
 ///|
+/// Fire every `PostFinalFailure` callback attached to `res`. Called
+/// exactly once at the end of the shrink search, so combinators like
+/// `counterexample` can pull in extra context only for the minimal
+/// failing input.
 pub fn State::callback_post_final_failure(
   self : State,
   res : SingleResult,
@@ -291,12 +376,17 @@ pub fn State::callback_post_final_failure(
 }
 
 ///|
+/// Render the `[ok/discarded/total]` triple that prefixes every
+/// report line.
 pub fn State::counts(self : State) -> String {
   "[\{self.num_success_tests}/\{self.num_discarded_tests}/\{self.max_success_tests_}]"
 }
 
 ///|
-pub(all) struct ListCompare[T](@list.List[T]) derive(Eq)
+/// Wrapper that gives `@list.List[T]` a lexicographic `Compare` instance
+/// so it can key a `@sorted_map.SortedMap` (which needs `Compare`, not
+/// `Hash`). Used solely as the key type for `Coverage.labels`.
+pub struct ListCompare[T](@list.List[T]) derive(Eq)
 
 ///|
 impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
@@ -315,11 +405,16 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
   }
 }
 
-// Labels / Classes / Tables are used to collect statistics of the test
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 ///|
-pub(all) struct Coverage {
+/// Running tallies of `label(...)` and `classify(...)` hits, built
+/// up across the run and handed to the reporter at the end. The only
+/// externally-visible operation is `Coverage::to_string`, which
+/// renders the tallies as the percentage lines appended to the
+/// success / failure report; construction and update happen inside
+/// this package.
+pub struct Coverage {
   // Note that List[String] is not hashable, so we use ListCompare[String]
   // and sorted_map instead
   labels : @sorted_map.SortedMap[ListCompare[String], Int]
@@ -327,12 +422,16 @@ pub(all) struct Coverage {
 }
 
 ///|
-pub fn Coverage::new() -> Coverage {
+/// Fresh, empty `Coverage` — seeded into `State.collects` by
+/// `from_config`.
+fn Coverage::new() -> Coverage {
   { labels: @sorted_map.new(), classes: @sorted_map.new() }
 }
 
 ///|
-pub fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
+/// Record one occurrence of the given label stack (as
+/// attached by `label(...)`).
+fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
   match self.labels.get(key) {
     Some(x) => self.labels[key] = x + 1
     None => self.labels[key] = 1
@@ -340,7 +439,10 @@ pub fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
 }
 
 ///|
-pub fn Coverage::class_incr(
+/// Bump the per-class counters from one `classify(...)` hit. `true`
+/// increments the count; `false` still registers the class so it
+/// shows up in the report with 0%.
+fn Coverage::class_incr(
   self : Coverage,
   classes : @list.List[(String, Bool)],
 ) -> Unit {
@@ -372,7 +474,7 @@ fn format_percent(count : Int, total : Int) -> String {
 }
 
 ///|
-pub fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each((list, i) => {
     if list.0.is_empty() {
@@ -386,7 +488,7 @@ pub fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-pub fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.classes.each(fn(s, i) {
     res.push("\{format_percent(i, success)} : \{s}")
@@ -395,6 +497,9 @@ pub fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
+/// Render the labels + classes tally as percentage lines for the
+/// report (normalised against `success`, the number of passing
+/// samples). Called by `render_report` in the root package.
 pub fn Coverage::to_string(self : Coverage, success : Int) -> String {
   let res = [
       if self.labels.length() == 0 {

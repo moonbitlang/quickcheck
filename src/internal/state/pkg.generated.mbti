@@ -17,9 +17,6 @@ pub fn rejected() -> SingleResult
 pub fn succeed() -> SingleResult
 
 // Errors
-pub(all) suberror InternalError {
-  InternalError(String)
-}
 
 // Types and methods
 pub(all) enum Callback {
@@ -34,15 +31,10 @@ pub(all) struct Config {
   max_shrink : Int
 }
 
-pub(all) struct Coverage {
+pub struct Coverage {
   labels : @sorted_map.SortedMap[ListCompare[String], Int]
   classes : @sorted_map.SortedMap[String, Int]
 }
-pub fn Coverage::class_incr(Self, @list.List[(String, Bool)]) -> Unit
-pub fn Coverage::class_to_string(Self, Int) -> String
-pub fn Coverage::label_incr(Self, @list.List[String]) -> Unit
-pub fn Coverage::label_to_string(Self, Int) -> String
-pub fn Coverage::new() -> Self
 pub fn Coverage::to_string(Self, Int) -> String
 
 pub(all) enum Expected {
@@ -56,7 +48,7 @@ pub(all) enum Kind {
   Nothing
 }
 
-pub(all) struct ListCompare[T](@list.List[T]) derive(Eq)
+pub struct ListCompare[T](@list.List[T]) derive(Eq)
 
 pub(all) struct SingleResult {
   status : Status
