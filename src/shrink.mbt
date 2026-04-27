@@ -130,10 +130,100 @@ test "shrink char" {
 }
 
 ///|
-pub impl Shrink for Double
+pub impl Shrink for Double with shrink(x) {
+  shrink_decimal(x)
+}
 
 ///|
-pub impl Shrink for Float
+pub impl Shrink for Float with shrink(x) {
+  shrink_decimal(x.to_double()).map(Float::from_double)
+}
+
+///|
+/// Shrink a floating-point number toward simpler decimal representations.
+///
+/// Strategy:
+/// - NaN shrinks to 0 and a few small numbers.
+/// - Infinity shrinks to 0 and a few small numbers.
+/// - Negative values shrink to their absolute value, then recurse.
+/// - Non-negative finite values are rounded at increasing precisions
+///   (1, 10, 100, ..., 100000) and each rounded candidate that is
+///   strictly closer to zero is emitted, along with integer-shrink
+///   candidates of the scaled mantissa.
+fn shrink_decimal(x : Double) -> Iter[Double] {
+  guard !x.is_nan() else { [0.0, 1.0, -1.0, 2.0].iter() }
+  guard !x.is_inf() else { [0.0, 1.0, -1.0, 1000.0, -1000.0].iter() }
+  guard x >= 0.0 else {
+    Iter::singleton(-x).concat(shrink_decimal(-x).map(Double::neg))
+  }
+  guard x != 0.0 else { Iter::empty() }
+  [1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0]
+  .iter()
+  .flat_map(p => {
+    let m = (x * p + 0.5).floor().to_int64()
+    if p != 1.0 && m % 10L == 0L {
+      return Iter::empty()
+    }
+    Iter::singleton(m)
+    .concat(Shrink::shrink(m))
+    .map(n => n.to_double() / p)
+    .filter(y => y >= 0.0 && y < x)
+  })
+}
+
+///|
+test "shrink double: pi" {
+  let s = Shrink::shrink(3.14159).to_array()
+  assert_true(s.contains(3.0))
+  assert_true(s.contains(0.0))
+  assert_true(s.all(y => y < 3.14159))
+}
+
+///|
+test "shrink double: exact output for 3.5" {
+  json_inspect(Shrink::shrink(3.5), content=[
+    3, 2, 0, 3.4, 3.3, 3.1, 2.7, 1.8, 0,
+  ])
+}
+
+///|
+test "shrink double: zero" {
+  assert_eq(Shrink::shrink(0.0).to_array(), [])
+}
+
+///|
+test "shrink double: negative" {
+  let s = Shrink::shrink(-5.5).to_array()
+  assert_true(s.contains(5.5))
+  assert_true(s.any(y => y < 0.0))
+}
+
+///|
+test "shrink double: nan" {
+  let s = Shrink::shrink(0.0 / 0.0).to_array()
+  assert_true(s.contains(0.0))
+}
+
+///|
+test "shrink double: infinity" {
+  let s = Shrink::shrink(1.0 / 0.0).to_array()
+  assert_true(s.contains(0.0))
+  assert_true(s.contains(1000.0))
+}
+
+///|
+test "shrink double: small value" {
+  let s = Shrink::shrink(0.001).to_array()
+  assert_true(s.contains(0.0))
+  assert_true(s.all(y => y >= 0.0 && y < 0.001))
+}
+
+///|
+test "shrink float: basic" {
+  let s = Shrink::shrink((3.14 : Float)).to_array()
+  assert_true(s.contains(3.0))
+  assert_true(s.contains(0.0))
+}
 
 ///|
 pub impl Shrink for String
