@@ -312,7 +312,7 @@ declare fn dequeue(q : Queue) -> Queue
 ///|
 /// `gen_queue()` 是一个生成随机 Queue 实例的生成器
 test "property Q2" {
-  let prop = @qc.forall(@gen.tuple(@gen.small_int(), gen_queue()), p => {
+  let prop = @qc.forall(@gen.tuple(@gen.int_range(-100, 100), gen_queue()), p => {
     let (x, q) = p
     is_empty(enqueue(x, q)) == false
   })
@@ -429,7 +429,7 @@ fn q6(xq : (Int, Queue)) -> Bool {
 ```mbt check
 ///|
 fn gen_int_list() -> @gen.Gen[@list.List[Int]] {
-  @gen.sized(n => @gen.small_int().list_with_size(n))
+  @gen.sized(n => @gen.int_range(-100, 100).list_with_size(n))
 }
 
 ///|
@@ -440,8 +440,8 @@ fn gen_queue() -> @gen.Gen[Queue] {
 
 ///|
 test "queue axioms q1-q6" {
-  let gen_xq = @gen.tuple(@gen.small_int(), gen_queue())
-  let gen_x = @gen.small_int()
+  let gen_xq = @gen.tuple(@gen.int_range(-100, 100), gen_queue())
+  let gen_x = @gen.int_range(-100, 100)
   @qc.quick_check(q1())
   @qc.quick_check(@qc.forall(gen_xq, q2))
   @qc.quick_check(@qc.forall(gen_x, q3))
@@ -557,8 +557,8 @@ fn front_1_q6(xq : (Int, Queue)) -> Bool {
 
 ///|
 test "operation invariance tests" {
-  let gen_xq = @gen.tuple(@gen.small_int(), gen_queue())
-  let gen_xqp = @gen.triple(@gen.small_int(), gen_queue(), gen_queue())
+  let gen_xq = @gen.tuple(@gen.int_range(-100, 100), gen_queue())
+  let gen_xqp = @gen.triple(@gen.int_range(-100, 100), gen_queue(), gen_queue())
   @qc.quick_check(@qc.forall(gen_xq, enqueue_1_q3))
   @qc.quick_check(@qc.forall(gen_xqp, enqueue_1_q4))
   @qc.quick_check(@qc.forall(gen_xq, front_1_q6), expect=Fail)

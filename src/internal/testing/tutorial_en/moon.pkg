@@ -3,6 +3,7 @@ import {
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/laws",
   "moonbitlang/quickcheck/feat",
+  "moonbitlang/quickcheck/shrink",
   "moonbitlang/core/quickcheck" @coreqc,
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/core/list",

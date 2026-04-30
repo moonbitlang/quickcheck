@@ -247,7 +247,7 @@ test "shrink sorted array" {
 ```mbt check
 ///|
 test "forall_shrink for sorted array" {
-  let gen = @gen.sorted_array(6, @gen.int_range(0, 9))
+  let gen = @gen.int_range(0, 9).array_with_size(6).fmap(a => a..sort())
   let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })

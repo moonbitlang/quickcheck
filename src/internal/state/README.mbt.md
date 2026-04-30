@@ -73,6 +73,7 @@ The root package keeps that name reachable via
 
 ```moonbit nocheck
 // in src/types.mbt
+
 ///|
 pub using @state {type Expected}
 ```

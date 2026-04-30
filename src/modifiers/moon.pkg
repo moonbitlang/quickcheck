@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/quickcheck/gen",
+  "moonbitlang/quickcheck/shrink",
+  "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/core/list",
+  "moonbitlang/core/int",
+}
+
+warnings = "+unnecessary_annotation+missing_doc"

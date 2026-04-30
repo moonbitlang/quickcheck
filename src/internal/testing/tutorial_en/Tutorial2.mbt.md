@@ -20,7 +20,7 @@ Let’s start with a class of simple generators—the building blocks of more co
 
 ### Range Control
 
-In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@gen.int_range`, `@gen.small_int`, `@gen.nat`, and `@gen.neg_int` to express different integer domains, as well as `@gen.char_range`, `@gen.alphabet`, and `@gen.numeral` for constraining character domains. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
+In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@gen.int_range` and `@gen.char_range` for constraining value domains. For specialized integer types (small, non-negative, negative, positive), use the modifiers package: `@modifiers.Small[Int]`, `@modifiers.NonNegative[Int]`, `@modifiers.Negative[Int]`, `@modifiers.Positive[Int]`. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
 
 ```mbt check
 ///|
@@ -206,7 +206,7 @@ This section discusses how the `size` parameter affects data size and test compl
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @gen.sized(n => @gen.small_int().list_with_size(n))
+  let gen = @gen.sized(n => @gen.int_range(-100, 100).list_with_size(n))
   let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
@@ -292,12 +292,12 @@ test "combinator sorted array with filter" {
 
 This example has three layers of composition: first, `array_with_size` fixes the structure; then, nested `forall + one_of_array` sets up a dependency between an element and its container; finally, `filter` enforces the "sorted" constraint. The style is intuitive and works well for quickly validating an idea, but it still discards some samples.
 
-When the discard rate is high, it’s usually better to move constraints into the construction phase. QuickCheck already provides `@gen.sorted_array`, which we can use directly:
+When the discard rate is high, it’s usually better to move constraints into the construction phase. We can generate an array and sort it directly:
 
 ```mbt check
 ///|
 test "combinator sorted array constructor" {
-  let gen = @gen.sorted_array(5, @gen.int_range(-30, 30))
+  let gen = @gen.int_range(-30, 30).array_with_size(5).fmap(a => a..sort())
   let prop = @qc.forall(gen, arr => {
     @qc.forall(@gen.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]

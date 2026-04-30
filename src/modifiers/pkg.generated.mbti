@@ -1,0 +1,64 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/modifiers"
+
+import {
+  "moonbitlang/core/list",
+  "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/splitmix",
+  "moonbitlang/quickcheck/shrink",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct ASCIIString(String) derive(Eq)
+pub impl Show for ASCIIString
+pub impl @quickcheck.Arbitrary for ASCIIString
+pub impl @shrink.Shrink for ASCIIString
+
+pub(all) struct Negative[T](T) derive(Eq)
+pub impl[T : Show] Show for Negative[T]
+pub impl @quickcheck.Arbitrary for Negative[Int]
+pub impl @shrink.Shrink for Negative[Int]
+
+pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
+pub impl[T : Show] Show for NonEmptyArray[T]
+pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NonEmptyArray[T]
+pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T]
+
+pub(all) struct NonEmptyList[T](@list.List[T]) derive(Eq)
+pub impl[T : Show] Show for NonEmptyList[T]
+pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NonEmptyList[T]
+pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T]
+
+pub(all) struct NonNegative[T](T) derive(Eq)
+pub impl[T : Show] Show for NonNegative[T]
+pub impl @quickcheck.Arbitrary for NonNegative[Int]
+pub impl @shrink.Shrink for NonNegative[Int]
+
+pub(all) struct Positive[T](T) derive(Eq)
+pub impl[T : Show] Show for Positive[T]
+pub impl @quickcheck.Arbitrary for Positive[Int]
+pub impl @shrink.Shrink for Positive[Int]
+
+pub(all) struct Small[T](T) derive(Eq)
+pub impl[T : Show] Show for Small[T]
+pub impl @quickcheck.Arbitrary for Small[Int]
+pub impl @shrink.Shrink for Small[Int]
+
+pub(all) struct SortedArray[T](Array[T]) derive(Eq)
+pub impl[T : Show] Show for SortedArray[T]
+pub impl[T : @quickcheck.Arbitrary + Compare] @quickcheck.Arbitrary for SortedArray[T]
+pub impl @shrink.Shrink for SortedArray[Int]
+
+pub(all) struct SortedList[T](@list.List[T]) derive(Eq)
+pub impl[T : Show] Show for SortedList[T]
+pub impl[T : @quickcheck.Arbitrary + Compare] @quickcheck.Arbitrary for SortedList[T]
+pub impl @shrink.Shrink for SortedList[Int]
+
+// Type aliases
+
+// Traits
+

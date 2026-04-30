@@ -504,56 +504,6 @@ pub fn[T] one_of_array(val : Array[T]) -> Gen[T] {
 }
 
 ///|
-/// Primitive Generators and Combinators
-pub fn small_int() -> Gen[Int] {
-  Gen((_, rs) => {
-    let p = rs.next_double()
-    if p < 0.75 {
-      rs.next_int() % 11
-    } else {
-      rs.next_int() % 97
-    }
-  })
-}
-
-///|
-/// Generate a small natural number with heavier weight on smaller
-/// values: 50% draw in `[0, 10)`, 25% in `[10, 100)`, 20% in
-/// `[100, 1000)`, 5% in `[1000, 10_000)`.
-pub fn nat() -> Gen[Int] {
-  Gen((_, rs) => {
-    let p = rs.next_double()
-    if p < 0.5 {
-      rs.next_int() % 10
-    } else if p < 0.75 {
-      rs.next_int() % 100
-    } else if p < 0.95 {
-      rs.next_int() % 1000
-    } else {
-      rs.next_int() % 10000
-    }
-  })
-}
-
-///|
-/// Generates a negative integer
-pub fn neg_int() -> Gen[Int] {
-  Gen((_, rs) => -rs.next_int().abs())
-}
-
-///|
-/// Generates a numeral char
-pub fn numeral() -> Gen[Char] {
-  Gen((_, rs) => Int::unsafe_to_char(rs.next_int().abs() % 10 + 48))
-}
-
-///|
-/// Generates alphabet
-pub fn alphabet() -> Gen[Char] {
-  Gen((_, rs) => Int::unsafe_to_char(rs.next_int().abs() % 26 + 65))
-}
-
-///|
 /// Generates int within given bound [0, bound)
 ///
 /// ```mbt check
@@ -624,20 +574,6 @@ pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[@list.List[T]] {
       continue n - 1, liftA2(@list.List::add, acc, gen)
     }
   }
-}
-
-///|
-/// Generate a sorted `List[T]` of exactly `size` elements — draws
-/// `size` independent values from `gen`, then sorts.
-pub fn[T : Compare] sorted_list(size : Int, gen : Gen[T]) -> Gen[@list.List[T]] {
-  gen.list_with_size(size).fmap(@list.List::sort)
-}
-
-///|
-/// Generate a sorted `Array[T]` of exactly `size` elements. Array
-/// counterpart of `sorted_list`.
-pub fn[T : Compare] sorted_array(size : Int, gen : Gen[T]) -> Gen[Array[T]] {
-  gen.array_with_size(size).fmap(a => a..sort())
 }
 
 ///|

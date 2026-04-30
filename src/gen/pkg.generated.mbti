@@ -10,8 +10,6 @@ import {
 }
 
 // Values
-pub fn alphabet() -> Gen[Char]
-
 pub fn[T] backtrack(Array[(UInt, Gen[T?])]) -> Gen[T?]
 
 pub fn char_range(Char, Char) -> Gen[Char]
@@ -44,12 +42,6 @@ pub fn[A, B, C, D, E, F] liftA5((A, B, C, D, E) -> F, Gen[A], Gen[B], Gen[C], Ge
 
 pub fn[A, B, C, D, E, F, G] liftA6((A, B, C, D, E, F) -> G, Gen[A], Gen[B], Gen[C], Gen[D], Gen[E], Gen[F]) -> Gen[G]
 
-pub fn nat() -> Gen[Int]
-
-pub fn neg_int() -> Gen[Int]
-
-pub fn numeral() -> Gen[Char]
-
 pub fn[T] one_of(Array[Gen[T]]) -> Gen[T]
 
 pub fn[T] one_of_array(Array[T]) -> Gen[T]
@@ -61,12 +53,6 @@ pub fn[T] pure(T) -> Gen[T]
 pub fn[T, U, V, W] quad(Gen[T], Gen[U], Gen[V], Gen[W]) -> Gen[(T, U, V, W)]
 
 pub fn[T] sized((Int) -> Gen[T]) -> Gen[T]
-
-pub fn small_int() -> Gen[Int]
-
-pub fn[T : Compare] sorted_array(Int, Gen[T]) -> Gen[Array[T]]
-
-pub fn[T : Compare] sorted_list(Int, Gen[T]) -> Gen[@list.List[T]]
 
 pub fn[T, U, V] triple(Gen[T], Gen[U], Gen[V]) -> Gen[(T, U, V)]
 

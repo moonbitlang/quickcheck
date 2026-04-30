@@ -33,10 +33,9 @@ $$
 在 PBT 中，最常用的起点是对基础类型的取值范围进行建模，
 更确切的说，是对与有序类型的值域进行约束。对于整数，我们可能只关心某个区间内的值；对于字符，我们可能只关注特定范围或类别的字符。
 在 QuickCheck 中，我们有
-`@gen.int_range`、`@gen.small_int`、`@gen.nat`、
-`@gen.neg_int` 这些函数用于表达不同的整数域，
-也有 `@gen.char_range`、`@gen.alphabet`、`@gen.numeral`
-用于字符域的约束表达。
+`@gen.int_range` 和 `@gen.char_range` 用于约束值域。
+对于特殊的整数类型（小值、非负、负数、正数），使用 modifiers 包：
+`@modifiers.Small[Int]`、`@modifiers.NonNegative[Int]`、`@modifiers.Negative[Int]`、`@modifiers.Positive[Int]`。
 我们通常先用这些生成器把输入限制在需求语义允许的范围内，再由性质去验证更高层的关系。
 
 ```mbt check
@@ -262,7 +261,7 @@ test "gen bind dependent" {
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @gen.sized(n => @gen.small_int().list_with_size(n))
+  let gen = @gen.sized(n => @gen.int_range(-100, 100).list_with_size(n))
   let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
@@ -355,13 +354,12 @@ test "combinator sorted array with filter" {
 这个例子里有三个组合层次：先用 `array_with_size` 固定结构，再用嵌套 `forall + one_of_array` 建立元素与容器的依赖，
 最后用 `filter` 施加「有序」约束。写法直观，适合快速验证想法，但它仍然会丢弃一部分样本。
 
-当过滤比例偏高时，我们更推荐把约束提前到「构造阶段」。
-QuickCheck 已经提供 `@gen.sorted_array`，我们可以直接利用它：
+当过滤比例偏高时，我们更推荐把约束提前到「构造阶段」。我们可以生成数组后直接排序：
 
 ```mbt check
 ///|
 test "combinator sorted array constructor" {
-  let gen = @gen.sorted_array(5, @gen.int_range(-30, 30))
+  let gen = @gen.int_range(-30, 30).array_with_size(5).fmap(a => a..sort())
   let prop = @qc.forall(gen, arr => {
     @qc.forall(@gen.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
