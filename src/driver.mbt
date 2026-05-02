@@ -1,39 +1,4 @@
 ///|
-priv suberror TestError {
-  Fail(
-    num_tests~ : Int,
-    num_discarded~ : Int,
-    num_shrinks~ : Int,
-    num_shrink_tries~ : Int,
-    num_shrink_final~ : Int,
-    reason~ : String,
-    error~ : Error,
-    output~ : String,
-    coverage~ : Coverage,
-    failing_case~ : Array[String],
-    failing_labels~ : Array[String],
-    failing_classes~ : @sorted_set.SortedSet[String]
-  )
-  GaveUp(
-    num_tests~ : Int,
-    num_discarded~ : Int,
-    coverage~ : Coverage,
-    output~ : String
-  )
-  NoneExpectedFail(
-    num_tests~ : Int,
-    num_discarded~ : Int,
-    coverage~ : Coverage,
-    output~ : String
-  )
-}
-
-///|
-priv enum TestSuccess {
-  Success(num_tests~ : Int, coverage~ : Coverage, output~ : String)
-}
-
-///|
 fn finish_report(report : CheckReport, verbose : Bool) -> Unit raise Failure {
   let rendered = report.render(verbose~)
   if report.is_ok() {

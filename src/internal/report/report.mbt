@@ -1,8 +1,56 @@
 ///|
-priv struct CheckReport(Result[TestSuccess, TestError])
+/// The aggregated outcome of a QuickCheck run: a `TestSuccess` on the
+/// happy path, a `TestError` when the property failed (or was given
+/// up on, or unexpectedly passed). Wrapped as a newtype so renderers
+/// can hang as methods.
+pub(all) struct CheckReport(Result[TestSuccess, TestError])
 
 ///|
-fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
+/// Successful test outcomes — either the property passed
+/// `max_success` times, or it gave up but the user `expect`ed that.
+pub(all) enum TestSuccess {
+  Success(num_tests~ : Int, coverage~ : @state.Coverage, output~ : String)
+}
+
+///|
+/// Failure outcomes the driver can `raise`. `Fail` carries the
+/// shrunk counter-example and shrink tally; `GaveUp` reports a run
+/// that exhausted its discard budget; `NoneExpectedFail` is raised
+/// when the user `expect=Fail` but the property kept passing.
+pub(all) suberror TestError {
+  Fail(
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    num_shrinks~ : Int,
+    num_shrink_tries~ : Int,
+    num_shrink_final~ : Int,
+    reason~ : String,
+    error~ : Error,
+    output~ : String,
+    coverage~ : @state.Coverage,
+    failing_case~ : Array[String],
+    failing_labels~ : Array[String],
+    failing_classes~ : @sorted_set.SortedSet[String]
+  )
+  GaveUp(
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    coverage~ : @state.Coverage,
+    output~ : String
+  )
+  NoneExpectedFail(
+    num_tests~ : Int,
+    num_discarded~ : Int,
+    coverage~ : @state.Coverage,
+    output~ : String
+  )
+}
+
+///|
+/// Format the report as a human-readable string. `verbose=true`
+/// expands the failure block with labels, classes, shrink counts,
+/// and full coverage.
+pub fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
   match self.0 {
     Ok(result) => render_success(result)
     Err(error) => render_error(error, verbose)
@@ -10,7 +58,8 @@ fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
 }
 
 ///|
-fn CheckReport::is_ok(self : Self) -> Bool {
+/// True when the report is a successful outcome.
+pub fn CheckReport::is_ok(self : Self) -> Bool {
   self.0 is Ok(_)
 }
 
@@ -22,7 +71,7 @@ fn render_block(title : String, lines : Array[String]) -> String {
 }
 
 ///|
-fn render_coverage(coverage : Coverage, num_tests : Int) -> String {
+fn render_coverage(coverage : @state.Coverage, num_tests : Int) -> String {
   coverage.to_string(num_tests)
 }
 

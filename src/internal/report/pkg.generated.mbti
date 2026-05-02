@@ -1,0 +1,30 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/internal/report"
+
+import {
+  "moonbitlang/core/sorted_set",
+  "moonbitlang/quickcheck/internal/state",
+}
+
+// Values
+
+// Errors
+pub(all) suberror TestError {
+  Fail(num_tests~ : Int, num_discarded~ : Int, num_shrinks~ : Int, num_shrink_tries~ : Int, num_shrink_final~ : Int, reason~ : String, error~ : Error, output~ : String, coverage~ : @state.Coverage, failing_case~ : Array[String], failing_labels~ : Array[String], failing_classes~ : @sorted_set.SortedSet[String])
+  GaveUp(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String)
+  NoneExpectedFail(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String)
+}
+
+// Types and methods
+pub(all) struct CheckReport(Result[TestSuccess, TestError])
+pub fn CheckReport::is_ok(Self) -> Bool
+pub fn CheckReport::render(Self, verbose? : Bool) -> String
+
+pub(all) enum TestSuccess {
+  Success(num_tests~ : Int, coverage~ : @state.Coverage, output~ : String)
+}
+
+// Type aliases
+
+// Traits
+
