@@ -1,7 +1,7 @@
 ///|
 /// Wraps a value guaranteed to be `>= 0`. Generation is biased toward
 /// small values; shrinking stays non-negative.
-pub struct NonNegative[T](T) derive(Eq)
+pub(all) struct NonNegative[T](T) derive(Eq)
 
 ///|
 pub impl[T : Show] Show for NonNegative[T] with output(self, logger) {
