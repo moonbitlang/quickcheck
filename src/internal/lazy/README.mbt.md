@@ -44,7 +44,7 @@ access is O(1).
 ```mbt check
 ///|
 test "LazyRef::from_thunk runs the thunk exactly once" {
-  let calls = Ref::new(0)
+  let calls = Ref(0)
   let lazy_ref = @lazy.LazyRef::from_thunk(() => {
     calls.val += 1
     42

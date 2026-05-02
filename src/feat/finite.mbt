@@ -180,7 +180,7 @@ test "for x in finite walks every element" {
 
 ///|
 test "iter is lazy — early break stops walking" {
-  let calls = Ref::new(0)
+  let calls = Ref(0)
   let probe : Finite[Int] = {
     fCard: 1000,
     fIndex: _i => {
