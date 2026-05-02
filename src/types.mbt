@@ -30,15 +30,6 @@ pub using @shrink {trait Shrink}
 /// internal package alongside the rest of the driver state.
 pub using @state {type Expected}
 
-// Private aliases so the rest of the root package can keep referring
-// to the driver-internal types by their short names.
-
-///|
-using @state {type State, type Config, type SingleResult, type Callback}
-
-///|
-using @report {type CheckReport, type TestSuccess, type TestError}
-
 // ========================================================================
 //  Testable plumbing
 // ========================================================================

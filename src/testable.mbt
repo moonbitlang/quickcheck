@@ -3,9 +3,8 @@
 //
 // The driver-internal types (`State`, `Config`, `Coverage`,
 // `SingleResult`, `Callback`, `Expected`, …) live in
-// `moonbitlang/quickcheck/internal/state`. They're brought into the
-// root namespace via `using @state { type ... }` in `types.mbt` so
-// they read unqualified here.
+// `moonbitlang/quickcheck/internal/state` and are referred to here
+// as `@state.<Name>`.
 
 ///|
 /// The per-sample output of a property: a *tree* of `SingleResult`s
@@ -33,7 +32,7 @@
 ///
 /// Package-private. External code talks to `Property` or to the
 /// `Testable` trait rather than building `RoseResult`s directly.
-type RoseResult = @rose.Rose[SingleResult]
+type RoseResult = @rose.Rose[@state.SingleResult]
 
 ///|
 fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
@@ -110,7 +109,7 @@ pub impl Testable for Unit with property(_self) {
 }
 
 ///|
-pub impl Testable for SingleResult with property(self) {
+pub impl Testable for @state.SingleResult with property(self) {
   @gen.pure(@rose.pure(self))
 }
 
@@ -165,7 +164,9 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
 /// Project a `Testable` to its underlying `@gen.Gen[Rose[SingleResult]]`.
 /// Primarily used by other combinators that want to thread extra
 /// transformations through the property.
-fn[P : Testable] run_prop(prop : P) -> @gen.Gen[@rose.Rose[SingleResult]] {
+fn[P : Testable] run_prop(
+  prop : P,
+) -> @gen.Gen[@rose.Rose[@state.SingleResult]] {
   prop.property().0
 }
 
@@ -175,7 +176,7 @@ fn[P : Testable] run_prop(prop : P) -> @gen.Gen[@rose.Rose[SingleResult]] {
 /// per-run result without changing the verdict.
 fn[P : Testable] map_total_result(
   prop : P,
-  f : (SingleResult) -> SingleResult,
+  f : (@state.SingleResult) -> @state.SingleResult,
 ) -> Property {
   run_prop(prop).fmap(rose => rose.fmap(f))
 }
@@ -209,7 +210,7 @@ pub fn[P : Testable, T] shrinking(
 /// Attach a post-test (or post-final-failure) callback to `p`. The
 /// callback receives the driver state and result; typical use is to
 /// print diagnostics on a shrunk counter-example.
-pub fn[P : Testable] callback(p : P, cb : Callback) -> Property {
+pub fn[P : Testable] callback(p : P, cb : @state.Callback) -> Property {
   map_total_result(p, res => { ..res, callbacks: res.callbacks.add(cb) })
 }
 

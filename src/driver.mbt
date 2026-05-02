@@ -1,5 +1,8 @@
 ///|
-fn finish_report(report : CheckReport, verbose : Bool) -> Unit raise Failure {
+fn finish_report(
+  report : @report.CheckReport,
+  verbose : Bool,
+) -> Unit raise Failure {
   let rendered = report.render(verbose~)
   if report.is_ok() {
     println(rendered)
@@ -36,7 +39,7 @@ pub fn[P : Testable] quick_check(
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report = CheckReport(
+  let report = @report.CheckReport(
     try? quick_check_with_result(
       { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
       prop,
@@ -60,7 +63,7 @@ pub fn[P : Testable] quick_check_silence(
   verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report = CheckReport(
+  let report = @report.CheckReport(
     try? quick_check_with_result(
       { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
       prop,
@@ -175,9 +178,9 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 /// Internal helper: run a property with a fully-specified `Config`
 /// and return the structured `TestSuccess` / raise `TestError`.
 fn[P : Testable] quick_check_with_result(
-  cfg : Config,
+  cfg : @state.Config,
   prop : P,
-) -> TestSuccess raise TestError {
+) -> @report.TestSuccess raise @report.TestError {
   @state.from_config(cfg).run_test(prop.property())
 }
 
@@ -199,7 +202,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  let report = CheckReport(
+  let report = @report.CheckReport(
     try? small_check_with_result(f, max_size, expect, abort),
   )
   finish_report(report, verbose)
@@ -215,7 +218,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  let report = CheckReport(
+  let report = @report.CheckReport(
     try? small_check_with_result(f, max_size, expect, abort),
   )
   report.render(verbose~)
@@ -253,7 +256,7 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
   max_size : Int,
   expect : Expected,
   abort : Bool,
-) -> TestSuccess raise TestError {
+) -> @report.TestSuccess raise @report.TestError {
   let limit = if max_size < 0 { 0 } else { max_size }
   let mut st = @state.from_config({
     max_shrink: 0,
@@ -343,10 +346,10 @@ fn active_classes(
 /// book-keep successes and discards, and on failure hand off to
 /// `find_failure` for shrinking. Returns the aggregated
 /// `TestSuccess` or raises `TestError`.
-fn State::run_test(
-  self : State,
+fn @state.State::run_test(
+  self : @state.State,
   prop : Property,
-) -> TestSuccess raise TestError {
+) -> @report.TestSuccess raise @report.TestError {
   for cur = self.run_single_test(prop) {
     match cur {
       Ok(res) => break res
@@ -367,10 +370,10 @@ fn State::run_test(
 /// report when the expected outcome matches, or raise the
 /// appropriate `TestError` when it does not (e.g. the property was
 /// supposed to fail but no counter-example appeared).
-fn State::complete_test(
-  self : State,
+fn @state.State::complete_test(
+  self : @state.State,
   _prop : Property,
-) -> TestSuccess raise TestError {
+) -> @report.TestSuccess raise @report.TestError {
   if self.expected is Fail {
     raise NoneExpectedFail(
       num_tests=self.num_success_tests,
@@ -391,10 +394,10 @@ fn State::complete_test(
 /// Abandon the run when too many inputs have been discarded (the
 /// `max_success × discard_ratio` budget is exhausted). Produces the
 /// `GaveUp` outcome with the current coverage snapshot.
-fn State::give_up(
-  self : State,
+fn @state.State::give_up(
+  self : @state.State,
   _prop : Property,
-) -> TestSuccess raise TestError {
+) -> @report.TestSuccess raise @report.TestError {
   if self.expected is GaveUp {
     Success(
       num_tests=self.num_success_tests,
@@ -413,23 +416,23 @@ fn State::give_up(
 
 ///|
 /// Run a single test and return the Ok(result) if ended successfully, or Err(state) if it should continue.
-fn State::run_single_test(
-  self : State,
+fn @state.State::run_single_test(
+  self : @state.State,
   prop : Property,
-) -> Result[TestSuccess, State] raise TestError {
+) -> Result[@report.TestSuccess, @state.State] raise @report.TestError {
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let { val: res, branch: ts } = prop.0.run(self.compute_size(), rnd1)
-  fn update_state(st0 : State) {
+  fn update_state(st0 : @state.State) {
     self.random_state = rnd2
     st0.update_state_from_res(res)
   }
 
   fn next(
-    end_with : (State, Property) -> TestSuccess raise TestError,
-    next_state : State,
+    end_with : (@state.State, Property) -> @report.TestSuccess raise @report.TestError,
+    next_state : @state.State,
     p : Property,
-  ) -> Result[TestSuccess, State] raise TestError {
+  ) -> Result[@report.TestSuccess, @state.State] raise @report.TestError {
     update_state(next_state)
     if res.abort {
       Ok(end_with(next_state, p))
@@ -444,7 +447,7 @@ fn State::run_single_test(
   match res {
     { status: Passed, .. } =>
       next(
-        State::complete_test,
+        @state.State::complete_test,
         {
           ..stc,
           num_success_tests: self.num_success_tests + 1,
@@ -455,7 +458,7 @@ fn State::run_single_test(
     { status: Failed, .. } => Ok(self.find_failure(res, ts))
     { status: Rejected, .. } =>
       next(
-        State::give_up,
+        @state.State::give_up,
         {
           ..self,
           num_discarded_tests: self.num_discarded_tests + 1,
@@ -471,11 +474,11 @@ fn State::run_single_test(
 /// and the iter of alternative `Rose` sub-trees, walk the shrinkers
 /// to find a minimal failing case, then raise the appropriate
 /// `TestError` (or `TestSuccess` if the failure was expected).
-fn State::find_failure(
-  self : State,
-  res : SingleResult,
-  ts : Iter[@rose.Rose[SingleResult]],
-) -> TestSuccess raise TestError {
+fn @state.State::find_failure(
+  self : @state.State,
+  res : @state.SingleResult,
+  ts : Iter[@rose.Rose[@state.SingleResult]],
+) -> @report.TestSuccess raise @report.TestError {
   let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
   self.callback_post_final_failure(ce)
   match res.expect {
@@ -504,10 +507,10 @@ fn State::find_failure(
 }
 
 ///|
-fn State::find_failure_no_shrink(
-  self : State,
-  res : SingleResult,
-) -> TestSuccess raise TestError {
+fn @state.State::find_failure_no_shrink(
+  self : @state.State,
+  res : @state.SingleResult,
+) -> @report.TestSuccess raise @report.TestError {
   self.callback_post_final_failure(res)
   match res.expect {
     Success | GaveUp =>
@@ -541,11 +544,11 @@ fn State::find_failure_no_shrink(
 /// `self.max_shrinks_` total attempts. Returns the full tally
 /// `(successful shrinks, tries without success, last-stage tries,
 /// final result)` that the driver reports in the `Fail` outcome.
-fn State::local_min(
-  self : State,
-  res : SingleResult,
-  ts : Iter[@rose.Rose[SingleResult]],
-) -> (Int, Int, Int, SingleResult) {
+fn @state.State::local_min(
+  self : @state.State,
+  res : @state.SingleResult,
+  ts : Iter[@rose.Rose[@state.SingleResult]],
+) -> (Int, Int, Int, @state.SingleResult) {
   if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
     local_min_found(self, res)
   } else {
@@ -577,9 +580,9 @@ fn State::local_min(
 /// found). Returns the counts the driver reports in the `Fail`
 /// outcome.
 fn local_min_found(
-  st : State,
-  res : SingleResult,
-) -> (Int, Int, Int, SingleResult) {
+  st : @state.State,
+  res : @state.SingleResult,
+) -> (Int, Int, Int, @state.SingleResult) {
   // TODO: Print error
   (
     st.num_success_shrinks,
