@@ -33,7 +33,7 @@ pub fn[T] LazyRef::from_value(val : T) -> LazyRef[T] {
 ///
 /// ```mbt check
 /// test {
-///   let runs = Ref::new(0)
+///   let runs = Ref(0)
 ///   let r = LazyRef::from_thunk(() => {
 ///     runs.val = runs.val + 1
 ///     "hi"
