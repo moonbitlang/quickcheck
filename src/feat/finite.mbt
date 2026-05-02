@@ -180,20 +180,20 @@ test "for x in finite walks every element" {
 
 ///|
 test "iter is lazy — early break stops walking" {
-  let calls = Ref(0)
+  let mut calls = 0
   let probe : Finite[Int] = {
     fCard: 1000,
     fIndex: _i => {
-      calls.val = calls.val + 1
+      calls = calls + 1
       42
     },
   }
   for _x in probe {
-    if calls.val == 3 {
+    if calls == 3 {
       break
     }
   }
-  assert_eq(calls.val, 3)
+  assert_eq(calls, 3)
 }
 
 ///|

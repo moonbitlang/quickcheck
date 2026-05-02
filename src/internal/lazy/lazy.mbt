@@ -33,15 +33,15 @@ pub fn[T] LazyRef::from_value(val : T) -> LazyRef[T] {
 ///
 /// ```mbt check
 /// test {
-///   let runs = Ref(0)
+///   let mut runs = 0
 ///   let r = LazyRef::from_thunk(() => {
-///     runs.val = runs.val + 1
+///     runs = runs + 1
 ///     "hi"
 ///   })
-///   assert_eq(runs.val, 0)
+///   assert_eq(runs, 0)
 ///   assert_eq(r.force(), "hi")
 ///   assert_eq(r.force(), "hi")
-///   assert_eq(runs.val, 1)
+///   assert_eq(runs, 1)
 /// }
 /// ```
 pub fn[T] LazyRef::from_thunk(f : () -> T) -> LazyRef[T] {

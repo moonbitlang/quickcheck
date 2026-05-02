@@ -44,19 +44,19 @@ access is O(1).
 ```mbt check
 ///|
 test "LazyRef::from_thunk runs the thunk exactly once" {
-  let calls = Ref(0)
+  let mut calls = 0
   let lazy_ref = @lazy.LazyRef::from_thunk(() => {
-    calls.val += 1
+    calls += 1
     42
   })
   // Nothing has run yet.
-  assert_eq(calls.val, 0)
+  assert_eq(calls, 0)
   // First force: runs the thunk, caches the result.
   assert_eq(lazy_ref.force(), 42)
-  assert_eq(calls.val, 1)
+  assert_eq(calls, 1)
   // Second force: returns the cached value.
   assert_eq(lazy_ref.force(), 42)
-  assert_eq(calls.val, 1)
+  assert_eq(calls, 1)
 }
 
 ///|
