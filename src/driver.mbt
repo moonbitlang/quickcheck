@@ -199,7 +199,9 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  let report = CheckReport(try? small_check_with_result(f, max_size, expect, abort))
+  let report = CheckReport(
+    try? small_check_with_result(f, max_size, expect, abort),
+  )
   finish_report(report, verbose)
 }
 
@@ -213,7 +215,9 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  let report = CheckReport(try? small_check_with_result(f, max_size, expect, abort))
+  let report = CheckReport(
+    try? small_check_with_result(f, max_size, expect, abort),
+  )
   report.render(verbose~)
 }
 
