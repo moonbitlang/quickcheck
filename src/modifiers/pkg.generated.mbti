@@ -33,7 +33,7 @@ pub impl[T : Show] Show for NonEmptyList[T]
 pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NonEmptyList[T]
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T]
 
-pub struct NonNegative[T](T) derive(Eq)
+pub(all) struct NonNegative[T](T) derive(Eq)
 pub impl[T : Show] Show for NonNegative[T]
 pub impl @quickcheck.Arbitrary for NonNegative[Int]
 pub impl @shrink.Shrink for NonNegative[Int]
