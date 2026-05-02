@@ -63,13 +63,12 @@ pub fn[P : Testable] quick_check_silence(
   verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report = @report.CheckReport(
+  @report.CheckReport(
     try? quick_check_with_result(
       { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
       prop,
     ),
-  )
-  report.render(verbose~)
+  ).render(verbose~)
 }
 
 ///|
@@ -136,7 +135,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
-) -> Unit raise Failure {
+) -> Unit raise  {
   quick_check(
     ArrowError(f),
     max_shrink?=max_shrinks,
@@ -218,10 +217,9 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  let report = @report.CheckReport(
-    try? small_check_with_result(f, max_size, expect, abort),
+  @report.CheckReport(try? small_check_with_result(f, max_size, expect, abort)).render(
+    verbose~,
   )
-  report.render(verbose~)
 }
 
 ///|
@@ -331,14 +329,12 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
 fn active_classes(
   classes : @list.List[(String, Bool)],
 ) -> @sorted_set.SortedSet[String] {
-  let acc : Array[String] = []
-  classes.each(fn(pair) {
-    let (name, active) = pair
-    if active {
-      acc.push(name)
-    }
-  })
-  @sorted_set.from_iter(acc.iter())
+  
+  [
+    for pair in classes if pair.1 => pair.0
+  ] |> @sorted_set.from_array
+  
+
 }
 
 ///|
