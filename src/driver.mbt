@@ -135,7 +135,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
-) -> Unit raise  {
+) -> Unit raise Failure {
   quick_check(
     ArrowError(f),
     max_shrink?=max_shrinks,
@@ -329,12 +329,7 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
 fn active_classes(
   classes : @list.List[(String, Bool)],
 ) -> @sorted_set.SortedSet[String] {
-  
-  [
-    for pair in classes if pair.1 => pair.0
-  ] |> @sorted_set.from_array
-  
-
+  [ for pair in classes if pair.1 => pair.0 ] |> @sorted_set.from_array
 }
 
 ///|
