@@ -1,5 +1,18 @@
 ///|
-type CheckReport = Result[TestSuccess, TestError]
+priv struct CheckReport(Result[TestSuccess, TestError])
+
+///|
+fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
+  match self.0 {
+    Ok(result) => render_success(result)
+    Err(error) => render_error(error, verbose)
+  }
+}
+
+///|
+fn CheckReport::is_ok(self : Self) -> Bool {
+  self.0 is Ok(_)
+}
 
 ///|
 fn render_block(title : String, lines : Array[String]) -> String {
@@ -87,12 +100,4 @@ fn render_error(error : TestError, verbose : Bool) -> String {
     }
   }
   lines.join("\n")
-}
-
-///|
-fn render_report(report : CheckReport, verbose? : Bool = false) -> String {
-  match report {
-    Ok(result) => render_success(result)
-    Err(error) => render_error(error, verbose)
-  }
 }
