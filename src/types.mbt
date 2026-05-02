@@ -37,9 +37,15 @@ pub using @state {type Expected}
 using @state {
   type State,
   type Config,
-  type Coverage,
   type SingleResult,
   type Callback,
+}
+
+///|
+using @report {
+  type CheckReport,
+  type TestSuccess,
+  type TestError,
 }
 
 // ========================================================================

@@ -5,6 +5,7 @@ import {
   "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/quickcheck/internal/rose",
   "moonbitlang/quickcheck/internal/state",
+  "moonbitlang/quickcheck/internal/report",
   "moonbitlang/core/sorted_set",
   "moonbitlang/core/cmp",
   "moonbitlang/core/list",
