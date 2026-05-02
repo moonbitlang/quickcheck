@@ -35,8 +35,8 @@ priv enum TestSuccess {
 
 ///|
 fn finish_report(report : CheckReport, verbose : Bool) -> Unit raise Failure {
-  let rendered = render_report(report, verbose~)
-  if report is Ok(_) {
+  let rendered = report.render(verbose~)
+  if report.is_ok() {
     println(rendered)
   } else {
     fail(rendered)
@@ -71,9 +71,11 @@ pub fn[P : Testable] quick_check(
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report : CheckReport = try? quick_check_with_result(
-    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-    prop,
+  let report = CheckReport(
+    try? quick_check_with_result(
+      { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
+      prop,
+    ),
   )
   finish_report(report, verbose)
 }
@@ -93,11 +95,13 @@ pub fn[P : Testable] quick_check_silence(
   verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report : CheckReport = try? quick_check_with_result(
-    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-    prop,
+  let report = CheckReport(
+    try? quick_check_with_result(
+      { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
+      prop,
+    ),
   )
-  render_report(report, verbose~)
+  report.render(verbose~)
 }
 
 ///|
@@ -230,9 +234,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  let report : CheckReport = try? small_check_with_result(
-    f, max_size, expect, abort,
-  )
+  let report = CheckReport(try? small_check_with_result(f, max_size, expect, abort))
   finish_report(report, verbose)
 }
 
@@ -246,10 +248,8 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  let report : CheckReport = try? small_check_with_result(
-    f, max_size, expect, abort,
-  )
-  render_report(report, verbose~)
+  let report = CheckReport(try? small_check_with_result(f, max_size, expect, abort))
+  report.render(verbose~)
 }
 
 ///|

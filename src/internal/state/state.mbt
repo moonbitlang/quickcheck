@@ -499,7 +499,7 @@ fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
 ///|
 /// Render the labels + classes tally as percentage lines for the
 /// report (normalised against `success`, the number of passing
-/// samples). Called by `render_report` in the root package.
+/// samples). Called by `CheckReport::render` in the root package.
 pub fn Coverage::to_string(self : Coverage, success : Int) -> String {
   let res = [
       if self.labels.length() == 0 {
