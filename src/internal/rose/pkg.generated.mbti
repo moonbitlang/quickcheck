@@ -11,11 +11,10 @@ pub fn[T] pure(T) -> Rose[T]
 // Errors
 
 // Types and methods
-pub(all) struct Rose[T] {
+pub struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
 } derive(@debug.Debug)
-#as_free_fn(deprecated)
 pub fn[T] Rose::Rose(T, Iter[Self[T]]) -> Self[T]
 pub fn[T] Rose::apply(Self[T], (T, Iter[Self[T]]) -> Self[T]) -> Self[T]
 pub fn[T, U] Rose::bind(Self[T], (T) -> Self[U]) -> Self[U]
