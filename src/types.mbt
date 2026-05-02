@@ -34,19 +34,10 @@ pub using @state {type Expected}
 // to the driver-internal types by their short names.
 
 ///|
-using @state {
-  type State,
-  type Config,
-  type SingleResult,
-  type Callback,
-}
+using @state {type State, type Config, type SingleResult, type Callback}
 
 ///|
-using @report {
-  type CheckReport,
-  type TestSuccess,
-  type TestError,
-}
+using @report {type CheckReport, type TestSuccess, type TestError}
 
 // ========================================================================
 //  Testable plumbing
