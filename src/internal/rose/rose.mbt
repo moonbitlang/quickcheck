@@ -14,7 +14,7 @@
 ///
 /// Primary constructor: `Rose(val, branch)`. `Rose::new` is kept as a
 /// deprecated alias for callers that haven't migrated yet.
-pub(all) struct Rose[T] {
+pub struct Rose[T] {
   val : T
   branch : Iter[Rose[T]]
 } derive(Debug)
@@ -23,7 +23,8 @@ pub(all) struct Rose[T] {
 /// Deprecated: prefer the primary constructor `Rose(val, branch)`.
 /// Kept for backward compatibility with callers that predate the
 /// primary-constructor migration.
-#as_free_fn(deprecated="Use Rose(...) directly")
+// TODO(upstream): as_free_fn(deprecated="Use Rose(...) directly")
+// the attribute unknown is unclear, should report `unused attribute`? 
 pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
   { val, branch }
 }
@@ -44,7 +45,7 @@ pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
   let tss = self.branch
   let ts = self.val.branch
-  { val: self.val.val, branch: tss.map(x => x.join()).concat(ts) }
+  Rose(self.val.val, tss.map(x => x.join()).concat(ts))
 }
 
 ///|
@@ -59,7 +60,7 @@ pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
 /// }
 /// ```
 pub fn[T] pure(val : T) -> Rose[T] {
-  { val, branch: Iter::empty() }
+  Rose(val, Iter::empty())
 }
 
 ///|
@@ -69,13 +70,13 @@ pub fn[T] pure(val : T) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let tree = Rose::{ val: 1, branch: [pure(2), pure(3)].iter() }
+///   let tree = @rose.Rose(1, [pure(2), pure(3)].iter())
 ///   let doubled = tree.fmap(x => x * 2)
 ///   assert_eq(doubled.iter().collect(), [2, 4, 6])
 /// }
 /// ```
 pub fn[T, U] Rose::fmap(self : Rose[T], f : (T) -> U) -> Rose[U] {
-  { val: f(self.val), branch: self.branch.map(x => x.fmap(f)) }
+  Rose(f(self.val), self.branch.map(x => x.fmap(f)))
 }
 
 ///|
@@ -127,13 +128,10 @@ test "iter walks root then branches in depth-first order" {
   //     / \   \
   //    3   4   6
   let leaf = pure
-  let tree = Rose::{
-    val: 1,
-    branch: [
-      { val: 2, branch: [leaf(3), leaf(4)].iter() },
-      { val: 5, branch: [leaf(6)].iter() },
-    ].iter(),
-  }
+  let tree = Rose(
+    1,
+    [Rose(2, [leaf(3), leaf(4)].iter()), Rose(5, [leaf(6)].iter())].iter(),
+  )
   let collected = tree.iter().collect()
   assert_eq(collected, [1, 2, 3, 4, 5, 6])
 }
@@ -145,7 +143,7 @@ test "iter on a leaf yields only the root" {
 
 ///|
 test "for .. in sugar walks every value" {
-  let tree = Rose::{ val: 10, branch: [pure(20), pure(30)].iter() }
+  let tree = Rose(10, [pure(20), pure(30)].iter())
   let acc = []
   for x in tree {
     acc.push(x)
@@ -159,7 +157,7 @@ test "for .. in sugar walks every value" {
 /// unbounded prefix before yielding anything.
 test "iter is lazy over an infinite-width tree" {
   let infinite_siblings = Iter::repeat(pure(7))
-  let tree = Rose::{ val: 0, branch: infinite_siblings }
+  let tree = Rose(0, infinite_siblings)
   assert_eq(tree.iter().take(5).collect(), [0, 7, 7, 7, 7])
 }
 
@@ -180,7 +178,7 @@ test "iter is lazy over an infinite-depth spine" {
         Some(spine(n + 1))
       }
     })
-    { val: n, branch }
+    Rose(n, branch)
   }
 
   assert_eq(spine(0).iter().take(6).collect(), [0, 1, 2, 3, 4, 5])
@@ -190,7 +188,7 @@ test "iter is lazy over an infinite-depth spine" {
 /// Early `break` in a `for .. in` loop must also be lazy: we should
 /// never touch the sub-trees past the break point.
 test "for .. in with early break visits only the prefix" {
-  let infinite = Rose::{ val: 0, branch: Iter::repeat(pure(1)) }
+  let infinite = Rose(0, Iter::repeat(pure(1)))
   let acc = []
   for x in infinite {
     if acc.length() == 3 {

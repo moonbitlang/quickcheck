@@ -435,8 +435,8 @@ fn @state.State::run_single_test(
   let stc = self.clone()
   stc.add_coverages(res) // The failure should not be counted.
   self.callback_post_test(res)
-  match res {
-    { status: Passed, .. } =>
+  match res.status {
+    Passed =>
       next(
         @state.State::complete_test,
         {
@@ -446,8 +446,8 @@ fn @state.State::run_single_test(
         },
         prop,
       )
-    { status: Failed, .. } => Ok(self.find_failure(res, ts))
-    { status: Rejected, .. } =>
+    Failed => Ok(self.find_failure(res, ts))
+    Rejected =>
       next(
         @state.State::give_up,
         {
