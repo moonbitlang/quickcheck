@@ -383,28 +383,6 @@ pub fn State::counts(self : State) -> String {
 }
 
 ///|
-/// Wrapper that gives `@list.List[T]` a lexicographic `Compare` instance
-/// so it can key a `@sorted_map.SortedMap` (which needs `Compare`, not
-/// `Hash`). Used solely as the key type for `Coverage.labels`.
-pub struct ListCompare[T](@list.List[T]) derive(Eq)
-
-///|
-impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
-  match (self.0, other.0) {
-    (More(x, tail=xs), More(y, tail=ys)) => {
-      let res = T::compare(x, y)
-      if res == 0 {
-        Compare::compare(ListCompare(xs), ListCompare(ys))
-      } else {
-        res
-      }
-    }
-    (More(_), Empty) => 1
-    (Empty, More(_)) => -1
-    (Empty, Empty) => 0
-  }
-}
-
 // TODO : Maybe a more general way to collect infos (use typeclass?)
 
 ///|
@@ -415,9 +393,7 @@ impl[T : Compare] Compare for ListCompare[T] with compare(self, other) {
 /// success / failure report; construction and update happen inside
 /// this package.
 pub struct Coverage {
-  // Note that List[String] is not hashable, so we use ListCompare[String]
-  // and sorted_map instead
-  labels : @sorted_map.SortedMap[ListCompare[String], Int]
+  labels : @sorted_map.SortedMap[@list.List[String], Int]
   classes : @sorted_map.SortedMap[String, Int]
 }
 
@@ -477,10 +453,10 @@ fn format_percent(count : Int, total : Int) -> String {
 fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
   let res = []
   self.labels.each((list, i) => {
-    if list.0.is_empty() {
+    if list.is_empty() {
       return
     } else {
-      let l = list.0.to_array().join(", ")
+      let l = list.to_array().join(", ")
       res.push("\{format_percent(i, success)} : \{l}")
     }
   })

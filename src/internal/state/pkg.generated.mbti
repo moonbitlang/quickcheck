@@ -32,7 +32,7 @@ pub(all) struct Config {
 }
 
 pub struct Coverage {
-  labels : @sorted_map.SortedMap[ListCompare[String], Int]
+  labels : @sorted_map.SortedMap[@list.List[String], Int]
   classes : @sorted_map.SortedMap[String, Int]
 }
 pub fn Coverage::to_string(Self, Int) -> String
@@ -47,8 +47,6 @@ pub(all) enum Kind {
   CounterExample
   Nothing
 }
-
-pub struct ListCompare[T](@list.List[T]) derive(Eq)
 
 pub(all) struct SingleResult {
   status : Status
