@@ -35,14 +35,14 @@ fn Coverage::class_incr(
   self : Coverage,
   classes : @list.List[(String, Bool)],
 ) -> Unit {
-  classes.each(item => {
+  for item in classes {
     let (s, b) = item
     let i = if b { 1 } else { 0 }
     match self.classes.get(s) {
       Some(x) => self.classes[s] = x + i
       None => self.classes[s] = i
     }
-  })
+  }
 }
 
 ///|
@@ -64,25 +64,18 @@ fn format_percent(count : Int, total : Int) -> String {
 
 ///|
 fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
-  let res = []
-  self.labels.each((list, i) => {
-    if list.is_empty() {
-      return
-    } else {
-      let l = list.to_array().join(", ")
-      res.push("\{format_percent(i, success)} : \{l}")
+  [
+    for list, i in self.labels if !list.is_empty() => {
+      format_percent(i, success) + " : " + list.to_array().join(", ")
     }
-  })
-  res.join("\n")
+  ].join("\n")
 }
 
 ///|
 fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
-  let res = []
-  self.classes.each(fn(s, i) {
-    res.push("\{format_percent(i, success)} : \{s}")
-  })
-  res.join("\n")
+  [
+    for s, i in self.classes => "\{format_percent(i, success)} : \{s}"
+  ].join("\n")
 }
 
 ///|
