@@ -21,10 +21,7 @@ fn Coverage::new() -> Coverage {
 /// Record one occurrence of the given label stack (as
 /// attached by `label(...)`).
 fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
-  match self.labels.get(key) {
-    Some(x) => self.labels[key] = x + 1
-    None => self.labels[key] = 1
-  }
+  self.labels[key] = self.labels.get_or_default(key, 0) + 1
 }
 
 ///|
@@ -38,10 +35,7 @@ fn Coverage::class_incr(
   for item in classes {
     let (s, b) = item
     let i = if b { 1 } else { 0 }
-    match self.classes.get(s) {
-      Some(x) => self.classes[s] = x + i
-      None => self.classes[s] = i
-    }
+    self.classes[s] = self.classes.get_or_default(s, 0) + i
   }
 }
 
