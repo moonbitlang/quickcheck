@@ -71,17 +71,12 @@ fn render_block(title : String, lines : Array[String]) -> String {
 }
 
 ///|
-fn render_coverage(coverage : @state.Coverage, num_tests : Int) -> String {
-  coverage.to_string(num_tests)
-}
-
-///|
 fn render_success(result : TestSuccess) -> String {
   let lines : Array[String] = []
   match result {
     Success(output~, coverage~, num_tests~) => {
       lines.push(output)
-      let rendered = render_coverage(coverage, num_tests)
+      let rendered = coverage.to_string(num_tests)
       if rendered != "" {
         lines.push(rendered)
       }
@@ -127,7 +122,7 @@ fn render_error(error : TestError, verbose : Bool) -> String {
         lines.push(
           "Shrinks: \{num_shrinks} successful, \{num_shrink_tries} unsuccessful, \{num_shrink_final} final attempts",
         )
-        let rendered = render_coverage(coverage, num_tests)
+        let rendered = coverage.to_string(num_tests)
         if rendered != "" {
           lines.push("Coverage:\n\{rendered}")
         }
@@ -135,14 +130,14 @@ fn render_error(error : TestError, verbose : Bool) -> String {
     }
     GaveUp(output~, coverage~, num_tests~, ..) => {
       lines.push(output)
-      let rendered = render_coverage(coverage, num_tests)
+      let rendered = coverage.to_string(num_tests)
       if rendered != "" {
         lines.push(rendered)
       }
     }
     NoneExpectedFail(output~, coverage~, num_tests~, ..) => {
       lines.push(output)
-      let rendered = render_coverage(coverage, num_tests)
+      let rendered = coverage.to_string(num_tests)
       if rendered != "" {
         lines.push(rendered)
       }
