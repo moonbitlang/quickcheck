@@ -235,11 +235,8 @@ test "iter visits root then branches in DFS order" {
 ///|
 test "for .. in walks every value" {
   let tree = @rose.Rose(10, [@rose.pure(20), @rose.pure(30)].iter())
-  let seen : Array[Int] = []
-  for x in tree {
-    seen.push(x)
-  }
-  assert_eq(seen, [10, 20, 30])
+
+  assert_eq([ for x in tree => x ], [10, 20, 30])
 }
 ```
 
