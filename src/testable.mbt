@@ -7,34 +7,6 @@
 // as `@state.<Name>`.
 
 ///|
-/// The per-sample output of a property: a *tree* of `SingleResult`s
-/// rather than a bare verdict.
-///
-/// - The **root** carries the verdict on the value the generator
-///   originally produced — pass, fail, or discard.
-/// - Each **child** carries the verdict on a strictly-simpler
-///   candidate reached by one shrinking step. The tree is rooted at
-///   the value the user's property was *actually* called with and
-///   branches outward through every alternative a `Shrink` instance
-///   (or a hand-rolled shrinker passed to `shrinking` / `forall_shrink`)
-///   has to offer.
-///
-/// The driver's shrink loop (`State::local_min` in `driver.mbt`) is
-/// precisely a walk of this tree: when the root reports `Failed` it
-/// dives into the branches, keeps the first child that still falsifies
-/// the property, and recurses — producing the minimal counter-example
-/// the user sees in the failure report.
-///
-/// The choice of `@rose.Rose` (branches are `Iter[Rose[T]]`, not
-/// `Array[Rose[T]]`) is what lets the shrink space of e.g. `Array[Int]`
-/// or a recursive datatype stay lazy: we only force the candidates
-/// we actually explore.
-///
-/// Package-private. External code talks to `Property` or to the
-/// `Testable` trait rather than building `RoseResult`s directly.
-type RoseResult = @rose.Rose[@state.SingleResult]
-
-///|
 fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
   @gen.Gen((n, rs) => (g : @gen.Gen[T]) => g.run(n, rs)).fmap(m => s.fmap(m))
 }
@@ -73,7 +45,7 @@ fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
 /// Newtype rather than a raw alias so that the `Testable` trait can
 /// name it in its signature without callers having to spell out the
 /// layered `Gen[Rose[SingleResult]]` type.
-struct Property(@gen.Gen[RoseResult])
+struct Property(@gen.Gen[@rose.Rose[@state.SingleResult]])
 
 ///|
 /// Anything that can be handed to the `quick_check` driver.
@@ -199,7 +171,7 @@ pub fn[P : Testable, T] shrinking(
   x0 : T,
   pf : (T) -> P,
 ) -> Property {
-  fn props(x) -> @rose.Rose[@gen.Gen[RoseResult]] {
+  fn props(x) -> @rose.Rose[@gen.Gen[@rose.Rose[@state.SingleResult]]] {
     Rose(pf(x) |> run_prop, shrinker(x).map(props))
   }
 
