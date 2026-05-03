@@ -4,7 +4,6 @@ package "moonbitlang/quickcheck/internal/state"
 import {
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/core/sorted_map",
 }
 
 // Values
@@ -31,10 +30,7 @@ pub(all) struct Config {
   max_shrink : Int
 }
 
-pub struct Coverage {
-  labels : @sorted_map.SortedMap[@list.List[String], Int]
-  classes : @sorted_map.SortedMap[String, Int]
-}
+type Coverage
 pub fn Coverage::to_string(Self, Int) -> String
 
 pub(all) enum Expected {
