@@ -93,23 +93,20 @@ test "iter walks root then branches in depth-first order" {
     1,
     [Rose(2, [leaf(3), leaf(4)].iter()), Rose(5, [leaf(6)].iter())].iter(),
   )
-  let collected = tree.iter().collect()
-  assert_eq(collected, [1, 2, 3, 4, 5, 6])
+
+  assert_eq([..tree], [1, 2, 3, 4, 5, 6])
 }
 
 ///|
 test "iter on a leaf yields only the root" {
-  assert_eq(pure(42).iter().collect(), [42])
+  assert_eq([..pure(42)], [42])
 }
 
 ///|
 test "for .. in sugar walks every value" {
   let tree = Rose(10, [pure(20), pure(30)].iter())
-  let acc = []
-  for x in tree {
-    acc.push(x)
-  }
-  assert_eq(acc, [10, 20, 30])
+
+  assert_eq([ for x in tree => x ], [10, 20, 30])
 }
 
 ///|
@@ -131,14 +128,14 @@ test "iter is lazy over an infinite-width tree" {
 test "iter is lazy over an infinite-depth spine" {
   fn spine(n : Int) -> Rose[Int] {
     let mut pulled = false
-    let branch : Iter[Rose[Int]] = Iter::new(() => {
-      if pulled {
-        None
-      } else {
-        pulled = true
-        Some(spine(n + 1))
+    let branch : Iter[Rose[Int]] = Iter::new() <| () => {
+        if pulled {
+          None
+        } else {
+          pulled = true
+          Some(spine(n + 1))
+        }
       }
-    })
     Rose(n, branch)
   }
 

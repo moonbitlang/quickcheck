@@ -37,21 +37,98 @@ fails on `rose.val`, the shrinker walks `rose.branch` looking for another
 even simpler. Because `branch` is `Iter`, sub-trees are generated on demand;
 unexplored alternatives never allocate.
 
-## Install
+## Why a tree, and not just `Iter[T]`?
 
-```bash
-moon add moonbitlang/quickcheck
+`Rose[T]` and `Iter[T]` *look* similar — both are lazy and yield `T`s — but
+they have a different **shape**, and that shape is exactly what integrated
+shrinking needs.
+
+| | Layout | What you can do at "the next step" |
+|---|---|---|
+| `Iter[T]` | flat stream `[t₀, t₁, t₂, …]` | Pull the next sibling. |
+| `Rose[T]` | tree; every node carries `T` plus an `Iter[Rose[T]]` of children | Pull the next sibling **or descend into a node's own children.** |
+
+When you've pulled `t₁` from an `Iter[T]`, the iterator only knows what
+comes *after* `t₁` in the same flat stream. When you've descended into a
+`Rose(t₁, branch)` node, you *also* know what's "smaller than `t₁`" — it's
+exactly that node's `branch`. That "go *into* a node, not just past it"
+move is the one shrinking depends on.
+
+### A worked example
+
+Suppose the shrink space for an integer is "halve towards 0", and the
+property under test is `x < 10`. Starting at 80, the shrink tree looks like
+this (each node's `val` is shown; `fails` / `passes` is the property's
+verdict on that value):
+
+```mermaid
+flowchart TD
+  A["80 — fails"] --> B["40 — fails"]
+  B --> C["20 — fails"]
+  C --> D["10 — fails"]
+  D --> E["5 — passes"]
+  E --> F["2 — passes"]
+  F --> G["1 — passes"]
+  G --> H["0 — passes"]
 ```
 
-```json
-{
-  "import": [
-    { "path": "moonbitlang/quickcheck/internal/rose", "alias": "rose" }
-  ]
+A `Rose`-shaped driver does a depth-first search:
+
+1. 80 fails → look in *80's* `branch`.
+2. 40 fails → look in *40's* `branch`.
+3. 20 fails → look in *20's* `branch`.
+4. 10 fails → look in *10's* `branch`.
+5. 5 passes → back up. No more failing candidates. Report **10** as the
+   minimal counter-example.
+
+The interesting step is **2**: at that moment the driver needs "what's
+smaller than 40?". The tree already carries that — it's `Rose(40, …)`'s
+own `branch`. With a flat `Iter[Int]` returned by some `shrink(80)`, you'd
+be stuck: the iter knows `[40, 20, 10, 5, 0]` but it does not know "what's
+smaller than 40 *specifically*". The only fix is to re-call `shrink(40)`,
+then `shrink(20)`, … from scratch at each level — which is exactly the
+classical `Shrink` design, and the reason it has to be hand-written for
+every type and combinator.
+
+We can verify the descent path is recoverable from the tree alone, no
+re-shrinking required:
+
+```mbt check
+///|
+test "halving shrinker descends step-by-step" {
+  fn halve(x : Int) -> @rose.Rose[Int] {
+    if x == 0 {
+      @rose.pure(0)
+    } else {
+      Rose(x, Iter::singleton(halve(x / 2)))
+    }
+  }
+
+  let r0 = halve(80)
+  // Walk the single child branch four levels deep.
+  let r1 = r0.branch.head().unwrap()
+  let r2 = r1.branch.head().unwrap()
+  let r3 = r2.branch.head().unwrap()
+  let r4 = r3.branch.head().unwrap()
+  assert_eq([r0.val, r1.val, r2.val, r3.val, r4.val], [80, 40, 20, 10, 5])
 }
 ```
 
----
+The compositional payoff:
+
+- **No hand-written shrinker per type.** Because `Rose` is a monad
+  (see below), composing generators *automatically* composes shrinkers.
+  `Gen[(A, B)]` derives shrinking from `Gen[A]` and `Gen[B]` for free —
+  no bespoke `Shrink` instance for the pair.
+- **No re-running the shrinker on each candidate.** The shrink space is
+  laid out lazily up front; the driver consumes only the path it takes.
+- **Shrink-space is data, not code.** It's `debug_inspect`-able, testable
+  in isolation, and reasonable about without a property in scope.
+
+The flat `Iter[T]` API survives elsewhere in this codebase — the root
+package's `Shrink` trait is the classical "give me a bag of simpler
+candidates" interface — but `Rose` is what the driver actually walks.
+
 
 ## Building rose trees
 
@@ -114,6 +191,55 @@ test "int shrinker halves towards 0" {
   assert_eq(c4.branch.count(), 0)
 }
 ```
+
+---
+
+## The implicit invariants
+
+`Rose[T]` is *just* `{val: T, branch: Iter[Rose[T]]}` — the type imposes
+no constraint between a node and its children. `T` doesn't even need to
+be `Compare`. But every well-behaved shrinker (and the search loop in
+`find_min_failing` and the real driver) **relies on three implicit
+invariants** holding by construction:
+
+1. **Children are strictly "simpler" than the parent.** "Simpler" is
+   type-defined: smaller magnitude for `Int`, shorter for `Array[T]`,
+   structurally smaller for recursive types. Violate this and the
+   minimal counter-example reported won't actually be minimal.
+2. **The descent is well-founded.** Every path from the root eventually
+   reaches a leaf (an empty `branch`). For `Int`, the chain
+   `n → n/2 → … → 0` always terminates; for `Array`, you can't keep
+   dropping elements forever. Violate this and the search diverges.
+3. **`branch` is lazy.** `Iter` is single-shot and on-demand, so
+   infinite *width* (an unbounded stream of siblings, e.g.
+   `Iter::repeat(pure(7))`) is fine — the driver only forces the
+   children it actually descends into.
+
+Pathological example — *don't construct trees like this*:
+
+```moonbit nocheck
+// Children are LARGER than the parent. The driver, asked "is there
+// something smaller that still fails?", happily descends into 100,
+// then 100's "shrinks" (which would be even larger), and never stops.
+@rose.Rose(1, [@rose.pure(100), @rose.pure(200)].iter())
+```
+
+The invariants aren't checked by the type system. You uphold them
+inductively, by composing well-behaved primitives:
+
+| Primitive | How the invariants are preserved |
+|-----------|----------------------------------|
+| `pure(x)` | Leaf — trivially well-founded. |
+| `Int` halving shrinker (e.g. `shrink_int` above) | `x / 2` strictly decreases in magnitude; bottom is `0`. |
+| `Array::shrink` (drop one element) | Each child is strictly shorter; bottom is `[]`. |
+| `Rose::fmap(r, f)` | Carries `r`'s invariants, assuming `f` doesn't reorder magnitudes. |
+| `Rose::bind(r, f)` | Carries them over if every `f(x)` is itself well-founded. |
+
+If you wanted *type-level* enforcement you'd need a `Shrink` bound on
+`T` plus a smart constructor that re-checks each candidate — which
+costs you flexibility (no `Rose[(A) -> B]`, no `Rose` of opaque values)
+for a property the integrated-shrinking pipeline already maintains by
+construction.
 
 ---
 
