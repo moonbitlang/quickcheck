@@ -350,12 +350,12 @@ pub fn State::discarded_too_much(self : State) -> Bool {
 /// generated sample (success, failure, or discard), before the driver
 /// decides what to do next.
 pub fn State::callback_post_test(self : State, res : SingleResult) -> Unit {
-  res.callbacks.each(cb => {
+  for cb in res.callbacks {
     match cb {
       PostTest(_, f) => f(self, res)
       _ => ()
     }
-  })
+  }
 }
 
 ///|
@@ -367,12 +367,12 @@ pub fn State::callback_post_final_failure(
   self : State,
   res : SingleResult,
 ) -> Unit {
-  res.callbacks.each(cb => {
+  for cb in res.callbacks {
     match cb {
       PostFinalFailure(_, f) => f(self, res)
       _ => ()
     }
-  })
+  }
 }
 
 ///|
