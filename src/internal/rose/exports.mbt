@@ -29,3 +29,16 @@ pub fn[T] Rose::apply(
 ) -> Rose[T] {
   f(self.val, self.branch)
 }
+
+///|
+/// Pre-order traversal: yields the root value, then the values of every
+/// branch depth-first. Enables `for x in rose { ... }` and any other
+/// `Iter`-shaped consumer.
+///
+/// The traversal is lazy: only as many sub-trees as you actually walk
+/// are forced. Note that — like every `Iter` in MoonBit — the result
+/// is single-shot; iterating the same `Rose` twice will only visit the
+/// elements that were not yet consumed by an earlier walk.
+pub fn[T] Rose::iter(self : Rose[T]) -> Iter[T] {
+  Iter::singleton(self.val) + self.branch.flat_map(child => child.iter())
+}
