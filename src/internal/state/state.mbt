@@ -277,17 +277,17 @@ pub fn State::compute_size(self : State) -> Int {
       num_recent_discarded_tests: d,
       ..,
     } => {
-      fn clamp(x, l, h) {
-        @cmp.maximum(l, @cmp.minimum(x, h))
+      let dDenom = if mdr > 0 {
+        (mss * mdr / 3).clamp(min=1, max=10)
+      } else {
+        1
       }
-
-      let dDenom = if mdr > 0 { clamp(mss * mdr / 3, 1, 10) } else { 1 }
       fn round_to(n, m) {
         n / m * m
       }
 
       if round_to(n, mts) + mts <= mss || n >= mss || mss % mts == 0 {
-        @cmp.minimum(n % mts + d / dDenom, mts)
+        (n % mts + d / dDenom).min(mts)
       } else {
         (n % mts * mts / (mss % mts) + d / dDenom) % mts
       }
@@ -339,7 +339,7 @@ pub fn State::finished_successfully(self : State) -> Bool {
 pub fn State::discarded_too_much(self : State) -> Bool {
   if self.max_discarded_ratio_ > 0 {
     self.num_discarded_tests / self.max_discarded_ratio_ >=
-    @cmp.maximum(self.num_success_tests, self.max_success_tests_)
+    self.num_success_tests.max(self.max_success_tests_)
   } else {
     false
   }
