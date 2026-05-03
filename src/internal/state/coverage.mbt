@@ -21,10 +21,7 @@ fn Coverage::new() -> Coverage {
 /// Record one occurrence of the given label stack (as
 /// attached by `label(...)`).
 fn Coverage::label_incr(self : Coverage, key : @list.List[String]) -> Unit {
-  match self.labels.get(key) {
-    Some(x) => self.labels[key] = x + 1
-    None => self.labels[key] = 1
-  }
+  self.labels[key] = self.labels.get_or_default(key, 0) + 1
 }
 
 ///|
@@ -35,14 +32,11 @@ fn Coverage::class_incr(
   self : Coverage,
   classes : @list.List[(String, Bool)],
 ) -> Unit {
-  classes.each(item => {
+  for item in classes {
     let (s, b) = item
     let i = if b { 1 } else { 0 }
-    match self.classes.get(s) {
-      Some(x) => self.classes[s] = x + i
-      None => self.classes[s] = i
-    }
-  })
+    self.classes[s] = self.classes.get_or_default(s, 0) + i
+  }
 }
 
 ///|
@@ -64,25 +58,18 @@ fn format_percent(count : Int, total : Int) -> String {
 
 ///|
 fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
-  let res = []
-  self.labels.each((list, i) => {
-    if list.is_empty() {
-      return
-    } else {
-      let l = list.to_array().join(", ")
-      res.push("\{format_percent(i, success)} : \{l}")
+  [
+    for list, i in self.labels if !list.is_empty() => {
+      format_percent(i, success) + " : " + list.to_array().join(", ")
     }
-  })
-  res.join("\n")
+  ].join("\n")
 }
 
 ///|
 fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
-  let res = []
-  self.classes.each(fn(s, i) {
-    res.push("\{format_percent(i, success)} : \{s}")
-  })
-  res.join("\n")
+  [
+    for s, i in self.classes => "\{format_percent(i, success)} : \{s}"
+  ].join("\n")
 }
 
 ///|
