@@ -39,9 +39,12 @@ pub fn[P : Testable] quick_check(
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report = @state.from_config(
-    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-  ).run_test(prop.property())
+  let report = @state.from_config({
+    max_shrink,
+    max_success,
+    max_size,
+    max_discard_ratio: discard_ratio,
+  }).run_test(prop.property())
   finish_report(report, verbose)
 }
 
@@ -60,9 +63,14 @@ pub fn[P : Testable] quick_check_silence(
   verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  @state.from_config(
-    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-  ).run_test(prop.property()).render(verbose~)
+  @state.from_config({
+    max_shrink,
+    max_success,
+    max_size,
+    max_discard_ratio: discard_ratio,
+  })
+  .run_test(prop.property())
+  .render(verbose~)
 }
 
 ///|
@@ -166,8 +174,6 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
     verbose~,
   )
 }
-
-
 
 ///|
 /// Exhaustive-ish testing via the `feat` enumeration: walk values of
