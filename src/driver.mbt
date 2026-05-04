@@ -1,4 +1,14 @@
 ///|
+/// The result of a shrink search: how many shrinks succeeded, how
+/// many were tried unsuccessfully, and the final minimal result.
+priv struct ShrinkResult {
+  num_shrinks : Int
+  num_shrink_tries : Int
+  num_shrink_final : Int
+  result : @state.SingleResult
+}
+
+///|
 fn finish_report(
   report : @report.CheckReport,
   verbose : Bool,
@@ -380,26 +390,25 @@ fn @state.State::give_up(
 /// `TestError` (or `TestSuccess` if the failure was expected).
 fn @state.State::find_failure(
   self : @state.State,
-  res : @state.SingleResult,
-  ts : Iter[@rose.Rose[@state.SingleResult]],
+  rose : @rose.Rose[@state.SingleResult],
 ) -> @report.TestSuccess raise @report.TestError {
-  let (n, tf, lf, ce) = { ..self, num_try_shrinks: 0 }.local_min(res, ts)
-  self.callback_post_final_failure(ce)
-  match res.expect {
+  let sr = { ..self, num_try_shrinks: 0 }.local_min(rose)
+  self.callback_post_final_failure(sr.result)
+  match rose.val.expect {
     Success | GaveUp =>
       raise Fail(
-        error=res.error,
+        error=rose.val.error,
         num_tests=self.num_success_tests,
         num_discarded=self.num_discarded_tests,
-        num_shrinks=n,
-        num_shrink_tries=tf,
-        num_shrink_final=lf,
-        reason=res.reason,
-        output="*** \{self.counts()} Failed! \{res.reason}",
+        num_shrinks=sr.num_shrinks,
+        num_shrink_tries=sr.num_shrink_tries,
+        num_shrink_final=sr.num_shrink_final,
+        reason=rose.val.reason,
+        output="*** \{self.counts()} Failed! \{rose.val.reason}",
         coverage=self.collects,
-        failing_case=ce.test_case.to_array(),
-        failing_labels=ce.labels.to_array(),
-        failing_classes=active_classes(ce.classes),
+        failing_case=sr.result.test_case.to_array(),
+        failing_labels=sr.result.labels.to_array(),
+        failing_classes=active_classes(sr.result.classes),
       )
     Fail =>
       Success(
@@ -442,56 +451,46 @@ fn @state.State::find_failure_no_shrink(
 }
 
 ///|
-/// The inner shrink-search loop: given a failing `SingleResult` and a
-/// candidate `Rose` branch to explore, walk downward as long as we
-/// keep finding smaller failures, bailing out after
-/// `self.max_shrinks_` total attempts. Returns the full tally
-/// `(successful shrinks, tries without success, last-stage tries,
-/// final result)` that the driver reports in the `Fail` outcome.
+/// The inner shrink-search loop: given a failing `Rose` tree,
+/// walk downward as long as we keep finding smaller failures,
+/// bailing out after `self.max_shrinks_` total attempts. Returns
+/// the full tally of shrink counts and the final minimal result.
 fn @state.State::local_min(
   self : @state.State,
-  res : @state.SingleResult,
-  ts : Iter[@rose.Rose[@state.SingleResult]],
-) -> (Int, Int, Int, @state.SingleResult) {
-  if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
-    local_min_found(self, res)
-  } else {
-    let t = ts.head()
-    match t {
+  rose : @rose.Rose[@state.SingleResult],
+) -> ShrinkResult {
+  for res = rose.val, ts = rose.branch {
+    if self.num_success_shrinks + self.num_to_try_shrinks >= self.max_shrinks_ {
+      break {
+        num_shrinks: self.num_success_shrinks,
+        num_shrink_tries: self.num_to_try_shrinks - self.num_try_shrinks,
+        num_shrink_final: self.num_try_shrinks,
+        result: res,
+      }
+    }
+    match ts.head() {
+      None =>
+        break {
+          num_shrinks: self.num_success_shrinks,
+          num_shrink_tries: self.num_to_try_shrinks - self.num_try_shrinks,
+          num_shrink_final: self.num_try_shrinks,
+          result: res,
+        }
       Some({ val, branch }) => {
         self.callback_post_test(val)
         match val.status {
           Failed => {
             self.num_success_shrinks += 1
             self.num_try_shrinks = 0
-            self.local_min(val, branch)
+            continue val, branch
           }
-          _ => {
+          Passed | Rejected => {
             self.num_to_try_shrinks += 1
             self.num_try_shrinks += 1
-            self.local_min(res, ts.drop(1))
+            continue res, ts.drop(1)
           }
         }
       }
-      None => local_min_found(self, res)
     }
   }
-}
-
-///|
-/// Finalise the shrink tally when the search terminates (either
-/// because the shrink budget is exhausted or no smaller failure was
-/// found). Returns the counts the driver reports in the `Fail`
-/// outcome.
-fn local_min_found(
-  st : @state.State,
-  res : @state.SingleResult,
-) -> (Int, Int, Int, @state.SingleResult) {
-  // TODO: Print error
-  (
-    st.num_success_shrinks,
-    st.num_to_try_shrinks - st.num_try_shrinks,
-    st.num_try_shrinks,
-    res,
-  )
 }
