@@ -7,17 +7,15 @@ fn @state.State::run_single_test(
   let rnd1 = self.random_state.split()
   let rnd2 = self.random_state
   let { val: res, branch: ts } = prop.0.run(self.compute_size(), rnd1)
-  fn update_state(st0 : @state.State) {
-    self.random_state = rnd2
-    st0.update_state_from_res(res)
-  }
 
   fn next(
-    end_with : (@state.State, Property) -> @report.TestSuccess raise @report.TestError,
     next_state : @state.State,
-    p : Property,
+    p : Property,    
+    end_with : (@state.State, Property) -> @report.TestSuccess raise @report.TestError,
+
   ) raise @report.TestError {
-    update_state(next_state)
+    self.random_state = rnd2
+    next_state.update_state_from_res(res)
     if res.abort {
       Ok(end_with(next_state, p))
     } else {
@@ -31,24 +29,24 @@ fn @state.State::run_single_test(
   match res.status {
     Passed =>
       next(
-        @state.State::complete_test,
         {
           ..stc,
           num_success_tests: self.num_success_tests + 1,
           num_recent_discarded_tests: 0,
         },
         prop,
+        @state.State::complete_test,
       )
     Failed => Ok(self.find_failure(res, ts))
     Rejected =>
       next(
-        @state.State::give_up,
         {
           ..self,
           num_discarded_tests: self.num_discarded_tests + 1,
           num_recent_discarded_tests: self.num_recent_discarded_tests + 1,
-        },
-        prop,
+        },        
+        prop,        
+        @state.State::give_up,
       )
   }
 }
