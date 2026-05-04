@@ -39,12 +39,9 @@ pub fn[P : Testable] quick_check(
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  let report = @report.CheckReport(
-    try? quick_check_with_result(
-      { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-      prop,
-    ),
-  )
+  let report = @state.from_config(
+    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
+  ).run_test(prop.property())
   finish_report(report, verbose)
 }
 
@@ -63,12 +60,9 @@ pub fn[P : Testable] quick_check_silence(
   verbose? : Bool = false,
 ) -> String {
   let prop = map_total_result(prop, res => { ..res, expect, abort })
-  @report.CheckReport(
-    try? quick_check_with_result(
-      { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
-      prop,
-    ),
-  ).render(verbose~)
+  @state.from_config(
+    { max_shrink, max_success, max_size, max_discard_ratio: discard_ratio },
+  ).run_test(prop.property()).render(verbose~)
 }
 
 ///|
@@ -173,15 +167,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
   )
 }
 
-///|
-/// Internal helper: run a property with a fully-specified `Config`
-/// and return the structured `TestSuccess` / raise `TestError`.
-fn[P : Testable] quick_check_with_result(
-  cfg : @state.Config,
-  prop : P,
-) -> @report.TestSuccess raise @report.TestError {
-  @state.from_config(cfg).run_test(prop.property())
-}
+
 
 ///|
 /// Exhaustive-ish testing via the `feat` enumeration: walk values of

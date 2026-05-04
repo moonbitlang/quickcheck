@@ -1,12 +1,12 @@
 ///|
 /// Run the main QuickCheck loop: draw inputs, evaluate the property,
 /// book-keep successes and discards, and on failure hand off to
-/// `find_failure` for shrinking. Returns the aggregated
-/// `TestSuccess` or raises `TestError`.
+/// `find_failure` for shrinking. Returns the `CheckReport`.
 fn @state.State::run_test(
   self : @state.State,
   prop : Property,
-) -> @report.TestSuccess raise @report.TestError {
+) -> @report.CheckReport {
+  CheckReport(try? {
   for state = self {
     let rnd1 = state.random_state.split()
     let rnd2 = state.random_state
@@ -52,4 +52,5 @@ fn @state.State::run_test(
       }
     }
   }
+  })
 }
