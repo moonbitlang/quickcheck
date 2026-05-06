@@ -31,7 +31,7 @@ pub(all) struct Config {
 }
 
 type Coverage
-pub fn Coverage::to_string(Self, Int) -> String
+pub fn Coverage::to_array(Self, Int) -> Array[String]
 
 pub(all) enum Expected {
   Fail
