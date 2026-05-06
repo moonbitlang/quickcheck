@@ -76,6 +76,16 @@ pub impl Shrink for Bool with shrink(b) {
 }
 
 ///|
+pub impl Shrink for Byte with shrink(x) {
+  let xi = x.to_int()
+  @utils.apply_while_list(xi, z => z / 2, z => z > 0)
+  .map(i => (xi - i).to_byte())
+  .iter()
+  .concat(Iter::singleton(Int::to_byte(0)))
+  .filter(u => u != x)
+}
+
+///|
 pub impl Shrink for Char with shrink(c) {
   let ci = c.to_int()
   if ci == 0 {

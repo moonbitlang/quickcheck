@@ -29,6 +29,18 @@ test "shrink uint64" {
 }
 
 ///|
+test "shrink byte" {
+  let s = @shrink.Shrink::shrink(Int::to_byte(200)).to_array()
+  inspect(
+    s,
+    content=(
+      #|[b'\xC7', b'\xC5', b'\xC2', b'\xBC', b'\xAF', b'\x96', b'\x64', b'\x00']
+    ),
+  )
+  assert_eq(@shrink.Shrink::shrink(Int::to_byte(0)).to_array(), [])
+}
+
+///|
 test "shrink boolean" {
   json_inspect(@shrink.Shrink::shrink(true), content=[false])
   json_inspect(@shrink.Shrink::shrink(false), content=[])
