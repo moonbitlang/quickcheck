@@ -133,6 +133,51 @@ test "Negative[Int] shrinks within bounds" {
 }
 
 ///|
+/// Wraps a value guaranteed to be non-zero. Generation is biased toward
+/// small absolute values; shrinking never produces zero.
+pub(all) struct NonZero[T](T) derive(Eq)
+
+///|
+pub impl[T : Show] Show for NonZero[T] with output(self, logger) {
+  self.0.output(logger)
+}
+
+///|
+pub impl @coreqc.Arbitrary for NonZero[Int] with arbitrary(size, rs) {
+  let gen : @gen.Gen[Int] = @gen.Gen::spawn()
+  gen.such_that(v => v != 0).run(size, rs)
+}
+
+///|
+pub impl @shrink.Shrink for NonZero[Int] with shrink(self) {
+  @shrink.Shrink::shrink(self.0).filter_map(v => {
+    if v != 0 {
+      Some(NonZero(v))
+    } else {
+      None
+    }
+  })
+}
+
+///|
+test "NonZero[Int] generates non-zero values" {
+  let gen : @gen.Gen[NonZero[Int]] = @gen.Gen::spawn()
+  let samples = gen.samples(size=50)
+  assert_true(samples.all(x => x.0 != 0))
+}
+
+///|
+test "NonZero[Int] shrinks within bounds" {
+  let s = @shrink.Shrink::shrink(NonZero(100)).to_array()
+  assert_true(s.all(x => x.0 != 0))
+  assert_true(s.length() > 0)
+  let s2 = @shrink.Shrink::shrink(NonZero(2)).to_array()
+  assert_true(s2.contains(NonZero(1)))
+  let s3 = @shrink.Shrink::shrink(NonZero(-2)).to_array()
+  assert_true(s3.contains(NonZero(-1)))
+}
+
+///|
 /// Wraps a value generated with a distribution biased toward small
 /// absolute values. Shrinks normally.
 pub(all) struct Small[T](T) derive(Eq)
