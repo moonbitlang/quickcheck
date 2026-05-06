@@ -20,10 +20,20 @@ pub impl @debug.Debug for ASCIIString
 pub impl @quickcheck.Arbitrary for ASCIIString
 pub impl @shrink.Shrink for ASCIIString
 
+pub(all) struct Blind[T](T) derive(Eq)
+pub impl[T] Show for Blind[T]
+pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for Blind[T]
+pub impl[T : @shrink.Shrink] @shrink.Shrink for Blind[T]
+
 pub(all) struct Negative[T](T) derive(Eq)
 pub impl[T : Show] Show for Negative[T]
 pub impl @quickcheck.Arbitrary for Negative[Int]
 pub impl @shrink.Shrink for Negative[Int]
+
+pub(all) struct NoShrink[T](T) derive(Eq)
+pub impl[T : Show] Show for NoShrink[T]
+pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NoShrink[T]
+pub impl[T] @shrink.Shrink for NoShrink[T]
 
 pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
 pub impl[T : Show] Show for NonEmptyArray[T]
