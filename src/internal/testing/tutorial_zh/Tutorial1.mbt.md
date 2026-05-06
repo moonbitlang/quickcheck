@@ -118,7 +118,12 @@ test "peek generator" {
 ///|
 test "@qc.quick_check_silence" {
   let prop = @qc.forall(@gen.int_range(0, 5), x => x >= 0)
-  inspect(@qc.quick_check_silence(prop), content="+++ [100/0/100] Ok, passed!")
+  inspect(
+    @qc.quick_check_silence(prop),
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
+  )
 }
 ```
 

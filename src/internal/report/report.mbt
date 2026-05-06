@@ -76,13 +76,11 @@ fn render_success(result : TestSuccess) -> String {
   match result {
     Success(output~, coverage~, num_tests~) => {
       lines.push(output)
-      let rendered = coverage.to_string(num_tests)
-      if rendered != "" {
-        lines.push(rendered)
-      }
+      let coverage = render_block("Coverage", coverage.to_array(num_tests))
+      lines.push(coverage)
     }
   }
-  lines.join("\n")
+  lines.filter(x => !x.is_empty()).join("\n")
 }
 
 ///|
@@ -107,41 +105,29 @@ fn render_error(error : TestError, verbose : Bool) -> String {
       } else {
         failing_case.join("\n")
       }
-      if counterexample != "" {
-        lines.push(counterexample)
-      }
+      lines.push(counterexample)
       if verbose {
         let labels = render_block("Labels", failing_labels)
-        if labels != "" {
-          lines.push(labels)
-        }
+        lines.push(labels)
         let classes = render_block("Classes", failing_classes.to_array())
-        if classes != "" {
-          lines.push(classes)
-        }
+        lines.push(classes)
         lines.push(
           "Shrinks: \{num_shrinks} successful, \{num_shrink_tries} unsuccessful, \{num_shrink_final} final attempts",
         )
-        let rendered = coverage.to_string(num_tests)
-        if rendered != "" {
-          lines.push("Coverage:\n\{rendered}")
-        }
+        let coverage = render_block("Coverage", coverage.to_array(num_tests))
+        lines.push(coverage)
       }
     }
     GaveUp(output~, coverage~, num_tests~, ..) => {
       lines.push(output)
-      let rendered = coverage.to_string(num_tests)
-      if rendered != "" {
-        lines.push(rendered)
-      }
+      let coverage = render_block("Coverage", coverage.to_array(num_tests))
+      lines.push(coverage)
     }
     NoneExpectedFail(output~, coverage~, num_tests~, ..) => {
       lines.push(output)
-      let rendered = coverage.to_string(num_tests)
-      if rendered != "" {
-        lines.push(rendered)
-      }
+      let coverage = render_block("Coverage", coverage.to_array(num_tests))
+      lines.push(coverage)
     }
   }
-  lines.join("\n")
+  lines.filter(x => !x.is_empty()).join("\n")
 }

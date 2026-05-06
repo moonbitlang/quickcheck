@@ -20,7 +20,9 @@ test "prop reverse (fail)" {
   let prop_rev = (l : @list.List[Int]) => l.rev().rev() == l.rev()
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
-    content="+++ [9/0/100] Ok! Failed as expected.",
+    content=(
+      #|+++ [9/0/100] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -28,7 +30,9 @@ test "prop reverse (fail)" {
 test "prop reverse" {
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -36,7 +40,9 @@ test "prop reverse" {
 test "add comm double" {
   inspect(
     @qc.quick_check_silence(add_comm_double |> @qc.Arrow),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -44,7 +50,9 @@ test "add comm double" {
 test "modify max tests" {
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_rev), max_success=1000),
-    content="+++ [1000/0/1000] Ok, passed!",
+    content=(
+      #|+++ [1000/0/1000] Ok, passed!
+    ),
   )
 }
 
@@ -52,7 +60,9 @@ test "modify max tests" {
 test "large max tests" {
   inspect(
     @qc.quick_check_silence((), max_success=2000),
-    content="+++ [2000/0/2000] Ok, passed!",
+    content=(
+      #|+++ [2000/0/2000] Ok, passed!
+    ),
   )
 }
 
@@ -60,7 +70,9 @@ test "large max tests" {
 test "larger max tests" {
   inspect(
     @qc.quick_check_silence((), max_success=10000),
-    content="+++ [10000/0/10000] Ok, passed!",
+    content=(
+      #|+++ [10000/0/10000] Ok, passed!
+    ),
   )
 }
 
@@ -68,7 +80,9 @@ test "larger max tests" {
 test "add assoc double (expect fail)" {
   inspect(
     @qc.quick_check_silence(add_assoc_double |> @qc.Arrow, expect=Fail),
-    content="+++ [10/0/100] Ok! Failed as expected.",
+    content=(
+      #|+++ [10/0/100] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -77,7 +91,9 @@ test "small check pass" {
   let prop = (x : Int) => x + 0 == x
   inspect(
     @qc.small_check_silence(prop, max_size=1000000),
-    content="+++ [1000000/0/1000000] Ok, passed!",
+    content=(
+      #|+++ [1000000/0/1000000] Ok, passed!
+    ),
   )
 }
 
@@ -86,7 +102,9 @@ test "small check expect fail" {
   let prop = (x : Int) => x == 0
   inspect(
     @qc.small_check_silence(prop, max_size=5, expect=Fail),
-    content="+++ [1/0/5] Ok! Failed as expected.",
+    content=(
+      #|+++ [1/0/5] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -97,7 +115,9 @@ test "non empty list (with filter)" {
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_is_non_empty)),
-    content="+++ [100/40/100] Ok, passed!",
+    content=(
+      #|+++ [100/40/100] Ok, passed!
+    ),
   )
 }
 
@@ -106,7 +126,9 @@ test "reject all" {
   let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
-    content="+++ [0/1000/100] Ok, gave up!",
+    content=(
+      #|+++ [0/1000/100] Ok, gave up!
+    ),
   )
 }
 
@@ -121,6 +143,7 @@ test "label" {
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
+      #|Coverage:
       #|8% : trivial
       #|92% : non-trivial
     ),
@@ -133,6 +156,7 @@ test "collect" {
     @qc.small_check_silence(fn(x : Int) { @qc.collect(true, x) }, max_size=2),
     content=(
       #|+++ [2/0/2] Ok, passed!
+      #|Coverage:
       #|50% : 0
       #|50% : 1
     ),
@@ -149,7 +173,9 @@ test "nested arrow uses fresh sample" {
       @qc.forall(@gen.pure(0), x => @qc.Arrow((y : Int) => y == x)),
       expect=Fail,
     ),
-    content="+++ [2/0/100] Ok! Failed as expected.",
+    content=(
+      #|+++ [2/0/100] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -165,6 +191,7 @@ test "classes" {
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
+      #|Coverage:
       #|79% : long list
       #|21% : short list
     ),
@@ -184,6 +211,7 @@ test "classes can overlap" {
     ),
     content=(
       #|+++ [3/0/3] Ok, passed!
+      #|Coverage:
       #|66.66% : non-zero
       #|66.66% : non-negative
     ),
@@ -203,6 +231,7 @@ test "label + classes" {
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
+      #|Coverage:
       #|8% : length is 0
       #|4% : length is 1
       #|2% : length is 2
@@ -326,7 +355,9 @@ test "failure coverage excludes the failing sample" {
 test "abort" {
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_rev), abort=true),
-    content="+++ [1/0/100] Ok, passed!",
+    content=(
+      #|+++ [1/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -391,7 +422,9 @@ fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
 test "add comm nat" {
   inspect(
     @qc.quick_check_silence(add_comm_nat |> @qc.Arrow),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -414,7 +447,9 @@ test "prop_reverse_identity" {
 
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reverse_identity)),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -444,7 +479,9 @@ fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
 test "prop length is not greater" {
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_length_is_not_greater)),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -456,7 +493,9 @@ test "prop remove not presence with max success" {
       max_success=1000,
       expect=Fail,
     ),
-    content="+++ [8/0/1000] Ok! Failed as expected.",
+    content=(
+      #|+++ [8/0/1000] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -470,7 +509,9 @@ test "custom generator" {
       }),
       expect=Fail,
     ),
-    content="+++ [8/0/100] Ok! Failed as expected.",
+    content=(
+      #|+++ [8/0/100] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -488,7 +529,9 @@ test "no_duplicate" {
       }),
       expect=GaveUp,
     ),
-    content="+++ [60/1000/100] Ok, gave up!",
+    content=(
+      #|+++ [60/1000/100] Ok, gave up!
+    ),
   )
 }
 
@@ -502,7 +545,9 @@ test "use one_of" {
       }),
       expect=Fail,
     ),
-    content="+++ [3/35/100] Ok! Failed as expected.",
+    content=(
+      #|+++ [3/35/100] Ok! Failed as expected.
+    ),
   )
 }
 
@@ -512,6 +557,8 @@ test "explicit universal qualification" {
     @qc.quick_check_silence(
       @qc.forall(@gen.Gen::spawn(), (x : @list.List[Int]) => x.rev().rev() == x),
     ),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }

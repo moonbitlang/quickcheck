@@ -119,7 +119,9 @@ test "queue roundtrip property" {
     @qc.quick_check_silence(
       @qc.Arrow((q : Queue) => q.to_list().rev().rev() == q.to_list()),
     ),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }
 
@@ -136,6 +138,8 @@ test "queue equivalence property" {
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_eq_queue)),
-    content="+++ [100/0/100] Ok, passed!",
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
   )
 }

@@ -283,6 +283,7 @@ test "classify list distribution" {
     r,
     content=(
       #|+++ [100/0/100] Ok, passed!
+      #|Coverage:
       #|79% : long list
       #|21% : short list
     ),
@@ -310,7 +311,9 @@ test "discard on non-empty lists" {
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_non_empty)),
-    content="+++ [100/40/100] Ok, passed!",
+    content=(
+      #|+++ [100/40/100] Ok, passed!
+    ),
   )
 }
 ```
@@ -325,7 +328,9 @@ test "reject all gives up" {
   let prop_reject = (_x : Int) => @qc.filter(true, false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
-    content="+++ [0/1000/100] Ok, gave up!",
+    content=(
+      #|+++ [0/1000/100] Ok, gave up!
+    ),
   )
 }
 ```
