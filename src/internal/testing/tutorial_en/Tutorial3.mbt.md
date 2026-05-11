@@ -78,7 +78,7 @@ The strength of default shrinking is that it is generic. Its weakness is the sam
 QuickCheck provides two directly relevant APIs:
 
 ```mbt nocheck
-fn[T : Testable, A : Show] @qc.forall_shrink(
+fn[T : Testable, A : Debug] @qc.forall_shrink(
   gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
@@ -262,7 +262,7 @@ This technique is especially useful in model-based testing and compiler testing.
 
 Failure messages help us interpret a single counterexample. Classification statistics answer a different question: what does the overall sample distribution look like? Even if a property keeps passing, we should not relax too early. The generator may be spending most of its budget on a dull class of inputs, or it may be missing the branches we actually care about. If that distribution stays invisible, "random coverage" can easily become wishful thinking.
 
-QuickCheck provides three common tools for inspecting sampled data: `label`, `classify`, and `collect`. `label` is useful when each sample should carry a single textual tag. `classify` is useful when we want to split samples into a few domain-level categories. `collect` is more general: it takes any `Show` value and records it as a tag. In practice, `classify` is often the best starting point because it quickly shows whether the categories we care about are appearing at all.
+QuickCheck provides three common tools for inspecting sampled data: `label`, `classify`, and `collect`. `label` is useful when each sample should carry a single textual tag. `classify` is useful when we want to split samples into a few domain-level categories. `collect` is more general: it takes any `Debug` value and records it as a tag. In practice, `classify` is often the best starting point because it quickly shows whether the categories we care about are appearing at all.
 
 ```mbt check
 ///|
@@ -346,7 +346,7 @@ So far, most of the discussion has stayed inside the QuickCheck model of randomi
 In MoonBit QuickCheck, the entry point `small_check` looks similar to `quick_check`, but it relies on a completely different capability:
 
 ```mbt nocheck
-pub fn[A : @feat.Enumerable + Show, B : Testable] @qc.small_check(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] @qc.small_check(
   f : (A) -> B,
   max_size? : Int,
   expect? : Expected,
@@ -398,11 +398,6 @@ enum PeanoNat {
   PZero
   PSucc(PeanoNat)
 } derive(Eq, Debug)
-
-///|
-impl Show for PeanoNat with output(self, logger) {
-  logger.write_string("\{to_repr(self)}")
-}
 
 ///|
 impl @feat.Enumerable for PeanoNat with enumerate() {

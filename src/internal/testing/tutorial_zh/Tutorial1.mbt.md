@@ -38,7 +38,7 @@ test "@qc.quick_check minimal" {
 QuickCheck 的入口语义，即它只关心「这段可执行的性质最终是否成立」。
 
 当性质是一个函数时，最便捷的入口是 `@qc.quick_check_fn`。
-它要求函数的参数类型具备 `Arbitrary`、`Shrink` 与 `Show` 能力，
+它要求函数的参数类型具备 `Arbitrary`、`Shrink` 与 `Debug` 能力，
 从而能自动生成测试数据、缩减反例并打印失败样本，在后面我们会更多解释这些 trait 的含义，
 但现在你只需要知道对于标准库的基础类型，QuickCheck 都实现了这些 trait。
 我们可以把它理解为「我们提供规则，系统替我们提供数据」的测试模式，在简单模型上非常高效。
@@ -336,16 +336,7 @@ test "property Q2" {
 struct Queue {
   f : @list.List[Int]
   r : @list.List[Int]
-}
-
-///|
-impl Show for Queue with output(self, logger) {
-  logger.write_string("{f: ")
-  self.f.output(logger)
-  logger.write_string(", r: ")
-  self.r.output(logger)
-  logger.write_string("}")
-}
+} derive(Debug)
 
 ///|
 fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
@@ -639,31 +630,10 @@ enum Cmd {
   Insert(Int)
   Remove(Int)
   Contains(Int)
-} derive(@coreqc.Arbitrary)
+} derive(@coreqc.Arbitrary, Debug)
 
 ///|
-impl Show for Cmd with output(self, logger) {
-  match self {
-    Insert(x) => {
-      logger.write_string("Insert(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-    Remove(x) => {
-      logger.write_string("Remove(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-    Contains(x) => {
-      logger.write_string("Contains(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
-
-///|
-struct Trace(@list.List[Bool]) derive(Eq) // 记录 contains 的结果
+struct Trace(@list.List[Bool]) derive(Eq, Debug) // 记录 contains 的结果
 
 ///|
 pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int], Trace) {

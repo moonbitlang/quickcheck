@@ -420,22 +420,6 @@ enum Tree[T] {
   Leaf
   Node(Tree[T], T, Tree[T])
 } derive(Debug)
-
-///|
-impl[T : Show] Show for Tree[T] with output(self, logger) {
-  match self {
-    Leaf => logger.write_string("Leaf")
-    Node(left, val, right) => {
-      logger.write_string("Node(")
-      left.output(logger)
-      logger.write_string(", ")
-      val.output(logger)
-      logger.write_string(", ")
-      right.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
 ```
 
 如果性质测试不强依赖「树形分布」，

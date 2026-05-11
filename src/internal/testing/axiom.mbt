@@ -2,16 +2,7 @@
 struct Queue {
   f : @list.List[Int]
   r : @list.List[Int]
-}
-
-///|
-impl Show for Queue with output(self, logger) {
-  logger.write_string("{f: ")
-  self.f.output(logger)
-  logger.write_string(", r: ")
-  self.r.output(logger)
-  logger.write_string("}")
-}
+} derive(Debug)
 
 ///|
 impl @qc.Shrink for Queue
@@ -76,12 +67,7 @@ impl @coreqc.Arbitrary for Queue with arbitrary(i, rs) {
 }
 
 ///|
-priv struct EqQueue(@laws.Equivalence[Queue])
-
-///|
-impl Show for EqQueue with output(self, logger) {
-  self.0.output(logger)
-}
+priv struct EqQueue(@laws.Equivalence[Queue]) derive(Debug)
 
 ///|
 impl @qc.Shrink for EqQueue

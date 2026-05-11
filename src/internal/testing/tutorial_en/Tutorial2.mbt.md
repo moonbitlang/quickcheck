@@ -347,11 +347,6 @@ enum Tree[T] {
   Leaf
   Node(Tree[T], T, Tree[T])
 } derive(Debug)
-
-///|
-impl[T : Debug] Show for Tree[T] with output(self, logger) {
-  logger.write_string("\{to_repr(self)}")
-}
 ```
 
 If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@gen.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).

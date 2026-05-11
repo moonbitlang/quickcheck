@@ -38,7 +38,7 @@ pub using @state {type Expected}
 /// `Arrow[A, B]` is a newtype wrapper around a pure, total function
 /// `(A) -> B`. Wrapping is what lets us write
 ///
-///     pub impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+///     pub impl[P : Testable, A : Arbitrary + Shrink + Debug] Testable for Arrow[A, P]
 ///
 /// — MoonBit does not let us implement a trait *directly* on the bare
 /// function type `(A) -> B`, so `Arrow` is the obligatory detour.

@@ -113,7 +113,7 @@ test "default shrink for tuple and array" {
 QuickCheck 提供了两个直接相关的接口：
 
 ```mbt nocheck
-fn[T : Testable, A : Show] @qc.forall_shrink(
+fn[T : Testable, A : Debug] @qc.forall_shrink(
   gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
@@ -331,7 +331,7 @@ test "counterexample adds derived information" {
 QuickCheck 提供了 `label`、`classify` 与 `collect` 三个常用接口来观察测试数据。
 `label` 适合给每个样本贴一个单独的标签，
 `classify` 适合把样本划入若干业务类别，
-`collect` 则更通用，它会把某个 `Show` 值直接当作标签收集起来。
+`collect` 则更通用，它会把某个 `Debug` 值直接当作标签收集起来。
 在实践中，最常见的入口是先用 `classify` 观察几个关键类别是否真的出现过。
 
 ```mbt check
@@ -442,7 +442,7 @@ SmallCheck 走的是另一条路。
 但它依赖的能力完全不同：
 
 ```mbt nocheck
-pub fn[A : @feat.Enumerable + Show, B : Testable] @qc.small_check(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] @qc.small_check(
   f : (A) -> B,
   max_size? : Int,
   expect? : Expected,
@@ -517,19 +517,7 @@ pub fn[T] @feat.Enumerate::at(Self[T], BigInt) -> T
 enum Nat {
   Zero
   Succ(Nat)
-} derive(Eq)
-
-///|
-impl Show for Nat with output(self, logger) {
-  match self {
-    Zero => logger.write_string("Zero")
-    Succ(n) => {
-      logger.write_string("Succ(")
-      n.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
+} derive(Eq, Debug)
 
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
@@ -543,9 +531,17 @@ impl @feat.Enumerable for Nat with enumerate() {
 test "nat enumerate order" {
   let e : @feat.Enumerate[Nat] = @feat.Enumerable::enumerate()
   let xs = [0N, 1, 2, 3, 4].map(i => e[i])
-  inspect(
+  debug_inspect(
     xs,
-    content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero))))]",
+    content=(
+      #|[
+      #|  Zero,
+      #|  Succ(Zero),
+      #|  Succ(Succ(Zero)),
+      #|  Succ(Succ(Succ(Zero))),
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|]
+    ),
   )
 }
 ```

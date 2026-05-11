@@ -8,6 +8,7 @@ import {
   "moonbitlang/quickcheck/internal/report",
   "moonbitlang/core/sorted_set",
   "moonbitlang/core/list",
+  "moonbitlang/core/debug",
   "moonbitlang/core/quickcheck" @coreqc,
   "moonbitlang/core/buffer",
   "moonbitlang/core/quickcheck/splitmix",

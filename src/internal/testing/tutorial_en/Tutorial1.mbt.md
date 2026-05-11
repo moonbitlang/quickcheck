@@ -27,7 +27,7 @@ test "@qc.quick_check minimal" {
 
 This minimal example contains almost no information, yet it helps us precisely grasp the interface shape. Since `@qc.quick_check` accepts any `Testable` value, a boolean can be used directly as a property (because it implements the trait): if it is `false`, the test fails. Although extremely small, this example clearly reveals the entry semantics: QuickCheck only cares whether “this executable property ultimately holds”.
 
-When the property is a function, the most convenient entry point is `@qc.quick_check_fn`. It requires the function’s argument types to support `Arbitrary`, `Shrink`, and `Show`, so that QuickCheck can automatically generate test data, shrink counterexamples, and print failing samples. We will explain these traits in more detail later; for now, it is enough to know that QuickCheck provides instances for the standard library’s basic types.
+When the property is a function, the most convenient entry point is `@qc.quick_check_fn`. It requires the function’s argument types to support `Arbitrary`, `Shrink`, and `Debug`, so that QuickCheck can automatically generate test data, shrink counterexamples, and print failing samples. We will explain these traits in more detail later; for now, it is enough to know that QuickCheck provides instances for the standard library’s basic types.
 
 You can think of this as a testing mode where “we provide the rule, and the system provides the data”, which is highly efficient for simple models. The example below checks the property “adding zero does not change an integer”. The generator produces 100 integer samples (from small to large) and runs the property; if all results are true, the test passes, otherwise it prints the first failing sample.
 
@@ -287,16 +287,7 @@ These tests can even be written without knowing the internal representation of `
 struct Queue {
   f : @list.List[Int]
   r : @list.List[Int]
-}
-
-///|
-impl Show for Queue with output(self, logger) {
-  logger.write_string("{f: ")
-  self.f.output(logger)
-  logger.write_string(", r: ")
-  self.r.output(logger)
-  logger.write_string("}")
-}
+} derive(Debug)
 
 ///|
 fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
@@ -561,31 +552,10 @@ enum Cmd {
   Insert(Int)
   Remove(Int)
   Contains(Int)
-} derive(@coreqc.Arbitrary)
+} derive(@coreqc.Arbitrary, Debug)
 
 ///|
-impl Show for Cmd with output(self, logger) {
-  match self {
-    Insert(x) => {
-      logger.write_string("Insert(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-    Remove(x) => {
-      logger.write_string("Remove(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-    Contains(x) => {
-      logger.write_string("Contains(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
-
-///|
-struct Trace(@list.List[Bool]) derive(Eq) // records results of contains
+struct Trace(@list.List[Bool]) derive(Eq, Debug) // records results of contains
 ```
 
 We then execute the command sequence on the model:

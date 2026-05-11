@@ -14,7 +14,7 @@ struct Coverage {
 /// Fresh, empty `Coverage` — seeded into `State.collects` by
 /// `from_config`.
 fn Coverage::new() -> Coverage {
-  { labels: @sorted_map.new(), classes: @sorted_map.new() }
+  { labels: SortedMap([]), classes: SortedMap([]) }
 }
 
 ///|

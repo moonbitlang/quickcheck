@@ -233,7 +233,7 @@ in the MoonBit QuickCheck library:
 ```mbt nocheck
 ///|
 /// path: src/driver.mbt
-pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
+pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -256,7 +256,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 
 Let's look at the type signature first.
 The `quick_check_fn` function takes a function `f: (A) -> B` as argument,
-where `A` should have implemented the `Arbitrary`, `Shrink` and `Show` traits,
+where `A` should have implemented the `Arbitrary`, `Shrink` and `Debug` traits,
 and `B` should have implemented the `Testable` trait.
 In our examples `B` is fixed to a `Bool`, this is because Booleans
 implement the `Testable` trait, which can actually be more flexible,
@@ -264,7 +264,7 @@ we will discuss this later, for now we focus on the constraints of `A`:
 
 - `Arbitrary` is a trait that generates random values of a type.
 - `Shrink` is a trait that allows a value of particular type to be shrunk to simpler ones.
-- `Show` is used for printing the counterexample when a test fails.
+- `Debug` is used for printing the counterexample when a test fails.
 
 Now let's look at the function body.
 It takes a value of type that implemented `Testable` as argument and runs the test. This is an effectful function that may throw an error to the MoonBit test driver when a test fails (or give up). On success, it simply returns `Unit` with the sentence `Ok, passed!` printed to the console.
@@ -273,7 +273,7 @@ The body of the function contains a call to `quick_check` and wraps `f` in `Arro
 According to the definition of `quick_check`, it requires a value `prop` of a type
 `P` that implements `Testable` as an argument, and under certain conditions:
 For any type `P` implementing `Testable`,
-and `A` implementing `Arbitrary`, `Shrink` and `Show`,
+and `A` implementing `Arbitrary`, `Shrink` and `Debug`,
 the `Arrow[A, P]` type can be implemented as `Testable` as well.
 The reader may wonder why we don't directly implement `(A) -> P` as `Testable`
 but instead use `Arrow[A, P]` as a wrapper.
@@ -284,7 +284,7 @@ pub fn quick_check[P : @qc.Testable](prop : P) -> Unit raise Failure
 
 pub(all) struct Arrow[A, P]((A) -> P)
 
-pub impl[P : Testable, A : Arbitrary + Shrink + Show] Testable for Arrow[A, P]
+pub impl[P : Testable, A : Arbitrary + Shrink + Debug] Testable for Arrow[A, P]
 ```
 
 #### Testable
@@ -655,7 +655,7 @@ The result is as follows:
 92% : non-trivial
 ```
 
-The `collect` function is a generalization of `label`. The difference is that the `collect` takes an argument implementing the `Show` trait, and the `label` takes a string directly. The `collect` function is useful when you want to classify the test case with a complex value.
+The `collect` function is a generalization of `label`. The difference is that the `collect` takes an argument implementing the `Debug` trait, and the `label` takes a string directly. The `collect` function is useful when you want to classify the test case with a complex value.
 
 ## Application
 

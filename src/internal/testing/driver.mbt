@@ -343,10 +343,10 @@ test "failure coverage excludes the failing sample" {
       #|Counterexample:
       #|1
       #|Labels:
-      #|non-zero
+      #|"non-zero"
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
       #|Coverage:
-      #|100% : zero
+      #|100% : "zero"
     ),
   )
 }
@@ -366,7 +366,7 @@ test "abort" {
 priv enum Nat {
   Zero
   Succ(Nat)
-}
+} derive(Debug)
 
 ///|
 impl Show for Nat with output(self, logger) {
@@ -559,6 +559,70 @@ test "explicit universal qualification" {
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
+    ),
+  )
+}
+
+///|
+priv struct DebugOnly(Int) derive(Eq, Debug)
+
+///|
+impl @feat.Enumerable for DebugOnly with enumerate() {
+  (@feat.Enumerable::enumerate() : @feat.Enumerate[Int]).fmap(x => DebugOnly(x))
+}
+
+///|
+impl @coreqc.Arbitrary for DebugOnly with arbitrary(size, rs) {
+  DebugOnly(@coreqc.Arbitrary::arbitrary(size, rs))
+}
+
+///|
+impl @qc.Shrink for DebugOnly with shrink(self) {
+  @qc.Shrink::shrink(self.0).map(x => DebugOnly(x))
+}
+
+///|
+test "forall accepts Debug-only samples" {
+  inspect(
+    @qc.quick_check_silence(@qc.forall(@gen.pure(DebugOnly(1)), x => x == x)),
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
+  )
+}
+
+///|
+test "quick_check_fn accepts Debug-only input" {
+  inspect(
+    @qc.quick_check_fn_silence((x : DebugOnly) => x == x),
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
+  )
+}
+
+///|
+test "small_check accepts Debug-only input" {
+  inspect(
+    @qc.small_check_silence((x : DebugOnly) => x == x, max_size=2),
+    content=(
+      #|+++ [2/0/2] Ok, passed!
+    ),
+  )
+}
+
+///|
+test "collect accepts Debug-only labels" {
+  inspect(
+    @qc.small_check_silence(
+      fn(x : DebugOnly) { @qc.collect(true, x) },
+      max_size=2,
+    ),
+    content=(
+      #|+++ [2/0/2] Ok, passed!
+      #|Coverage:
+      #|50% : DebugOnly(0)
+      #|50% : DebugOnly(1)
     ),
   )
 }

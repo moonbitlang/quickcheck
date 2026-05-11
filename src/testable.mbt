@@ -54,7 +54,7 @@ struct Property(@gen.Gen[@rose.Rose[@state.SingleResult]])
 /// `Rose` of per-run outcomes — which the driver then evaluates.
 /// Built-in instances exist for `Bool` (treated as pass/fail) and
 /// for `Arrow[A, P]` / `ArrowError[A, P]` when
-/// `A : Arbitrary + Shrink + Show` and `P : Testable`.
+/// `A : Arbitrary + Shrink + Debug` and `P : Testable`.
 ///
 /// The `ArrowAsync[A, P]` newtype exists but no `Testable` impl is
 /// provided yet — async property testing is planned but not wired up.
@@ -107,15 +107,16 @@ pub impl[P : Testable] Testable for P? with property(self) {
 }
 
 ///|
-pub impl[P : Testable, E : Show] Testable for Result[P, E] with property(self) {
+pub impl[P : Testable, E : Debug] Testable for Result[P, E] with property(self) {
   match self {
     Ok(p) => p.property()
-    Err(e) => Testable::property({ ..@state.failed(), reason: e.to_string() })
+    Err(e) =>
+      Testable::property({ ..@state.failed(), reason: @debug.to_string(e) })
   }
 }
 
 ///|
-pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow[
+pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Debug] Testable for Arrow[
   A,
   P,
 ] with property(self) {
@@ -125,7 +126,7 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for Arrow
 ///|
 /// `Testable` for a raising function: wraps `raise` as a failure by
 /// catching the error and turning it into the counter-example reason.
-pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Show] Testable for ArrowError[
+pub impl[P : Testable, A : @coreqc.Arbitrary + Shrink + Debug] Testable for ArrowError[
   A,
   P,
 ] with property(self) {
@@ -193,9 +194,9 @@ pub fn[P : Testable] label(p : P, s : String) -> Property {
 }
 
 ///|
-/// Attaches a label (Show) to a test case
-pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
-  p |> label(t.to_string())
+/// Attaches a label (`Debug`) to a test case.
+pub fn[P : Testable, T : Debug] collect(p : P, t : T) -> Property {
+  p |> label(@debug.to_string(t))
 }
 
 ///|
@@ -222,7 +223,7 @@ pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
 
 ///|
 /// Run with an explicit generator
-pub fn[T : Testable, A : Show] forall(
+pub fn[T : Testable, A : Debug] forall(
   gen : @gen.Gen[A],
   f : (A) -> T,
 ) -> Property {
@@ -234,14 +235,14 @@ pub fn[T : Testable, A : Show] forall(
 /// is a convenience that passes `_ => Iter::empty()` — use this
 /// version when you want a hand-rolled shrinker without going through
 /// the `Shrink` trait.
-pub fn[T : Testable, A : Show] forall_shrink(
+pub fn[T : Testable, A : Debug] forall_shrink(
   gen : @gen.Gen[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> Property {
   gen.bind(x => {
     shrinking(shrinker, x, (a : A) => {
-      let s = a.to_string()
+      let s = @debug.to_string(a)
       counterexample(f(a), s)
     }).0
   })

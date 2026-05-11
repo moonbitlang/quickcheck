@@ -5,7 +5,7 @@
 pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
-}
+} derive(Debug)
 
 ///|
 pub impl[T : Show] Show for Equivalence[T] with output(self, logger) {

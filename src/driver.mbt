@@ -87,7 +87,7 @@ pub fn[P : Testable] quick_check_silence(
 /// Thin sugar over `quick_check`: accept a plain `(A) -> B` property
 /// function, wrap it in `Arrow`, and run. The shortest path from a
 /// user-written property to a full QuickCheck run.
-pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
+pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -112,7 +112,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn(
 ///|
 /// `quick_check_fn` variant that returns the formatted outcome as a
 /// `String` instead of raising / printing.
-pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silence(
+pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_silence(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
@@ -138,7 +138,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_silen
 /// `quick_check_fn` for properties that may `raise`. A raised error
 /// is treated as a counter-example with the error captured as the
 /// reason.
-pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error(
+pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_error(
   f : (A) -> B raise,
   max_shrinks? : Int,
   max_success? : Int,
@@ -163,7 +163,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 ///|
 /// `quick_check_fn_error` silent variant that returns the formatted
 /// outcome as a `String`.
-pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error_silence(
+pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_error_silence(
   f : (A) -> B raise,
   max_shrinks? : Int,
   max_success? : Int,
@@ -196,7 +196,7 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Show, B : Testable] quick_check_fn_error
 ///
 /// Complements `quick_check`: use `small_check` when you want
 /// deterministic, size-indexed coverage rather than random sampling.
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] small_check(
   f : (A) -> B,
   max_size? : Int = 100,
   expect? : Expected = Success,
@@ -212,7 +212,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check(
 ///|
 /// `small_check` silent variant: returns the formatted outcome as a
 /// `String`.
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] small_check_silence(
   f : (A) -> B,
   max_size? : Int = 100,
   expect? : Expected = Success,
@@ -227,7 +227,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence(
 ///|
 /// `small_check` variant that accepts a property that may `raise`. A
 /// raised error is treated as a counter-example.
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] small_check_error(
   f : (A) -> B raise,
   max_size? : Int = 100,
   expect? : Expected = Success,
@@ -240,7 +240,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error(
 ///|
 /// Silent variant of `small_check_error`: returns the formatted
 /// outcome as a `String` instead of raising.
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] small_check_error_silence(
   f : (A) -> B raise,
   max_size? : Int = 100,
   expect? : Expected = Success,
@@ -251,7 +251,7 @@ pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence(
 }
 
 ///|
-fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
+fn[A : @feat.Enumerable + Debug, B : Testable] small_check_with_result(
   f : (A) -> B,
   max_size : Int,
   expect : Expected,
@@ -283,11 +283,10 @@ fn[A : @feat.Enumerable + Show, B : Testable] small_check_with_result(
           continue parts, None, 0, remaining, idx
         } else {
           let val = (finite.fIndex)(BigInt::from_int(j))
-          let prop = map_total_result(counterexample(f(val), val.to_string()), res => {
-            ..res,
-            expect,
-            abort,
-          })
+          let prop = map_total_result(
+            counterexample(f(val), @debug.to_string(val)),
+            res => { ..res, expect, abort },
+          )
           let rnd1 = st.random_state.split()
           let rnd2 = st.random_state
           let { val: res, .. } = prop.0.run(idx, rnd1)

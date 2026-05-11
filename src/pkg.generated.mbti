@@ -2,6 +2,7 @@
 package "moonbitlang/quickcheck"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/quickcheck/feat",
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/state",
@@ -13,15 +14,15 @@ pub fn[P : Testable] callback(P, @state.Callback) -> Property
 
 pub fn[P : Testable] classify(P, Bool, String) -> Property
 
-pub fn[P : Testable, T : Show] collect(P, T) -> Property
+pub fn[P : Testable, T : @debug.Debug] collect(P, T) -> Property
 
 pub fn[P : Testable] counterexample(P, String) -> Property
 
 pub fn[P : Testable] filter(P, Bool) -> Property
 
-pub fn[T : Testable, A : Show] forall(@gen.Gen[A], (A) -> T) -> Property
+pub fn[T : Testable, A : @debug.Debug] forall(@gen.Gen[A], (A) -> T) -> Property
 
-pub fn[T : Testable, A : Show] forall_shrink(@gen.Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+pub fn[T : Testable, A : @debug.Debug] forall_shrink(@gen.Gen[A], (A) -> Iter[A], (A) -> T) -> Property
 
 pub fn[P : Testable] if_fail(P, () -> Unit) -> Property
 
@@ -31,36 +32,36 @@ pub fn[P : Testable] map_size(P, (Int) -> Int) -> Property
 
 pub fn[P : Testable] quick_check(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug, B : Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_error((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug, B : Testable] quick_check_fn_error((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_error_silence((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug, B : Testable] quick_check_fn_error_silence((A) -> B raise, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
-pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show, B : Testable] quick_check_fn_silence((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug, B : Testable] quick_check_fn_silence((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
 pub fn[P : Testable] quick_check_silence(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
-pub fn[A : @feat.Enumerable + Show, B : Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
 // Errors
 
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
-pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show] Testable for Arrow[A, P]
+pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] Testable for Arrow[A, P]
 
 pub(all) struct ArrowAsync[A, B](async (A) -> B)
 
 pub(all) struct ArrowError[A, B]((A) -> B raise)
-pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + Show] Testable for ArrowError[A, P]
+pub impl[P : Testable, A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] Testable for ArrowError[A, P]
 
 type Discard derive(Default)
 pub impl Testable for Discard
@@ -80,7 +81,7 @@ pub(open) trait Testable {
 pub impl Testable for Unit
 pub impl Testable for Bool
 pub impl[P : Testable] Testable for P?
-pub impl[P : Testable, E : Show] Testable for Result[P, E]
+pub impl[P : Testable, E : @debug.Debug] Testable for Result[P, E]
 pub impl[P : Testable] Testable for @gen.Gen[P]
 pub impl Testable for @state.SingleResult
 
