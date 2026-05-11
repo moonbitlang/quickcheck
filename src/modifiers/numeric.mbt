@@ -4,8 +4,8 @@
 pub(all) struct NonNegative[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for NonNegative[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for NonNegative[T] with to_repr(self) {
+  @debug.Repr::opaque_("NonNegative", @debug.to_repr(self.0))
 }
 
 ///|
@@ -43,12 +43,17 @@ test "NonNegative[Int] shrinks within bounds" {
 }
 
 ///|
+test "NonNegative[Int] debug output keeps wrapper name" {
+  debug_inspect(NonNegative(42), content="<NonNegative: 42>")
+}
+
+///|
 /// Wraps a value guaranteed to be `> 0`. Shrinks toward 1.
 pub(all) struct Positive[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for Positive[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for Positive[T] with to_repr(self) {
+  @debug.Repr::opaque_("Positive", @debug.to_repr(self.0))
 }
 
 ///|
@@ -92,8 +97,8 @@ test "Positive[Int] shrinks within bounds" {
 pub(all) struct Negative[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for Negative[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for Negative[T] with to_repr(self) {
+  @debug.Repr::opaque_("Negative", @debug.to_repr(self.0))
 }
 
 ///|
@@ -138,8 +143,8 @@ test "Negative[Int] shrinks within bounds" {
 pub(all) struct NonZero[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for NonZero[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for NonZero[T] with to_repr(self) {
+  @debug.Repr::opaque_("NonZero", @debug.to_repr(self.0))
 }
 
 ///|
@@ -183,8 +188,8 @@ test "NonZero[Int] shrinks within bounds" {
 pub(all) struct Small[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for Small[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for Small[T] with to_repr(self) {
+  @debug.Repr::opaque_("Small", @debug.to_repr(self.0))
 }
 
 ///|
@@ -209,4 +214,9 @@ test "Small[Int] generates values" {
   let gen : @gen.Gen[Small[Int]] = @gen.Gen::spawn()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
+}
+
+///|
+test "Small[Int] debug output keeps wrapper name" {
+  debug_inspect(Small(-3), content="<Small: -3>")
 }

@@ -1,11 +1,11 @@
 ///|
-/// Wraps a value while hiding it from `Show` output. Generation and
+/// Wraps a value while hiding it from display/debug output. Generation and
 /// shrinking behave like the underlying value.
 pub(all) struct Blind[T](T) derive(Eq)
 
 ///|
-pub impl[T] Show for Blind[T] with output(_self, logger) {
-  logger.write_string("(*)")
+pub impl[T] Debug for Blind[T] with to_repr(_self) {
+  @debug.Repr::opaque_("Blind", @debug.Repr::omitted())
 }
 
 ///|
@@ -22,8 +22,8 @@ pub impl[T : @shrink.Shrink] @shrink.Shrink for Blind[T] with shrink(self) {
 }
 
 ///|
-test "Blind[Int] hides Show output" {
-  inspect(Blind(42), content="(*)")
+test "Blind[Int] hides debug output" {
+  debug_inspect(Blind(42), content="<Blind: ...>")
 }
 
 ///|
@@ -45,8 +45,8 @@ test "Blind[Int] shrinks underlying value" {
 pub(all) struct NoShrink[T](T) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for NoShrink[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for NoShrink[T] with to_repr(self) {
+  @debug.Repr::opaque_("NoShrink", @debug.to_repr(self.0))
 }
 
 ///|
@@ -63,8 +63,8 @@ pub impl[T] @shrink.Shrink for NoShrink[T] with shrink(_self) {
 }
 
 ///|
-test "NoShrink[Int] shows underlying value" {
-  inspect(NoShrink(42), content="42")
+test "NoShrink[Int] preserves wrapper name in debug output" {
+  debug_inspect(NoShrink(42), content="<NoShrink: 42>")
 }
 
 ///|

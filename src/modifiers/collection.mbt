@@ -4,8 +4,11 @@
 pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for NonEmptyArray[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for NonEmptyArray[T] with to_repr(self) {
+  @debug.Repr::opaque_(
+    "NonEmptyArray",
+    @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
+  )
 }
 
 ///|
@@ -38,13 +41,21 @@ test "NonEmptyArray[Int] shrinks without producing empty" {
 }
 
 ///|
+test "NonEmptyArray[Int] debug output keeps wrapper name" {
+  debug_inspect(NonEmptyArray([1, 2]), content="<NonEmptyArray: [1, 2]>")
+}
+
+///|
 /// Wraps a `List[T]` guaranteed to be non-empty. Shrinks without
 /// producing the empty list.
 pub(all) struct NonEmptyList[T](@list.List[T]) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for NonEmptyList[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for NonEmptyList[T] with to_repr(self) {
+  @debug.Repr::opaque_(
+    "NonEmptyList",
+    @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
+  )
 }
 
 ///|
@@ -82,8 +93,11 @@ test "NonEmptyList[Int] shrinks without producing empty" {
 pub(all) struct SortedArray[T](Array[T]) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for SortedArray[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for SortedArray[T] with to_repr(self) {
+  @debug.Repr::opaque_(
+    "SortedArray",
+    @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
+  )
 }
 
 ///|
@@ -123,8 +137,11 @@ test "SortedArray[Int] shrinks preserving sort" {
 pub(all) struct SortedList[T](@list.List[T]) derive(Eq)
 
 ///|
-pub impl[T : Show] Show for SortedList[T] with output(self, logger) {
-  self.0.output(logger)
+pub impl[T : Debug] Debug for SortedList[T] with to_repr(self) {
+  @debug.Repr::opaque_(
+    "SortedList",
+    @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
+  )
 }
 
 ///|
@@ -156,4 +173,12 @@ test "SortedList[Int] shrinks preserving sort" {
   let s = @shrink.Shrink::shrink(SortedList(@list.from_array([1, 3, 5, 7]))).to_array()
   assert_true(s.all(x => x.0.to_array().is_sorted()))
   assert_true(s.length() > 0)
+}
+
+///|
+test "SortedList[Int] debug output keeps wrapper name" {
+  debug_inspect(
+    SortedList(@list.from_array([1, 2, 3])),
+    content="<SortedList: [1, 2, 3]>",
+  )
 }

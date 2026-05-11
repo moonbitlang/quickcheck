@@ -162,6 +162,16 @@ test "ASCIIString empty shrinks to empty" {
 }
 
 ///|
+test "ASCIIString debug output keeps wrapper name" {
+  debug_inspect(
+    ASCIIString("Hello"),
+    content=(
+      #|"Hello"
+    ),
+  )
+}
+
+///|
 test "UnicodeString generates Unicode scalar strings" {
   let gen : @gen.Gen[UnicodeString] = @gen.Gen::spawn()
   let samples = gen.samples(size=10)
