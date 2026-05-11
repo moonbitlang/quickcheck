@@ -194,9 +194,9 @@ pub fn[P : Testable] label(p : P, s : String) -> Property {
 }
 
 ///|
-/// Attaches a label (`Debug`) to a test case.
-pub fn[P : Testable, T : Debug] collect(p : P, t : T) -> Property {
-  p |> label(@debug.to_string(t))
+/// Attaches a label (`Show`) to a test case.
+pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
+  p |> label(Show::to_string(t))
 }
 
 ///|

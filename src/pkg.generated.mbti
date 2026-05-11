@@ -14,7 +14,7 @@ pub fn[P : Testable] callback(P, @state.Callback) -> Property
 
 pub fn[P : Testable] classify(P, Bool, String) -> Property
 
-pub fn[P : Testable, T : @debug.Debug] collect(P, T) -> Property
+pub fn[P : Testable, T : Show] collect(P, T) -> Property
 
 pub fn[P : Testable] counterexample(P, String) -> Property
 

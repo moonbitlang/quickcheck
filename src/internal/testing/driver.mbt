@@ -343,10 +343,10 @@ test "failure coverage excludes the failing sample" {
       #|Counterexample:
       #|1
       #|Labels:
-      #|"non-zero"
+      #|non-zero
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
       #|Coverage:
-      #|100% : "zero"
+      #|100% : zero
     ),
   )
 }
@@ -603,7 +603,7 @@ test "small_check accepts Debug-only input" {
 test "collect accepts Debug-only labels" {
   inspect(
     @qc.small_check_silence(
-      fn(x : DebugOnly) { @qc.collect(true, x) },
+      fn(x : DebugOnly) { @qc.collect(true, x.to_repr()) },
       max_size=2,
     ),
     content=(
