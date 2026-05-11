@@ -38,11 +38,6 @@ pub impl Debug for ASCIIString with to_repr(self) {
 }
 
 ///|
-pub impl Show for ASCIIString with output(self, logger) {
-  self.0.output(logger)
-}
-
-///|
 pub impl @coreqc.Arbitrary for ASCIIString with arbitrary(size, rs) {
   ASCIIString(string_with(size, rs, arbitrary_ascii_char))
 }
@@ -62,11 +57,6 @@ pub(all) struct UnicodeString(String) derive(Eq)
 ///|
 pub impl Debug for UnicodeString with to_repr(self) {
   @debug.Repr::string(self.0)
-}
-
-///|
-pub impl Show for UnicodeString with output(self, logger) {
-  self.0.output(logger)
 }
 
 ///|
@@ -90,11 +80,6 @@ pub(all) struct PrintableString(String) derive(Eq)
 ///|
 pub impl Debug for PrintableString with to_repr(self) {
   @debug.Repr::string(self.0)
-}
-
-///|
-pub impl Show for PrintableString with output(self, logger) {
-  self.0.output(logger)
 }
 
 ///|

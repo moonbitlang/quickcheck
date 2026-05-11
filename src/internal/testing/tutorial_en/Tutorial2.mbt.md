@@ -53,10 +53,6 @@ enum Color {
   Green
   Blue
 } derive(Arbitrary, Debug)
-
-// impl Show for Color with output(self, logger) {
-//   logger.write_string("\{to_repr(self)}")
-// }
 ```
 
 If a type already has an `Arbitrary` instance, then `@gen.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.

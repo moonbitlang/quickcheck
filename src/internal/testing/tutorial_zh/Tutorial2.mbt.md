@@ -71,16 +71,7 @@ enum Color {
   Red
   Green
   Blue
-} derive(Arbitrary)
-
-///|
-impl Show for Color with output(self, logger) {
-  match self {
-    Red => logger.write_string("Red")
-    Green => logger.write_string("Green")
-    Blue => logger.write_string("Blue")
-  }
-}
+} derive(Arbitrary, Debug)
 ```
 
 如果我们已经为某个类型定义了 `Arbitrary` 实例，
@@ -93,13 +84,13 @@ impl Show for Color with output(self, logger) {
 test "gen spawn for arbitrary" {
   let gc : @gen.Gen[Color] = @gen.Gen::spawn()
   let gen : @gen.Gen[Int] = @gen.Gen::spawn()
-  inspect(
+  debug_inspect(
     gc.samples(size=5),
     content=(
       #|[Green, Green, Green, Blue, Red]
     ),
   )
-  inspect(
+  debug_inspect(
     gen.samples(),
     content=(
       #|[6, 4, -6, -3, 0, 2, -8, 4, 5, 2]

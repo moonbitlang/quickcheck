@@ -5,15 +5,22 @@
 pub(all) struct Equivalence[T] {
   lhs : T
   rhs : T
-} derive(Debug)
+}
 
 ///|
-pub impl[T : Show] Show for Equivalence[T] with output(self, logger) {
-  logger.write_string("{lhs: ")
-  self.lhs.output(logger)
-  logger.write_string(", rhs: ")
-  self.rhs.output(logger)
-  logger.write_string("}")
+pub impl[T : Debug] Debug for Equivalence[T] with to_repr(self) {
+  Repr::opaque_(
+    "Equivalence",
+    Repr::record({ "lhs": to_repr(self.lhs), "rhs": to_repr(self.rhs) }),
+  )
+}
+
+///|
+test "Equivalence debug output is opaque" {
+  debug_inspect(
+    Equivalence::new(1, 2),
+    content="<Equivalence: { lhs: 1, rhs: 2 }>",
+  )
 }
 
 ///|

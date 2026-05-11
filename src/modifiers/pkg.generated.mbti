@@ -15,7 +15,6 @@ import {
 
 // Types and methods
 pub(all) struct ASCIIString(String) derive(Eq)
-pub impl Show for ASCIIString
 pub impl @debug.Debug for ASCIIString
 pub impl @quickcheck.Arbitrary for ASCIIString
 pub impl @shrink.Shrink for ASCIIString
@@ -61,7 +60,6 @@ pub impl @quickcheck.Arbitrary for Positive[Int]
 pub impl @shrink.Shrink for Positive[Int]
 
 pub(all) struct PrintableString(String) derive(Eq)
-pub impl Show for PrintableString
 pub impl @debug.Debug for PrintableString
 pub impl @quickcheck.Arbitrary for PrintableString
 pub impl @shrink.Shrink for PrintableString
@@ -82,7 +80,6 @@ pub impl[T : @quickcheck.Arbitrary + Compare] @quickcheck.Arbitrary for SortedLi
 pub impl @shrink.Shrink for SortedList[Int]
 
 pub(all) struct UnicodeString(String) derive(Eq)
-pub impl Show for UnicodeString
 pub impl @debug.Debug for UnicodeString
 pub impl @quickcheck.Arbitrary for UnicodeString
 pub impl @shrink.Shrink for UnicodeString

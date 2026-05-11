@@ -10,9 +10,32 @@ test "feat int" {
 ///|
 test "feat nat" {
   let fe : @gen.Gen[Nat] = @gen.Gen::feat_random(21)
-  inspect(
+  debug_inspect(
     fe.samples(size=20),
-    content="[Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))), Zero, Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))))), Succ(Succ(Zero)), Succ(Succ(Zero)), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))), Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))), Succ(Succ(Succ(Succ(Zero))))]",
+    content=(
+      #|[
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))),
+      #|  Zero,
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
+      #|  Succ(Succ(Zero)),
+      #|  Succ(Succ(Zero)),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))),
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))),
+      #|  Succ(Succ(Succ(Zero))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))),
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|]
+    ),
   )
 }
 
@@ -21,9 +44,19 @@ test "feat nat index" {
   let x = [0N, 1, 2, 3, 4, 5, 6].map(x => {
     (@feat.Enumerable::enumerate() : @feat.Enumerate[Nat])[x]
   })
-  inspect(
+  debug_inspect(
     x,
-    content="[Zero, Succ(Zero), Succ(Succ(Zero)), Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero)))), Succ(Succ(Succ(Succ(Succ(Zero))))), Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))]",
+    content=(
+      #|[
+      #|  Zero,
+      #|  Succ(Zero),
+      #|  Succ(Succ(Zero)),
+      #|  Succ(Succ(Succ(Zero))),
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|  Succ(Succ(Succ(Succ(Succ(Zero))))),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))),
+      #|]
+    ),
   )
 }
 
@@ -59,25 +92,7 @@ test "enumerate int" {
 priv enum SingleTree {
   Leaf(Bool)
   Node(Bool, SingleTree)
-}
-
-///|
-impl Show for SingleTree with output(self, logger) {
-  match self {
-    Leaf(b) => {
-      logger.write_string("Leaf(")
-      b.output(logger)
-      logger.write_string(")")
-    }
-    Node(b, t) => {
-      logger.write_string("Node(")
-      b.output(logger)
-      logger.write_string(", ")
-      t.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
+} derive(Debug)
 
 ///|
 impl @feat.Enumerable for SingleTree with enumerate() {
@@ -93,7 +108,7 @@ impl @feat.Enumerable for SingleTree with enumerate() {
 priv enum Tree[T] {
   Leaf(T)
   Branch(Forest[T])
-}
+} derive(Debug)
 
 ///|
 priv struct Forest[T] {
@@ -101,26 +116,11 @@ priv struct Forest[T] {
 }
 
 ///|
-impl[T : Show] Show for Tree[T] with output(self, logger) {
-  match self {
-    Leaf(x) => {
-      logger.write_string("Leaf(")
-      x.output(logger)
-      logger.write_string(")")
-    }
-    Branch(f) => {
-      logger.write_string("Branch(")
-      f.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
-
-///|
-impl[T : Show] Show for Forest[T] with output(self, logger) {
-  logger.write_string("{forest: ")
-  self.forest.output(logger)
-  logger.write_string("}")
+impl[T : Debug] Debug for Forest[T] with to_repr(self) {
+  @debug.Repr::opaque_(
+    "Forest",
+    @debug.Repr::array(self.forest.to_array().map(x => @debug.to_repr(x))),
+  )
 }
 
 ///|
@@ -139,20 +139,41 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
 ///|
 test "feat tree random" {
   let tg : @gen.Gen[Tree[Nat]] = @gen.Gen::feat_random(10)
-  inspect(
+  debug_inspect(
     tg.samples(),
-    content="[Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))), Leaf(Succ(Succ(Succ(Succ(Zero))))), Branch({forest: @list.from_array([Leaf(Succ(Succ(Zero)))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Leaf(Succ(Succ(Succ(Zero)))), Branch({forest: @list.from_array([Branch({forest: @list.from_array([])})])}), Leaf(Succ(Succ(Zero))), Branch({forest: @list.from_array([Leaf(Succ(Zero))])}), Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))), Branch({forest: @list.from_array([Branch({forest: @list.from_array([])})])})]",
+    content=(
+      #|[
+      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))),
+      #|  Leaf(Succ(Succ(Succ(Succ(Zero))))),
+      #|  Branch(<Forest: [Leaf(Succ(Succ(Zero)))]>),
+      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))),
+      #|  Leaf(Succ(Succ(Succ(Zero)))),
+      #|  Branch(<Forest: [Branch(<Forest: []>)]>),
+      #|  Leaf(Succ(Succ(Zero))),
+      #|  Branch(<Forest: [Leaf(Succ(Zero))]>),
+      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))),
+      #|  Branch(<Forest: [Branch(<Forest: []>)]>),
+      #|]
+    ),
   )
 }
 
 ///|
 test "feat tree" {
   let fe : @gen.Gen[Tree[Nat]] = @gen.Gen::feat_random(11)
-  inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
-  let x : SingleTree = @feat.Enumerable::enumerate()[196606]
-  inspect(
+  debug_inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
+  let x : SingleTree = @feat.Enumerable::enumerate()[200]
+  debug_inspect(
     x,
-    content="Node(false, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Node(true, Leaf(true)))))))))))))))))",
+    content=(
+      #|Node(
+      #|  false,
+      #|  Node(
+      #|    true,
+      #|    Node(true, Node(false, Node(true, Node(false, Leaf(true))))),
+      #|  ),
+      #|)
+    ),
   )
 }
 

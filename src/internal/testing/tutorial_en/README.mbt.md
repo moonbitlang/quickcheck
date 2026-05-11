@@ -339,27 +339,22 @@ For example, we can derive the `Arbitrary` trait for our own `Nat` type:
 enum Nat {
   Zero
   Succ(Nat)
-} derive(Arbitrary)
-
-///|
-impl Show for Nat with output(self, logger) {
-  match self {
-    Zero => logger.write_string("Zero")
-    Succ(n) => {
-      logger.write_string("Succ(")
-      n.output(logger)
-      logger.write_string(")")
-    }
-  }
-}
+} derive(Arbitrary, Debug)
 
 ///|
 test {
   let nat_gen : @gen.Gen[Nat] = @gen.Gen::spawn()
   let nats = nat_gen.samples(size=4)
-  inspect(
+  debug_inspect(
     nats,
-    content="[Succ(Succ(Succ(Zero))), Succ(Succ(Succ(Succ(Zero)))), Succ(Zero), Succ(Succ(Succ(Zero)))]",
+    content=(
+      #|[
+      #|  Succ(Succ(Succ(Zero))),
+      #|  Succ(Succ(Succ(Succ(Zero)))),
+      #|  Succ(Zero),
+      #|  Succ(Succ(Succ(Zero))),
+      #|]
+    ),
   )
 }
 ```
