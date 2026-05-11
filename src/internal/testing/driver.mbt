@@ -368,7 +368,6 @@ priv enum Nat {
   Succ(Nat)
 } derive(Debug)
 
-
 ///|
 impl @feat.Enumerable for Nat with enumerate() {
   @feat.pay(() => {
