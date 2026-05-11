@@ -61,7 +61,6 @@ be imported across the module boundary.
 |---------|---------|
 | `internal/testing` *(this one)* | Black-box regression suite + tutorial fixture |
 | `internal/benchmark` | Microbenchmarks for the enumeration / generator pipelines |
-| `internal/shrinking` | Experimental `ShrinkTree[T]` pretty-printer used when exploring shrink traces |
 | `internal/lazy` | Call-by-need values and lazy lists used by `feat` and `falsify` |
 | `internal/rose` | Shrink-tree structure used by the main QuickCheck driver |
 | `internal/utils` | Shared combinators (`id`, `flip`, …) and chunk-wise shrink helpers |

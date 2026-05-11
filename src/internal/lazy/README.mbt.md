@@ -8,8 +8,7 @@
 
 A small library for **call-by-need** values and **streams**. Used as
 the backbone of the `feat` enumeration library (sizes of a type are an
-infinite lazy list), the `falsify` sample-tree tails, and the
-`internal/shrinking` tree-formatter.
+infinite lazy list).
 
 ## What this gives you
 
@@ -315,9 +314,10 @@ Downstream, values built here feed into the trait-driven layers of
 - `@feat.Enumerate[T]` stores its parts as a `LazyList[Finite[T]]`, so
   every `@feat.Enumerable` instance implicitly relies on `LazyList` to
   stay productive.
-- `@falsify.Gen[T]` threads `LazyRef` through its `SampleTree` to delay
-  the infinite random prefix (see `@falsify`'s README for the
-  caveats — eager construction of `SampleTree` is a known rough edge).
+- `@feat.pay`, `product`, `union`, and `Enumerate::sample_finite` all
+  consume or produce these lazy part streams, so `small_check` and
+  `feat_random` depend on `LazyList` even though the public API does
+  not expose it directly.
 - The root `moonbitlang/quickcheck.Shrink` trait returns `Iter[Self]`
   rather than a `LazyList`, so end users rarely touch this type
   directly.

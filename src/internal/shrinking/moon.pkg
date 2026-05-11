@@ -1,6 +1,0 @@
-import {
-  "moonbitlang/quickcheck/internal/lazy",
-  "moonbitlang/core/list",
-}
-
-warnings = "+unnecessary_annotation"
