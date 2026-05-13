@@ -70,7 +70,7 @@ pub fn[T] pure(val : T) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let tree = @rose.Rose(1, [pure(2), pure(3)].iter())
+///   let tree = @rose.Rose(1, [pure(2), pure(3)])
 ///   let doubled = tree.fmap(x => x * 2)
 ///   @debug.assert_eq(doubled.iter().collect(), [2, 4, 6])
 /// }
@@ -91,7 +91,7 @@ test "iter walks root then branches in depth-first order" {
   let leaf = pure
   let tree = Rose(
     1,
-    [Rose(2, [leaf(3), leaf(4)].iter()), Rose(5, [leaf(6)].iter())].iter(),
+    [Rose(2, [leaf(3), leaf(4)]), Rose(5, [leaf(6)])],
   )
 
   @debug.assert_eq([..tree], [1, 2, 3, 4, 5, 6])
@@ -104,7 +104,7 @@ test "iter on a leaf yields only the root" {
 
 ///|
 test "for .. in sugar walks every value" {
-  let tree = Rose(10, [pure(20), pure(30)].iter())
+  let tree = Rose(10, [pure(20), pure(30)])
 
   @debug.assert_eq([ for x in tree => x ], [10, 20, 30])
 }

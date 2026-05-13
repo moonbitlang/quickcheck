@@ -92,7 +92,7 @@ pub impl Shrink for Char with shrink(c) {
     return Iter::empty()
   } else {
     let (cl, ch) = (Int::unsafe_to_char(ci - 1), Int::unsafe_to_char(ci + 1))
-    [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '].iter()
+    [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' ']
   }
 }
 
@@ -118,8 +118,8 @@ pub impl Shrink for Float with shrink(x) {
 ///   strictly closer to zero is emitted, along with integer-shrink
 ///   candidates of the scaled mantissa.
 fn shrink_decimal(x : Double) -> Iter[Double] {
-  guard !x.is_nan() else { [0.0, 1.0, -1.0, 2.0].iter() }
-  guard !x.is_inf() else { [0.0, 1.0, -1.0, 1000.0, -1000.0].iter() }
+  guard !x.is_nan() else { [0.0, 1.0, -1.0, 2.0] }
+  guard !x.is_inf() else { [0.0, 1.0, -1.0, 1000.0, -1000.0] }
   guard x >= 0.0 else {
     Iter::singleton(-x).concat(shrink_decimal(-x).map(Double::neg))
   }

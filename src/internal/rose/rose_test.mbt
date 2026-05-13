@@ -74,10 +74,7 @@ test "find_min_failing skips passing siblings and follows the first failing bran
   //
   // Walk: 10 fails → first child 3 passes (skip) → second child 8 fails →
   // descend into 8 → only child 5 passes → 8 is the smallest failure.
-  let r = @rose.Rose(
-    10,
-    [@rose.pure(3), Rose(8, [@rose.pure(5)].iter())].iter(),
-  )
+  let r = @rose.Rose(10, [@rose.pure(3), Rose(8, [@rose.pure(5)])])
   debug_inspect(find_min_failing(r, x => x >= 6), content="Some(8)")
 }
 
