@@ -3,6 +3,7 @@ package "moonbitlang/quickcheck/feat"
 
 import {
   "moonbitlang/core/bigint",
+  "moonbitlang/core/debug",
   "moonbitlang/core/list",
   "moonbitlang/quickcheck/internal/lazy",
 }
@@ -41,7 +42,7 @@ pub(all) struct Finite[T] {
 pub fn[T] Finite::iter(Self[T]) -> Iter[T]
 pub fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
 pub impl[T] Add for Finite[T]
-pub impl[T : Show] Show for Finite[T]
+pub impl[T : @debug.Debug] @debug.Debug for Finite[T]
 
 // Type aliases
 pub using @lazy {type LazyList}

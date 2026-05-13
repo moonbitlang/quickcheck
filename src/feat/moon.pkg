@@ -1,5 +1,6 @@
 import {
   "moonbitlang/quickcheck/internal/lazy",
+  "moonbitlang/core/debug",
   "moonbitlang/core/list",
 }
 

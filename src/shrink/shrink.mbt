@@ -17,8 +17,8 @@
 ///   assert_true(candidates.contains(0))
 ///   assert_true(candidates.length() > 0)
 ///   // `Bool` shrinks `true` to `false`, and `false` has no shrinks.
-///   assert_eq(Shrink::shrink(true).collect(), [false])
-///   assert_eq(Shrink::shrink(false).collect(), [])
+///   @debug.assert_eq(Shrink::shrink(true).collect(), [false])
+///   @debug.assert_eq(Shrink::shrink(false).collect(), [])
 /// }
 /// ```
 pub(open) trait Shrink {

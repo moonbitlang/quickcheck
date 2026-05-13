@@ -89,7 +89,7 @@ Convert from a regular `@list.List` and back as needed:
 ///|
 test "from_list / back via take" {
   let xs = @lazy.from_list(@list.from_array([1, 2, 3]))
-  inspect(xs, content="[1, 2, 3]")
+  debug_inspect(xs, content="[1, 2, 3]")
   assert_eq(xs.head(), 1)
   assert_eq(xs.length(), 3)
 }
@@ -104,9 +104,12 @@ no loop.
 ```mbt check
 ///|
 test "repeat and infinite_stream are bounded by take" {
-  inspect(@lazy.repeat(7).take(4), content="[7, 7, 7, 7]")
-  inspect(@lazy.infinite_stream(0, 1).take(6), content="[0, 1, 2, 3, 4, 5]")
-  inspect(@lazy.infinite_stream(1, 2).take(5), content="[1, 3, 5, 7, 9]")
+  debug_inspect(@lazy.repeat(7).take(4), content="[7, 7, 7, 7]")
+  debug_inspect(
+    @lazy.infinite_stream(0, 1).take(6),
+    content="[0, 1, 2, 3, 4, 5]",
+  )
+  debug_inspect(@lazy.infinite_stream(1, 2).take(5), content="[1, 3, 5, 7, 9]")
 }
 ```
 
@@ -129,12 +132,12 @@ cells of the input as you ask about.
 ///|
 test "map and take compose lazily" {
   let squares = @lazy.infinite_stream(1, 1).map(x => x * x)
-  inspect(squares.take(5), content="[1, 4, 9, 16, 25]")
+  debug_inspect(squares.take(5), content="[1, 4, 9, 16, 25]")
 }
 
 ///|
 test "take_while stops at the first failure" {
-  inspect(
+  debug_inspect(
     @lazy.infinite_stream(1, 1).take_while(x => x < 5),
     content="[1, 2, 3, 4]",
   )
@@ -144,27 +147,27 @@ test "take_while stops at the first failure" {
 test "concat (+) appends two streams" {
   let xs = @lazy.from_list(@list.from_array([1, 2, 3]))
   let ys = @lazy.from_list(@list.from_array([4, 5, 6]))
-  inspect(xs + ys, content="[1, 2, 3, 4, 5, 6]")
+  debug_inspect(xs + ys, content="[1, 2, 3, 4, 5, 6]")
 }
 
 ///|
 test "split_at is (take n, drop n) fused" {
   let xs = @lazy.infinite_stream(0, 1).take(6)
   let (left, right) = xs.split_at(3)
-  inspect(left, content="[0, 1, 2]")
-  inspect(right, content="[3, 4, 5]")
+  debug_inspect(left, content="[0, 1, 2]")
+  debug_inspect(right, content="[3, 4, 5]")
 }
 
 ///|
 test "drop_while skips the failing prefix, keeps the rest" {
   let xs = @lazy.from_list(@list.from_array([1, 2, 3, 10, 4, 5]))
-  inspect(xs.drop_while(x => x < 5), content="[10, 4, 5]")
+  debug_inspect(xs.drop_while(x => x < 5), content="[10, 4, 5]")
 }
 
 ///|
 test "tails exposes every suffix" {
   let xs = @lazy.from_list(@list.from_array([1, 2, 3]))
-  inspect(xs.tails(), content="[[1, 2, 3], [2, 3], [3], []]")
+  debug_inspect(xs.tails(), content="[[1, 2, 3], [2, 3], [3], []]")
 }
 ```
 
@@ -184,7 +187,7 @@ test "for x in walks every element" {
   for x in xs {
     acc.push(x)
   }
-  inspect(acc, content="[10, 20, 30]")
+  debug_inspect(acc, content="[10, 20, 30]")
 }
 
 ///|
@@ -231,14 +234,17 @@ parts of two `Enumerate`s in `feat`.
 test "zip_with truncates at the shorter list" {
   let a = @lazy.infinite_stream(1, 1)
   let b = @lazy.from_list(@list.from_array([10, 20, 30]))
-  inspect(@lazy.zip_with((x, y) => x + y, a, b), content="[11, 22, 33]")
+  debug_inspect(@lazy.zip_with((x, y) => x + y, a, b), content="[11, 22, 33]")
 }
 
 ///|
 test "zip_plus keeps the longer tail" {
   let a = @lazy.from_list(@list.from_array([1, 2]))
   let b = @lazy.from_list(@list.from_array([10, 20, 30, 40]))
-  inspect(@lazy.zip_plus((x, y) => x + y, a, b), content="[11, 22, 30, 40]")
+  debug_inspect(
+    @lazy.zip_plus((x, y) => x + y, a, b),
+    content="[11, 22, 30, 40]",
+  )
 }
 ```
 
@@ -263,7 +269,7 @@ test "unfold builds a countdown" {
       Nil => None
     }
   })
-  inspect(countdown, content="[5, 4, 3, 2, 1]")
+  debug_inspect(countdown, content="[5, 4, 3, 2, 1]")
 }
 ```
 

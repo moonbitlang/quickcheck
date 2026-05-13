@@ -72,8 +72,8 @@ Let's start with something very simple. Suppose that we just wrote a function `r
 ```mbt check
 ///|
 test "reverse" {
-  inspect(([] : Array[Int]).rev(), content="[]")
-  inspect([1, 2, 3].rev(), content="[3, 2, 1]")
+  debug_inspect(([] : Array[Int]).rev(), content="[]")
+  debug_inspect([1, 2, 3].rev(), content="[3, 2, 1]")
 }
 ```
 

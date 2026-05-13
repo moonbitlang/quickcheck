@@ -19,25 +19,18 @@ pub fn[X] default() -> LazyList[X] {
 ///|
 /// Renders the list in the canonical `[a, b, c, ...]` form. **Forces
 /// the entire list**, so don't call this on an infinite stream.
-pub impl[T : Show] Show for LazyList[T] with output(self, logger) {
-  logger.write_string("[")
+pub impl[T : Debug] Debug for LazyList[T] with to_repr(self) {
+  let elems = []
   for cur = self {
     match cur {
       Nil => break
       Cons(x, xs) => {
-        let next = xs.force()
-        logger.write_object(x)
-        match next {
-          Nil => break
-          _ => {
-            logger.write_string(", ")
-            continue next
-          }
-        }
+        elems.push(to_repr(x))
+        continue xs.force()
       }
     }
   }
-  logger.write_string("]")
+  Repr::array(elems)
 }
 
 ///|
@@ -98,7 +91,7 @@ pub fn[T] LazyList::index(self : LazyList[T], i : Int) -> T {
 /// ```mbt check
 /// test {
 ///   let xs : LazyList[Int] = to_lazy(@list.from_array([1, 2, 3]))
-///   assert_eq(xs.iter().collect(), [1, 2, 3])
+///   @debug.assert_eq(xs.iter().collect(), [1, 2, 3])
 /// }
 /// ```
 pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
@@ -118,7 +111,7 @@ pub fn[T] to_lazy(ls : @list.List[T]) -> LazyList[T] {
 /// test {
 ///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3]))
 ///   let lens = xs.tails().iter().map(t => t.length()).collect()
-///   assert_eq(lens, [3, 2, 1, 0])
+///   @debug.assert_eq(lens, [3, 2, 1, 0])
 /// }
 /// ```
 pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
@@ -144,7 +137,7 @@ pub fn[T] LazyList::tails(self : LazyList[T]) -> LazyList[LazyList[T]] {
 /// test {
 ///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2]))
 ///   let ys : LazyList[Int] = from_list(@list.from_array([3, 4]))
-///   assert_eq(xs.concat(ys).iter().collect(), [1, 2, 3, 4])
+///   @debug.assert_eq(xs.concat(ys).iter().collect(), [1, 2, 3, 4])
 /// }
 /// ```
 pub fn[T] LazyList::concat(
@@ -168,7 +161,7 @@ pub impl[T] Add for LazyList[T] with add(self, other) {
 ///
 /// ```mbt check
 /// test {
-///   assert_eq(repeat('a').take(4).iter().collect(), ['a', 'a', 'a', 'a'])
+///   @debug.assert_eq(repeat('a').take(4).iter().collect(), ['a', 'a', 'a', 'a'])
 /// }
 /// ```
 pub fn[T] repeat(val : T) -> LazyList[T] {
@@ -182,7 +175,7 @@ pub fn[T] repeat(val : T) -> LazyList[T] {
 /// ```mbt check
 /// test {
 ///   let squared = infinite_stream(1, 1).map(x => x * x).take(4)
-///   assert_eq(squared.iter().collect(), [1, 4, 9, 16])
+///   @debug.assert_eq(squared.iter().collect(), [1, 4, 9, 16])
 /// }
 /// ```
 pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
@@ -200,8 +193,8 @@ pub fn[T, U] LazyList::map(self : LazyList[T], f : (T) -> U) -> LazyList[U] {
 /// test {
 ///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3, 4]))
 ///   let (lhs, rhs) = xs.split_at(2)
-///   assert_eq(lhs.iter().collect(), [1, 2])
-///   assert_eq(rhs.iter().collect(), [3, 4])
+///   @debug.assert_eq(lhs.iter().collect(), [1, 2])
+///   @debug.assert_eq(rhs.iter().collect(), [3, 4])
 /// }
 /// ```
 pub fn[T] LazyList::split_at(
@@ -319,7 +312,7 @@ pub fn[X : Add] sum(l : LazyList[X], init~ : X) -> X {
 ///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2, 3]))
 ///   let ys : LazyList[Int] = from_list(@list.from_array([10, 20]))
 ///   let zs = zip_with((a, b) => a + b, xs, ys)
-///   assert_eq(zs.iter().collect(), [11, 22])
+///   @debug.assert_eq(zs.iter().collect(), [11, 22])
 /// }
 /// ```
 pub fn[A, B, C] zip_with(
@@ -345,7 +338,7 @@ pub fn[A, B, C] zip_with(
 /// test {
 ///   let nats : LazyList[Int] = infinite_stream(0, 1)
 ///   let small = nats.take_while(x => x < 4)
-///   assert_eq(small.iter().collect(), [0, 1, 2, 3])
+///   @debug.assert_eq(small.iter().collect(), [0, 1, 2, 3])
 /// }
 /// ```
 pub fn[T] LazyList::take_while(
@@ -370,7 +363,7 @@ pub fn[T] LazyList::take_while(
 /// ```mbt check
 /// test {
 ///   let nats : LazyList[Int] = infinite_stream(0, 1)
-///   assert_eq(nats.take(3).iter().collect(), [0, 1, 2])
+///   @debug.assert_eq(nats.take(3).iter().collect(), [0, 1, 2])
 /// }
 /// ```
 pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
@@ -391,7 +384,7 @@ pub fn[T] LazyList::take(self : LazyList[T], n : Int) -> LazyList[T] {
 /// ```mbt check
 /// test {
 ///   let nats : LazyList[Int] = infinite_stream(0, 1)
-///   assert_eq(nats.drop(3).take(3).iter().collect(), [3, 4, 5])
+///   @debug.assert_eq(nats.drop(3).take(3).iter().collect(), [3, 4, 5])
 /// }
 /// ```
 pub fn[T] LazyList::drop(self : LazyList[T], n : Int) -> LazyList[T] {
@@ -435,7 +428,7 @@ pub fn[T] LazyList::drop_while(
 /// ```mbt check
 /// test {
 ///   let evens = infinite_stream(0, 2).take(5)
-///   assert_eq(evens.iter().collect(), [0, 2, 4, 6, 8])
+///   @debug.assert_eq(evens.iter().collect(), [0, 2, 4, 6, 8])
 /// }
 /// ```
 pub fn[X : Add] infinite_stream(start : X, step : X) -> LazyList[X] {
@@ -470,7 +463,9 @@ pub fn[A, B, C] zip_lazy_normal(
 /// test {
 ///   let xs : LazyList[Int] = from_list(@list.from_array([1, 2]))
 ///   let ys : LazyList[Int] = from_list(@list.from_array([10, 20, 30, 40]))
-///   assert_eq(zip_plus((a, b) => a + b, xs, ys).iter().collect(), [11, 22, 30, 40])
+///   @debug.assert_eq(zip_plus((a, b) => a + b, xs, ys).iter().collect(), [
+///     11, 22, 30, 40,
+///   ])
 /// }
 /// ```
 pub fn[T] zip_plus(

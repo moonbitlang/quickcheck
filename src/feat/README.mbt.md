@@ -94,10 +94,10 @@ test "hand-rolled finite chunk" {
       }
     },
   }
-  inspect(
+  debug_inspect(
     f.to_array(),
     content=(
-      #|(2, @list.from_array(["left", "right"]))
+      #|(2, <List: ["left", "right"]>)
     ),
   )
 }
@@ -112,10 +112,10 @@ test "disjoint union of two singleton parts" {
   let left = @feat.singleton("left").eval().head()
   let right = @feat.singleton("right").eval().head()
   let joined = left + right
-  inspect(
+  debug_inspect(
     joined.to_array(),
     content=(
-      #|(2, @list.from_array(["left", "right"]))
+      #|(2, <List: ["left", "right"]>)
     ),
   )
 }
@@ -134,7 +134,7 @@ test "for x in finite" {
   for x in finite {
     acc.push(x)
   }
-  assert_eq(acc, [0, 1, 2, 3])
+  @debug.assert_eq(acc, [0, 1, 2, 3])
 }
 ```
 
@@ -160,7 +160,12 @@ test "singleton has size 0" {
   let e = @feat.singleton(42)
   let parts = e.eval()
   // The first (and only) part holds the single value.
-  inspect(parts.head().to_array(), content="(1, @list.from_array([42]))")
+  debug_inspect(
+    parts.head().to_array(),
+    content=(
+      #|(1, <List: [42]>)
+    ),
+  )
 }
 
 ///|
@@ -169,8 +174,18 @@ test "pay shifts everything one size up" {
   // After pay:  part₀ = {}, part₁ = {42}
   let shifted = @feat.pay(() => @feat.singleton(42))
   let parts = shifted.eval()
-  inspect(parts.head().to_array(), content="(0, @list.from_array([]))")
-  inspect(parts.tail().head().to_array(), content="(1, @list.from_array([42]))")
+  debug_inspect(
+    parts.head().to_array(),
+    content=(
+      #|(0, <List: []>)
+    ),
+  )
+  debug_inspect(
+    parts.tail().head().to_array(),
+    content=(
+      #|(1, <List: [42]>)
+    ),
+  )
 }
 ```
 
@@ -341,9 +356,24 @@ test "index into Bool's enumeration" {
 test "index into a list enumeration" {
   let e : @feat.Enumerate[@list.List[Bool]] = Enumerable::enumerate()
   // Sizes grow as more cons cells are added.
-  inspect(e[0], content="@list.from_array([])")
-  inspect(e[1], content="@list.from_array([true])")
-  inspect(e[2], content="@list.from_array([false])")
+  debug_inspect(
+    e[0],
+    content=(
+      #|<List: []>
+    ),
+  )
+  debug_inspect(
+    e[1],
+    content=(
+      #|<List: [true]>
+    ),
+  )
+  debug_inspect(
+    e[2],
+    content=(
+      #|<List: [false]>
+    ),
+  )
 }
 ```
 
@@ -358,11 +388,18 @@ test "index into a list enumeration" {
 test "materialize every Bool at size 1" {
   let parts = (Enumerable::enumerate() : @feat.Enumerate[Bool]).eval()
   // part 0 is empty (Bool is defined with a pay).
-  inspect(parts.head().to_array(), content="(0, @list.from_array([]))")
+  debug_inspect(
+    parts.head().to_array(),
+    content=(
+      #|(0, <List: []>)
+    ),
+  )
   // part 1 holds both booleans.
-  inspect(
+  debug_inspect(
     parts.tail().head().to_array(),
-    content="(2, @list.from_array([true, false]))",
+    content=(
+      #|(2, <List: [true, false]>)
+    ),
   )
 }
 ```
@@ -392,10 +429,10 @@ test "fmap rewrites every element in place" {
 ///|
 test "product generates every pair in part order" {
   let pairs = @feat.product(zero_or_one_part(), zero_or_one_part())
-  inspect(pairs[0], content="(0, 0)")
-  inspect(pairs[1], content="(0, 1)")
-  inspect(pairs[2], content="(1, 0)")
-  inspect(pairs[3], content="(1, 1)")
+  debug_inspect(pairs[0], content="(0, 0)")
+  debug_inspect(pairs[1], content="(0, 1)")
+  debug_inspect(pairs[2], content="(1, 0)")
+  debug_inspect(pairs[3], content="(1, 1)")
 }
 
 ///|

@@ -297,7 +297,7 @@ test "failure report is concise by default" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
   })
   inspect(
     @qc.quick_check_silence(prop),
@@ -314,7 +314,7 @@ test "failure report renders details" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
   })
   inspect(
     @qc.quick_check_silence(prop, verbose=true),
@@ -423,8 +423,8 @@ fn[T] reverse(lst : Array[T]) -> Array[T] {
 
 ///|
 test "reverse" {
-  inspect(reverse(([] : Array[Int])), content="[]")
-  inspect(reverse([1, 2, 3]), content="[3, 2, 1]")
+  debug_inspect(reverse(([] : Array[Int])), content="[]")
+  debug_inspect(reverse([1, 2, 3]), content="[3, 2, 1]")
 }
 
 ///|

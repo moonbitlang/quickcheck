@@ -94,7 +94,12 @@ impl @coreqc.Arbitrary for EqQueue with arbitrary(i, rs) {
 test "queue front and dequeue" {
   let q = enqueue(enqueue(empty_queue(), 1), 2)
   inspect(q.front(), content="1")
-  inspect(q.dequeue().to_list(), content="@list.from_array([2])")
+  debug_inspect(
+    q.dequeue().to_list(),
+    content=(
+      #|<List: [2]>
+    ),
+  )
   let rebuilt = enqueue(enqueue(empty_queue(), 1), 2)
   inspect(q.op_equal(rebuilt), content="true")
 }

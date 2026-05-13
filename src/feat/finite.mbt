@@ -144,7 +144,7 @@ fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
 /// ```mbt check
 /// test {
 ///   let squares : Finite[BigInt] = { fCard: 4, fIndex: j => j * j }
-///   assert_eq(squares.iter().collect(), [0, 1, 4, 9])
+///   @debug.assert_eq(squares.iter().collect(), [0, 1, 4, 9])
 /// }
 /// ```
 pub fn[T] Finite::iter(self : Finite[T]) -> Iter[T] {
@@ -164,9 +164,9 @@ pub fn[T] Finite::iter(self : Finite[T]) -> Iter[T] {
 
 ///|
 test "iter walks 0..fCard" {
-  assert_eq(fin_finite(5).iter().collect(), [0, 1, 2, 3, 4])
+  @debug.assert_eq(fin_finite(5).iter().collect(), [0, 1, 2, 3, 4])
   let f : Finite[Int] = fin_empty()
-  assert_eq(f.iter().collect(), [])
+  @debug.assert_eq(f.iter().collect(), [])
 }
 
 ///|
@@ -175,7 +175,7 @@ test "for x in finite walks every element" {
   for x in fin_finite(3) {
     acc.push(x)
   }
-  assert_eq(acc, [0, 1, 2])
+  @debug.assert_eq(acc, [0, 1, 2])
 }
 
 ///|
@@ -203,7 +203,12 @@ test "iter is lazy — early break stops walking" {
 /// ```mbt check
 /// test {
 ///   let f : Finite[BigInt] = { fCard: 3, fIndex: j => j }
-///   inspect(f.to_array(), content="(3, @list.from_array([0, 1, 2]))")
+///   debug_inspect(
+///     f.to_array(),
+///     content=(
+///       #|(3, <List: [0, 1, 2]>)
+///     ),
+///   )
 /// }
 /// ```
 pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
@@ -219,10 +224,10 @@ pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
 }
 
 ///|
-/// `Show` renders the full element list (via `to_array`). Don't call
+/// `Debug` renders the full element list (via `to_array`). Don't call
 /// on a very large chunk — it forces everything.
-pub impl[T : Show] Show for Finite[T] with output(self, logger) {
-  logger.write_object(self.to_array().1)
+pub impl[T : Debug] Debug for Finite[T] with to_repr(self) {
+  to_repr(self.to_array().1)
 }
 
 ///|
@@ -238,12 +243,16 @@ fn fin_finite(i : BigInt) -> Finite[BigInt] {
 
 ///|
 test "to_array" {
-  inspect(
+  debug_inspect(
     fin_finite(5).to_array(),
-    content="(5, @list.from_array([0, 1, 2, 3, 4]))",
+    content=(
+      #|(5, <List: [0, 1, 2, 3, 4]>)
+    ),
   )
-  inspect(
+  debug_inspect(
     (fin_empty() : Finite[Unit]).to_array(),
-    content="(0, @list.from_array([]))",
+    content=(
+      #|(0, <List: []>)
+    ),
   )
 }

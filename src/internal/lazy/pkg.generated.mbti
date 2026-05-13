@@ -2,6 +2,7 @@
 package "moonbitlang/quickcheck/internal/lazy"
 
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/list",
 }
 
@@ -48,7 +49,7 @@ pub fn[T] LazyList::take(Self[T], Int) -> Self[T]
 pub fn[T] LazyList::take_while(Self[T], (T) -> Bool) -> Self[T]
 pub fn[T] LazyList::unfold(Self[T], (Self[T]) -> (T, Self[T])?) -> Self[T]
 pub impl[T] Add for LazyList[T]
-pub impl[T : Show] Show for LazyList[T]
+pub impl[T : @debug.Debug] @debug.Debug for LazyList[T]
 
 type LazyRef[T]
 pub fn[T] LazyRef::force(Self[T]) -> T

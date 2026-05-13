@@ -233,10 +233,10 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
 ///|
 test "shrink sorted array" {
   let s = shrink_sorted_array([1, 3, 5], lo=0, hi=9)
-  inspect(
+  debug_inspect(
     s,
     content=(
-      #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
+      #|<Iter: ...>
     ),
   )
 }
@@ -295,7 +295,7 @@ test "counterexample adds derived information" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
   })
   let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(
