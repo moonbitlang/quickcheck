@@ -99,7 +99,12 @@ pub fn[T, U] Gen::ap(self : Gen[(T) -> U], v : Gen[T]) -> Gen[U] {
 ///   // Use bind to sequence generators: first pick `n`, then draw an
 ///   // `n`-element list of the fixed value 0.
 ///   let g = pure(3).bind(n => pure(0).list_with_size(n))
-///   inspect(g.sample(), content="@list.from_array([0, 0, 0])")
+///   debug_inspect(
+///     g.sample(),
+///     content=(
+///       #|<List: [0, 0, 0]>
+///     ),
+///   )
 /// }
 /// ```
 pub fn[T, U] Gen::bind(self : Gen[T], f : (T) -> Gen[U]) -> Gen[U] {
@@ -190,7 +195,7 @@ pub fn[A, B, C, D, E, F, G] liftA6(
 /// ```mbt check
 /// test {
 ///   let g : Gen[(Int, String)] = tuple(pure(7), pure("x"))
-///   assert_eq(g.sample(), (7, "x"))
+///   @debug.assert_eq(g.sample(), (7, "x"))
 /// }
 /// ```
 pub fn[T, U] tuple(gen1 : Gen[T], gen2 : Gen[U]) -> Gen[(T, U)] {
@@ -563,7 +568,12 @@ pub fn char_range(lo : Char, hi : Char) -> Gen[Char] {
 /// ```mbt check
 /// test {
 ///   let g = pure(42).list_with_size(3)
-///   inspect(g.sample(), content="@list.from_array([42, 42, 42])")
+///   debug_inspect(
+///     g.sample(),
+///     content=(
+///       #|<List: [42, 42, 42]>
+///     ),
+///   )
 /// }
 /// ```
 pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[@list.List[T]] {
@@ -584,7 +594,7 @@ pub fn[T] Gen::list_with_size(gen : Gen[T], size : Int) -> Gen[@list.List[T]] {
 /// ```mbt check
 /// test {
 ///   let g = pure(0).array_with_size(4)
-///   assert_eq(g.sample(), [0, 0, 0, 0])
+///   @debug.assert_eq(g.sample(), [0, 0, 0, 0])
 /// }
 /// ```
 pub fn[T] Gen::array_with_size(self : Gen[T], size : Int) -> Gen[Array[T]] {

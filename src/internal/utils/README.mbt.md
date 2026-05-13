@@ -106,8 +106,8 @@ test "removes_array walks in chunks of k" {
   let xs = [1, 2, 3, 4, 5, 6]
   let variants = @utils.removes_array(2, xs.length(), xs)
   assert_eq(variants.length(), 2)
-  assert_eq(variants[0], [3, 4, 5, 6])
-  assert_eq(variants[1], [1, 2, 5, 6])
+  @debug.assert_eq(variants[0], [3, 4, 5, 6])
+  @debug.assert_eq(variants[1], [1, 2, 5, 6])
 }
 
 ///|
@@ -115,10 +115,10 @@ test "removes_list matches the chunk-wise semantics" {
   // Input  : [1, 2, 3, 4], k = 2 — only the first chunk has a non-empty tail.
   let xs = @list.from_array([1, 2, 3, 4])
   let variants = @utils.removes_list(2, 4, xs)
-  inspect(
+  debug_inspect(
     variants,
     content=(
-      #|@list.from_array([@list.from_array([3, 4])])
+      #|<List: [<List: [3, 4]>]>
     ),
   )
 }
@@ -148,7 +148,7 @@ test "apply_while_array accumulates in reverse order" {
   // apply_while_array prepends each, so the output starts with the last
   // kept value (1) and ends with the first (8).
   let halvings = @utils.apply_while_array(16, x => x / 2, x => x > 0)
-  assert_eq(halvings, [1, 2, 4, 8])
+  @debug.assert_eq(halvings, [1, 2, 4, 8])
 }
 ```
 

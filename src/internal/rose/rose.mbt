@@ -39,7 +39,7 @@ pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 /// ```mbt check
 /// test {
 ///   let nested : Rose[Rose[Int]] = pure(pure(42))
-///   assert_eq(nested.join().iter().collect(), [42])
+///   @debug.assert_eq(nested.join().iter().collect(), [42])
 /// }
 /// ```
 pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
@@ -72,7 +72,7 @@ pub fn[T] pure(val : T) -> Rose[T] {
 /// test {
 ///   let tree = @rose.Rose(1, [pure(2), pure(3)].iter())
 ///   let doubled = tree.fmap(x => x * 2)
-///   assert_eq(doubled.iter().collect(), [2, 4, 6])
+///   @debug.assert_eq(doubled.iter().collect(), [2, 4, 6])
 /// }
 /// ```
 pub fn[T, U] Rose::fmap(self : Rose[T], f : (T) -> U) -> Rose[U] {
@@ -94,19 +94,19 @@ test "iter walks root then branches in depth-first order" {
     [Rose(2, [leaf(3), leaf(4)].iter()), Rose(5, [leaf(6)].iter())].iter(),
   )
 
-  assert_eq([..tree], [1, 2, 3, 4, 5, 6])
+  @debug.assert_eq([..tree], [1, 2, 3, 4, 5, 6])
 }
 
 ///|
 test "iter on a leaf yields only the root" {
-  assert_eq([..pure(42)], [42])
+  @debug.assert_eq([..pure(42)], [42])
 }
 
 ///|
 test "for .. in sugar walks every value" {
   let tree = Rose(10, [pure(20), pure(30)].iter())
 
-  assert_eq([ for x in tree => x ], [10, 20, 30])
+  @debug.assert_eq([ for x in tree => x ], [10, 20, 30])
 }
 
 ///|
@@ -116,7 +116,7 @@ test "for .. in sugar walks every value" {
 test "iter is lazy over an infinite-width tree" {
   let infinite_siblings = Iter::repeat(pure(7))
   let tree = Rose(0, infinite_siblings)
-  assert_eq(tree.iter().take(5).collect(), [0, 7, 7, 7, 7])
+  @debug.assert_eq(tree.iter().take(5).collect(), [0, 7, 7, 7, 7])
 }
 
 ///|
@@ -139,7 +139,7 @@ test "iter is lazy over an infinite-depth spine" {
     Rose(n, branch)
   }
 
-  assert_eq(spine(0).iter().take(6).collect(), [0, 1, 2, 3, 4, 5])
+  @debug.assert_eq(spine(0).iter().take(6).collect(), [0, 1, 2, 3, 4, 5])
 }
 
 ///|
@@ -154,5 +154,5 @@ test "for .. in with early break visits only the prefix" {
     }
     acc.push(x)
   }
-  assert_eq(acc, [0, 1, 1])
+  @debug.assert_eq(acc, [0, 1, 1])
 }

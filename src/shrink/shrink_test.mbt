@@ -31,13 +31,13 @@ test "shrink uint64" {
 ///|
 test "shrink byte" {
   let s = @shrink.Shrink::shrink(Int::to_byte(200)).to_array()
-  inspect(
+  debug_inspect(
     s,
     content=(
-      #|[b'\xC7', b'\xC5', b'\xC2', b'\xBC', b'\xAF', b'\x96', b'\x64', b'\x00']
+      #|[0xc7, 0xc5, 0xc2, 0xbc, 0xaf, 0x96, 0x64, 0x00]
     ),
   )
-  assert_eq(@shrink.Shrink::shrink(Int::to_byte(0)).to_array(), [])
+  @debug.assert_eq(@shrink.Shrink::shrink(Int::to_byte(0)).to_array(), [])
 }
 
 ///|
@@ -70,7 +70,7 @@ test "shrink double: exact output for 3.5" {
 
 ///|
 test "shrink double: zero" {
-  assert_eq(@shrink.Shrink::shrink(0.0).to_array(), [])
+  @debug.assert_eq(@shrink.Shrink::shrink(0.0).to_array(), [])
 }
 
 ///|

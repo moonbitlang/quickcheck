@@ -30,7 +30,7 @@ pub fn[T] Enumerate::eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
 /// ```mbt check
 /// test {
 ///   let e : Enumerate[Int] = empty()
-///   inspect(e.eval(), content="[]")
+///   debug_inspect(e.eval(), content="[]")
 /// }
 /// ```
 pub fn[T] empty() -> Enumerate[T] {

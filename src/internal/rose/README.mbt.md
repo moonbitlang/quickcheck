@@ -110,7 +110,7 @@ test "halving shrinker descends step-by-step" {
   let r2 = r1.branch.head().unwrap()
   let r3 = r2.branch.head().unwrap()
   let r4 = r3.branch.head().unwrap()
-  assert_eq([r0.val, r1.val, r2.val, r3.val, r4.val], [80, 40, 20, 10, 5])
+  @debug.assert_eq([r0.val, r1.val, r2.val, r3.val, r4.val], [80, 40, 20, 10, 5])
 }
 ```
 
@@ -270,7 +270,7 @@ test "fmap relabels every node" {
   let doubled = r.fmap(x => x * 10)
   assert_eq(doubled.val, 20)
   let children : Array[Int] = doubled.branch.map(c => c.val).collect()
-  assert_eq(children, [0, 10])
+  @debug.assert_eq(children, [0, 10])
 }
 ```
 
@@ -301,7 +301,7 @@ test "bind substitutes at every node" {
   let kids : Array[Int] = expanded.branch.map(c => c.val).collect()
   // First come the branches produced by `f(1)`: one alternative, 0.
   // Then come the original branches' fmapped forms: the leaf 0.
-  assert_eq(kids, [0, 0])
+  @debug.assert_eq(kids, [0, 0])
 }
 
 ///|
@@ -318,7 +318,7 @@ test "join flattens Rose[Rose[T]] into Rose[T]" {
   // The joined branches are: (flattened outer siblings) ++ (inner's own
   // branches).
   let kids : Array[Int] = flat.branch.map(c => c.val).collect()
-  assert_eq(kids, [7, 5])
+  @debug.assert_eq(kids, [7, 5])
 }
 ```
 
@@ -355,14 +355,14 @@ test "iter visits root then branches in DFS order" {
       Rose(5, [@rose.pure(6)].iter()),
     ].iter(),
   )
-  assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
+  @debug.assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
 }
 
 ///|
 test "for .. in walks every value" {
   let tree = @rose.Rose(10, [@rose.pure(20), @rose.pure(30)].iter())
 
-  assert_eq([ for x in tree => x ], [10, 20, 30])
+  @debug.assert_eq([ for x in tree => x ], [10, 20, 30])
 }
 ```
 

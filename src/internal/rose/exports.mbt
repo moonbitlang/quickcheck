@@ -11,7 +11,7 @@
 /// ```mbt check
 /// test {
 ///   let r = pure(3).bind(x => pure(x * x))
-///   assert_eq(r.iter().collect(), [9])
+///   @debug.assert_eq(r.iter().collect(), [9])
 /// }
 /// ```
 pub fn[T, U] Rose::bind(self : Rose[T], f : (T) -> Rose[U]) -> Rose[U] {

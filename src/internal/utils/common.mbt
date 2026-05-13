@@ -39,9 +39,11 @@ pub fn fresh_name() -> String {
 /// ```mbt check
 /// test {
 ///   let xs = @list.from_array([1, 2, 3, 4, 5, 6])
-///   inspect(
+///   debug_inspect(
 ///     removes_list(2, 6, xs),
-///     content="@list.from_array([@list.from_array([3, 4, 5, 6]), @list.from_array([1, 2, 5, 6])])",
+///     content=(
+///       #|<List: [<List: [3, 4, 5, 6]>, <List: [1, 2, 5, 6]>]>
+///     ),
 ///   )
 /// }
 /// ```
@@ -71,7 +73,7 @@ pub fn[T] removes_list(
 ///
 /// ```mbt check
 /// test {
-///   assert_eq(removes_array(2, 6, [1, 2, 3, 4, 5, 6]), [
+///   @debug.assert_eq(removes_array(2, 6, [1, 2, 3, 4, 5, 6]), [
 ///     [3, 4, 5, 6],
 ///     [1, 2, 5, 6],
 ///   ])
@@ -105,9 +107,11 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
 ///
 /// ```mbt check
 /// test {
-///   inspect(
+///   debug_inspect(
 ///     apply_while_list(16, z => z / 2, z => z > 0),
-///     content="@list.from_array([1, 2, 4, 8])",
+///     content=(
+///       #|<List: [1, 2, 4, 8]>
+///     ),
 ///   )
 /// }
 /// ```
@@ -132,7 +136,7 @@ pub fn[T] apply_while_list(
 ///
 /// ```mbt check
 /// test {
-///   assert_eq(apply_while_array(16, z => z / 2, z => z > 0), [1, 2, 4, 8])
+///   @debug.assert_eq(apply_while_array(16, z => z / 2, z => z > 0), [1, 2, 4, 8])
 /// }
 /// ```
 pub fn[T] apply_while_array(

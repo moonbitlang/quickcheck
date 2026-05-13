@@ -238,7 +238,7 @@ test "counterexample adds derived information" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{out}")
+    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
   })
   let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(
