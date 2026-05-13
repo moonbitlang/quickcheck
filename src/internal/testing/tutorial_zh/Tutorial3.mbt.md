@@ -234,9 +234,9 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
 test "shrink sorted array" {
   let s = shrink_sorted_array([1, 3, 5], lo=0, hi=9)
   debug_inspect(
-    s,
+    [..s],
     content=(
-      #|<Iter: ...>
+      #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
     ),
   )
 }
