@@ -145,7 +145,7 @@ test "pure is a leaf with no alternatives" {
 
 ///|
 test "new attaches explicit shrinks" {
-  let rose = @rose.Rose(3, [@rose.pure(0), @rose.pure(1), @rose.pure(2)].iter())
+  let rose = @rose.Rose(3, [@rose.pure(0), @rose.pure(1), @rose.pure(2)])
   assert_eq(rose.val, 3)
   let children = rose.branch.collect()
   assert_eq(children.length(), 3)
@@ -221,7 +221,7 @@ Pathological example — *don't construct trees like this*:
 // Children are LARGER than the parent. The driver, asked "is there
 // something smaller that still fails?", happily descends into 100,
 // then 100's "shrinks" (which would be even larger), and never stops.
-@rose.Rose(1, [@rose.pure(100), @rose.pure(200)].iter())
+@rose.Rose(1, [@rose.pure(100), @rose.pure(200)])
 ```
 
 The invariants aren't checked by the type system. You uphold them
@@ -266,7 +266,7 @@ Maps `f` over every node in the tree. Structure is preserved.
 ```mbt check
 ///|
 test "fmap relabels every node" {
-  let r = @rose.Rose(2, [@rose.pure(0), @rose.pure(1)].iter())
+  let r = @rose.Rose(2, [@rose.pure(0), @rose.pure(1)])
   let doubled = r.fmap(x => x * 10)
   assert_eq(doubled.val, 20)
   let children : Array[Int] = doubled.branch.map(c => c.val).collect()
@@ -284,7 +284,7 @@ after the new sub-trees.
 ```mbt check
 ///|
 test "bind substitutes at every node" {
-  let r = @rose.Rose(1, [@rose.pure(0)].iter())
+  let r = @rose.Rose(1, [@rose.pure(0)])
   // For every node n, emit a Rose that also has "n - 1" as an alternative.
   let expanded = r.bind(n => {
     Rose(
@@ -307,11 +307,8 @@ test "bind substitutes at every node" {
 ///|
 test "join flattens Rose[Rose[T]] into Rose[T]" {
   // Outer tree of Roses; the root already carries a Rose[Int].
-  let inner = @rose.Rose(10, [@rose.pure(5)].iter())
-  let outer : @rose.Rose[@rose.Rose[Int]] = Rose(
-    inner,
-    [@rose.pure(@rose.pure(7))].iter(),
-  )
+  let inner = @rose.Rose(10, [@rose.pure(5)])
+  let outer : @rose.Rose[@rose.Rose[Int]] = Rose(inner, [@rose.pure(@rose.pure(7))])
   let flat = outer.join()
   // The root value is the root of the inner Rose.
   assert_eq(flat.val, 10)
@@ -331,7 +328,7 @@ decorate a generated tree.
 ```mbt check
 ///|
 test "apply rewrites a single node" {
-  let r = @rose.Rose(10, [@rose.pure(5), @rose.pure(0)].iter())
+  let r = @rose.Rose(10, [@rose.pure(5), @rose.pure(0)])
   // Collapse the tree: drop all branches, keep only the root.
   let collapsed = r.apply((v, _) => @rose.pure(v))
   assert_eq(collapsed.val, 10)
@@ -350,17 +347,14 @@ loop calls `<expr>.iter()`, you can use `Rose` directly with the loop sugar.
 test "iter visits root then branches in DFS order" {
   let tree = @rose.Rose(
     1,
-    [
-      @rose.Rose(2, [@rose.pure(3), @rose.pure(4)].iter()),
-      Rose(5, [@rose.pure(6)].iter()),
-    ].iter(),
+    [Rose(2, [@rose.pure(3), @rose.pure(4)]), Rose(5, [@rose.pure(6)])],
   )
   @debug.assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
 }
 
 ///|
 test "for .. in walks every value" {
-  let tree = @rose.Rose(10, [@rose.pure(20), @rose.pure(30)].iter())
+  let tree = @rose.Rose(10, [@rose.pure(20), @rose.pure(30)])
 
   @debug.assert_eq([ for x in tree => x ], [10, 20, 30])
 }
