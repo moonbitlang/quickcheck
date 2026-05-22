@@ -438,8 +438,7 @@ test "combinator sorted array with filter" {
   let prop = @qc.forall(base, arr => {
     @qc.forall(@gen.one_of_array(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
-    })
-    |> @qc.filter(is_non_decreasing(arr))
+    }).filter(is_non_decreasing(arr))
   })
 
   @qc.quick_check(prop, discard_ratio=20)

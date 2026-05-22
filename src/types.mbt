@@ -44,5 +44,6 @@ pub using @property {
   if_fail,
   label,
   map_size,
+  property,
   shrinking,
 }

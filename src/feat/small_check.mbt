@@ -122,7 +122,7 @@ fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
         } else {
           let val = (finite.fIndex)(BigInt::from_int(j))
           let (res, next_st) = run_testable_once(
-            @property.counterexample(f(val), @debug.to_string(val)),
+            @property.property(f(val)).counterexample(@debug.to_string(val)),
             idx,
             st,
             expect,

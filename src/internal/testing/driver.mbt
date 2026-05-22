@@ -111,7 +111,7 @@ test "small check expect fail" {
 ///|
 test "non empty list (with filter)" {
   let prop_is_non_empty = (l : @list.List[Int]) => {
-    (!l.is_empty()) |> @qc.filter(!l.is_empty())
+    @qc.property(!l.is_empty()).filter(!l.is_empty())
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_is_non_empty)),
@@ -123,7 +123,7 @@ test "non empty list (with filter)" {
 
 ///|
 test "reject all" {
-  let prop_reject = (_x : Int) => @qc.filter(true, false)
+  let prop_reject = (_x : Int) => @qc.property(true).filter(false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content=(
@@ -138,7 +138,13 @@ test "label" {
   inspect(
     @qc.quick_check_silence(
       @qc.Arrow((x : @list.List[Int]) => {
-        @qc.label(ar, if x.is_empty() { "trivial" } else { "non-trivial" })
+        @qc.property(ar).label(
+          if x.is_empty() {
+            "trivial"
+          } else {
+            "non-trivial"
+          },
+        )
       }),
     ),
     content=(
@@ -153,7 +159,10 @@ test "label" {
 ///|
 test "collect" {
   inspect(
-    @feat.small_check_silence(fn(x : Int) { @qc.collect(true, x) }, max_size=2),
+    @feat.small_check_silence(
+      fn(x : Int) { @qc.property(true).collect(x) },
+      max_size=2,
+    ),
     content=(
       #|+++ [2/0/2] Ok, passed!
       #|Coverage:
@@ -184,9 +193,9 @@ test "classes" {
   inspect(
     @qc.quick_check_silence(
       @qc.Arrow((x : @list.List[Int]) => {
-        prop_rev(x)
-        |> @qc.classify(x.length() > 5, "long list")
-        |> @qc.classify(x.length() <= 5, "short list")
+        @qc.property(prop_rev(x))
+        .classify(x.length() > 5, "long list")
+        .classify(x.length() <= 5, "short list")
       }),
     ),
     content=(
@@ -203,9 +212,9 @@ test "classes can overlap" {
   inspect(
     @feat.small_check_silence(
       fn(x : Int) {
-        true
-        |> @qc.classify(x != 0, "non-zero")
-        |> @qc.classify(x >= 0, "non-negative")
+        @qc.property(true)
+        .classify(x != 0, "non-zero")
+        .classify(x >= 0, "non-negative")
       },
       max_size=3,
     ),
@@ -223,10 +232,10 @@ test "label + classes" {
   inspect(
     @qc.quick_check_silence(
       @qc.Arrow(x => {
-        prop_rev(x)
-        |> @qc.classify(x.length() > 5, "long list")
-        |> @qc.classify(x.length() <= 5, "short list")
-        |> @qc.label("length is \{x.length()}")
+        @qc.property(prop_rev(x))
+        .classify(x.length() > 5, "long list")
+        .classify(x.length() <= 5, "short list")
+        .label("length is \{x.length()}")
       }),
     ),
     content=(
@@ -297,7 +306,9 @@ test "failure report is concise by default" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
+    @qc.property(!out.contains(x)).counterexample(
+      "after remove: \{to_repr(out)}",
+    )
   })
   inspect(
     @qc.quick_check_silence(prop),
@@ -314,7 +325,9 @@ test "failure report renders details" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
+    @qc.property(!out.contains(x)).counterexample(
+      "after remove: \{to_repr(out)}",
+    )
   })
   inspect(
     @qc.quick_check_silence(prop, verbose=true),
@@ -333,7 +346,7 @@ test "failure coverage excludes the failing sample" {
   inspect(
     @feat.small_check_silence(
       fn(x : Int) {
-        @qc.collect(x != 1, if x == 0 { "zero" } else { "non-zero" })
+        @qc.property(x != 1).collect(if x == 0 { "zero" } else { "non-zero" })
       },
       max_size=3,
       verbose=true,
@@ -513,7 +526,9 @@ test "no_duplicate" {
     @qc.quick_check_silence(
       @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
         let (x, arr) = iarr
-        (!remove(arr.copy(), x).contains(x)) |> @qc.filter(no_duplicate(arr))
+        @qc.property(!remove(arr.copy(), x).contains(x)).filter(
+          no_duplicate(arr),
+        )
       }),
       expect=GaveUp,
     ),
@@ -528,8 +543,9 @@ test "use one_of" {
   inspect(
     @qc.quick_check_silence(
       @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
-        @qc.forall(@gen.one_of_array(a), (y : Int) => !remove(a, y).contains(y))
-        |> @qc.filter(a.length() != 0)
+        @qc.forall(@gen.one_of_array(a), (y : Int) => !remove(a, y).contains(y)).filter(
+          a.length() != 0,
+        )
       }),
       expect=Fail,
     ),
@@ -603,7 +619,7 @@ test "small_check accepts Debug-only input" {
 test "collect accepts Debug-only labels" {
   inspect(
     @feat.small_check_silence(
-      fn(x : DebugOnly) { @qc.collect(true, x.to_repr()) },
+      fn(x : DebugOnly) { @qc.property(true).collect(x.to_repr()) },
       max_size=2,
     ),
     content=(

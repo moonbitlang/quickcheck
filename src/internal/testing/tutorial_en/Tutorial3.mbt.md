@@ -238,7 +238,9 @@ test "counterexample adds derived information" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
-    @qc.counterexample(!out.contains(x), "after remove: \{to_repr(out)}")
+    @qc.property(!out.contains(x)).counterexample(
+      "after remove: \{to_repr(out)}",
+    )
   })
   let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(
@@ -274,9 +276,9 @@ fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
 test "classify list distribution" {
   let r = @qc.quick_check_silence(
     @qc.Arrow((xs : @list.List[Int]) => {
-      t3_prop_rev_list(xs)
-      |> @qc.classify(xs.length() > 5, "long list")
-      |> @qc.classify(xs.length() <= 5, "short list")
+      @qc.property(t3_prop_rev_list(xs))
+      .classify(xs.length() > 5, "long list")
+      .classify(xs.length() <= 5, "short list")
     }),
   )
   inspect(
@@ -307,7 +309,7 @@ Consider a mild example. Suppose we only want to test non-empty lists, so we add
 ///|
 test "discard on non-empty lists" {
   let prop_non_empty = (xs : @list.List[Int]) => {
-    (!xs.is_empty()) |> @qc.filter(!xs.is_empty())
+    @qc.property(!xs.is_empty()).filter(!xs.is_empty())
   }
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_non_empty)),
@@ -325,7 +327,7 @@ In the extreme case, the test may give up entirely:
 ```mbt check
 ///|
 test "reject all gives up" {
-  let prop_reject = (_x : Int) => @qc.filter(true, false)
+  let prop_reject = (_x : Int) => @qc.property(true).filter(false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content=(

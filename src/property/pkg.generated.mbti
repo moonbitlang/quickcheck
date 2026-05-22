@@ -32,6 +32,8 @@ pub fn[P : Testable] label(P, String) -> Property
 
 pub fn[P : Testable] map_size(P, (Int) -> Int) -> Property
 
+pub fn[P : Testable] property(P) -> Property
+
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
 
 pub fn[P : Testable] with_run_options(P, @state.Expected, Bool) -> Property
@@ -51,6 +53,14 @@ type Discard derive(Default)
 pub impl Testable for Discard
 
 type Property
+pub fn Property::callback(Self, @state.Callback) -> Self
+pub fn Property::classify(Self, Bool, String) -> Self
+pub fn[T : Show] Property::collect(Self, T) -> Self
+pub fn Property::counterexample(Self, String) -> Self
+pub fn Property::filter(Self, Bool) -> Self
+pub fn Property::if_fail(Self, () -> Unit) -> Self
+pub fn Property::label(Self, String) -> Self
+pub fn Property::map_size(Self, (Int) -> Int) -> Self
 pub fn Property::run(Self, Int, @splitmix.RandomState) -> @rose.Rose[@state.SingleResult]
 pub impl Testable for Property
 

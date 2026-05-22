@@ -30,6 +30,8 @@ pub fn[P : @property.Testable] label(P, String) -> @property.Property
 
 pub fn[P : @property.Testable] map_size(P, (Int) -> Int) -> @property.Property
 
+pub fn[P : @property.Testable] property(P) -> @property.Property
+
 pub fn[P : @property.Testable] quick_check(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
 pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug, B : @property.Testable] quick_check_fn((A) -> B, max_shrinks? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure

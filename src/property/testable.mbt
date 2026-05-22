@@ -104,6 +104,12 @@ fn[P : Testable] run_prop(
 }
 
 ///|
+/// Lift any `Testable` value to a chainable `Property`.
+pub fn[P : Testable] property(prop : P) -> Property {
+  prop.property()
+}
+
+///|
 /// Apply `f` to every `SingleResult` produced by `prop`. Used by the
 /// label / classify / counterexample combinators to decorate the
 /// per-run result without changing the verdict.
@@ -145,6 +151,12 @@ pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
 }
 
 ///|
+/// Method form of `map_size`, useful for chaining property decorators.
+pub fn Property::map_size(self : Property, f : (Int) -> Int) -> Property {
+  map_size(self, f)
+}
+
+///|
 /// Manually drive shrinking with a user-supplied shrinker and starting
 /// value.
 pub fn[P : Testable, T] shrinking(
@@ -166,9 +178,21 @@ pub fn[P : Testable] callback(p : P, cb : @state.Callback) -> Property {
 }
 
 ///|
+/// Method form of `callback`, useful for chaining property decorators.
+pub fn Property::callback(self : Property, cb : @state.Callback) -> Property {
+  callback(self, cb)
+}
+
+///|
 /// Attaches a label to a test case.
 pub fn[P : Testable] label(p : P, s : String) -> Property {
   map_total_result(p, res => { ..res, labels: res.labels.add(s) })
+}
+
+///|
+/// Method form of `label`, useful for chaining property decorators.
+pub fn Property::label(self : Property, s : String) -> Property {
+  label(self, s)
 }
 
 ///|
@@ -178,9 +202,21 @@ pub fn[P : Testable, T : Show] collect(p : P, t : T) -> Property {
 }
 
 ///|
+/// Method form of `collect`, useful for chaining property decorators.
+pub fn[T : Show] Property::collect(self : Property, t : T) -> Property {
+  collect(self, t)
+}
+
+///|
 /// Classifies a test case based on a condition.
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
   map_total_result(p, res => { ..res, classes: res.classes.add((s, cond)) })
+}
+
+///|
+/// Method form of `classify`, useful for chaining property decorators.
+pub fn Property::classify(self : Property, cond : Bool, s : String) -> Property {
+  classify(self, cond, s)
 }
 
 ///|
@@ -191,12 +227,24 @@ pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
 }
 
 ///|
+/// Method form of `counterexample`, useful for chaining diagnostics.
+pub fn Property::counterexample(self : Property, s : String) -> Property {
+  counterexample(self, s)
+}
+
+///|
 /// Filters a property based on a condition.
 pub fn[P : Testable] filter(p : P, cond : Bool) -> Property {
   match cond {
     true => p.property()
     false => Discard::default().property()
   }
+}
+
+///|
+/// Method form of `filter`, useful for chaining property decorators.
+pub fn Property::filter(self : Property, cond : Bool) -> Property {
+  filter(self, cond)
 }
 
 ///|
@@ -233,4 +281,10 @@ pub fn[P : Testable] if_fail(p : P, f : () -> Unit) -> Property {
       f()
     }),
   )
+}
+
+///|
+/// Method form of `if_fail`, useful for chaining property decorators.
+pub fn Property::if_fail(self : Property, f : () -> Unit) -> Property {
+  if_fail(self, f)
 }

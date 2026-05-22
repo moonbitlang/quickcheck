@@ -550,8 +550,7 @@ Recall the `remove` function we wanted to test before. The QuickCheck do report 
 test {
   @qc.quick_check(
     @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
-      @qc.filter(
-        @qc.forall(@gen.one_of_array(a), y => !remove(a, y).contains(y)),
+      @qc.forall(@gen.one_of_array(a), y => !remove(a, y).contains(y)).filter(
         a.length() != 0,
       )
     }),
@@ -590,7 +589,7 @@ test {
   @qc.quick_check(
     @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
       let (x, arr) = iarr
-      @qc.filter(!remove(arr.copy(), x).contains(x), no_duplicate(arr))
+      @qc.property(!remove(arr.copy(), x).contains(x)).filter(no_duplicate(arr))
     }),
     max_size=50,
     discard_ratio=20,
@@ -613,9 +612,9 @@ We may also be interested in the distribution of the generated data: sometimes t
 ///|
 test "classes" {
   @qc.quick_check_fn((x : @list.List[Int]) => {
-    prop_rev(x)
-    |> @qc.classify(x.length() > 5, "long list")
-    |> @qc.classify(x.length() <= 5, "short list")
+    @qc.property(prop_rev(x))
+    .classify(x.length() > 5, "long list")
+    .classify(x.length() <= 5, "short list")
   })
 }
 ```
@@ -636,8 +635,13 @@ The `label` function takes a string and classifies the test case with the string
 ///|
 test "label" {
   @qc.quick_check_fn((x : @list.List[Int]) => {
-    prop_rev(x)
-    |> @qc.label(if x.is_empty() { "trivial" } else { "non-trivial" })
+    @qc.property(prop_rev(x)).label(
+      if x.is_empty() {
+        "trivial"
+      } else {
+        "non-trivial"
+      },
+    )
   })
 }
 ```
