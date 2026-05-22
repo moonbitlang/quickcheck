@@ -90,7 +90,7 @@ test "add assoc double (expect fail)" {
 test "small check pass" {
   let prop = (x : Int) => x + 0 == x
   inspect(
-    @qc.small_check_silence(prop, max_size=1000000),
+    @feat.small_check_silence(prop, max_size=1000000),
     content=(
       #|+++ [1000000/0/1000000] Ok, passed!
     ),
@@ -101,7 +101,7 @@ test "small check pass" {
 test "small check expect fail" {
   let prop = (x : Int) => x == 0
   inspect(
-    @qc.small_check_silence(prop, max_size=5, expect=Fail),
+    @feat.small_check_silence(prop, max_size=5, expect=Fail),
     content=(
       #|+++ [1/0/5] Ok! Failed as expected.
     ),
@@ -153,7 +153,7 @@ test "label" {
 ///|
 test "collect" {
   inspect(
-    @qc.small_check_silence(fn(x : Int) { @qc.collect(true, x) }, max_size=2),
+    @feat.small_check_silence(fn(x : Int) { @qc.collect(true, x) }, max_size=2),
     content=(
       #|+++ [2/0/2] Ok, passed!
       #|Coverage:
@@ -201,7 +201,7 @@ test "classes" {
 ///|
 test "classes can overlap" {
   inspect(
-    @qc.small_check_silence(
+    @feat.small_check_silence(
       fn(x : Int) {
         true
         |> @qc.classify(x != 0, "non-zero")
@@ -331,7 +331,7 @@ test "failure report renders details" {
 ///|
 test "failure coverage excludes the failing sample" {
   inspect(
-    @qc.small_check_silence(
+    @feat.small_check_silence(
       fn(x : Int) {
         @qc.collect(x != 1, if x == 0 { "zero" } else { "non-zero" })
       },
@@ -377,7 +377,7 @@ impl @feat.Enumerable for Nat with enumerate() {
 
 ///|
 impl @coreqc.Arbitrary for Nat with arbitrary(i, rs) {
-  @gen.Gen::feat_random(i).run(i, rs)
+  @feat.feat_random(i).run(i, rs)
 }
 
 ///|
@@ -592,7 +592,7 @@ test "quick_check_fn accepts Debug-only input" {
 ///|
 test "small_check accepts Debug-only input" {
   inspect(
-    @qc.small_check_silence((x : DebugOnly) => x == x, max_size=2),
+    @feat.small_check_silence((x : DebugOnly) => x == x, max_size=2),
     content=(
       #|+++ [2/0/2] Ok, passed!
     ),
@@ -602,7 +602,7 @@ test "small_check accepts Debug-only input" {
 ///|
 test "collect accepts Debug-only labels" {
   inspect(
-    @qc.small_check_silence(
+    @feat.small_check_silence(
       fn(x : DebugOnly) { @qc.collect(true, x.to_repr()) },
       max_size=2,
     ),

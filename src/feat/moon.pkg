@@ -1,7 +1,12 @@
 import {
+  "moonbitlang/quickcheck" @qc,
+  "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/lazy",
+  "moonbitlang/quickcheck/internal/report",
+  "moonbitlang/quickcheck/internal/state",
   "moonbitlang/core/debug",
   "moonbitlang/core/list",
+  "moonbitlang/core/sorted_set",
 }
 
 warnings = "+unnecessary_annotation+missing_doc"

@@ -6,7 +6,6 @@ import {
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck",
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/quickcheck/feat",
 }
 
 // Values
@@ -68,7 +67,6 @@ pub fn[T] Gen::Gen((Int, @splitmix.RandomState) -> T) -> Self[T]
 pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
 pub fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
 pub fn[T, U] Gen::bind(Self[T], (T) -> Self[U]) -> Self[U]
-pub fn[T : @feat.Enumerable] Gen::feat_random(Int) -> Self[T]
 pub fn[T, U] Gen::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T] Gen::join(Self[Self[T]]) -> Self[T]
 pub fn[T] Gen::list_with_size(Self[T], Int) -> Self[@list.List[T]]

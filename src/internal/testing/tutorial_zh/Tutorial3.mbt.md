@@ -442,7 +442,7 @@ SmallCheck 走的是另一条路。
 但它依赖的能力完全不同：
 
 ```mbt nocheck
-pub fn[A : @feat.Enumerable + Debug, B : Testable] @qc.small_check(
+pub fn[A : @feat.Enumerable + Debug, B : Testable] @feat.small_check(
   f : (A) -> B,
   max_size? : Int,
   expect? : Expected,
@@ -458,7 +458,7 @@ pub fn[A : @feat.Enumerable + Debug, B : Testable] @qc.small_check(
 ```mbt check
 ///|
 test "small check fails on first non-zero int" {
-  let r = @qc.small_check_silence(
+  let r = @feat.small_check_silence(
     fn(x : Int) { x == 0 },
     max_size=5,
     verbose=true,
@@ -580,7 +580,7 @@ MoonBit 当前的实现也正是这样组织的。
 这样设计有两个直接好处。
 其一，枚举不再局限于「从头扫到尾」，而是具备了随机访问能力。
 其二，同一份 enumerator 可以同时支撑多种测试策略，
-包括 SmallCheck 风格的前缀枚举，以及 `@gen.Gen::feat_random` 这类 size-bounded random sampling。
+包括 SmallCheck 风格的前缀枚举，以及 `@feat.feat_random` 这类 size-bounded random sampling。
 换句话说，Feat 并不是另一个单独的测试框架，而是一种共享的数据生成基础设施。
 
 从论文角度看，Feat 对传统 SmallCheck 的修正也主要在这里。
@@ -599,7 +599,7 @@ MoonBit 当前的实现也正是这样组织的。
 ```mbt check
 ///|
 test "small check on nat prefix" {
-  let r = @qc.small_check_silence(
+  let r = @feat.small_check_silence(
     fn(n : Nat) { n == Zero },
     max_size=5,
     verbose=true,

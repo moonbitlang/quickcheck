@@ -22,15 +22,6 @@ pub fn[T : @coreqc.Arbitrary] Gen::spawn() -> Gen[T] {
 }
 
 ///|
-/// Generate a value from an enumerable instance (up to a size bound)
-/// @alert unsafe "Experimental: May cause stack overflow"
-pub fn[T : @feat.Enumerable] Gen::feat_random(size : Int) -> Gen[T] {
-  let { fCard, fIndex } = T::enumerate().sample_finite(size)
-  guard fCard != 0 else { abort("uniform: empty enumeration") }
-  integer_bound(fCard).fmap(fIndex)
-}
-
-///|
 /// Run a generator with a size and random state
 pub fn[T] Gen::run(self : Gen[T], i : Int, rs : RandomState) -> T {
   (self.gen)(i, rs)

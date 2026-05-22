@@ -82,7 +82,7 @@ pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
 }
 
 ///|
-/// Finite sampling domain used by `Gen::feat_random`. It aggregates
+/// Finite sampling domain used by `feat_random`. It aggregates
 /// the first `size` parts; if they are all empty, it continues to the
 /// next non-empty part so the result is still finite.
 pub fn[T] Enumerate::sample_finite(

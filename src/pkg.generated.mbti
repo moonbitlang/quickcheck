@@ -3,7 +3,6 @@ package "moonbitlang/quickcheck"
 
 import {
   "moonbitlang/core/debug",
-  "moonbitlang/quickcheck/feat",
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/quickcheck/shrink",
@@ -42,15 +41,9 @@ pub fn[A : @moonbitlang/core/quickcheck.Arbitrary + @shrink.Shrink + @debug.Debu
 
 pub fn[P : Testable] quick_check_silence(P, max_shrink? : Int, max_success? : Int, max_size? : Int, discard_ratio? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
+pub fn[P : Testable] run_testable_once(P, Int, @state.State, @state.Expected, Bool) -> (@state.SingleResult, @state.State)
+
 pub fn[P : Testable, T] shrinking((T) -> Iter[T], T, (T) -> P) -> Property
-
-pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
-
-pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
-
-pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
-
-pub fn[A : @feat.Enumerable + @debug.Debug, B : Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
 // Errors
 

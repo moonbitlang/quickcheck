@@ -195,9 +195,9 @@ test "pay shifts everything one size up" {
 
 > **This is the main user-facing trait of the package.** Implement
 > `Enumerable` for a type `T` and you get: indexed access
-> (`enumerate()[i]`), size-bounded sampling via `feat_random`, and a
-> ready-to-use `Gen[T]` for the top-level QuickCheck driver. Everything
-> else in this package either consumes or produces an `Enumerable`.
+> (`enumerate()[i]`), size-bounded sampling via `feat_random`, and
+> deterministic prefix testing via `small_check`. Everything else in
+> this package either consumes or produces an `Enumerable`.
 
 ### Signature
 
@@ -328,11 +328,10 @@ test "enumerate the first few binary trees" {
 ### Where the trait is consumed
 
 - `unary(f)` requires the *input* type of `f` to be `Enumerable`.
-- `Gen::feat_random(size)` takes `T : Enumerable` and turns it into a
+- `feat_random(size)` takes `T : Enumerable` and turns it into a
   `Gen[T]` by drawing uniformly from parts `0..=size`.
-- The main `moonbitlang/quickcheck` driver bridges `Enumerable` into
-  small-check-style exhaustive testing via the same `feat_random`
-  pipeline.
+- `small_check` and its silent/error variants live in this package and
+  use the same `Enumerable` ordering for deterministic prefix testing.
 
 ---
 

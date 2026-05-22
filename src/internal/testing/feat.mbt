@@ -1,6 +1,6 @@
 ///|
 test "feat int" {
-  let fe : @gen.Gen[Int] = @gen.Gen::feat_random(10)
+  let fe : @gen.Gen[Int] = @feat.feat_random(10)
   debug_inspect(
     fe.samples(size=50),
     content=(
@@ -62,7 +62,7 @@ test "feat int" {
 
 ///|
 test "feat nat" {
-  let fe : @gen.Gen[Nat] = @gen.Gen::feat_random(21)
+  let fe : @gen.Gen[Nat] = @feat.feat_random(21)
   debug_inspect(
     fe.samples(size=20),
     content=(
@@ -196,7 +196,7 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
 
 ///|
 test "feat tree random" {
-  let tg : @gen.Gen[Tree[Nat]] = @gen.Gen::feat_random(10)
+  let tg : @gen.Gen[Tree[Nat]] = @feat.feat_random(10)
   debug_inspect(
     tg.samples(),
     content=(
@@ -218,7 +218,7 @@ test "feat tree random" {
 
 ///|
 test "feat tree" {
-  let fe : @gen.Gen[Tree[Nat]] = @gen.Gen::feat_random(11)
+  let fe : @gen.Gen[Tree[Nat]] = @feat.feat_random(11)
   debug_inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
   let x : SingleTree = @feat.Enumerable::enumerate()[200]
   debug_inspect(

@@ -155,6 +155,27 @@ fn[P : Testable] map_total_result(
 }
 
 ///|
+/// Evaluate one `Testable` value with an explicit size and random
+/// state. Driver-like subpackages use this to share the root
+/// `Testable -> Property` interpreter without exposing `Property`'s
+/// representation.
+pub fn[P : Testable] run_testable_once(
+  prop : P,
+  size : Int,
+  state : @state.State,
+  expect : Expected,
+  abort : Bool,
+) -> (@state.SingleResult, @state.State) {
+  let prop = map_total_result(prop, res => { ..res, expect, abort })
+  let rnd1 = state.random_state.split()
+  let rnd2 = state.random_state
+  let { val: res, .. } = prop.0.run(size, rnd1)
+  let next_state = state
+  next_state.random_state = rnd2
+  (res, next_state)
+}
+
+///|
 /// Adjust the size parameter before running `p`. Equivalent to
 /// `Gen::scale(f)` but lifted to the `Testable` level.
 pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
