@@ -1,5 +1,5 @@
 ///|
-pub using @qc {trait Testable, type Expected}
+pub using @property {trait Testable, type Expected}
 
 ///|
 fn finish_report(
@@ -12,6 +12,23 @@ fn finish_report(
   } else {
     fail(rendered)
   }
+}
+
+///|
+fn[P : Testable] run_testable_once(
+  prop : P,
+  size : Int,
+  state : @state.State,
+  expect : Expected,
+  abort : Bool,
+) -> (@state.SingleResult, @state.State) {
+  let prop = @property.with_run_options(prop, expect, abort)
+  let rnd1 = state.random_state.split()
+  let rnd2 = state.random_state
+  let res = prop.run(size, rnd1)
+  let next_state = state
+  next_state.random_state = rnd2
+  (res.val, next_state)
 }
 
 ///|
@@ -104,8 +121,8 @@ fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
           continue parts, None, 0, remaining, idx
         } else {
           let val = (finite.fIndex)(BigInt::from_int(j))
-          let (res, next_st) = @qc.run_testable_once(
-            @qc.counterexample(f(val), @debug.to_string(val)),
+          let (res, next_st) = run_testable_once(
+            @property.counterexample(f(val), @debug.to_string(val)),
             idx,
             st,
             expect,

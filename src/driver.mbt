@@ -48,7 +48,7 @@ pub fn[P : Testable] quick_check(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  let prop = map_total_result(prop, res => { ..res, expect, abort })
+  let prop = @property.with_run_options(prop, expect, abort)
   let report = @state.from_config({
     max_shrink,
     max_success,
@@ -72,7 +72,7 @@ pub fn[P : Testable] quick_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  let prop = map_total_result(prop, res => { ..res, expect, abort })
+  let prop = @property.with_run_options(prop, expect, abort)
   @state.from_config({
     max_shrink,
     max_success,

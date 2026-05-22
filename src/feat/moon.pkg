@@ -1,5 +1,5 @@
 import {
-  "moonbitlang/quickcheck" @qc,
+  "moonbitlang/quickcheck/property",
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/quickcheck/internal/report",

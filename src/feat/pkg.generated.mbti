@@ -5,10 +5,10 @@ import {
   "moonbitlang/core/bigint",
   "moonbitlang/core/debug",
   "moonbitlang/core/list",
-  "moonbitlang/quickcheck",
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/quickcheck/internal/state",
+  "moonbitlang/quickcheck/property",
 }
 
 // Values
@@ -24,13 +24,13 @@ pub fn[T, U] product(Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
 
 pub fn[T] singleton(T) -> Enumerate[T]
 
-pub fn[A : Enumerable + @debug.Debug, B : @quickcheck.Testable] small_check((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : Enumerable + @debug.Debug, B : @quickcheck.Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
+pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check_error((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> Unit raise Failure
 
-pub fn[A : Enumerable + @debug.Debug, B : @quickcheck.Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check_error_silence((A) -> B raise, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
-pub fn[A : Enumerable + @debug.Debug, B : @quickcheck.Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
+pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
 pub fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 
@@ -62,7 +62,7 @@ pub using @state {type Expected}
 
 pub using @lazy {type LazyList}
 
-pub using @quickcheck {trait Testable}
+pub using @property {trait Testable}
 
 // Traits
 pub(open) trait Enumerable {

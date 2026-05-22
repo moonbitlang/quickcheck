@@ -10,7 +10,7 @@ fn @state.State::run_test(
     try? (for state = self {
       let rnd1 = state.random_state.split()
       let rnd2 = state.random_state
-      let res = prop.0.run(state.compute_size(), rnd1)
+      let res = prop.run(state.compute_size(), rnd1)
       state.callback_post_test(res.val)
       match res.val.status {
         Failed => break state.find_failure(res)
