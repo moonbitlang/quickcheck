@@ -30,11 +30,11 @@ pub fn[T] Enumerate::eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
 /// ```mbt check
 /// test {
 ///   let e : Enumerate[Int] = empty()
-///   debug_inspect(e.eval(), content="[]")
+///   debug_inspect(e.eval(), content="<LazyList: []>")
 /// }
 /// ```
 pub fn[T] empty() -> Enumerate[T] {
-  { parts: Nil }
+  { parts: @lazy.empty() }
 }
 
 ///|
@@ -48,7 +48,7 @@ pub fn[T] empty() -> Enumerate[T] {
 /// }
 /// ```
 pub fn[T] singleton(val : T) -> Enumerate[T] {
-  { parts: Cons(fin_pure(val), @lazy.LazyRef::from_value(Nil)) }
+  { parts: @lazy.lazy_cons(fin_pure(val), () => @lazy.empty()) }
 }
 
 ///|
@@ -56,7 +56,7 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 /// subtracting each part's cardinality from `idx` until `idx` falls
 /// inside the current part, then read the value via `fIndex`.
 ///
-/// **Aborts** on out-of-range indices (reaches `Nil`).
+/// **Aborts** on out-of-range indices (reaches the empty part stream).
 ///
 /// ```mbt check
 /// test {
@@ -69,13 +69,13 @@ pub fn[T] singleton(val : T) -> Enumerate[T] {
 #alias(en_index, deprecated="Use `_[_]` instead")
 pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
   for parts = self.parts, i = idx {
-    match parts {
-      Nil => abort("index out of bounds")
-      Cons(f, rest) =>
+    match parts.head() {
+      None => abort("index out of bounds")
+      Some(f) =>
         if i < f.fCard {
           break (f.fIndex)(i)
         } else {
-          continue rest.force(), i - f.fCard
+          continue lazy_tail_or_empty(parts), i - f.fCard
         }
     }
   }
@@ -90,16 +90,15 @@ pub fn[T] Enumerate::sample_finite(
   size : Int,
 ) -> Finite[T] {
   for parts = self.parts, bound = size {
-    match parts {
-      Nil => break fin_empty()
-      _ => {
-        let (incl, rest) = parts.split_at(bound)
-        let fin = fin_mconcat(incl)
-        if fin.fCard == 0 {
-          continue rest, 1
-        } else {
-          break fin
-        }
+    if parts.is_empty() {
+      break fin_empty()
+    } else {
+      let (incl, rest) = lazy_split_at(parts, bound)
+      let fin = fin_mconcat(incl)
+      if fin.fCard == 0 {
+        continue rest, 1
+      } else {
+        break fin
       }
     }
   }
@@ -110,12 +109,12 @@ pub fn[T] Enumerate::sample_finite(
 /// is `fin_union(a.parts[k], b.parts[k])`. If one enumeration runs out
 /// of parts, the other's remaining parts carry through unchanged.
 fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
-  { parts: @lazy.zip_plus(fin_union, e1.parts, e2.parts) }
+  { parts: lazy_zip_plus(fin_union, e1.parts, e2.parts) }
 }
 
 ///|
 /// `+` as an alias for `union`.
-pub impl[T] Add for Enumerate[T] with add(self, other) {
+pub impl[T] Add for Enumerate[T] with fn add(self, other) {
   union(self, other)
 }
 
@@ -142,7 +141,7 @@ pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] 
 /// recursive self-reference must be wrapped in `pay` or the fixpoint
 /// diverges.
 pub fn[T] pay(f : () -> Enumerate[T]) -> Enumerate[T] {
-  { parts: Cons(fin_empty(), @lazy.LazyRef::from_thunk(() => f().parts)) }
+  { parts: @lazy.lazy_cons(fin_empty(), () => f().parts) }
 }
 
 ///|

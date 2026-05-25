@@ -49,7 +49,7 @@ fn[T] fin_union(f1 : Finite[T], f2 : Finite[T]) -> Finite[T] {
 /// `+` as an alias for `fin_union`. Not an `Add` trait impl, because
 /// it's defined directly as a method on `Finite[T]` for `T` generic
 /// over any type (not constrained to `Add`).
-pub impl[T] Add for Finite[T] with add(self, other) {
+pub impl[T] Add for Finite[T] with fn add(self, other) {
   fin_union(self, other)
 }
 
@@ -115,14 +115,8 @@ fn[M] fin_concat(m : Array[Finite[M]]) -> Finite[M] {
 /// the list, so only safe on finite inputs.
 fn[M] fin_mconcat(val : LazyList[Finite[M]]) -> Finite[M] {
   let acc : Array[Finite[M]] = []
-  for cur = val {
-    match cur {
-      Nil => break
-      Cons(x, xs) => {
-        acc.push(x)
-        continue xs.force()
-      }
-    }
+  for x in val {
+    acc.push(x)
   }
   let fin = fin_concat(acc)
   if fin.fCard == 0 {
@@ -226,7 +220,7 @@ pub fn[T] Finite::to_array(self : Finite[T]) -> (BigInt, @list.List[T]) {
 ///|
 /// `Debug` renders the full element list (via `to_array`). Don't call
 /// on a very large chunk — it forces everything.
-pub impl[T : Debug] Debug for Finite[T] with to_repr(self) {
+pub impl[T : Debug] Debug for Finite[T] with fn to_repr(self) {
   to_repr(self.to_array().1)
 }
 

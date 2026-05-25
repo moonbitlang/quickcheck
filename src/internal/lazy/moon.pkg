@@ -1,8 +1,0 @@
-import {
-  "moonbitlang/core/debug",
-  "moonbitlang/core/list",
-  "moonbitlang/core/quickcheck",
-  "moonbitlang/core/sorted_set",
-}
-
-warnings = "+unnecessary_annotation+missing_doc"

@@ -1,7 +1,7 @@
 import {
   "moonbitlang/quickcheck/property",
   "moonbitlang/quickcheck/gen",
-  "moonbitlang/quickcheck/internal/lazy",
+  "moonbitlang/core/lazy_list" @lazy,
   "moonbitlang/quickcheck/internal/report",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/core/debug",

@@ -109,8 +109,8 @@ to combine parts produced by enumerations:
 ```mbt check
 ///|
 test "disjoint union of two singleton parts" {
-  let left = @feat.singleton("left").eval().head()
-  let right = @feat.singleton("right").eval().head()
+  let left = @feat.singleton("left").eval().head().unwrap()
+  let right = @feat.singleton("right").eval().head().unwrap()
   let joined = left + right
   debug_inspect(
     joined.to_array(),
@@ -161,7 +161,7 @@ test "singleton has size 0" {
   let parts = e.eval()
   // The first (and only) part holds the single value.
   debug_inspect(
-    parts.head().to_array(),
+    parts.head().unwrap().to_array(),
     content=(
       #|(1, <List: [42]>)
     ),
@@ -175,13 +175,13 @@ test "pay shifts everything one size up" {
   let shifted = @feat.pay(() => @feat.singleton(42))
   let parts = shifted.eval()
   debug_inspect(
-    parts.head().to_array(),
+    parts.head().unwrap().to_array(),
     content=(
       #|(0, <List: []>)
     ),
   )
   debug_inspect(
-    parts.tail().head().to_array(),
+    parts.tail().unwrap().head().unwrap().to_array(),
     content=(
       #|(1, <List: [42]>)
     ),
@@ -204,7 +204,7 @@ test "pay shifts everything one size up" {
 ```moonbit nocheck
 ///|
 pub(open) trait Enumerable {
-  enumerate() -> Enumerate[Self]
+  fn enumerate() -> Enumerate[Self]
 }
 ```
 
@@ -283,7 +283,7 @@ enum Tree {
 }
 
 ///|
-impl @feat.Enumerable for Tree with enumerate() {
+impl @feat.Enumerable for Tree with fn enumerate() {
   // One size unit per constructor; the recursive children are reached via
   // `unary`, which goes through the built-in `Enumerable` instance for
   // `(Tree, Tree)`. That instance itself inserts a `pay`, which is what keeps
@@ -295,7 +295,7 @@ impl @feat.Enumerable for Tree with enumerate() {
 }
 
 ///|
-impl Show for Tree with output(self, logger) {
+impl Show for Tree with fn output(self, logger) {
   match self {
     Leaf => logger.write_string("Leaf")
     Node(l, r) => {
@@ -388,14 +388,14 @@ test "materialize every Bool at size 1" {
   let parts = (Enumerable::enumerate() : @feat.Enumerate[Bool]).eval()
   // part 0 is empty (Bool is defined with a pay).
   debug_inspect(
-    parts.head().to_array(),
+    parts.head().unwrap().to_array(),
     content=(
       #|(0, <List: []>)
     ),
   )
   // part 1 holds both booleans.
   debug_inspect(
-    parts.tail().head().to_array(),
+    parts.tail().unwrap().head().unwrap().to_array(),
     content=(
       #|(2, <List: [true, false]>)
     ),
@@ -436,7 +436,7 @@ test "product generates every pair in part order" {
 
 ///|
 fn zero_or_one_part() -> @feat.Enumerate[BigInt] {
-  { parts: Cons({ fCard: 2, fIndex: i => i }, @lazy.LazyRef::from_value(Nil)) }
+  { parts: @lazy.lazy_cons({ fCard: 2, fIndex: i => i }, () => @lazy.empty()) }
 }
 ```
 

@@ -108,15 +108,20 @@ fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
     if remaining <= 0 {
       break st.small_complete_test()
     }
-    match (parts, finite_opt) {
-      (Nil, _) => break st.small_complete_test()
-      (Cons(finite, rest), None) =>
-        if finite.fCard == 0 {
-          continue rest.force(), None, 0, remaining, idx
-        } else {
-          continue rest.force(), Some(finite), 0, remaining, idx
+    match finite_opt {
+      None => {
+        let finite = match parts.head() {
+          Some(finite) => finite
+          None => break st.small_complete_test()
         }
-      (_, Some(finite)) =>
+        let rest = lazy_tail_or_empty(parts)
+        if finite.fCard == 0 {
+          continue rest, None, 0, remaining, idx
+        } else {
+          continue rest, Some(finite), 0, remaining, idx
+        }
+      }
+      Some(finite) =>
         if BigInt::compare_int(finite.fCard, j) <= 0 {
           continue parts, None, 0, remaining, idx
         } else {

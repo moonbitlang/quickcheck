@@ -4,9 +4,9 @@ package "moonbitlang/quickcheck/feat"
 import {
   "moonbitlang/core/bigint",
   "moonbitlang/core/debug",
+  "moonbitlang/core/lazy_list",
   "moonbitlang/core/list",
   "moonbitlang/quickcheck/gen",
-  "moonbitlang/quickcheck/internal/lazy",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/quickcheck/property",
 }
@@ -38,12 +38,12 @@ pub fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
 
 // Types and methods
 pub(all) struct Enumerate[T] {
-  parts : @lazy.LazyList[Finite[T]]
+  parts : @lazy_list.LazyList[Finite[T]]
 }
 #alias("_[_]")
 #alias(en_index, deprecated)
 pub fn[T] Enumerate::at(Self[T], @bigint.BigInt) -> T
-pub fn[T] Enumerate::eval(Self[T]) -> @lazy.LazyList[Finite[T]]
+pub fn[T] Enumerate::eval(Self[T]) -> @lazy_list.LazyList[Finite[T]]
 pub fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T] Enumerate::sample_finite(Self[T], Int) -> Finite[T]
 pub impl[T] Add for Enumerate[T]
@@ -60,7 +60,7 @@ pub impl[T : @debug.Debug] @debug.Debug for Finite[T]
 // Type aliases
 pub using @state {type Expected}
 
-pub using @lazy {type LazyList}
+pub using @lazy_list {type LazyList}
 
 pub using @property {trait Testable}
 
