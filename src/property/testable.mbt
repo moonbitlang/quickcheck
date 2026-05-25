@@ -18,7 +18,7 @@ struct Property(@gen.Gen[@rose.Rose[@state.SingleResult]])
 /// evaluates. Built-in instances exist for `Bool`, `Unit`, results,
 /// optional values, generators, and the `Arrow` wrappers.
 pub(open) trait Testable {
-  property(Self) -> Property
+  fn property(Self) -> Property
 }
 
 ///|
@@ -26,27 +26,27 @@ pub(open) trait Testable {
 struct Discard {} derive(Default)
 
 ///|
-pub impl Testable for Property with property(self) {
+pub impl Testable for Property with fn property(self) {
   self
 }
 
 ///|
-pub impl Testable for Discard with property(_self) {
+pub impl Testable for Discard with fn property(_self) {
   Testable::property(@state.rejected())
 }
 
 ///|
-pub impl Testable for Unit with property(_self) {
+pub impl Testable for Unit with fn property(_self) {
   Testable::property(@state.succeed())
 }
 
 ///|
-pub impl Testable for @state.SingleResult with property(self) {
+pub impl Testable for @state.SingleResult with fn property(self) {
   @gen.pure(@rose.pure(self))
 }
 
 ///|
-pub impl Testable for Bool with property(self) {
+pub impl Testable for Bool with fn property(self) {
   match self {
     true => Testable::property(@state.succeed())
     false => Testable::property({ ..@state.failed(), reason: "Falsified." })
@@ -54,12 +54,12 @@ pub impl Testable for Bool with property(self) {
 }
 
 ///|
-pub impl[P : Testable] Testable for @gen.Gen[P] with property(self) {
+pub impl[P : Testable] Testable for @gen.Gen[P] with fn property(self) {
   self.bind(run_prop)
 }
 
 ///|
-pub impl[P : Testable] Testable for P? with property(self) {
+pub impl[P : Testable] Testable for P? with fn property(self) {
   match self {
     None => Testable::property(@state.rejected())
     Some(x) => x.property()
@@ -67,7 +67,9 @@ pub impl[P : Testable] Testable for P? with property(self) {
 }
 
 ///|
-pub impl[P : Testable, E : Debug] Testable for Result[P, E] with property(self) {
+pub impl[P : Testable, E : Debug] Testable for Result[P, E] with fn property(
+  self,
+) {
   match self {
     Ok(p) => p.property()
     Err(e) =>
@@ -79,7 +81,7 @@ pub impl[P : Testable, E : Debug] Testable for Result[P, E] with property(self) 
 pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable for Arrow[
   A,
   P,
-] with property(self) {
+] with fn property(self) {
   forall_shrink(@gen.Gen::spawn(), A::shrink, self.0)
 }
 
@@ -89,7 +91,7 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
 pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable for ArrowError[
   A,
   P,
-] with property(self) {
+] with fn property(self) {
   forall_shrink(@gen.Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
 }
 

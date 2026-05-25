@@ -69,7 +69,7 @@ pub using @state {type Expected}
 
 // Traits
 pub(open) trait Testable {
-  property(Self) -> Property
+  fn property(Self) -> Property
 }
 pub impl Testable for Unit
 pub impl Testable for Bool

@@ -26,7 +26,7 @@ pub fn[T : Shrink + Compare] shrink_sorted_list(@list.List[T], lo~ : T, hi~ : T)
 
 // Traits
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self] = _
+  fn shrink(Self) -> Iter[Self] = _
 }
 pub impl Shrink for Unit
 pub impl Shrink for Bool

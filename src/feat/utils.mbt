@@ -11,7 +11,32 @@ fn[A, B] convolution(
   xs : LazyList[Finite[A]],
   ys : LazyList[Finite[B]],
 ) -> Finite[(A, B)] {
-  fin_mconcat(@lazy.zip_with(fin_cart, xs, ys))
+  fin_mconcat(zip_cart_rhs_bounded(xs, ys))
+}
+
+///|
+fn[A, B] zip_cart_tail(
+  xs : @lazy.LazyRef[LazyList[Finite[A]]],
+  ys : @lazy.LazyRef[LazyList[Finite[B]]],
+) -> LazyList[Finite[(A, B)]] {
+  guard ys.force() is Cons(y, ys) else { Nil }
+  guard xs.force() is Cons(x, xs) else { Nil }
+  Cons(fin_cart(x, y), @lazy.LazyRef::from_thunk(() => zip_cart_tail(xs, ys)))
+}
+
+///|
+fn[A, B] zip_cart_rhs_bounded(
+  xs : LazyList[Finite[A]],
+  ys : LazyList[Finite[B]],
+) -> LazyList[Finite[(A, B)]] {
+  match (xs, ys) {
+    (Cons(x, xs), Cons(y, ys)) =>
+      Cons(
+        fin_cart(x, y),
+        @lazy.LazyRef::from_thunk(() => zip_cart_tail(xs, ys)),
+      )
+    (_, _) => Nil
+  }
 }
 
 ///|
