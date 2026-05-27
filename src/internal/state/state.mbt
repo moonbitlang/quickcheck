@@ -132,7 +132,7 @@ pub fn rejected() -> SingleResult {
 }
 
 ///|
-impl Default for SingleResult with default() {
+impl Default for SingleResult with fn default() {
   {
     status: Rejected,
     expect: Success,

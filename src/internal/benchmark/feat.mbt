@@ -5,7 +5,7 @@ priv enum Nat {
 } derive(Debug)
 
 ///|
-impl @feat.Enumerable for Nat with enumerate() {
+impl @feat.Enumerable for Nat with fn enumerate() {
   @feat.pay(() => {
     @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(n => Succ(n))
   })

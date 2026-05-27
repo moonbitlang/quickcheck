@@ -129,13 +129,13 @@ test "iter is lazy over an infinite-depth spine" {
   fn spine(n : Int) -> Rose[Int] {
     let mut pulled = false
     let branch : Iter[Rose[Int]] = Iter::new() <| () => {
-        if pulled {
-          None
-        } else {
-          pulled = true
-          Some(spine(n + 1))
-        }
+      if pulled {
+        None
+      } else {
+        pulled = true
+        Some(spine(n + 1))
       }
+    }
     Rose(n, branch)
   }
 

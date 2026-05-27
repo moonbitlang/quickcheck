@@ -4,7 +4,7 @@
 pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for NonEmptyArray[T] with to_repr(self) {
+pub impl[T : Debug] Debug for NonEmptyArray[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "NonEmptyArray",
     @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
@@ -12,7 +12,7 @@ pub impl[T : Debug] Debug for NonEmptyArray[T] with to_repr(self) {
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -21,7 +21,7 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with arbi
 }
 
 ///|
-pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T] with shrink(
+pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T] with fn shrink(
   self,
 ) {
   @shrink.shrink_non_empty_array(self.0).map(a => NonEmptyArray(a))
@@ -51,7 +51,7 @@ test "NonEmptyArray[Int] debug output keeps wrapper name" {
 pub(all) struct NonEmptyList[T](@list.List[T]) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for NonEmptyList[T] with to_repr(self) {
+pub impl[T : Debug] Debug for NonEmptyList[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "NonEmptyList",
     @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
@@ -59,7 +59,7 @@ pub impl[T : Debug] Debug for NonEmptyList[T] with to_repr(self) {
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -68,7 +68,7 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with arbit
 }
 
 ///|
-pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T] with shrink(
+pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T] with fn shrink(
   self,
 ) {
   @shrink.shrink_non_empty_list(self.0).map(l => NonEmptyList(l))
@@ -93,7 +93,7 @@ test "NonEmptyList[Int] shrinks without producing empty" {
 pub(all) struct SortedArray[T](Array[T]) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for SortedArray[T] with to_repr(self) {
+pub impl[T : Debug] Debug for SortedArray[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "SortedArray",
     @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
@@ -101,7 +101,7 @@ pub impl[T : Debug] Debug for SortedArray[T] with to_repr(self) {
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -111,7 +111,7 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] w
 }
 
 ///|
-pub impl @shrink.Shrink for SortedArray[Int] with shrink(self) {
+pub impl @shrink.Shrink for SortedArray[Int] with fn shrink(self) {
   @shrink.shrink_sorted_array(self.0, lo=@int.MIN_VALUE, hi=@int.MAX_VALUE).map(a => {
       SortedArray(a)
     },
@@ -137,7 +137,7 @@ test "SortedArray[Int] shrinks preserving sort" {
 pub(all) struct SortedList[T](@list.List[T]) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for SortedList[T] with to_repr(self) {
+pub impl[T : Debug] Debug for SortedList[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "SortedList",
     @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
@@ -145,7 +145,7 @@ pub impl[T : Debug] Debug for SortedList[T] with to_repr(self) {
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -155,7 +155,7 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] wi
 }
 
 ///|
-pub impl @shrink.Shrink for SortedList[Int] with shrink(self) {
+pub impl @shrink.Shrink for SortedList[Int] with fn shrink(self) {
   @shrink.shrink_sorted_list(self.0, lo=@int.MIN_VALUE, hi=@int.MAX_VALUE).map(l => {
     SortedList(l)
   })

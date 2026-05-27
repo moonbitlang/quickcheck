@@ -60,7 +60,7 @@ fn Queue::op_equal(self : Queue, other : Queue) -> Bool {
 }
 
 ///|
-impl @coreqc.Arbitrary for Queue with arbitrary(i, rs) {
+impl @coreqc.Arbitrary for Queue with fn arbitrary(i, rs) {
   let f : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
   let r : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
   build_queue(f, r)
@@ -73,7 +73,7 @@ priv struct EqQueue(@laws.Equivalence[Queue]) derive(Debug)
 impl @qc.Shrink for EqQueue
 
 ///|
-impl @coreqc.Arbitrary for EqQueue with arbitrary(i, rs) {
+impl @coreqc.Arbitrary for EqQueue with fn arbitrary(i, rs) {
   fn split(xs : @list.List[Int], i) {
     (xs.take(i), xs.drop(i))
   }

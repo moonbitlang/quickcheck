@@ -4,12 +4,12 @@
 pub(all) struct Blind[T](T) derive(Eq)
 
 ///|
-pub impl[T] Debug for Blind[T] with to_repr(_self) {
+pub impl[T] Debug for Blind[T] with fn to_repr(_self) {
   @debug.Repr::opaque_("Blind", @debug.Repr::omitted())
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for Blind[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for Blind[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -17,7 +17,7 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for Blind[T] with arbitrary(
 }
 
 ///|
-pub impl[T : @shrink.Shrink] @shrink.Shrink for Blind[T] with shrink(self) {
+pub impl[T : @shrink.Shrink] @shrink.Shrink for Blind[T] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).map(v => Blind(v))
 }
 
@@ -45,12 +45,12 @@ test "Blind[Int] shrinks underlying value" {
 pub(all) struct NoShrink[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for NoShrink[T] with to_repr(self) {
+pub impl[T : Debug] Debug for NoShrink[T] with fn to_repr(self) {
   @debug.Repr::opaque_("NoShrink", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NoShrink[T] with arbitrary(
+pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NoShrink[T] with fn arbitrary(
   size,
   rs,
 ) {
@@ -58,7 +58,7 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NoShrink[T] with arbitrary
 }
 
 ///|
-pub impl[T] @shrink.Shrink for NoShrink[T] with shrink(_self) {
+pub impl[T] @shrink.Shrink for NoShrink[T] with fn shrink(_self) {
   Iter::empty()
 }
 

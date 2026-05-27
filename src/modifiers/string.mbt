@@ -33,17 +33,17 @@ fn arbitrary_unicode_char(rs : @splitmix.RandomState) -> Char {
 pub(all) struct ASCIIString(String) derive(Eq)
 
 ///|
-pub impl Debug for ASCIIString with to_repr(self) {
+pub impl Debug for ASCIIString with fn to_repr(self) {
   @debug.Repr::string(self.0)
 }
 
 ///|
-pub impl @coreqc.Arbitrary for ASCIIString with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for ASCIIString with fn arbitrary(size, rs) {
   ASCIIString(string_with(size, rs, arbitrary_ascii_char))
 }
 
 ///|
-pub impl @shrink.Shrink for ASCIIString with shrink(self) {
+pub impl @shrink.Shrink for ASCIIString with fn shrink(self) {
   @shrink.Shrink::shrink(self.0.to_array())
   .filter(chars => chars.all(is_ascii_char))
   .map(chars => ASCIIString(String::from_array(chars)))
@@ -55,17 +55,17 @@ pub impl @shrink.Shrink for ASCIIString with shrink(self) {
 pub(all) struct UnicodeString(String) derive(Eq)
 
 ///|
-pub impl Debug for UnicodeString with to_repr(self) {
+pub impl Debug for UnicodeString with fn to_repr(self) {
   @debug.Repr::string(self.0)
 }
 
 ///|
-pub impl @coreqc.Arbitrary for UnicodeString with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for UnicodeString with fn arbitrary(size, rs) {
   UnicodeString(string_with(size, rs, arbitrary_unicode_char))
 }
 
 ///|
-pub impl @shrink.Shrink for UnicodeString with shrink(self) {
+pub impl @shrink.Shrink for UnicodeString with fn shrink(self) {
   @shrink.Shrink::shrink(self.0.to_array())
   .filter(chars => chars.all(is_unicode_scalar))
   .map(chars => UnicodeString(String::from_array(chars)))
@@ -78,12 +78,12 @@ pub impl @shrink.Shrink for UnicodeString with shrink(self) {
 pub(all) struct PrintableString(String) derive(Eq)
 
 ///|
-pub impl Debug for PrintableString with to_repr(self) {
+pub impl Debug for PrintableString with fn to_repr(self) {
   @debug.Repr::string(self.0)
 }
 
 ///|
-pub impl @coreqc.Arbitrary for PrintableString with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for PrintableString with fn arbitrary(size, rs) {
   PrintableString(
     string_with(size, rs, rst => {
       let gen_char : @gen.Gen[Char] = @gen.Gen::spawn()
@@ -93,7 +93,7 @@ pub impl @coreqc.Arbitrary for PrintableString with arbitrary(size, rs) {
 }
 
 ///|
-pub impl @shrink.Shrink for PrintableString with shrink(self) {
+pub impl @shrink.Shrink for PrintableString with fn shrink(self) {
   @shrink.Shrink::shrink(self.0.to_array())
   .filter(chars => chars.all(c => c.is_printable()))
   .map(chars => PrintableString(String::from_array(chars)))

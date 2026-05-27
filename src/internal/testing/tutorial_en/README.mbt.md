@@ -325,7 +325,7 @@ generator and then returns a random value of the type.
 ```mbt check
 ///|
 pub trait Arbitrary {
-  arbitrary(Int, @splitmix.RandomState) -> Self
+  fn arbitrary(Int, @splitmix.RandomState) -> Self
 }
 ```
 
@@ -376,7 +376,7 @@ of simpler values (lazily).
 ```mbt check
 ///|
 pub trait Shrink {
-  shrink(Self) -> Iter[Self]
+  fn shrink(Self) -> Iter[Self]
 }
 ```
 
