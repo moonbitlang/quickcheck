@@ -37,7 +37,7 @@
 ```mbt nocheck
 ///|
 pub trait Shrink {
-  shrink(Self) -> Iter[Self]
+  fn shrink(Self) -> Iter[Self]
 }
 ```
 
@@ -522,7 +522,7 @@ enum Nat {
 } derive(Eq, Debug)
 
 ///|
-impl @feat.Enumerable for Nat with enumerate() {
+impl @feat.Enumerable for Nat with fn enumerate() {
   @feat.pay(() => {
     @feat.singleton(Zero) +
     @feat.Enumerable::enumerate().fmap(n => Nat::Succ(n))
@@ -572,8 +572,8 @@ SmallCheck 在理论上甚至无法完成这一层的枚举。
 每个 part 只关心两件事：这一层有多少值，以及如何按下标直接取值。
 
 MoonBit 当前的实现也正是这样组织的。
-`Enumerate[T]` 内部是一条惰性的 parts 序列，而每个 `Finite[T]`
-则携带 `fCard` 与 `fIndex` 两个消费者。
+`Enumerate[T]` 内部是一个从精确 size 到 `@ifseq.Seq[T]` 的带缓存函数；
+每个 `Seq` 同时携带基数、随机访问索引器，以及按顺序遍历整层的闭包。
 于是全局索引 `Enumerate::at`（即 `_[_]` 算符）的语义就很清楚了：
 它不是从头把所有值一个个生成出来，而是先根据各 part 的基数跳过整层，
 再在命中的那一层里直接做索引。

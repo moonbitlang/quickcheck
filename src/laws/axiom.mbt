@@ -8,7 +8,7 @@ pub(all) struct Equivalence[T] {
 }
 
 ///|
-pub impl[T : Debug] Debug for Equivalence[T] with to_repr(self) {
+pub impl[T : Debug] Debug for Equivalence[T] with fn to_repr(self) {
   Repr::opaque_(
     "Equivalence",
     Repr::record({ "lhs": to_repr(self.lhs), "rhs": to_repr(self.rhs) }),

@@ -1,181 +1,264 @@
 ///|
-/// A lazy list of `Finite[T]` parts, one part per size class.
-///
-/// Conceptually: `Enumerate[T]` partitions the type `T` by a user-
-/// chosen notion of "size" (usually one unit per constructor, charged
-/// via `pay`). Part `k` is a `Finite[T]` — a cardinality plus an
-/// indexer — covering every value of size `k`. The outer `LazyList`
-/// can be infinite: `T = List[E]` has parts at every size, no bound.
-///
-/// Invariants (preserved by the provided combinators):
-/// - every part has `fCard >= 0`;
-/// - recursive references are guarded by `pay` so forcing the outer
-///   list is productive;
-/// - each part's `fIndex` is total on `[0, fCard)`.
-pub(all) struct Enumerate[T] {
-  parts : LazyList[Finite[T]]
+/// A size-indexed enumeration backed by an implicit finite sequence for each
+/// size. This is the feat_moon representation: `run(size)` returns the part
+/// of all values whose constructor-cost is exactly `size`.
+struct Enumerate[T] {
+  run : (Int) -> @ifseq.Seq[T]
+  prefix_totals : Array[BigInt]
 }
 
 ///|
-/// Expose the underlying size-indexed parts. Callers typically use
-/// this together with `Finite::to_array` to materialise every value
-/// of a specific size.
-pub fn[T] Enumerate::eval(self : Enumerate[T]) -> LazyList[Finite[T]] {
-  self.parts
-}
-
-///|
-/// The empty enumeration: no values at any size. Identity for `union`.
-///
-/// ```mbt check
-/// test {
-///   let e : Enumerate[Int] = empty()
-///   debug_inspect(e.eval(), content="<LazyList: []>")
-/// }
-/// ```
-pub fn[T] empty() -> Enumerate[T] {
-  { parts: @lazy.empty() }
-}
-
-///|
-/// One-value enumeration at size 0. Building block for `Enumerable`
-/// instances of leaf constructors.
-///
-/// ```mbt check
-/// test {
-///   let e : Enumerate[String] = singleton("leaf")
-///   assert_eq(e.at(0), "leaf")
-/// }
-/// ```
-pub fn[T] singleton(val : T) -> Enumerate[T] {
-  { parts: @lazy.lazy_cons(fin_pure(val), () => @lazy.empty()) }
-}
-
-///|
-/// Return the `i`-th value overall: walk parts from size 0 upward,
-/// subtracting each part's cardinality from `idx` until `idx` falls
-/// inside the current part, then read the value via `fIndex`.
-///
-/// **Aborts** on out-of-range indices (reaches the empty part stream).
-///
-/// ```mbt check
-/// test {
-///   let bools : Enumerate[Bool] = Enumerable::enumerate()
-///   assert_eq(bools[0], true)
-///   assert_eq(bools[1], false)
-/// }
-/// ```
-#alias("_[_]")
-#alias(en_index, deprecated="Use `_[_]` instead")
-pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
-  for parts = self.parts, i = idx {
-    match parts.head() {
-      None => abort("index out of bounds")
-      Some(f) =>
-        if i < f.fCard {
-          break (f.fIndex)(i)
-        } else {
-          continue lazy_tail_or_empty(parts), i - f.fCard
-        }
+fn[T] delay(thunk : () -> T) -> () -> T {
+  let cache : Array[T] = []
+  fn() {
+    if cache.length() == 0 {
+      let value = thunk()
+      cache.push(value)
+      value
+    } else {
+      cache[0]
     }
   }
 }
 
 ///|
-/// Finite sampling domain used by `feat_random`. It aggregates
-/// the first `size` parts; if they are all empty, it continues to the
-/// next non-empty part so the result is still finite.
-pub fn[T] Enumerate::sample_finite(
-  self : Enumerate[T],
-  size : Int,
-) -> Finite[T] {
-  for parts = self.parts, bound = size {
-    if parts.is_empty() {
-      break fin_empty()
+fn[T] make(run : (Int) -> @ifseq.Seq[T]) -> Enumerate[T] {
+  let cache : Map[Int, @ifseq.Seq[T]] = {}
+  fn memoized(size : Int) -> @ifseq.Seq[T] {
+    match cache.get(size) {
+      Some(seq) => seq
+      None => {
+        let seq = run(size)
+        cache.set(size, seq)
+        seq
+      }
+    }
+  }
+  { run: memoized, prefix_totals: [0] }
+}
+
+///|
+/// Return the finite sequence for one exact size.
+pub fn[T] part(e : Enumerate[T], size : Int) -> @ifseq.Seq[T] {
+  (e.run)(size)
+}
+
+///|
+/// Empty enumeration.
+pub fn[T] empty() -> Enumerate[T] {
+  make(fn(_size) { @ifseq.empty() })
+}
+
+///|
+/// Enumeration containing one value at size zero.
+pub fn[T] singleton(x : T) -> Enumerate[T] {
+  make(fn(size) { if size == 0 { @ifseq.singleton(x) } else { @ifseq.empty() } })
+}
+
+///|
+/// Lift one implicit finite sequence into the size-zero part.
+pub fn[T] of_seq(xs : @ifseq.Seq[T]) -> Enumerate[T] {
+  make(fn(size) { if size == 0 { xs } else { @ifseq.empty() } })
+}
+
+///|
+/// Shift all parts by one size unit. Recursive `Enumerable` instances should
+/// guard self references with `pay`.
+pub fn[T] pay(e : () -> Enumerate[T]) -> Enumerate[T] {
+  let force = delay(e)
+  make(fn(size) {
+    if size == 0 {
+      @ifseq.empty()
     } else {
-      let (incl, rest) = lazy_split_at(parts, bound)
-      let fin = fin_mconcat(incl)
-      if fin.fCard == 0 {
-        continue rest, 1
+      part(force(), size - 1)
+    }
+  })
+}
+
+///|
+/// Pointwise disjoint union of two enumerations.
+pub fn[T] sum(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
+  make(fn(size) { @ifseq.sum(part(e1, size), part(e2, size)) })
+}
+
+///|
+pub impl[T] Add for Enumerate[T] with fn add(self, other) {
+  sum(self, other)
+}
+
+///|
+/// Existential choice over a finite list: union all enumerations from `xs`.
+pub fn[A, B] exists(
+  xs : @list.List[A],
+  f : (A) -> Enumerate[B],
+) -> Enumerate[B] {
+  make(fn(size) {
+    xs.fold(init=@ifseq.empty(), fn(acc, x) {
+      @ifseq.sum(acc, part(f(x), size))
+    })
+  })
+}
+
+///|
+/// Cartesian product by size convolution.
+pub fn[A, B] product(e1 : Enumerate[A], e2 : Enumerate[B]) -> Enumerate[(A, B)] {
+  make(fn(size) {
+    if size < 0 {
+      @ifseq.empty()
+    } else {
+      let parts = Array::makei(size + 1, fn(left) {
+        let right = size - left
+        @ifseq.product(part(e1, left), part(e2, right))
+      })
+      @ifseq.bigsum(parts)
+    }
+  })
+}
+
+///|
+/// Product variant that only pairs equal or adjacent component sizes.
+pub fn[A, B] balanced_product(
+  e1 : Enumerate[A],
+  e2 : Enumerate[B],
+) -> Enumerate[(A, B)] {
+  make(fn(size) {
+    if size < 0 {
+      @ifseq.empty()
+    } else if size % 2 == 0 {
+      let half = size / 2
+      @ifseq.product(part(e1, half), part(e2, half))
+    } else {
+      let half = size / 2
+      @ifseq.sum(
+        @ifseq.product(part(e1, half), part(e2, half + 1)),
+        @ifseq.product(part(e1, half + 1), part(e2, half)),
+      )
+    }
+  })
+}
+
+///|
+/// Map a function over every value without changing part sizes.
+pub fn[A, B] map(f : (A) -> B, e : Enumerate[A]) -> Enumerate[B] {
+  make(fn(size) { @ifseq.map(f, part(e, size)) })
+}
+
+///|
+/// Method form of `map`.
+pub fn[A, B] Enumerate::fmap(self : Enumerate[A], f : (A) -> B) -> Enumerate[B] {
+  map(f, self)
+}
+
+///|
+/// Enumerate a unary constructor over its argument type.
+pub fn[A : Enumerable, B] unary(f : (A) -> B) -> Enumerate[B] {
+  A::enumerate().fmap(f)
+}
+
+///|
+/// Pay one size unit for a list of constructor alternatives.
+pub fn[T] consts(xs : @list.List[Enumerate[T]]) -> Enumerate[T] {
+  pay(fn() { xs.fold(init=empty(), fn(acc, x) { sum(acc, x) }) })
+}
+
+///|
+/// Enumerate a finite list of values at size zero.
+pub fn[T] finite(xs : @list.List[T]) -> Enumerate[T] {
+  xs.fold(init=empty(), fn(acc, x) { sum(acc, singleton(x)) })
+}
+
+///|
+/// Explicit memoized fixpoint helper for recursive enumerations.
+pub fn[T] fix(f : (Enumerate[T]) -> Enumerate[T]) -> Enumerate[T] {
+  let cache : Map[Int, @ifseq.Seq[T]] = {}
+  let body_cache : Array[Enumerate[T]] = []
+  fn run(size : Int) -> @ifseq.Seq[T] {
+    match cache.get(size) {
+      Some(seq) => seq
+      None => {
+        let body = if body_cache.length() == 0 {
+          let e = f(make(run))
+          body_cache.push(e)
+          e
+        } else {
+          body_cache[0]
+        }
+        let seq = part(body, size)
+        cache.set(size, seq)
+        seq
+      }
+    }
+  }
+  make(run)
+}
+
+///|
+fn[T] Enumerate::ensure_prefix_covers(
+  self : Enumerate[T],
+  idx : BigInt,
+) -> Unit {
+  for total = self.prefix_totals[self.prefix_totals.length() - 1] {
+    if idx < total {
+      break
+    } else {
+      let size = self.prefix_totals.length() - 1
+      let next = total + @ifseq.length(part(self, size))
+      self.prefix_totals.push(next)
+      continue next
+    }
+  }
+}
+
+///|
+fn find_part(prefix_totals : Array[BigInt], idx : BigInt) -> Int {
+  for low = 0, high = prefix_totals.length() - 1 {
+    if low + 1 >= high {
+      break low
+    } else {
+      let mid = low + (high - low) / 2
+      if prefix_totals[mid] <= idx {
+        continue mid, high
       } else {
-        break fin
+        continue low, mid
       }
     }
   }
 }
 
 ///|
-/// Interleave two enumerations by size: the `k`-th part of `union(a, b)`
-/// is `fin_union(a.parts[k], b.parts[k])`. If one enumeration runs out
-/// of parts, the other's remaining parts carry through unchanged.
-fn[T] union(e1 : Enumerate[T], e2 : Enumerate[T]) -> Enumerate[T] {
-  { parts: lazy_zip_plus(fin_union, e1.parts, e2.parts) }
+/// Return the `idx`-th value globally, skipping whole size parts by length.
+#alias("_[_]")
+#alias(en_index, deprecated="Use `_[_]` instead")
+pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
+  if idx < 0 {
+    abort("index out of bounds")
+  } else {
+    self.ensure_prefix_covers(idx)
+    let size = find_part(self.prefix_totals, idx)
+    @ifseq.get(part(self, size), idx - self.prefix_totals[size])
+  }
 }
 
 ///|
-/// `+` as an alias for `union`.
-pub impl[T] Add for Enumerate[T] with fn add(self, other) {
-  union(self, other)
-}
-
-///|
-/// Rewrite every element without changing the structure: part shapes
-/// stay the same, only the inhabitants are relabelled via `f`.
-///
-/// ```mbt check
-/// test {
-///   let bools : Enumerate[Bool] = Enumerable::enumerate()
-///   let labels = bools.fmap(b => if b { "yes" } else { "no" })
-///   assert_eq(labels[0], "yes")
-///   assert_eq(labels[1], "no")
-/// }
-/// ```
-pub fn[T, U] Enumerate::fmap(self : Enumerate[T], f : (T) -> U) -> Enumerate[U] {
-  { parts: self.parts.map(x => fin_fmap(f, x)) }
-}
-
-///|
-/// Shift every size class up by one: part `k` of `pay(f)` equals part
-/// `k - 1` of `f()`. The outer part `0` becomes empty. **This is the
-/// productivity knob** for recursive `Enumerable` instances — every
-/// recursive self-reference must be wrapped in `pay` or the fixpoint
-/// diverges.
-pub fn[T] pay(f : () -> Enumerate[T]) -> Enumerate[T] {
-  { parts: @lazy.lazy_cons(fin_empty(), () => f().parts) }
-}
-
-///|
-/// Cartesian product, keyed by sum of sizes: part `k` of `product(a, b)`
-/// contains every pair whose component sizes add to `k`. Order inside
-/// a part follows the diagonalisation convention
-/// (first by decreasing `a`-size, then by increasing `b`-size).
-pub fn[T, U] product(e1 : Enumerate[T], e2 : Enumerate[U]) -> Enumerate[(T, U)] {
-  { parts: prod_helper(e1.parts, reversals(e2.parts)) }
-}
-
-///|
-fn[T, U] prod_helper(
-  xs : LazyList[Finite[T]],
-  rys : LazyList[LazyList[Finite[U]]],
-) -> LazyList[Finite[(T, U)]] {
-  rys.map(y => convolution(xs, y))
-}
-
-///|
-/// `pay`-wrapped union of a list of sub-enumerations. Typical use:
-/// write one `Enumerate` per constructor of a sum type, then combine
-/// with `consts`. The outer `pay` charges one size unit for the
-/// constructor tag.
-pub fn[T] consts(ls : @list.List[Enumerate[T]]) -> Enumerate[T] {
-  pay(() => ls.fold(union, init=empty()))
-}
-
-///|
-/// Apply a unary constructor: `unary(f) == T::enumerate().fmap(f)`.
-/// For multi-argument constructors, write a tuple lambda so `f` takes
-/// a single tuple argument — e.g. `unary(p => Node(p.0, p.1))` — then
-/// `unary(f)` goes through the built-in pair `Enumerable` instance
-/// which inserts the required `pay`.
-pub fn[T : Enumerable, U] unary(f : (T) -> U) -> Enumerate[U] {
-  T::enumerate().fmap(f)
+/// Sampling domain used by `feat_random`. It aggregates parts below
+/// the bound; if all are empty, it expands until the first non-empty prefix.
+pub fn[T] Enumerate::sample_finite(
+  self : Enumerate[T],
+  size : Int,
+) -> @ifseq.Seq[T] {
+  fn aggregate(start : Int, stop : Int) -> @ifseq.Seq[T] {
+    if start < stop {
+      @ifseq.sum(part(self, start), aggregate(start + 1, stop))
+    } else {
+      @ifseq.empty()
+    }
+  }
+  for bound = (if size < 0 { 0 } else { size }) {
+    let seq = aggregate(0, bound)
+    if @ifseq.length(seq) == 0 {
+      continue bound + 1
+    } else {
+      break seq
+    }
+  }
 }

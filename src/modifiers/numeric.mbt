@@ -4,12 +4,12 @@
 pub(all) struct NonNegative[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for NonNegative[T] with to_repr(self) {
+pub impl[T : Debug] Debug for NonNegative[T] with fn to_repr(self) {
   @debug.Repr::opaque_("NonNegative", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl @coreqc.Arbitrary for NonNegative[Int] with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for NonNegative[Int] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -24,7 +24,7 @@ pub impl @coreqc.Arbitrary for NonNegative[Int] with arbitrary(size, rs) {
 }
 
 ///|
-pub impl @shrink.Shrink for NonNegative[Int] with shrink(self) {
+pub impl @shrink.Shrink for NonNegative[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v >= 0).map(v => NonNegative(v))
 }
 
@@ -52,12 +52,12 @@ test "NonNegative[Int] debug output keeps wrapper name" {
 pub(all) struct Positive[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for Positive[T] with to_repr(self) {
+pub impl[T : Debug] Debug for Positive[T] with fn to_repr(self) {
   @debug.Repr::opaque_("Positive", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl @coreqc.Arbitrary for Positive[Int] with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for Positive[Int] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -72,7 +72,7 @@ pub impl @coreqc.Arbitrary for Positive[Int] with arbitrary(size, rs) {
 }
 
 ///|
-pub impl @shrink.Shrink for Positive[Int] with shrink(self) {
+pub impl @shrink.Shrink for Positive[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v > 0).map(v => Positive(v))
 }
 
@@ -97,12 +97,12 @@ test "Positive[Int] shrinks within bounds" {
 pub(all) struct Negative[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for Negative[T] with to_repr(self) {
+pub impl[T : Debug] Debug for Negative[T] with fn to_repr(self) {
   @debug.Repr::opaque_("Negative", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl @coreqc.Arbitrary for Negative[Int] with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for Negative[Int] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -117,7 +117,7 @@ pub impl @coreqc.Arbitrary for Negative[Int] with arbitrary(size, rs) {
 }
 
 ///|
-pub impl @shrink.Shrink for Negative[Int] with shrink(self) {
+pub impl @shrink.Shrink for Negative[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v < 0).map(v => Negative(v))
 }
 
@@ -143,18 +143,18 @@ test "Negative[Int] shrinks within bounds" {
 pub(all) struct NonZero[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for NonZero[T] with to_repr(self) {
+pub impl[T : Debug] Debug for NonZero[T] with fn to_repr(self) {
   @debug.Repr::opaque_("NonZero", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl @coreqc.Arbitrary for NonZero[Int] with arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for NonZero[Int] with fn arbitrary(size, rs) {
   let gen : @gen.Gen[Int] = @gen.Gen::spawn()
   gen.such_that(v => v != 0).run(size, rs)
 }
 
 ///|
-pub impl @shrink.Shrink for NonZero[Int] with shrink(self) {
+pub impl @shrink.Shrink for NonZero[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter_map(v => {
     if v != 0 {
       Some(NonZero(v))
@@ -188,12 +188,12 @@ test "NonZero[Int] shrinks within bounds" {
 pub(all) struct Small[T](T) derive(Eq)
 
 ///|
-pub impl[T : Debug] Debug for Small[T] with to_repr(self) {
+pub impl[T : Debug] Debug for Small[T] with fn to_repr(self) {
   @debug.Repr::opaque_("Small", @debug.to_repr(self.0))
 }
 
 ///|
-pub impl @coreqc.Arbitrary for Small[Int] with arbitrary(_size, rs) {
+pub impl @coreqc.Arbitrary for Small[Int] with fn arbitrary(_size, rs) {
   let p = rs.next_double()
   let mag = if p < 0.75 {
     rs.next_positive_int() % 11
@@ -205,7 +205,7 @@ pub impl @coreqc.Arbitrary for Small[Int] with arbitrary(_size, rs) {
 }
 
 ///|
-pub impl @shrink.Shrink for Small[Int] with shrink(self) {
+pub impl @shrink.Shrink for Small[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).map(v => Small(v))
 }
 

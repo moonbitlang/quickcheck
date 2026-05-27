@@ -1,0 +1,54 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitlang/quickcheck/feat/ifseq"
+
+import {
+  "moonbitlang/core/bigint",
+}
+
+// Values
+pub fn[T] bigsum(Array[Seq[T]]) -> Seq[T]
+
+pub fn[T] each(Seq[T], (T) -> Unit) -> Unit
+
+pub fn[T] empty() -> Seq[T]
+
+pub fn[A, B] exists(Array[A], (A) -> Seq[B]) -> Seq[B]
+
+pub fn[T] get(Seq[T], @bigint.BigInt) -> T
+
+pub fn[T] is_empty(Seq[T]) -> Bool
+
+pub fn[T] length(Seq[T]) -> @bigint.BigInt
+
+pub fn[T, U] map((T) -> U, Seq[T]) -> Seq[U]
+
+pub fn[T, U] product(Seq[T], Seq[U]) -> Seq[(T, U)]
+
+pub fn[T] rev(Seq[T]) -> Seq[T]
+
+pub fn[T] singleton(T) -> Seq[T]
+
+pub fn[T] sum(Seq[T], Seq[T]) -> Seq[T]
+
+pub fn[T] to_array(Seq[T]) -> Array[T]
+
+pub fn[T] to_iter(Seq[T]) -> Iter[T]
+
+pub fn[T] to_iter_materialized(Seq[T]) -> Iter[T]
+
+pub fn up(Int, Int) -> Seq[Int]
+
+// Errors
+
+// Types and methods
+pub struct Seq[T] {
+  length : @bigint.BigInt
+  get : (@bigint.BigInt) -> T
+  foreach : (Bool, (T) -> Unit) -> Unit
+}
+
+// Type aliases
+pub using @bigint {type BigInt as Index}
+
+// Traits
+

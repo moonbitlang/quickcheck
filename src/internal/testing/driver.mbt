@@ -382,19 +382,19 @@ priv enum Nat {
 } derive(Debug)
 
 ///|
-impl @feat.Enumerable for Nat with enumerate() {
+impl @feat.Enumerable for Nat with fn enumerate() {
   @feat.pay(() => {
     @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(n => Succ(n))
   })
 }
 
 ///|
-impl @coreqc.Arbitrary for Nat with arbitrary(i, rs) {
+impl @coreqc.Arbitrary for Nat with fn arbitrary(i, rs) {
   @feat.feat_random(i).run(i, rs)
 }
 
 ///|
-impl Add for Nat with add(self, other) {
+impl Add for Nat with fn add(self, other) {
   match self {
     Zero => other
     Succ(n) => Succ(n.add(other))
@@ -402,7 +402,7 @@ impl Add for Nat with add(self, other) {
 }
 
 ///|
-impl Eq for Nat with equal(self, other) {
+impl Eq for Nat with fn equal(self, other) {
   match (self, other) {
     (Zero, Zero) => true
     (Succ(a), Succ(b)) => a == b
@@ -571,17 +571,17 @@ test "explicit universal qualification" {
 priv struct DebugOnly(Int) derive(Eq, Debug)
 
 ///|
-impl @feat.Enumerable for DebugOnly with enumerate() {
+impl @feat.Enumerable for DebugOnly with fn enumerate() {
   (@feat.Enumerable::enumerate() : @feat.Enumerate[Int]).fmap(x => DebugOnly(x))
 }
 
 ///|
-impl @coreqc.Arbitrary for DebugOnly with arbitrary(size, rs) {
+impl @coreqc.Arbitrary for DebugOnly with fn arbitrary(size, rs) {
   DebugOnly(@coreqc.Arbitrary::arbitrary(size, rs))
 }
 
 ///|
-impl @qc.Shrink for DebugOnly with shrink(self) {
+impl @qc.Shrink for DebugOnly with fn shrink(self) {
   @qc.Shrink::shrink(self.0).map(x => DebugOnly(x))
 }
 

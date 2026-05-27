@@ -22,16 +22,16 @@
 /// }
 /// ```
 pub(open) trait Shrink {
-  shrink(Self) -> Iter[Self] = _
+  fn shrink(Self) -> Iter[Self] = _
 }
 
 ///|
-impl Shrink with shrink(_a) {
+impl Shrink with fn shrink(_a) {
   Iter::empty()
 }
 
 ///|
-pub impl Shrink for Int with shrink(x) {
+pub impl Shrink for Int with fn shrink(x) {
   @utils.apply_while_list(x, z => z / 2, z => (x - z).abs() < x.abs())
   .map(i => x - i)
   .iter()
@@ -40,7 +40,7 @@ pub impl Shrink for Int with shrink(x) {
 }
 
 ///|
-pub impl Shrink for Int64 with shrink(x) {
+pub impl Shrink for Int64 with fn shrink(x) {
   @utils.apply_while_list(x, z => z / 2, z => (x - z).abs() < x.abs())
   .map(i => x - i)
   .iter()
@@ -49,7 +49,7 @@ pub impl Shrink for Int64 with shrink(x) {
 }
 
 ///|
-pub impl Shrink for UInt with shrink(x) {
+pub impl Shrink for UInt with fn shrink(x) {
   @utils.apply_while_list(x, z => z / 2, z => z > 0)
   .map(i => x - i)
   .iter()
@@ -58,7 +58,7 @@ pub impl Shrink for UInt with shrink(x) {
 }
 
 ///|
-pub impl Shrink for UInt64 with shrink(x) {
+pub impl Shrink for UInt64 with fn shrink(x) {
   @utils.apply_while_list(x, z => z / 2, z => z > 0)
   .map(i => x - i)
   .iter()
@@ -67,7 +67,7 @@ pub impl Shrink for UInt64 with shrink(x) {
 }
 
 ///|
-pub impl Shrink for Bool with shrink(b) {
+pub impl Shrink for Bool with fn shrink(b) {
   if !b {
     Iter::empty()
   } else {
@@ -76,7 +76,7 @@ pub impl Shrink for Bool with shrink(b) {
 }
 
 ///|
-pub impl Shrink for Byte with shrink(x) {
+pub impl Shrink for Byte with fn shrink(x) {
   let xi = x.to_int()
   @utils.apply_while_list(xi, z => z / 2, z => z > 0)
   .map(i => (xi - i).to_byte())
@@ -86,7 +86,7 @@ pub impl Shrink for Byte with shrink(x) {
 }
 
 ///|
-pub impl Shrink for Char with shrink(c) {
+pub impl Shrink for Char with fn shrink(c) {
   let ci = c.to_int()
   if ci == 0 {
     return Iter::empty()
@@ -97,12 +97,12 @@ pub impl Shrink for Char with shrink(c) {
 }
 
 ///|
-pub impl Shrink for Double with shrink(x) {
+pub impl Shrink for Double with fn shrink(x) {
   shrink_decimal(x)
 }
 
 ///|
-pub impl Shrink for Float with shrink(x) {
+pub impl Shrink for Float with fn shrink(x) {
   shrink_decimal(x.to_double()).map(Float::from_double)
 }
 
@@ -145,7 +145,7 @@ pub impl Shrink for String
 pub impl Shrink for Bytes
 
 ///|
-pub impl[T : Shrink] Shrink for T? with shrink(x) {
+pub impl[T : Shrink] Shrink for T? with fn shrink(x) {
   match x {
     None => Iter::empty()
     Some(v) =>
@@ -157,7 +157,7 @@ pub impl[T : Shrink] Shrink for T? with shrink(x) {
 pub impl Shrink for Unit
 
 ///|
-pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
+pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with fn shrink(x) {
   match x {
     Ok(v) => Shrink::shrink(v).map(v1 => Ok(v1))
     Err(e) => Shrink::shrink(e).map(e1 => Err(e1))
@@ -165,7 +165,7 @@ pub impl[T : Shrink, E : Shrink] Shrink for Result[T, E] with shrink(x) {
 }
 
 ///|
-pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
+pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with fn shrink(x) {
   let (a, b) = x
   Shrink::shrink(a)
   .map(a1 => (a1, b))
@@ -173,7 +173,9 @@ pub impl[A : Shrink, B : Shrink] Shrink for (A, B) with shrink(x) {
 }
 
 ///|
-pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with shrink(x) {
+pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with fn shrink(
+  x,
+) {
   let (a, b, c) = x
   Shrink::shrink((a, (b, c))).map(y => {
     let (a1, (b1, c1)) = y
@@ -182,7 +184,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink] Shrink for (A, B, C) with shrink(x)
 }
 
 ///|
-pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D) with shrink(
+pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink] Shrink for (A, B, C, D) with fn shrink(
   x,
 ) {
   let (a, b, c, d) = x
@@ -199,7 +201,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink] Shrink for 
   C,
   D,
   E,
-) with shrink(x) {
+) with fn shrink(x) {
   let (a, b, c, d, e) = x
   Shrink::shrink((a, (b, c, d, e))).map(y => {
     let (a1, (b1, c1, d1, e1)) = y
@@ -215,7 +217,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
   D,
   E,
   F,
-) with shrink(x) {
+) with fn shrink(x) {
   let (a, b, c, d, e, f) = x
   Shrink::shrink((a, (b, c, d, e, f))).map(y => {
     let (a1, (b1, c1, d1, e1, f1)) = y
@@ -224,7 +226,7 @@ pub impl[A : Shrink, B : Shrink, C : Shrink, D : Shrink, E : Shrink, F : Shrink]
 }
 
 ///|
-pub impl[T : Shrink] Shrink for @list.List[T] with shrink(xs) {
+pub impl[T : Shrink] Shrink for @list.List[T] with fn shrink(xs) {
   let n = xs.length()
   fn shr_sub_terms(lst : @list.List[T]) {
     match lst {
@@ -260,7 +262,7 @@ pub fn[T : Shrink] shrink_non_empty_list(
 }
 
 ///|
-pub impl[X : Shrink] Shrink for Array[X] with shrink(xs) {
+pub impl[X : Shrink] Shrink for Array[X] with fn shrink(xs) {
   let view = xs[:]
   let n = view.length()
   fn shr_sub_terms(arr : ArrayView[X]) {
@@ -293,7 +295,7 @@ pub fn[X : Shrink] shrink_non_empty_array(xs : Array[X]) -> Iter[Array[X]] {
 }
 
 ///|
-pub impl[X : Shrink] Shrink for Iter[X] with shrink(xs) {
+pub impl[X : Shrink] Shrink for Iter[X] with fn shrink(xs) {
   let arr = xs.to_array()
   let its : Array[_] = Array::makei(arr.length(), x => {
     X::shrink(arr[x])

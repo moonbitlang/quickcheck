@@ -215,9 +215,9 @@ When we want "data structures to grow in sync with `size`", `@gen.sized` is the 
 test "@gen.sized array with explicit length" {
   // <| works here
   let gen = @gen.sized <| n => {
-      let len = if n < 0 { 0 } else { n }
-      @gen.tuple(@gen.pure(len), @gen.int_range(0, 9).array_with_size(len))
-    }
+    let len = if n < 0 { 0 } else { n }
+    @gen.tuple(@gen.pure(len), @gen.int_range(0, 9).array_with_size(len))
+  }
   debug_inspect(
     gen.sample(),
     content=(

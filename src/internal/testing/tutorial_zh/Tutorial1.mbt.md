@@ -378,7 +378,7 @@ fn dequeue(q : Queue) -> Queue {
 
 ```mbt check
 ///|
-impl Eq for Queue with equal(self, other) {
+impl Eq for Queue with fn equal(self, other) {
   let to_list = (q : Queue) => q.f.concat(q.r.rev())
   to_list(self) == to_list(other)
 }
