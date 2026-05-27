@@ -5,56 +5,56 @@ test "feat int" {
     fe.samples(size=50),
     content=(
       #|[
-      #|  0,
-      #|  0,
-      #|  -2,
-      #|  5,
-      #|  -2,
-      #|  -4,
-      #|  -1,
-      #|  -1,
-      #|  4,
-      #|  -2,
-      #|  4,
-      #|  -4,
-      #|  -3,
-      #|  -3,
       #|  2,
-      #|  4,
-      #|  2,
-      #|  -2,
-      #|  5,
-      #|  -2,
-      #|  -4,
       #|  0,
       #|  -4,
-      #|  -3,
-      #|  -4,
-      #|  -4,
-      #|  -1,
+      #|  7,
       #|  -2,
-      #|  -4,
-      #|  -2,
-      #|  -2,
-      #|  5,
-      #|  5,
-      #|  -4,
-      #|  -1,
-      #|  -3,
-      #|  -3,
+      #|  -8,
+      #|  7,
+      #|  6,
+      #|  -7,
       #|  4,
-      #|  2,
-      #|  -2,
-      #|  -3,
+      #|  9,
+      #|  -9,
       #|  0,
-      #|  -2,
-      #|  4,
       #|  -3,
-      #|  5,
-      #|  5,
+      #|  -4,
+      #|  0,
+      #|  6,
+      #|  -6,
+      #|  1,
+      #|  9,
+      #|  1,
+      #|  9,
+      #|  -5,
+      #|  7,
+      #|  6,
+      #|  -8,
+      #|  -4,
+      #|  4,
+      #|  -2,
       #|  3,
+      #|  9,
+      #|  -2,
       #|  5,
+      #|  -1,
+      #|  0,
+      #|  3,
+      #|  2,
       #|  4,
+      #|  5,
+      #|  9,
+      #|  1,
+      #|  9,
+      #|  -9,
+      #|  4,
+      #|  1,
+      #|  -9,
+      #|  4,
+      #|  8,
+      #|  2,
+      #|  -2,
       #|]
     ),
   )
@@ -153,7 +153,7 @@ priv enum SingleTree {
 } derive(Debug)
 
 ///|
-impl @feat.Enumerable for SingleTree with enumerate() {
+impl @feat.Enumerable for SingleTree with fn enumerate() {
   @feat.consts(
     @list.from_array([
       @feat.Enumerable::enumerate().fmap(x => Leaf(x)),
@@ -174,7 +174,7 @@ priv struct Forest[T] {
 }
 
 ///|
-impl[T : Debug] Debug for Forest[T] with to_repr(self) {
+impl[T : Debug] Debug for Forest[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "Forest",
     @debug.Repr::array(self.forest.to_array().map(x => @debug.to_repr(x))),
@@ -182,12 +182,12 @@ impl[T : Debug] Debug for Forest[T] with to_repr(self) {
 }
 
 ///|
-impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with enumerate() {
+impl[E : @feat.Enumerable] @feat.Enumerable for Forest[E] with fn enumerate() {
   @feat.pay(() => @feat.Enumerable::enumerate().fmap(forest => { forest, }))
 }
 
 ///|
-impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with enumerate() {
+impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with fn enumerate() {
   @feat.pay(() => {
     E::enumerate().fmap(x => Leaf(x)) +
     @feat.Enumerable::enumerate().fmap(x => Branch(x))

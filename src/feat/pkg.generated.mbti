@@ -4,23 +4,37 @@ package "moonbitlang/quickcheck/feat"
 import {
   "moonbitlang/core/bigint",
   "moonbitlang/core/debug",
-  "moonbitlang/core/lazy_list",
   "moonbitlang/core/list",
+  "moonbitlang/quickcheck/feat/ifseq",
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/quickcheck/property",
 }
 
 // Values
+pub fn[A, B] balanced_product(Enumerate[A], Enumerate[B]) -> Enumerate[(A, B)]
+
 pub fn[T] consts(@list.List[Enumerate[T]]) -> Enumerate[T]
 
 pub fn[T] empty() -> Enumerate[T]
 
+pub fn[A, B] exists(@list.List[A], (A) -> Enumerate[B]) -> Enumerate[B]
+
 pub fn[T : Enumerable] feat_random(Int) -> @gen.Gen[T]
+
+pub fn[T] finite(@list.List[T]) -> Enumerate[T]
+
+pub fn[T] fix((Enumerate[T]) -> Enumerate[T]) -> Enumerate[T]
+
+pub fn[A, B] map((A) -> B, Enumerate[A]) -> Enumerate[B]
+
+pub fn[T] of_seq(@ifseq.Seq[T]) -> Enumerate[T]
+
+pub fn[T] part(Enumerate[T], Int) -> @ifseq.Seq[T]
 
 pub fn[T] pay(() -> Enumerate[T]) -> Enumerate[T]
 
-pub fn[T, U] product(Enumerate[T], Enumerate[U]) -> Enumerate[(T, U)]
+pub fn[A, B] product(Enumerate[A], Enumerate[B]) -> Enumerate[(A, B)]
 
 pub fn[T] singleton(T) -> Enumerate[T]
 
@@ -32,35 +46,23 @@ pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check_error_
 
 pub fn[A : Enumerable + @debug.Debug, B : @property.Testable] small_check_silence((A) -> B, max_size? : Int, expect? : @state.Expected, abort? : Bool, verbose? : Bool) -> String
 
-pub fn[T : Enumerable, U] unary((T) -> U) -> Enumerate[U]
+pub fn[T] sum(Enumerate[T], Enumerate[T]) -> Enumerate[T]
+
+pub fn[A : Enumerable, B] unary((A) -> B) -> Enumerate[B]
 
 // Errors
 
 // Types and methods
-pub(all) struct Enumerate[T] {
-  parts : @lazy_list.LazyList[Finite[T]]
-}
+type Enumerate[T]
 #alias("_[_]")
 #alias(en_index, deprecated)
 pub fn[T] Enumerate::at(Self[T], @bigint.BigInt) -> T
-pub fn[T] Enumerate::eval(Self[T]) -> @lazy_list.LazyList[Finite[T]]
-pub fn[T, U] Enumerate::fmap(Self[T], (T) -> U) -> Self[U]
-pub fn[T] Enumerate::sample_finite(Self[T], Int) -> Finite[T]
+pub fn[A, B] Enumerate::fmap(Self[A], (A) -> B) -> Self[B]
+pub fn[T] Enumerate::sample_finite(Self[T], Int) -> @ifseq.Seq[T]
 pub impl[T] Add for Enumerate[T]
-
-pub(all) struct Finite[T] {
-  fCard : @bigint.BigInt
-  fIndex : (@bigint.BigInt) -> T
-}
-pub fn[T] Finite::iter(Self[T]) -> Iter[T]
-pub fn[T] Finite::to_array(Self[T]) -> (@bigint.BigInt, @list.List[T])
-pub impl[T] Add for Finite[T]
-pub impl[T : @debug.Debug] @debug.Debug for Finite[T]
 
 // Type aliases
 pub using @state {type Expected}
-
-pub using @lazy_list {type LazyList}
 
 pub using @property {trait Testable}
 

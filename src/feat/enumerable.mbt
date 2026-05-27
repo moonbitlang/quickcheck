@@ -1,46 +1,39 @@
 ///|
 /// Types that can enumerate all of their values in size-indexed order.
-///
-/// `enumerate()` returns an `Enumerate[Self]`: a lazy stream of parts
-/// where the `k`-th part contains every value of size `k`. Primitive
-/// types already implement this trait; algebraic composites (sums,
-/// products, recursive types) compose via `singleton` / `+` /
-/// `product` / `unary` wrapped in a single `pay`.
-///
-/// See the package README for the full contract, the built-in
-/// instance table, and the recipe for implementing `Enumerable` on a
-/// user-defined recursive type.
 pub(open) trait Enumerable {
   fn enumerate() -> Enumerate[Self]
 }
 
 ///|
 pub impl Enumerable for Bool with fn enumerate() {
-  pay(() => singleton(true) + singleton(false))
+  pay(fn() { sum(singleton(true), singleton(false)) })
 }
 
 ///|
-
-///|
 pub impl Enumerable for Int with fn enumerate() {
-  letrec int_parts_from: (Int) -> @lazy.LazyList[Finite[Int]] = n => {
-    @lazy.lazy_cons(fin_pure(n), () => {
-      @lazy.lazy_cons(fin_pure(-n), () => int_parts_from(n + 1))
-    })
-  }
-
-  { parts: @lazy.lazy_cons(fin_pure(0), () => int_parts_from(1)) }
+  make(fn(size) {
+    if size < 0 {
+      @ifseq.empty()
+    } else if size == 0 {
+      @ifseq.singleton(0)
+    } else {
+      @ifseq.sum(@ifseq.singleton(size), @ifseq.singleton(-size))
+    }
+  })
 }
 
 ///|
 pub impl Enumerable for Int64 with fn enumerate() {
-  letrec int64_parts_from: (Int64) -> @lazy.LazyList[Finite[Int64]] = n => {
-    @lazy.lazy_cons(fin_pure(n), () => {
-      @lazy.lazy_cons(fin_pure(-n), () => int64_parts_from(n + 1))
-    })
-  }
-
-  { parts: @lazy.lazy_cons(fin_pure(0L), () => int64_parts_from(1L)) }
+  make(fn(size) {
+    if size < 0 {
+      @ifseq.empty()
+    } else if size == 0 {
+      @ifseq.singleton(0L)
+    } else {
+      let n = Int64::from_int(size)
+      @ifseq.sum(@ifseq.singleton(n), @ifseq.singleton(-n))
+    }
+  })
 }
 
 ///|
@@ -55,28 +48,18 @@ pub impl Enumerable for UInt64 with fn enumerate() {
 
 ///|
 pub impl Enumerable for Byte with fn enumerate() {
-  let byte_card : BigInt = 256
-  let byte_from_index = (i : BigInt) => Int::to_byte(i.to_int())
-  {
-    parts: @lazy.lazy_cons({ fCard: byte_card, fIndex: byte_from_index }, () => {
-      @lazy.empty()
-    }),
-  }
+  of_seq(@ifseq.map(Int::to_byte, @ifseq.up(0, 256)))
+}
+
+///|
+fn char_from_index(idx : Int) -> Char {
+  let cp = if idx < 55296 { idx } else { idx + 2048 }
+  Int::unsafe_to_char(cp)
 }
 
 ///|
 pub impl Enumerable for Char with fn enumerate() {
-  let char_card : BigInt = 1112064
-  let char_from_index = (i : BigInt) => {
-    let idx = i.to_int()
-    let cp = if idx < 55296 { idx } else { idx + 2048 }
-    Int::unsafe_to_char(cp)
-  }
-  {
-    parts: @lazy.lazy_cons({ fCard: char_card, fIndex: char_from_index }, () => {
-      @lazy.empty()
-    }),
-  }
+  of_seq(@ifseq.map(char_from_index, @ifseq.up(0, 1112064)))
 }
 
 ///|

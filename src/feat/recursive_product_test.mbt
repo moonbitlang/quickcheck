@@ -24,7 +24,7 @@ impl Enumerable for RecursiveProductTree with fn enumerate() {
 ///|
 test "minimal recursive product repro" {
   let trees : Enumerate[RecursiveProductTree] = Enumerable::enumerate()
-  assert_eq(trees.eval().drop(1).head().unwrap().fCard, 1)
+  assert_eq(@ifseq.length(part(trees, 1)), 1)
   match trees[0] {
     Leaf => ()
     _ => abort("expected Leaf")

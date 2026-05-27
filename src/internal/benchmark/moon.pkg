@@ -2,6 +2,7 @@ import {
   "moonbitlang/quickcheck" @qc,
   "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/feat",
+  "moonbitlang/quickcheck/feat/ifseq",
   "moonbitlang/core/bench",
 }
 
