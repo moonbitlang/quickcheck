@@ -12,6 +12,4 @@ keywords = [ "property-based-testing", "quickcheck" ]
 
 description = "Automatic testing of MoonBit programs"
 
-options(
-  source: "src",
-)
+source = "src"
