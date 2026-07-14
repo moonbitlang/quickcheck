@@ -172,7 +172,7 @@ fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
   abort : Bool,
 ) -> @report.TestSuccess raise @report.TestError {
   let limit = if max_size < 0 { 0 } else { max_size }
-  let enumeration = A::enumerate()
+  let enumeration = Enumerable::enumerate()
   let mut st = @state.from_config({
     max_shrink: 0,
     max_success: limit,
