@@ -379,7 +379,7 @@ pub fn[X : Shrink + Eq] shrink_distinct_array(xs : Array[X]) -> Iter[Array[X]] {
   let shrink_one_val = Array::makei(xs.length(), i => i)
     .iter()
     .flat_map(i => {
-      X::shrink(xs[i]).flat_map(x => {
+      Shrink::shrink(xs[i]).flat_map(x => {
         if x != xs[i] && no_duplicate_at(xs, i, x) {
           let nv = xs.copy()
           nv[i] = x
@@ -406,7 +406,7 @@ pub fn[T : Shrink + Compare] shrink_sorted_distinct_array(
     .flat_map(i => {
       let lower_ok = x => if i == 0 { lo <= x } else { nv[i - 1] < x }
       let upper_ok = x => if i == l { x <= hi } else { x < nv[i + 1] }
-      T::shrink(nv[i]).flat_map(x => {
+      Shrink::shrink(nv[i]).flat_map(x => {
         if lower_ok(x) && upper_ok(x) && x != nv[i] {
           let nv1 = nv.copy()
           nv1[i] = x
