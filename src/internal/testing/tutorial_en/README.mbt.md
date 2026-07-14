@@ -434,7 +434,7 @@ For instance, you can use the `fmap` method to transform the generated value:
 
 ```mbt check
 ///|
-let g1 : @gen.Gen[Int] = @gen.Gen(
+let g1 : @gen.Gen[Int] = Gen(
   {
     ...
   },
@@ -451,7 +451,7 @@ Or create a dependent generator:
 
 ```mbt check
 ///|
-let dg1 : @gen.Gen[Int] = @gen.Gen(
+let dg1 : @gen.Gen[Int] = Gen(
   {
     ...
   },

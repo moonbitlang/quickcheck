@@ -64,7 +64,7 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with fn ar
   rs,
 ) {
   let n = rs.next_positive_int() % (size + 1) + 1
-  NonEmptyList(@list.from_array(Array::makei(n, _ => T::arbitrary(size, rs))))
+  NonEmptyList(List(Array::makei(n, _ => T::arbitrary(size, rs))))
 }
 
 ///|
@@ -83,7 +83,7 @@ test "NonEmptyList[Int] generates non-empty lists" {
 
 ///|
 test "NonEmptyList[Int] shrinks without producing empty" {
-  let s = @shrink.Shrink::shrink(NonEmptyList(@list.from_array([1, 2, 3]))).to_array()
+  let s = @shrink.Shrink::shrink(NonEmptyList(List([1, 2, 3]))).to_array()
   assert_true(s.all(x => !x.0.is_empty()))
 }
 
@@ -151,7 +151,7 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] wi
 ) {
   let arr : Array[T] = @coreqc.Arbitrary::arbitrary(size, rs)
   arr.sort()
-  SortedList(@list.from_array(arr))
+  SortedList(List(arr))
 }
 
 ///|
@@ -170,15 +170,12 @@ test "SortedList[Int] generates sorted lists" {
 
 ///|
 test "SortedList[Int] shrinks preserving sort" {
-  let s = @shrink.Shrink::shrink(SortedList(@list.from_array([1, 3, 5, 7]))).to_array()
+  let s = @shrink.Shrink::shrink(SortedList(List([1, 3, 5, 7]))).to_array()
   assert_true(s.all(x => x.0.to_array().is_sorted()))
   assert_true(s.length() > 0)
 }
 
 ///|
 test "SortedList[Int] debug output keeps wrapper name" {
-  debug_inspect(
-    SortedList(@list.from_array([1, 2, 3])),
-    content="<SortedList: [1, 2, 3]>",
-  )
+  debug_inspect(SortedList(List([1, 2, 3])), content="<SortedList: [1, 2, 3]>")
 }

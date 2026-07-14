@@ -113,7 +113,7 @@ test "removes_array walks in chunks of k" {
 ///|
 test "removes_list matches the chunk-wise semantics" {
   // Input  : [1, 2, 3, 4], k = 2 — only the first chunk has a non-empty tail.
-  let xs = @list.from_array([1, 2, 3, 4])
+  let xs = @list.List([1, 2, 3, 4])
   let variants = @utils.removes_list(2, 4, xs)
   debug_inspect(
     variants,

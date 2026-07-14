@@ -38,7 +38,7 @@ pub fn fresh_name() -> String {
 ///
 /// ```mbt check
 /// test {
-///   let xs = @list.from_array([1, 2, 3, 4, 5, 6])
+///   let xs = @list.List([1, 2, 3, 4, 5, 6])
 ///   debug_inspect(
 ///     removes_list(2, 6, xs),
 ///     content=(

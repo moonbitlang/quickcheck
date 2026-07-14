@@ -524,8 +524,7 @@ enum Nat {
 ///|
 impl @feat.Enumerable for Nat with fn enumerate() {
   @feat.pay(() => {
-    @feat.singleton(Zero) +
-    @feat.Enumerable::enumerate().fmap(n => Nat::Succ(n))
+    @feat.singleton(Zero) + @feat.Enumerable::enumerate().fmap(n => Succ(n))
   })
 }
 

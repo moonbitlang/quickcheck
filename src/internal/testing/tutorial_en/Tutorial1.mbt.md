@@ -601,7 +601,7 @@ test "model-based testing for Set" {
     let (model_set, model_trace) = run_model(cmds)
     let (sut_set, sut_trace) = run_sut(cmds)
     let model_set_arr = model_set.0.sort()
-    let sut_set = @list.from_array(sut_set.to_array())
+    let sut_set = @list.List(sut_set.to_array())
     model_trace == sut_trace && model_set_arr == sut_set
   })
   @qc.quick_check(prop)

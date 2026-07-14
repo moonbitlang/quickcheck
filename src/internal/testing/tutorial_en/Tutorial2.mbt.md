@@ -523,7 +523,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @gen.Gen[Tree[Int]] {
       (1, @gen.pure(Leaf)),
       (
         4,
-        @gen.Gen((i, rs) => {
+        Gen((i, rs) => {
           let x = @gen.int_range(lo, hi).run(i, rs)
           let nL = @gen.int_range(0, n - 1).run(i, rs)
           let nR = n - 1 - nL

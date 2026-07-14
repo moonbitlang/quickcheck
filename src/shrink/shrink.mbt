@@ -250,7 +250,7 @@ pub impl[T : Shrink] Shrink for @list.List[T] with fn shrink(xs) {
 ///
 /// ```mbt check
 /// test {
-///   let xs : @list.List[Int] = @list.from_array([5])
+///   let xs : @list.List[Int] = List([5])
 ///   // Default list shrink would produce [], which is filtered out here.
 ///   assert_true(shrink_non_empty_list(xs).all(ys => !ys.is_empty()))
 /// }
@@ -361,7 +361,7 @@ pub fn[T : Shrink + Compare] shrink_sorted_list(
   lo~ : T,
   hi~ : T,
 ) -> Iter[@list.List[T]] {
-  shrink_sorted_array(xs.to_array(), lo~, hi~).map(a => @list.from_array(a))
+  shrink_sorted_array(xs.to_array(), lo~, hi~).map(a => List(a))
 }
 
 ///|
