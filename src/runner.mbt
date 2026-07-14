@@ -6,8 +6,8 @@ fn @state.State::run_test(
   self : @state.State,
   prop : Property,
 ) -> @report.CheckReport {
-  CheckReport(
-    try? (for state = self {
+  try {
+    let result = for state = self {
       let rnd1 = state.random_state.split()
       let rnd2 = state.random_state
       let res = prop.run(state.compute_size(), rnd1)
@@ -51,6 +51,9 @@ fn @state.State::run_test(
           }
         }
       }
-    }),
-  )
+    }
+    CheckReport(Ok(result))
+  } catch {
+    error => CheckReport(Err(error))
+  }
 }

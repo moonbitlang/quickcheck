@@ -190,7 +190,7 @@ test "shrink 6-tuple" {
 
 ///|
 test "shrink int list" {
-  let il : @list.List[Int] = @list.from_array([1, 2, 3, 4, 5, 6])
+  let il : @list.List[Int] = List([1, 2, 3, 4, 5, 6])
   let s = @shrink.Shrink::shrink(il)
   json_inspect(s, content=[
     [2, 3, 4, 5, 6],
@@ -218,7 +218,7 @@ test "shrink int list" {
 
 ///|
 test "shrink non-empty list" {
-  let il : @list.List[Int] = @list.from_array([1])
+  let il : @list.List[Int] = List([1])
   json_inspect(@shrink.shrink_non_empty_list(il), content=[[0]])
 }
 
@@ -333,7 +333,7 @@ test "shrink sorted distinct array" {
 
 ///|
 test "shrink sorted list" {
-  let xs : @list.List[Int] = @list.from_array([1, 3, 5])
+  let xs : @list.List[Int] = List([1, 3, 5])
   json_inspect(@shrink.shrink_sorted_list(xs, lo=0, hi=9), content=[
     [3, 5],
     [1, 5],

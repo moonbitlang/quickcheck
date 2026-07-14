@@ -65,7 +65,7 @@ pub impl Enumerable for Char with fn enumerate() {
 ///|
 pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with fn enumerate() {
   consts(
-    @list.from_array([
+    List([
       singleton(@list.empty()),
       unary((pair : (E, @moonbitlang/core/list.List[E])) => pair.1.add(pair.0)),
     ]),

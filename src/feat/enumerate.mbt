@@ -23,7 +23,7 @@ fn[T] delay(thunk : () -> T) -> () -> T {
 
 ///|
 fn[T] make(run : (Int) -> @ifseq.Seq[T]) -> Enumerate[T] {
-  let cache : Map[Int, @ifseq.Seq[T]] = {}
+  let cache : Map[Int, @ifseq.Seq[T]] = Map([])
   fn memoized(size : Int) -> @ifseq.Seq[T] {
     match cache.get(size) {
       Some(seq) => seq
@@ -170,7 +170,7 @@ pub fn[T] finite(xs : @list.List[T]) -> Enumerate[T] {
 ///|
 /// Explicit memoized fixpoint helper for recursive enumerations.
 pub fn[T] fix(f : (Enumerate[T]) -> Enumerate[T]) -> Enumerate[T] {
-  let cache : Map[Int, @ifseq.Seq[T]] = {}
+  let cache : Map[Int, @ifseq.Seq[T]] = Map([])
   let body_cache : Array[Enumerate[T]] = []
   fn run(size : Int) -> @ifseq.Seq[T] {
     match cache.get(size) {

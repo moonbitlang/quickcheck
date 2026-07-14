@@ -92,7 +92,11 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
   A,
   P,
 ] with fn property(self) {
-  forall_shrink(@gen.Gen::spawn(), A::shrink, (a : A) => try? (self.0)(a))
+  forall_shrink(@gen.Gen::spawn(), A::shrink, (a : A) => {
+    try (self.0)(a) |> Ok catch {
+      error => Err(error)
+    }
+  })
 }
 
 ///|

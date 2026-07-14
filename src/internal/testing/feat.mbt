@@ -155,7 +155,7 @@ priv enum SingleTree {
 ///|
 impl @feat.Enumerable for SingleTree with fn enumerate() {
   @feat.consts(
-    @list.from_array([
+    List([
       @feat.Enumerable::enumerate().fmap(x => Leaf(x)),
       @feat.unary((p : (Bool, SingleTree)) => Node(p.0, p.1)),
     ]),

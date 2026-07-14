@@ -42,9 +42,12 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  let report = @report.CheckReport(
-    try? small_check_with_result(f, max_size, expect, abort),
-  )
+  let result = try
+    small_check_with_result(f, max_size, expect, abort) |> Ok
+  catch {
+    error => Err(error)
+  }
+  let report = @report.CheckReport(result)
   finish_report(report, verbose)
 }
 
@@ -58,9 +61,12 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  @report.CheckReport(try? small_check_with_result(f, max_size, expect, abort)).render(
-    verbose~,
-  )
+  let result = try
+    small_check_with_result(f, max_size, expect, abort) |> Ok
+  catch {
+    error => Err(error)
+  }
+  @report.CheckReport(result).render(verbose~)
 }
 
 ///|
@@ -73,7 +79,17 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_error(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
-  small_check(a => try? f(a), max_size~, expect~, abort~, verbose~)
+  small_check(
+    a => {
+      try f(a) |> Ok catch {
+        error => Err(error)
+      }
+    },
+    max_size~,
+    expect~,
+    abort~,
+    verbose~,
+  )
 }
 
 ///|
@@ -86,7 +102,17 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_error_silence(
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> String {
-  small_check_silence(a => try? f(a), max_size~, expect~, abort~, verbose~)
+  small_check_silence(
+    a => {
+      try f(a) |> Ok catch {
+        error => Err(error)
+      }
+    },
+    max_size~,
+    expect~,
+    abort~,
+    verbose~,
+  )
 }
 
 ///|

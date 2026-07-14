@@ -27,15 +27,33 @@ let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = (p => {
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="forall", () => b.keep(try? @qc.quick_check(test_forall)))
+  b.bench(name="forall", () => {
+    b.keep(
+      try @qc.quick_check(test_forall) |> Ok catch {
+        error => Err(error)
+      },
+    )
+  })
 }
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="curry", () => b.keep(try? @qc.quick_check(test_curry)))
+  b.bench(name="curry", () => {
+    b.keep(
+      try @qc.quick_check(test_curry) |> Ok catch {
+        error => Err(error)
+      },
+    )
+  })
 }
 
 ///|
 test (b : @bench.T) {
-  b.bench(name="tuple", () => b.keep(try? @qc.quick_check(test_tuple)))
+  b.bench(name="tuple", () => {
+    b.keep(
+      try @qc.quick_check(test_tuple) |> Ok catch {
+        error => Err(error)
+      },
+    )
+  })
 }
