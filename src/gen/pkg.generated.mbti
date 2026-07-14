@@ -60,9 +60,7 @@ pub fn[T, U] tuple(Gen[T], Gen[U]) -> Gen[(T, U)]
 // Errors
 
 // Types and methods
-pub struct Gen[T] {
-  // private fields
-}
+type Gen[T]
 pub fn[T] Gen::Gen((Int, @splitmix.RandomState) -> T) -> Self[T]
 pub fn[T, U] Gen::ap(Self[(T) -> U], Self[T]) -> Self[U]
 pub fn[T] Gen::array_with_size(Self[T], Int) -> Self[Array[T]]
