@@ -397,7 +397,7 @@ impl @coreqc.Arbitrary for Nat with fn arbitrary(i, rs) {
 impl Add for Nat with fn add(self, other) {
   match self {
     Zero => other
-    Succ(n) => Succ(n.add(other))
+    Succ(n) => Succ(Add::add(n, other))
   }
 }
 
@@ -619,7 +619,7 @@ test "small_check accepts Debug-only input" {
 test "collect accepts Debug-only labels" {
   inspect(
     @feat.small_check_silence(
-      fn(x : DebugOnly) { @qc.property(true).collect(x.to_repr()) },
+      fn(x : DebugOnly) { @qc.property(true).collect(@debug.repr(x)) },
       max_size=2,
     ),
     content=(
