@@ -174,10 +174,11 @@ fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
   let limit = if max_size < 0 { 0 } else { max_size }
   let enumeration = Enumerable::enumerate()
   let mut st = @state.from_config({
-    max_shrink: 0,
+    max_shrinks: 0,
     max_success: limit,
     max_size: limit,
     max_discard_ratio: 0,
+    seed: 37,
   })
   st.expected = expect
   for size = 0, remaining = limit, idx = 0 {
@@ -270,6 +271,7 @@ fn @state.State::small_complete_test(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
+      seed=self.seed,
       output="*** \{self.counts()} Failed! Expected failure, but passed!",
     )
   } else {
@@ -296,6 +298,7 @@ fn @state.State::small_give_up(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
+      seed=self.seed,
       output="*** \{self.counts()} Gave up! Passed only \{self.num_success_tests} tests.",
     )
   }
@@ -322,6 +325,7 @@ fn @state.State::small_find_failure_no_shrink(
         failing_case=res.test_case.to_array(),
         failing_labels=res.labels.to_array(),
         failing_classes=active_classes(res.classes),
+        seed=self.seed,
       )
     Fail =>
       Success(

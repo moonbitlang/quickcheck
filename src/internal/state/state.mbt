@@ -11,15 +11,6 @@
 // root package. The root re-exports it via `pub using`.
 
 ///|
-/// Placeholder value for `SingleResult.error`. The field is typed as
-/// the abstract `Error`, so any suberror works; this one is used only
-/// to initialise a fresh `SingleResult` before the real error (if any)
-/// is filled in.
-priv suberror InternalError {
-  InternalError(String)
-}
-
-///|
 /// What the *author* of a property *expects* to happen. This is the
 /// knob behind `quick_check_fn(..., expect=Fail)` and friends: if the
 /// driver's actual verdict matches `Expected`, the check is
@@ -104,7 +95,7 @@ pub(all) struct SingleResult {
   classes : @list.List[(String, Bool)]
   tables : @list.List[(String, String)]
   test_case : @list.List[String]
-  error : Error
+  error : Error?
   callbacks : @list.List[Callback]
 }
 
@@ -146,15 +137,15 @@ impl Default for SingleResult with fn default() {
     classes: @list.empty(),
     tables: @list.empty(),
     test_case: @list.empty(),
-    error: InternalError("none"),
+    error: None,
     callbacks: @list.empty(),
   }
 }
 
 ///|
-/// Immutable driver configuration: the four caps a caller passes via
+/// Immutable driver configuration: the limits and seed a caller passes via
 /// `quick_check(max_success=..., max_size=..., discard_ratio=...,
-/// max_shrink=...)`. Consumed by `from_config` to seed an initial
+/// max_shrinks=..., seed=...)`. Consumed by `from_config` to seed an initial
 /// `State`; never mutated afterwards.
 ///
 /// - `max_success`: target number of passing inputs before the run
@@ -163,12 +154,14 @@ impl Default for SingleResult with fn default() {
 ///   before giving up (`discarded > max_discard_ratio * success`).
 /// - `max_size`: upper bound on the `size` argument handed to the
 ///   generator; larger values ask for bigger inputs.
-/// - `max_shrink`: cap on the total shrink attempts after a failure.
+/// - `max_shrinks`: cap on the total shrink attempts after a failure.
+/// - `seed`: initial seed used to construct the deterministic random state.
 pub(all) struct Config {
   max_success : Int
   max_discard_ratio : Int
   max_size : Int
-  max_shrink : Int
+  max_shrinks : Int
+  seed : UInt64
 }
 
 ///|
@@ -190,6 +183,7 @@ pub(all) struct Config {
 ///   accumulated by `add_coverages`.
 /// - `expected` — the author-supplied expected outcome; the driver
 ///   flips the verdict against this at the end of the run.
+/// - `seed` — initial seed retained for failure reports and reproduction.
 /// - `random_state` — mutable PRNG the driver splits off for each
 ///   generated sample.
 /// - `num_success_shrinks` / `num_try_shrinks` / `num_to_try_shrinks`
@@ -220,6 +214,8 @@ pub(all) struct State {
   collects : Coverage
   // Expected result of the test
   mut expected : Expected
+  // Initial seed retained for failure reproduction
+  seed : UInt64
   // Current random state
   mut random_state : @gen.RandomState
   // Number of successful shrinks
@@ -233,20 +229,21 @@ pub(all) struct State {
 ///|
 /// Build a fresh `State` from the caller-supplied caps. All counters
 /// start at zero, `expected` defaults to `Success`, and the PRNG is
-/// seeded from `@splitmix.new()`.
+/// initialized deterministically from `cfg.seed`.
 pub fn from_config(cfg : Config) -> State {
   {
     name: @utils.fresh_name(),
     max_test_size_: cfg.max_size,
     max_success_tests_: cfg.max_success,
     max_discarded_ratio_: cfg.max_discard_ratio,
-    max_shrinks_: cfg.max_shrink,
+    max_shrinks_: cfg.max_shrinks,
     num_success_tests: 0,
     num_discarded_tests: 0,
     num_recent_discarded_tests: 0,
     collects: Coverage::new(),
     expected: Success,
-    random_state: @splitmix.new(),
+    seed: cfg.seed,
+    random_state: @splitmix.new(seed=cfg.seed),
     num_success_shrinks: 0,
     num_try_shrinks: 0,
     num_to_try_shrinks: 0,

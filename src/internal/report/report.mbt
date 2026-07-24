@@ -25,31 +25,34 @@ pub(all) suberror TestError {
     num_shrink_tries~ : Int,
     num_shrink_final~ : Int,
     reason~ : String,
-    error~ : Error,
+    error~ : Error?,
     output~ : String,
     coverage~ : @state.Coverage,
     failing_case~ : Array[String],
     failing_labels~ : Array[String],
-    failing_classes~ : @sorted_set.SortedSet[String]
+    failing_classes~ : @sorted_set.SortedSet[String],
+    seed~ : UInt64
   )
   GaveUp(
     num_tests~ : Int,
     num_discarded~ : Int,
     coverage~ : @state.Coverage,
-    output~ : String
+    output~ : String,
+    seed~ : UInt64
   )
   NoneExpectedFail(
     num_tests~ : Int,
     num_discarded~ : Int,
     coverage~ : @state.Coverage,
-    output~ : String
+    output~ : String,
+    seed~ : UInt64
   )
 }
 
 ///|
 /// Format the report as a human-readable string. `verbose=true`
-/// expands the failure block with labels, classes, shrink counts,
-/// and full coverage.
+/// expands the failure block with its seed, labels, classes, shrink
+/// counts, and full coverage.
 pub fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
   match self.0 {
     Ok(result) => render_success(result)
@@ -97,37 +100,46 @@ fn render_error(error : TestError, verbose : Bool) -> String {
       failing_case~,
       failing_labels~,
       failing_classes~,
+      seed~,
       ..
-    ) => {
-      lines.push(output)
-      let counterexample = if verbose {
-        render_block("Counterexample", failing_case)
-      } else {
-        failing_case.join("\n")
-      }
-      lines.push(counterexample)
-      if verbose {
-        let labels = render_block("Labels", failing_labels)
-        lines.push(labels)
-        let classes = render_block("Classes", failing_classes.to_array())
-        lines.push(classes)
-        lines.push(
-          "Shrinks: \{num_shrinks} successful, \{num_shrink_tries} unsuccessful, \{num_shrink_final} final attempts",
-        )
-        let coverage = render_block("Coverage", coverage.to_array(num_tests))
-        lines.push(coverage)
-      }
-    }
-    GaveUp(output~, coverage~, num_tests~, ..) => {
-      lines.push(output)
-      let coverage = render_block("Coverage", coverage.to_array(num_tests))
-      lines.push(coverage)
-    }
-    NoneExpectedFail(output~, coverage~, num_tests~, ..) => {
-      lines.push(output)
-      let coverage = render_block("Coverage", coverage.to_array(num_tests))
-      lines.push(coverage)
-    }
+    ) =>
+      lines.append(
+        [
+          output,
+          ..if verbose {
+            [
+              "Seed: \{seed}",
+              render_block("Counterexample", failing_case),
+              render_block("Labels", failing_labels), // labels
+              render_block("Classes", failing_classes.to_array()), // classes
+              "Shrinks: \{num_shrinks} successful, \{num_shrink_tries} unsuccessful, \{num_shrink_final} final attempts",
+              render_block("Coverage", coverage.to_array(num_tests)),
+            ]
+          } else {
+            failing_case
+          },
+        ],
+      )
+    GaveUp(output~, coverage~, num_tests~, seed~, ..) =>
+      lines.append(
+        [
+          output,
+          ..if verbose {
+            ["Seed: \{seed}"]
+          },
+          render_block("Coverage", coverage.to_array(num_tests)),
+        ],
+      )
+    NoneExpectedFail(output~, coverage~, num_tests~, seed~, ..) =>
+      lines.append(
+        [
+          output,
+          ..if verbose {
+            ["Seed: \{seed}"]
+          },
+          render_block("Coverage", coverage.to_array(num_tests)),
+        ],
+      )
   }
   lines.filter(x => !x.is_empty()).join("\n")
 }

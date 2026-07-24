@@ -239,17 +239,21 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
+  verbose? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
-    max_shrink?=max_shrinks,
+    max_shrinks?,
     max_success?,
     max_size?,
     discard_ratio?,
+    seed~,
     expect~,
     abort~,
+    verbose~,
   )
 }
 ```
@@ -305,7 +309,7 @@ fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
 test {
   @qc.quick_check(
     @qc.Arrow(prop_remove_not_presence),
-    max_shrink=1000,
+    max_shrinks=1000,
     expect=Fail,
   )
 }

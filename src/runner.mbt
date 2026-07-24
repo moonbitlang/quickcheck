@@ -8,6 +8,9 @@ fn @state.State::run_test(
 ) -> @report.CheckReport {
   try {
     let result = for state = self {
+      if state.finished_successfully() {
+        break state.complete_test(prop)
+      }
       let rnd1 = state.random_state.split()
       let rnd2 = state.random_state
       let res = prop.run(state.compute_size(), rnd1)

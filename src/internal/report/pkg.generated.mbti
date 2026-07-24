@@ -10,9 +10,9 @@ import {
 
 // Errors
 pub(all) suberror TestError {
-  Fail(num_tests~ : Int, num_discarded~ : Int, num_shrinks~ : Int, num_shrink_tries~ : Int, num_shrink_final~ : Int, reason~ : String, error~ : Error, output~ : String, coverage~ : @state.Coverage, failing_case~ : Array[String], failing_labels~ : Array[String], failing_classes~ : @sorted_set.SortedSet[String])
-  GaveUp(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String)
-  NoneExpectedFail(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String)
+  Fail(num_tests~ : Int, num_discarded~ : Int, num_shrinks~ : Int, num_shrink_tries~ : Int, num_shrink_final~ : Int, reason~ : String, error~ : Error?, output~ : String, coverage~ : @state.Coverage, failing_case~ : Array[String], failing_labels~ : Array[String], failing_classes~ : @sorted_set.SortedSet[String], seed~ : UInt64)
+  GaveUp(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
+  NoneExpectedFail(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
 }
 
 // Types and methods

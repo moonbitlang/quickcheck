@@ -57,6 +57,66 @@ test "modify max tests" {
 }
 
 ///|
+test "quick_check uses the max_shrinks option name" {
+  inspect(
+    @qc.quick_check_silence(true, max_shrinks=0),
+    content=(
+      #|+++ [100/0/100] Ok, passed!
+    ),
+  )
+}
+
+///|
+test "invalid max_size is rejected" {
+  let result = @qc.quick_check_silence(true, max_size=0) catch {
+    Failure(message) => message
+  }
+  inspect(result, content="quickcheck: max_size must be greater than 0")
+}
+
+///|
+test "invalid max_success is rejected" {
+  let result = @qc.quick_check_silence(true, max_success=-1) catch {
+    Failure(message) => message
+  }
+  inspect(
+    result,
+    content="quickcheck: max_success must be greater than or equal to 0",
+  )
+}
+
+///|
+test "zero max_success runs no properties" {
+  inspect(
+    @qc.quick_check_silence(false, max_success=0),
+    content=(
+      #|+++ [0/0/0] Ok, passed!
+    ),
+  )
+}
+
+///|
+test "zero max_success preserves the expected outcome" {
+  inspect(
+    @qc.quick_check_silence(false, max_success=0, expect=Fail),
+    content=(
+      #|*** [0/0/0] Failed! Expected failure, but passed!
+    ),
+  )
+}
+
+///|
+test "invalid max_shrinks is rejected" {
+  let result = @qc.quick_check_silence(false, max_shrinks=-1) catch {
+    Failure(message) => message
+  }
+  inspect(
+    result,
+    content="quickcheck: max_shrinks must be greater than or equal to 0",
+  )
+}
+
+///|
 test "large max tests" {
   inspect(
     @qc.quick_check_silence((), max_success=2000),
@@ -321,6 +381,18 @@ test "failure report is concise by default" {
 }
 
 ///|
+test "verbose failure report includes the reproduction seed" {
+  inspect(
+    @qc.quick_check_silence(false, seed=123, verbose=true),
+    content=(
+      #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 123
+      #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
+    ),
+  )
+}
+
+///|
 test "failure report renders details" {
   let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
@@ -333,6 +405,7 @@ test "failure report renders details" {
     @qc.quick_check_silence(prop, verbose=true),
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
@@ -353,6 +426,7 @@ test "failure coverage excludes the failing sample" {
     ),
     content=(
       #|*** [1/0/3] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|1
       #|Labels:

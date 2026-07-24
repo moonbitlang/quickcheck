@@ -59,6 +59,7 @@ test "default shrink for tuple and array" {
     x,
     content=(
       #|*** [8/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
@@ -69,7 +70,7 @@ test "default shrink for tuple and array" {
 
 Here `quick_check_fn` combines the default strategies for tuples, arrays, and integers automatically. The integer moves toward `0`, while the array tries to drop irrelevant elements before shrinking the ones that still matter. The final counterexample is `(0, [0, 0, -1])`. That is already quite small, and it points straight at the issue: `remove_first_only` does not handle repeated `0`s correctly.
 
-Default shrinking works well in many common cases, but it is still a search process and cannot run forever. Both `@qc.quick_check` and `@qc.quick_check_fn` expose `max_shrink` / `max_shrinks` to cap the shrinking budget. This matters most when inputs are large and the shrink tree is wide. As always, there is an engineering trade-off between finding a smaller counterexample and getting feedback quickly.
+Default shrinking works well in many common cases, but it is still a search process and cannot run forever. Both `@qc.quick_check` and `@qc.quick_check_fn` expose `max_shrinks` to cap the shrinking budget. This matters most when inputs are large and the shrink tree is wide. As always, there is an engineering trade-off between finding a smaller counterexample and getting feedback quickly.
 
 ### Custom Shrink
 
@@ -123,6 +124,7 @@ test "shrinking starts from explicit value" {
     @qc.quick_check_silence(prop, verbose=true),
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Shrinks: 11 successful, 0 unsuccessful, 1 final attempts
     ),
   )
@@ -212,6 +214,7 @@ test "forall_shrink for sorted array" {
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|[0, 0, 0]
       #|Shrinks: 9 successful, 12 unsuccessful, 2 final attempts
@@ -247,6 +250,7 @@ test "counterexample adds derived information" {
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
@@ -370,6 +374,7 @@ test "small check fails on first non-zero int" {
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|1
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
@@ -461,6 +466,7 @@ test "small check on peano prefix" {
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|PSucc(PZero)
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts

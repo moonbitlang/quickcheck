@@ -9,6 +9,23 @@ priv struct ShrinkResult {
 }
 
 ///|
+fn validate_config(
+  max_size : Int,
+  max_success : Int,
+  max_shrinks : Int,
+) -> Unit raise Failure {
+  if max_size <= 0 {
+    raise Failure("quickcheck: max_size must be greater than 0")
+  }
+  if max_success < 0 {
+    raise Failure("quickcheck: max_success must be greater than or equal to 0")
+  }
+  if max_shrinks < 0 {
+    raise Failure("quickcheck: max_shrinks must be greater than or equal to 0")
+  }
+}
+
+///|
 fn finish_report(
   report : @report.CheckReport,
   verbose : Bool,
@@ -26,8 +43,9 @@ fn finish_report(
 /// print the outcome. The driver runs up to `max_success` successful
 /// tests, trying increasingly large inputs up to `max_size`, and
 /// discarding no more than `max_success × discard_ratio` inputs
-/// before giving up. On failure it shrinks for up to `max_shrink`
-/// steps before reporting.
+/// before giving up. On failure it shrinks for up to `max_shrinks`
+/// steps before reporting. `seed` initializes the deterministic PRNG
+/// and is retained in the report; verbose failure output includes it.
 ///
 /// `expect` asserts the expected outcome (`Success` by default); the
 /// driver flips the verdict accordingly (a failing property with
@@ -36,51 +54,61 @@ fn finish_report(
 /// failing result still goes through the full shrink search before
 /// returning.
 ///
-/// Raises `Failure` on mismatch with `expect` — so it's the
-/// drop-in entry point inside `test "…"` blocks.
+/// Raises `Failure` on mismatch with `expect` or when a configured
+/// limit is invalid — so it's the drop-in entry point inside
+/// `test "…"` blocks.
 pub fn[P : Testable] quick_check(
   prop : P,
-  max_shrink? : Int = 100,
+  max_shrinks? : Int = 100,
   max_success? : Int = 100,
   max_size? : Int = 100,
   discard_ratio? : Int = 10,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
+  validate_config(max_size, max_success, max_shrinks)
   let prop = @property.with_run_options(prop, expect, abort)
-  let report = @state.from_config({
-    max_shrink,
+  let state = @state.from_config({
+    max_shrinks,
     max_success,
     max_size,
     max_discard_ratio: discard_ratio,
-  }).run_test(prop.property())
+    seed,
+  })
+  state.expected = expect
+  let report = state.run_test(prop.property())
   finish_report(report, verbose)
 }
 
 ///|
-/// Like `quick_check` but returns the formatted outcome as a `String`
-/// instead of printing it or raising. Useful in tests that want to
-/// pin the driver's output with `inspect(..., content=...)`.
+/// Like `quick_check` but returns the formatted property outcome as a
+/// `String` instead of printing or raising it. Invalid configured
+/// limits still raise `Failure`. Useful in tests that want to pin the
+/// driver's output with `inspect(..., content=...)`.
 pub fn[P : Testable] quick_check_silence(
   prop : P,
-  max_shrink? : Int = 100,
+  max_shrinks? : Int = 100,
   max_success? : Int = 100,
   max_size? : Int = 100,
   discard_ratio? : Int = 10,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
-) -> String {
+) -> String raise Failure {
+  validate_config(max_size, max_success, max_shrinks)
   let prop = @property.with_run_options(prop, expect, abort)
-  @state.from_config({
-    max_shrink,
+  let state = @state.from_config({
+    max_shrinks,
     max_success,
     max_size,
     max_discard_ratio: discard_ratio,
+    seed,
   })
-  .run_test(prop.property())
-  .render(verbose~)
+  state.expected = expect
+  state.run_test(prop.property()).render(verbose~)
 }
 
 ///|
@@ -93,16 +121,18 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
-    max_shrink?=max_shrinks,
+    max_shrinks?,
     max_success?,
     max_size?,
     discard_ratio?,
+    seed~,
     expect~,
     abort~,
     verbose~,
@@ -110,24 +140,27 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
 }
 
 ///|
-/// `quick_check_fn` variant that returns the formatted outcome as a
-/// `String` instead of raising / printing.
+/// `quick_check_fn` variant that returns the formatted property
+/// outcome as a `String` instead of raising / printing it. Invalid
+/// configured limits still raise `Failure`.
 pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_silence(
   f : (A) -> B,
   max_shrinks? : Int,
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
-) -> String {
+) -> String raise Failure {
   quick_check_silence(
     Arrow(f),
-    max_shrink?=max_shrinks,
+    max_shrinks?,
     max_success?,
     max_size?,
     discard_ratio?,
+    seed~,
     expect~,
     abort~,
     verbose~,
@@ -144,16 +177,18 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_erro
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     ArrowError(f),
-    max_shrink?=max_shrinks,
+    max_shrinks?,
     max_success?,
     max_size?,
     discard_ratio?,
+    seed~,
     expect~,
     abort~,
     verbose~,
@@ -162,23 +197,26 @@ pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_erro
 
 ///|
 /// `quick_check_fn_error` silent variant that returns the formatted
-/// outcome as a `String`.
+/// property outcome as a `String`. Invalid configured limits still
+/// raise `Failure`.
 pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn_error_silence(
   f : (A) -> B raise,
   max_shrinks? : Int,
   max_success? : Int,
   max_size? : Int,
   discard_ratio? : Int,
+  seed? : UInt64 = 37,
   expect? : Expected = Success,
   abort? : Bool = false,
   verbose? : Bool = false,
-) -> String {
+) -> String raise Failure {
   quick_check_silence(
     ArrowError(f),
-    max_shrink?=max_shrinks,
+    max_shrinks?,
     max_success?,
     max_size?,
     discard_ratio?,
+    seed~,
     expect~,
     abort~,
     verbose~,
@@ -206,6 +244,7 @@ fn @state.State::complete_test(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
+      seed=self.seed,
       output="*** \{self.counts()} Failed! Expected failure, but passed!",
     )
   } else {
@@ -236,6 +275,7 @@ fn @state.State::give_up(
       num_tests=self.num_success_tests,
       num_discarded=self.num_discarded_tests,
       coverage=self.collects,
+      seed=self.seed,
       output="*** \{self.counts()} Gave up! Passed only \{self.num_success_tests} tests.",
     )
   }
@@ -267,6 +307,7 @@ fn @state.State::find_failure(
         failing_case=sr.result.test_case.to_array(),
         failing_labels=sr.result.labels.to_array(),
         failing_classes=active_classes(sr.result.classes),
+        seed=self.seed,
       )
     Fail =>
       Success(

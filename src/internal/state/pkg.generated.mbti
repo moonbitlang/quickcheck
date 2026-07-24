@@ -27,7 +27,8 @@ pub(all) struct Config {
   max_success : Int
   max_discard_ratio : Int
   max_size : Int
-  max_shrink : Int
+  max_shrinks : Int
+  seed : UInt64
 }
 
 type Coverage
@@ -57,7 +58,7 @@ pub(all) struct SingleResult {
   classes : @list.List[(String, Bool)]
   tables : @list.List[(String, String)]
   test_case : @list.List[String]
-  error : Error
+  error : Error?
   callbacks : @list.List[Callback]
 }
 
@@ -72,6 +73,7 @@ pub(all) struct State {
   num_recent_discarded_tests : Int
   collects : Coverage
   mut expected : Expected
+  seed : UInt64
   mut random_state : @splitmix.RandomState
   mut num_success_shrinks : Int
   mut num_try_shrinks : Int

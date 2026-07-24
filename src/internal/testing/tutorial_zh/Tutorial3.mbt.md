@@ -84,6 +84,7 @@ test "default shrink for tuple and array" {
     x,
     content=(
       #|*** [8/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
@@ -99,7 +100,7 @@ test "default shrink for tuple and array" {
 `remove_first_only` 没有正确处理数组里多个 `0` 的情况。
 
 默认 shrink 在大多数基础场景已经足够好，但它也不是无限制运行的。
-`@qc.quick_check` 与 `@qc.quick_check_fn` 都提供了 `max_shrink` / `max_shrinks`
+`@qc.quick_check` 与 `@qc.quick_check_fn` 都提供了 `max_shrinks`
 用于限制缩减预算，这在输入结构很大、缩减树很宽时尤其重要。
 换句话说，缩减本身也是一种搜索，我们同样需要在「更小的反例」与「更快的反馈」之间做工程上的权衡。
 
@@ -256,6 +257,7 @@ test "forall_shrink for sorted array" {
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|[0, 0, 0]
       #|Shrinks: 9 successful, 12 unsuccessful, 2 final attempts
@@ -304,6 +306,7 @@ test "counterexample adds derived information" {
     r,
     content=(
       #|*** [0/0/100] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|(0, [0, 0, -1])
       #|after remove: [0, -1]
@@ -469,6 +472,7 @@ test "small check fails on first non-zero int" {
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|1
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
@@ -609,6 +613,7 @@ test "small check on nat prefix" {
     r,
     content=(
       #|*** [1/0/5] Failed! Falsified.
+      #|Seed: 37
       #|Counterexample:
       #|Succ(Zero)
       #|Shrinks: 0 successful, 0 unsuccessful, 0 final attempts
