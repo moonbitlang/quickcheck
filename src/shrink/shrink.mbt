@@ -92,7 +92,7 @@ pub impl Shrink for Char with fn shrink(c) {
     return Iter::empty()
   } else {
     let (cl, ch) = (Int::unsafe_to_char(ci - 1), Int::unsafe_to_char(ci + 1))
-    [cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '].iter()
+    [|cl, ch, 'a', 'A', '1', '\n', '\t', '\b', '\\', '\'', '\r', ' '|]
   }
 }
 
@@ -118,15 +118,13 @@ pub impl Shrink for Float with fn shrink(x) {
 ///   strictly closer to zero is emitted, along with integer-shrink
 ///   candidates of the scaled mantissa.
 fn shrink_decimal(x : Double) -> Iter[Double] {
-  guard !x.is_nan() else { [0.0, 1.0, -1.0, 2.0].iter() }
-  guard !x.is_inf() else { [0.0, 1.0, -1.0, 1000.0, -1000.0].iter() }
+  guard !x.is_nan() else { [|0.0, 1.0, -1.0, 2.0|] }
+  guard !x.is_inf() else { [|0.0, 1.0, -1.0, 1000.0, -1000.0|] }
   guard x >= 0.0 else {
     Iter::singleton(-x).concat(shrink_decimal(-x).map(Double::neg))
   }
   guard x != 0.0 else { Iter::empty() }
-  [1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0]
-  .iter()
-  .flat_map(p => {
+  [|1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0|].flat_map(p => {
     let m = (x * p + 0.5).floor().to_int64()
     if p != 1.0 && m % 10L == 0L {
       return Iter::empty()

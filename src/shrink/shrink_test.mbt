@@ -257,7 +257,7 @@ test "shrink non-empty array" {
 
 ///|
 test "shrink iter" {
-  let it = [1, 2, 3, 4, 5, 6].iter()
+  let it = [|1, 2, 3, 4, 5, 6|]
   json_inspect(@shrink.Shrink::shrink(it), content=[
     [2, 3, 4, 5, 6],
     [1, 3, 4, 5, 6],
