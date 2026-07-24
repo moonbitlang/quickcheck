@@ -348,7 +348,7 @@ loop calls `<expr>.iter()`, you can use `Rose` directly with the loop sugar.
 ///|
 test "iter visits root then branches in DFS order" {
   let tree = @rose.Rose(1, [|
-    @rose.Rose(2, [|@rose.pure(3), @rose.pure(4)|]),
+    Rose(2, [|@rose.pure(3), @rose.pure(4)|]),
     Rose(5, [|@rose.pure(6)|]),
   |])
   @debug.assert_eq(tree.iter().collect(), [1, 2, 3, 4, 5, 6])
