@@ -187,16 +187,16 @@ function listed above is a plain top-level `fn[...]`. That's
 deliberate — these are low-level combinators that sit below the
 trait-driven layers of the ecosystem:
 
-- The classical shrinkers used by `moonbitlang/quickcheck.Shrink`
-  (defined in `src/shrink.mbt`) reach for `removes_array` /
-  `removes_list` to build "drop a chunk" candidates.
+- Historical shrink implementations used `removes_array` / `removes_list` to
+  build "drop a chunk" candidates. Public shrinking now comes from the
+  standard library.
 - `fresh_name()` is used by test drivers to generate unique labels; it
   participates in no trait.
 
 If you're looking for a public trait in the QuickCheck ecosystem, see:
 
 - `moonbitlang/quickcheck.Testable` (property / combinator wrappers)
-- `moonbitlang/quickcheck.Shrink` (value shrinking)
+- `moonbitlang/core/quickcheck/shrink.Shrink` (value shrinking)
 - `moonbitlang/quickcheck/feat.Enumerable` (exhaustive enumeration)
 
 ## License

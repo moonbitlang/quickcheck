@@ -1,5 +1,15 @@
 # QuickCheck Tutorial Part 2
 
+```mbt check
+///|
+fn[A, B] tutorial2_generator_pair(
+  first : @coreqc.Generator[A],
+  second : @coreqc.Generator[B],
+) -> @coreqc.Generator[(A, B)] {
+  first.flat_map(a => second.map(b => (a, b)))
+}
+```
+
 ## The Challenge of Constrained Generators
 
 One of the biggest challenges in property-based testing (PBT) is **constrained random generation**. Real-world inputs are often not something a simple structural generator can handle. We can automatically derive generators for simple types, but once a type has internal invariants—or values must satisfy a predicate—this approach quickly runs out of steam. A naïve idea is: "generate values from a large domain first, then filter out the ones that don’t satisfy the condition inside the property." But that often makes testing extremely inefficient, or even yields no valid samples at all, because valid inputs are typically very sparse.
@@ -20,23 +30,23 @@ Let’s start with a class of simple generators—the building blocks of more co
 
 ### Range Control
 
-In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@gen.int_range` and `@gen.char_range` for constraining value domains. For specialized integer types (small, non-negative, negative, positive), use the modifiers package: `@modifiers.Small[Int]`, `@modifiers.NonNegative[Int]`, `@modifiers.Negative[Int]`, `@modifiers.Positive[Int]`. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
+In PBT, the commonest starting point is modeling the range of values for primitive types—more precisely, constraining the domain of an ordered type. For integers, we might only care about a certain interval; for characters, we might focus on a specific range or category. In QuickCheck, we have functions such as `@coreqc.int_range` and `@coreqc.int_range mapped to Char` for constraining value domains. For specialized integer types (small, non-negative, negative, positive), use the modifiers package: `@modifiers.Small[Int]`, `@modifiers.NonNegative[Int]`, `@modifiers.Negative[Int]`, `@modifiers.Positive[Int]`. In practice, we usually use these generators to restrict inputs to the range allowed by the intended semantics, and then rely on the property to validate higher-level relationships.
 
 ```mbt check
 ///|
-test "gen @gen.int_range invariant" {
-  let gen = @gen.int_range(-10, 10)
+test "gen @coreqc.int_range invariant" {
+  let gen = @coreqc.int_range(-10, 10)
   let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
 
-Generators are not always "random". We can also construct a constant generator with `@gen.pure`, which is useful for representing boundary cases or fixing certain preconditions. This kind of generator is crucial when composing generators: it lets us hold some inputs steady so we can focus on variation in the rest.
+Generators are not always "random". We can also construct a constant generator with `@coreqc.pure`, which is useful for representing boundary cases or fixing certain preconditions. This kind of generator is crucial when composing generators: it lets us hold some inputs steady so we can focus on variation in the rest.
 
 ```mbt check
 ///|
-test "gen @gen.pure value" {
-  let gen = @gen.pure(7)
+test "gen @coreqc.pure value" {
+  let gen = @coreqc.pure(7)
   let prop = @qc.forall(gen, x => x == 7)
   @qc.quick_check(prop)
 }
@@ -55,23 +65,27 @@ enum Color {
 } derive(Arbitrary, Debug)
 ```
 
-If a type already has an `Arbitrary` instance, then `@gen.Gen::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
+If a type already has an `Arbitrary` instance, then `@coreqc.Generator::spawn` can produce a generator with the default distribution. This matches the implicit generation logic used by `@qc.quick_check_fn`, but it also allows us to insert the generator explicitly into `@qc.forall`. That keeps generator composition structurally clear, and still lets us layer additional constraints on top.
 
 ```mbt check
 ///|
 test "gen spawn for arbitrary" {
-  let gc : @gen.Gen[Color] = @gen.Gen::spawn()
-  let gen : @gen.Gen[Int] = @gen.Gen::spawn()
+  let gc : @coreqc.Generator[Color] = Generator((size, state) => {
+    @coreqc.Arbitrary::arbitrary(size, state)
+  })
+  let gen : @coreqc.Generator[Int] = Generator((size, state) => {
+    @coreqc.Arbitrary::arbitrary(size, state)
+  })
   debug_inspect(
     gc.samples(size=5),
     content=(
-      #|[Green, Green, Green, Blue, Red]
+      #|[Green, Green, Green, Blue, Red, Green, Green, Green, Red, Blue]
     ),
   )
   debug_inspect(
     gen.samples(),
     content=(
-      #|[6, 4, -6, -3, 0, 2, -8, 4, 5, 2]
+      #|[66, 84, -16, -93, 10, 2, -58, 34, 85, 92]
     ),
   )
 }
@@ -79,34 +93,45 @@ test "gen spawn for arbitrary" {
 
 ### Collections and Multi-Argument Composition
 
-When a task involves collection structures, a basic generator needs to express both "length" and "where elements come from". `@gen.Gen::array_with_size` generates fixed-length arrays, and `@qc.list_with_size` constructs lists of a specified length. Fixed length is not just for convenience; it often corresponds directly to preconditions in protocols, formats, or algorithms.
+When a task involves collection structures, a basic generator needs to express both "length" and "where elements come from". `@coreqc.Generator::array_with_size` generates fixed-length arrays, and `array_with_size + map` constructs lists of a specified length. Fixed length is not just for convenience; it often corresponds directly to preconditions in protocols, formats, or algorithms.
 
 ```mbt check
 ///|
 test "gen array_with_size" {
-  let gen = @gen.int_range(0, 9).array_with_size(5)
+  let gen = @coreqc.int_range(0, 9).array_with_size(5)
   json_inspect(gen.samples(size=5), content=[
-    [0, 6, 4, 3, 8],
-    [0, 4, 6, 5, 7],
-    [5, 2, 0, 0, 2],
-    [4, 1, 0, 4, 3],
-    [5, 3, 3, 1, 4],
+    [0, 6, 0, 1, 8],
+    [0, 0, 6, 5, 7],
+    [8, 2, 0, 0, 2],
+    [4, 1, 4, 4, 1],
+    [8, 1, 1, 3, 0],
+    [5, 7, 3, 3, 0],
+    [6, 7, 8, 1, 8],
+    [8, 5, 1, 4, 5],
+    [1, 3, 4, 1, 4],
+    [3, 4, 6, 8, 0],
   ])
 }
 
 ///|
-test "gen @qc.list_with_size sample" {
-  let gen = @gen.char_range('a', 'f').list_with_size(3)
-  json_inspect(gen.sample(), content=["a", "b", "f"])
+test "gen array_with_size + map sample" {
+  let gen = @coreqc.int_range('a', 'f')
+    .map(Int::unsafe_to_char)
+    .array_with_size(3)
+    .map(xs => @list.List(xs))
+  json_inspect(gen.sample(), content=["b", "e", "a"])
 }
 ```
 
-Multi-argument functions are the norm in real systems. `@gen.tuple`, `@gen.triple`, and `@gen.quad` let us combine multiple generators into a single input, so we can keep the uniform "single-argument property" execution model. This not only simplifies the property itself, but also allows shrinking to consider interactions between multiple parameters at the same time.
+Multi-argument functions are the norm in real systems. `tutorial2_generator_pair`, `flat_map`, and `map` let us combine multiple generators into a single input, so we can keep the uniform "single-argument property" execution model. This not only simplifies the property itself, but also allows shrinking to consider interactions between multiple parameters at the same time.
 
 ```mbt check
 ///|
-test "gen @gen.tuple for two args" {
-  let gen = @gen.tuple(@gen.int_range(-20, 20), @gen.int_range(-20, 20))
+test "gen tutorial2_generator_pair for two args" {
+  let gen = tutorial2_generator_pair(
+    @coreqc.int_range(-20, 20),
+    @coreqc.int_range(-20, 20),
+  )
   let prop = @qc.forall(gen, p => {
     let (a, b) = p
     a - b + b == a
@@ -115,12 +140,12 @@ test "gen @gen.tuple for two args" {
 }
 ```
 
-The last key step in these building blocks is transformation. `@gen.Gen::fmap` lets us apply a pure function to certain results, mapping an existing domain into a new one. This capability looks simple, but it’s central to building business-specific inputs; later distribution control and conditional filtering will also be built on top of this layer.
+The last key step in these building blocks is transformation. `@coreqc.Generator::map` lets us apply a pure function to certain results, mapping an existing domain into a new one. This capability looks simple, but it’s central to building business-specific inputs; later distribution control and conditional filtering will also be built on top of this layer.
 
 ```mbt check
 ///|
 test "gen fmap transform" {
-  let gen = @gen.int_range(0, 50).fmap(x => x * 2)
+  let gen = @coreqc.int_range(0, 50).map(x => x * 2)
   let prop = @qc.forall(gen, x => x % 2 == 0)
   @qc.quick_check(prop)
 }
@@ -132,52 +157,56 @@ With these basic structures, we can already cover the commonest input shapes in 
 
 Once we can generate inputs with "valid shapes", the next question is: do those inputs appear with frequencies that resemble the real world? That’s where distribution control comes in. Real data is often multimodal, skewed, or structurally biased. If we rely on a single range generator, coverage will feel thin. We need composition and weighting to bring the input distribution closer to realistic scenarios, while keeping properties concise.
 
-When the domain has multiple categories or paths, `@gen.one_of` is the directest combinator. It chooses uniformly among several generators. This is useful for placing boundary samples alongside normal cases, so a property can hit extreme conditions while still covering ordinary variations.
+When the domain has multiple categories or paths, `@coreqc.one_of` is the directest combinator. It chooses uniformly among several generators. This is useful for placing boundary samples alongside normal cases, so a property can hit extreme conditions while still covering ordinary variations.
 
 ```mbt check
 ///|
-test "gen @gen.one_of mix" {
-  let gen = @gen.one_of([@gen.pure(0), @gen.pure(1), @gen.int_range(-10, 10)])
+test "gen @coreqc.one_of mix" {
+  let gen = @coreqc.one_of([
+    @coreqc.pure(0),
+    @coreqc.pure(1),
+    @coreqc.int_range(-10, 10),
+  ])
   let prop = @qc.forall(gen, x => x >= -10 && x <= 10)
   @qc.quick_check(prop)
 }
 ```
 
-Uniform choice is often not ideal: real data usually has clear mainstream ranges or "hot" values. In that case, we can use `@gen.frequency` to weight branches. This lets us express a distribution like "most cases come from one range; a few come from another," concentrating test budget where bugs are likelier, while still keeping coverage of rare paths.
+Uniform choice is often not ideal: real data usually has clear mainstream ranges or "hot" values. In that case, we can use `@coreqc.frequency` to weight branches. This lets us express a distribution like "most cases come from one range; a few come from another," concentrating test budget where bugs are likelier, while still keeping coverage of rare paths.
 
 ```mbt check
 ///|
-test "gen @gen.frequency weighted" {
-  let gen = @gen.frequency([
-    (6, @gen.int_range(-3, 3)),
-    (1, @gen.int_range(-30, 30)),
+test "gen @coreqc.frequency weighted" {
+  let gen = @coreqc.frequency([
+    (6, @coreqc.int_range(-3, 3)),
+    (1, @coreqc.int_range(-30, 30)),
   ])
   let prop = @qc.forall(gen, x => x >= -30 && x <= 30)
   @qc.quick_check(prop)
 }
 ```
 
-For discrete enumerations, `@gen.one_of_array` and `@gen.one_of_list` are more natural: they sample directly from a given set, without requiring overly elaborate generator construction. We often use them to simulate protocol fields, status codes, or configuration values from a fixed set, making properties closer to real inputs.
+For discrete enumerations, `@coreqc.elements` and `@coreqc.elements` are more natural: they sample directly from a given set, without requiring overly elaborate generator construction. We often use them to simulate protocol fields, status codes, or configuration values from a fixed set, making properties closer to real inputs.
 
 ```mbt check
 ///|
-test "gen @gen.one_of_array enum" {
+test "gen @coreqc.elements enum" {
   let methods : Array[String] = ["GET", "POST", "PUT"]
-  let gen = @gen.one_of_array(methods)
+  let gen = @coreqc.elements(methods)
   let prop = @qc.forall(gen, m => methods.contains(m))
   @qc.quick_check(prop)
 }
 ```
 
-When multiple fields have dependencies, `@gen.Gen::bind` allows us to encode those dependencies during generation. It lets us generate one value first, then generate subsequent fields based on it—satisfying constraints at the data level and avoiding large stacks of precondition checks inside the property.
+When multiple fields have dependencies, `@coreqc.Generator::bind` allows us to encode those dependencies during generation. It lets us generate one value first, then generate subsequent fields based on it—satisfying constraints at the data level and avoiding large stacks of precondition checks inside the property.
 
 > `bind` is a powerful monadic operation. It allows us to dynamically adjust distributions and structure during generation, producing inputs that satisfy complex relationships directly. At the same time, it’s harder to understand and debug, so we should keep the structure layered and clear—avoiding excessive nesting or relying on `bind` as a catch-all way to express complicated logic.
 
 ```mbt check
 ///|
 test "gen bind dependent" {
-  let gen = @gen.int_range(-10, 10).bind(base => {
-    @gen.int_range(0, 5).fmap(delta => (base, base + delta))
+  let gen = @coreqc.int_range(-10, 10).flat_map(base => {
+    @coreqc.int_range(0, 5).map(delta => (base, base + delta))
   })
   let prop = @qc.forall(gen, p => {
     let (a, b) = p
@@ -187,9 +216,9 @@ test "gen bind dependent" {
 }
 ```
 
-We already introduced `@gen.Gen::fmap`, and it remains a fundamental tool for composition: without changing branch probabilities, it maps generated values into a business-level structure. This mapping preserves the shape of the distribution while making the data better match interface semantics, so it’s commonly used to construct identifiers, normalized inputs, or derived fields.
+We already introduced `@coreqc.Generator::map`, and it remains a fundamental tool for composition: without changing branch probabilities, it maps generated values into a business-level structure. This mapping preserves the shape of the distribution while making the data better match interface semantics, so it’s commonly used to construct identifiers, normalized inputs, or derived fields.
 
-In practice, we often use `@gen.one_of` or `@gen.frequency` to set the "macro distribution", and then use `bind` and `fmap` to handle "micro structure" constraints and derivations. This two-level structure balances coverage and realism while keeping generators readable. Composition and distribution do not change the property itself, but they can significantly affect test effectiveness. Distribution design should follow the intended semantics: avoid being overly uniform, and avoid being overly biased, so that random testing can discover defects more reliably under a limited budget.
+In practice, we often use `@coreqc.one_of` or `@coreqc.frequency` to set the "macro distribution", and then use `bind` and `fmap` to handle "micro structure" constraints and derivations. This two-level structure balances coverage and realism while keeping generators readable. Composition and distribution do not change the property itself, but they can significantly affect test effectiveness. Distribution design should follow the intended semantics: avoid being overly uniform, and avoid being overly biased, so that random testing can discover defects more reliably under a limited budget.
 
 On top of that, we still need to control size and complexity. That involves how the `size` parameter evolves and how we scale generators—this will be the focus of the next section.
 
@@ -202,21 +231,26 @@ This section discusses how the `size` parameter affects data size and test compl
 ```mbt check
 ///|
 test "@qc.quick_check max_size" {
-  let gen = @gen.sized(n => @gen.int_range(-100, 100).list_with_size(n))
+  let gen = @coreqc.sized(n => {
+    @coreqc.int_range(-100, 100).array_with_size(n).map(xs => @list.List(xs))
+  })
   let prop = @qc.forall(gen, xs => xs.length() >= 0)
   @qc.quick_check(prop, max_size=30)
 }
 ```
 
-When we want "data structures to grow in sync with `size`", `@gen.sized` is the most explicit tool. It passes `size` into the generation logic, letting us encode size constraints inside the generator and avoid dealing with size-related preconditions in the property. This is especially effective for arrays, lists, trees, and similar structures, because it internalizes complexity control into the construction rules of the input domain.
+When we want "data structures to grow in sync with `size`", `@coreqc.sized` is the most explicit tool. It passes `size` into the generation logic, letting us encode size constraints inside the generator and avoid dealing with size-related preconditions in the property. This is especially effective for arrays, lists, trees, and similar structures, because it internalizes complexity control into the construction rules of the input domain.
 
 ```mbt check
 ///|
-test "@gen.sized array with explicit length" {
+test "@coreqc.sized array with explicit length" {
   // <| works here
-  let gen = @gen.sized <| n => {
+  let gen = @coreqc.sized <| n => {
     let len = if n < 0 { 0 } else { n }
-    @gen.tuple(@gen.pure(len), @gen.int_range(0, 9).array_with_size(len))
+    tutorial2_generator_pair(
+      @coreqc.pure(len),
+      @coreqc.int_range(0, 9).array_with_size(len),
+    )
   }
   debug_inspect(
     gen.sample(),
@@ -225,105 +259,105 @@ test "@gen.sized array with explicit length" {
       #|  100,
       #|  [
       #|    5,
-      #|    5,
+      #|    8,
       #|    0,
       #|    2,
-      #|    0,
+      #|    4,
       #|    5,
-      #|    4,
-      #|    6,
-      #|    4,
+      #|    0,
+      #|    7,
+      #|    0,
       #|    2,
       #|    1,
-      #|    3,
-      #|    3,
-      #|    3,
-      #|    0,
-      #|    8,
-      #|    2,
-      #|    4,
-      #|    2,
-      #|    3,
-      #|    5,
-      #|    6,
-      #|    5,
-      #|    8,
-      #|    8,
-      #|    6,
-      #|    2,
-      #|    1,
-      #|    7,
-      #|    3,
-      #|    6,
-      #|    6,
       #|    1,
       #|    3,
-      #|    8,
-      #|    3,
-      #|    4,
-      #|    7,
-      #|    4,
-      #|    8,
-      #|    7,
-      #|    4,
+      #|    1,
       #|    0,
-      #|    7,
+      #|    5,
       #|    2,
+      #|    0,
+      #|    2,
+      #|    1,
       #|    5,
-      #|    4,
       #|    6,
       #|    5,
       #|    5,
       #|    8,
-      #|    8,
-      #|    5,
-      #|    6,
-      #|    5,
       #|    6,
       #|    2,
       #|    3,
-      #|    5,
-      #|    7,
-      #|    3,
-      #|    3,
-      #|    0,
-      #|    3,
-      #|    7,
-      #|    4,
-      #|    0,
-      #|    4,
-      #|    0,
+      #|    6,
+      #|    1,
       #|    7,
       #|    6,
-      #|    6,
-      #|    2,
-      #|    5,
+      #|    3,
       #|    1,
       #|    5,
       #|    3,
-      #|    3,
+      #|    0,
+      #|    7,
+      #|    4,
+      #|    5,
+      #|    6,
+      #|    4,
+      #|    0,
+      #|    7,
       #|    2,
+      #|    8,
+      #|    0,
       #|    7,
       #|    8,
       #|    8,
       #|    8,
+      #|    8,
+      #|    8,
+      #|    7,
+      #|    5,
+      #|    7,
+      #|    2,
+      #|    1,
+      #|    8,
+      #|    7,
+      #|    1,
       #|    1,
       #|    4,
+      #|    1,
+      #|    6,
+      #|    4,
+      #|    0,
+      #|    0,
+      #|    4,
+      #|    6,
+      #|    7,
+      #|    7,
+      #|    2,
+      #|    5,
+      #|    1,
+      #|    5,
+      #|    3,
+      #|    1,
+      #|    2,
+      #|    6,
+      #|    5,
+      #|    5,
+      #|    5,
+      #|    1,
+      #|    0,
       #|    2,
       #|    8,
       #|    0,
-      #|    8,
+      #|    5,
       #|    8,
       #|    4,
       #|    2,
       #|    6,
-      #|    5,
+      #|    8,
       #|    0,
       #|    2,
-      #|    5,
+      #|    8,
       #|    2,
-      #|    0,
-      #|    6,
+      #|    4,
+      #|    7,
       #|  ],
       #|)
     ),
@@ -331,24 +365,28 @@ test "@gen.sized array with explicit length" {
 }
 ```
 
-When we want to restrict size without changing the generator’s structure, we can use `@gen.Gen::resize`. It fixes `size` to a specific value, making complexity stable and predictable. This is often useful during debugging or regression testing, where we want counterexamples to be more concentrated and runtime more consistent.
+When we want to restrict size without changing the generator’s structure, we can use `@coreqc.Generator::resize`. It fixes `size` to a specific value, making complexity stable and predictable. This is often useful during debugging or regression testing, where we want counterexamples to be more concentrated and runtime more consistent.
 
 ```mbt check
 ///|
 test "resize clamps size" {
-  let gen = @gen.sized(n => @gen.int_range(0, 9).list_with_size(n))
+  let gen = @coreqc.sized(n => {
+    @coreqc.int_range(0, 9).array_with_size(n).map(xs => @list.List(xs))
+  })
   let small = gen.resize(5)
   let prop = @qc.forall(small, xs => xs.length() == 5)
   @qc.quick_check(prop)
 }
 ```
 
-If we want size to vary with `size` but grow less steeply, we can use `@gen.Gen::scale` to adjust the size mapping. This effectively adds a function on top of the "complexity growth curve", letting input size grow more gradually as test rounds progress, resulting in more stable coverage and more controllable runtime within a limited budget.
+If we want size to vary with `size` but grow less steeply, we can use `@coreqc.Generator::scale` to adjust the size mapping. This effectively adds a function on top of the "complexity growth curve", letting input size grow more gradually as test rounds progress, resulting in more stable coverage and more controllable runtime within a limited budget.
 
 ```mbt check
 ///|
 test "scale slows growth" {
-  let gen = @gen.sized(n => @gen.int_range(0, 9).list_with_size(n))
+  let gen = @coreqc.sized(n => {
+    @coreqc.int_range(0, 9).array_with_size(n).map(xs => @list.List(xs))
+  })
   let scaled = gen.scale(n => n / 2)
   let prop = @qc.forall(scaled, xs => xs.length() <= 20)
   @qc.quick_check(prop, max_size=40)
@@ -376,9 +414,9 @@ test "combinator sorted array with filter" {
     go(0)
   }
 
-  let base = @gen.int_range(-8, 8).array_with_size(3)
+  let base = @coreqc.int_range(-8, 8).array_with_size(3)
   let prop = @qc.forall(base, arr => {
-    @qc.forall(@gen.one_of_array(arr), x => {
+    @qc.forall(@coreqc.elements(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     }).filter(is_non_decreasing(arr))
   })
@@ -387,16 +425,16 @@ test "combinator sorted array with filter" {
 }
 ```
 
-This example has three layers of composition: first, `array_with_size` fixes the structure; then, nested `forall + one_of_array` sets up a dependency between an element and its container; finally, `filter` enforces the "sorted" constraint. The style is intuitive and works well for quickly validating an idea, but it still discards some samples.
+This example has three layers of composition: first, `array_with_size` fixes the structure; then, nested `forall + elements` sets up a dependency between an element and its container; finally, `filter` enforces the "sorted" constraint. The style is intuitive and works well for quickly validating an idea, but it still discards some samples.
 
 When the discard rate is high, it’s usually better to move constraints into the construction phase. We can generate an array and sort it directly:
 
 ```mbt check
 ///|
 test "combinator sorted array constructor" {
-  let gen = @gen.int_range(-30, 30).array_with_size(5).fmap(a => a..sort())
+  let gen = @coreqc.int_range(-30, 30).array_with_size(5).map(a => a..sort())
   let prop = @qc.forall(gen, arr => {
-    @qc.forall(@gen.one_of_array(arr), x => {
+    @qc.forall(@coreqc.elements(arr), x => {
       arr[0] <= x && x <= arr[arr.length() - 1]
     })
   })
@@ -421,14 +459,14 @@ QuickCheck’s `Gen` has an implicit `size` parameter: as the number of tests in
 
 ```mbt check
 ///|
-fn[T] _gen_t() -> @gen.Gen[T] {
+fn[T] _gen_t() -> @coreqc.Generator[T] {
   letrec go = (s : Int) => {
     match s {
       0 => ... // base case
       _n => ... // recursive case, can call go(n - 1) for smaller substructures
     }
   }
-  @gen.sized(go)
+  @coreqc.sized(go)
 }
 ```
 
@@ -446,7 +484,7 @@ enum Tree[T] {
 } derive(Debug)
 ```
 
-If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@gen.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).
+If the property does not strongly depend on the "shape distribution" of trees, the first approach is to define an `insert` function that inserts arbitrary values into a BST, and then use `from_array` to build a BST from an array. That way, we can generate a plain array with `@coreqc.int_range().array_with_size()`, convert it into a tree with `from_array`, and obtain a tree that naturally satisfies the BST invariant. Shrinking is also straightforward (shrink the list).
 
 ```mbt check
 ///|
@@ -475,8 +513,8 @@ fn[T] inorder(tree : Tree[T]) -> Array[T] {
 
 ///|
 test "generate BST" {
-  let int_arr = @gen.int_range(-100, 100).array_with_size(10)
-  let gen_bst = int_arr.fmap(Tree::from_array)
+  let int_arr = @coreqc.int_range(-100, 100).array_with_size(10)
+  let gen_bst = int_arr.map(Tree::from_array)
   let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
@@ -500,8 +538,8 @@ fn[T] from_sorted(arr : ArrayView[T]) -> Tree[T] {
 
 ///|
 test "generate balanced BST" {
-  let int_arr = @gen.int_range(-100, 100).array_with_size(10)
-  let gen_bst = int_arr.fmap(arr => arr..sort()..dedup() |> from_sorted)
+  let int_arr = @coreqc.int_range(-100, 100).array_with_size(10)
+  let gen_bst = int_arr.map(arr => arr..sort()..dedup() |> from_sorted)
   let prop = @qc.forall(gen_bst, t => {
     let arr = inorder(t)
     arr == arr.copy()..sort()
@@ -516,16 +554,16 @@ The next approach is **range-based recursive generation**, where we grow the tre
 
 ```mbt check
 ///|
-fn gen_bst_ranged(min : Int, max : Int) -> @gen.Gen[Tree[Int]] {
+fn gen_bst_ranged(min : Int, max : Int) -> @coreqc.Generator[Tree[Int]] {
   fn go(n : Int, lo : Int, hi : Int) {
-    guard lo <= hi && n > 0 else { @gen.pure(Leaf) }
-    @gen.frequency([
-      (1, @gen.pure(Leaf)),
+    guard lo <= hi && n > 0 else { @coreqc.pure(Leaf) }
+    @coreqc.frequency([
+      (1, @coreqc.pure(Leaf)),
       (
         4,
-        Gen((i, rs) => {
-          let x = @gen.int_range(lo, hi).run(i, rs)
-          let nL = @gen.int_range(0, n - 1).run(i, rs)
+        Generator((i, rs) => {
+          let x = @coreqc.int_range(lo, hi).run(i, rs)
+          let nL = @coreqc.int_range(0, n - 1).run(i, rs)
           let nR = n - 1 - nL
           let l = go(nL, lo, x - 1).run(i, rs)
           let r = go(nR, x + 1, hi).run(i, rs)
@@ -534,7 +572,7 @@ fn gen_bst_ranged(min : Int, max : Int) -> @gen.Gen[Tree[Int]] {
       ),
     ])
   }
-  @gen.sized(n => go(n, min, max))
+  @coreqc.sized(n => go(n, min, max))
 }
 
 ///|

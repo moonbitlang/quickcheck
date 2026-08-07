@@ -1,5 +1,24 @@
 # QuickCheck Tutorial Part 1
 
+```mbt check
+///|
+fn[A, B] tutorial1_generator_pair(
+  first : @coreqc.Generator[A],
+  second : @coreqc.Generator[B],
+) -> @coreqc.Generator[(A, B)] {
+  first.flat_map(a => second.map(b => (a, b)))
+}
+
+///|
+fn[A, B, C] tutorial1_generator_triple(
+  first : @coreqc.Generator[A],
+  second : @coreqc.Generator[B],
+  third : @coreqc.Generator[C],
+) -> @coreqc.Generator[(A, B, C)] {
+  first.flat_map(a => second.flat_map(b => third.map(c => (a, b, c))))
+}
+```
+
 This is a long-form series intended to systematically introduce the QuickCheck framework in MoonBit and its use in real-world engineering practice, with the goal of presenting the concepts and methodology of **property-based testing** to a broad developer audience.
 
 The series will be divided into three major parts. The first part—this article—focuses on QuickCheck’s core concepts and on the methodology of designing **properties**. Later parts will cover advanced generator design, shrinking strategies, and techniques for controlling statistical distributions.
@@ -53,7 +72,7 @@ fn prop_add_comm(pair : (Int, Int)) -> Bool {
 }
 
 ///|
-test "@gen.tuple property" {
+test "tutorial1_generator_pair property" {
   @qc.quick_check_fn(prop_add_comm)
 }
 ```
@@ -62,19 +81,19 @@ When we need to actively control the data distribution—or when the default `Ar
 
 ```mbt check
 ///|
-test "@qc.forall with @gen.int_range" {
-  let gen = @gen.int_range(-10, 10)
+test "@qc.forall with @coreqc.int_range" {
+  let gen = @coreqc.int_range(-10, 10)
   let prop = @qc.forall(gen, x => x + 1 > x)
   @qc.quick_check(prop)
 }
 ```
 
-A generator is not a mysterious black box. It is a deterministic function driven by `size` and a random seed. While `@qc.quick_check` manages these parameters automatically, during property design it is still useful to “peek” at the generator using `@gen.Gen::sample` to calibrate whether the distribution matches expectations.
+A generator is not a mysterious black box. It is a deterministic function driven by `size` and a random seed. While `@qc.quick_check` manages these parameters automatically, during property design it is still useful to “peek” at the generator using `@coreqc.Generator::sample` to calibrate whether the distribution matches expectations.
 
 ```mbt check
 ///|
 test "peek generator" {
-  let gen = @gen.int_range(-3, 3)
+  let gen = @coreqc.int_range(-3, 3)
   inspect(gen.sample(size=5, seed=1), content="-2")
 }
 ```
@@ -90,7 +109,7 @@ Failure handling is also part of the interface semantics: `@qc.quick_check` rais
 ```mbt check
 ///|
 test "@qc.quick_check_silence" {
-  let prop = @qc.forall(@gen.int_range(0, 5), x => x >= 0)
+  let prop = @qc.forall(@coreqc.int_range(0, 5), x => x >= 0)
   inspect(
     @qc.quick_check_silence(prop),
     content=(
@@ -117,7 +136,10 @@ The `@laws` helper package provides built-in properties for common algebraic law
 ```mbt check
 ///|
 test "@laws.commutative for add" {
-  let gen = @gen.tuple(@gen.int_range(-200, 200), @gen.int_range(-200, 200))
+  let gen = tutorial1_generator_pair(
+    @coreqc.int_range(-200, 200),
+    @coreqc.int_range(-200, 200),
+  )
   let prop = @qc.forall(gen, @laws.commutative((a, b) => a + b))
   @qc.quick_check(prop)
 }
@@ -128,10 +150,10 @@ A common requirement is that merging is independent of grouping, which is natura
 ```mbt check
 ///|
 test "@laws.associative for add" {
-  let gen = @gen.triple(
-    @gen.int_range(-20, 20),
-    @gen.int_range(-20, 20),
-    @gen.int_range(-20, 20),
+  let gen = tutorial1_generator_triple(
+    @coreqc.int_range(-20, 20),
+    @coreqc.int_range(-20, 20),
+    @coreqc.int_range(-20, 20),
   )
   let prop = @qc.forall(gen, @laws.associative(Int::add))
   @qc.quick_check(prop)
@@ -143,10 +165,10 @@ When a requirement involves distribution, we typically need to fix the relations
 ```mbt check
 ///|
 test "@laws.distributive_left for mul/add" {
-  let gen = @gen.triple(
-    @gen.int_range(-12, 12),
-    @gen.int_range(-12, 12),
-    @gen.int_range(-12, 12),
+  let gen = tutorial1_generator_triple(
+    @coreqc.int_range(-12, 12),
+    @coreqc.int_range(-12, 12),
+    @coreqc.int_range(-12, 12),
   )
   let prop = @qc.forall(gen, @laws.distributive_left(Int::mul, Int::add))
   @qc.quick_check(prop)
@@ -164,7 +186,10 @@ fn clamp_nonneg(x : Int) -> Int {
 
 ///|
 test "@laws.idempotent clamp" {
-  let prop = @qc.forall(@gen.int_range(-50, 50), @laws.idempotent(clamp_nonneg))
+  let prop = @qc.forall(
+    @coreqc.int_range(-50, 50),
+    @laws.idempotent(clamp_nonneg),
+  )
   @qc.quick_check(prop)
 }
 ```
@@ -174,7 +199,10 @@ Another common pattern is “apply an operation twice and return to the original
 ```mbt check
 ///|
 test "@laws.involutory neg" {
-  let prop = @qc.forall(@gen.int_range(-100, 100), @laws.involutory(Int::neg))
+  let prop = @qc.forall(
+    @coreqc.int_range(-100, 100),
+    @laws.involutory(Int::neg),
+  )
   @qc.quick_check(prop)
 }
 ```
@@ -195,7 +223,7 @@ fn double2(x : Int) -> Int {
 ///|
 test "@laws.ext_equal for double" {
   let prop = @qc.forall(
-    @gen.int_range(-100, 100),
+    @coreqc.int_range(-100, 100),
     @laws.ext_equal(double1, double2),
   )
   @qc.quick_check(prop)
@@ -217,7 +245,7 @@ fn dec(x : Int) -> Int {
 
 ///|
 test "@laws.inverse for inc/dec" {
-  let prop = @qc.forall(@gen.int_range(-100, 100), @laws.inverse(inc, dec))
+  let prop = @qc.forall(@coreqc.int_range(-100, 100), @laws.inverse(inc, dec))
   @qc.quick_check(prop)
 }
 ```
@@ -272,10 +300,13 @@ A very naive testing strategy is to implement `Queue` and test these axioms dire
 ///|
 /// `gen_queue()` is a generator that produces random Queue instances
 test "property Q2" {
-  let prop = @qc.forall(@gen.tuple(@gen.int_range(-100, 100), gen_queue()), p => {
-    let (x, q) = p
-    q.enqueue(x).is_empty() == false
-  })
+  let prop = @qc.forall(
+    tutorial1_generator_pair(@coreqc.int_range(-100, 100), gen_queue()),
+    p => {
+      let (x, q) = p
+      q.enqueue(x).is_empty() == false
+    },
+  )
   @qc.quick_check(prop)
 }
 ```
@@ -377,20 +408,25 @@ Because `==` is defined as “convert to lists and compare”—i.e. a form of *
 
 ```mbt check
 ///|
-fn gen_int_list() -> @gen.Gen[@list.List[Int]] {
-  @gen.sized(n => @gen.int_range(-100, 100).list_with_size(n))
+fn gen_int_list() -> @coreqc.Generator[@list.List[Int]] {
+  @coreqc.sized(n => {
+    @coreqc.int_range(-100, 100).array_with_size(n).map(xs => @list.List(xs))
+  })
 }
 
 ///|
-fn gen_queue() -> @gen.Gen[Queue] {
+fn gen_queue() -> @coreqc.Generator[Queue] {
   let gl = gen_int_list()
-  gl.bind(f => gl.bind(r => @gen.pure(bq(f, r))))
+  gl.flat_map(f => gl.flat_map(r => @coreqc.pure(bq(f, r))))
 }
 
 ///|
 test "queue axioms q1-q6" {
-  let gen_xq = @gen.tuple(@gen.int_range(-100, 100), gen_queue())
-  let gen_x = @gen.int_range(-100, 100)
+  let gen_xq = tutorial1_generator_pair(
+    @coreqc.int_range(-100, 100),
+    gen_queue(),
+  )
+  let gen_x = @coreqc.int_range(-100, 100)
   @qc.quick_check(q1())
   @qc.quick_check(@qc.forall(gen_xq, q2))
   @qc.quick_check(@qc.forall(gen_x, q3))
@@ -410,10 +446,14 @@ To mitigate this, we introduce **operational invariance** testing: when two valu
 
 ```mbt check
 ///|
-fn from_list(xs : @list.List[Int]) -> @gen.Gen[Queue] {
+fn from_list(xs : @list.List[Int]) -> @coreqc.Generator[Queue] {
   let len = xs.length()
-  let gen_i = if len <= 0 { @gen.pure(0) } else { @gen.int_range(0, len + 1) }
-  gen_i.fmap(i => {
+  let gen_i = if len <= 0 {
+    @coreqc.pure(0)
+  } else {
+    @coreqc.int_range(0, len + 1)
+  }
+  gen_i.map(i => {
     let xs1 = xs.take(i)
     let xs2 = xs.drop(i)
     bq(xs1, xs2.rev())
@@ -421,9 +461,9 @@ fn from_list(xs : @list.List[Int]) -> @gen.Gen[Queue] {
 }
 
 ///|
-fn gen_equiv_queue() -> @gen.Gen[@laws.Equivalence[Queue]] {
-  gen_int_list().bind(z => {
-    from_list(z).bind(x => from_list(z).fmap(y => { lhs: x, rhs: y }))
+fn gen_equiv_queue() -> @coreqc.Generator[@laws.Equivalence[Queue]] {
+  gen_int_list().flat_map(z => {
+    from_list(z).flat_map(x => from_list(z).map(y => { lhs: x, rhs: y }))
   })
 }
 
@@ -488,8 +528,15 @@ fn front_1_q6(xq : (Int, Queue)) -> Bool {
 
 ///|
 test "operation invariance tests" {
-  let gen_xq = @gen.tuple(@gen.int_range(-100, 100), gen_queue())
-  let gen_xqp = @gen.triple(@gen.int_range(-100, 100), gen_queue(), gen_queue())
+  let gen_xq = tutorial1_generator_pair(
+    @coreqc.int_range(-100, 100),
+    gen_queue(),
+  )
+  let gen_xqp = tutorial1_generator_triple(
+    @coreqc.int_range(-100, 100),
+    gen_queue(),
+    gen_queue(),
+  )
   @qc.quick_check(@qc.forall(gen_xq, enqueue_1_q3))
   @qc.quick_check(@qc.forall(gen_xqp, enqueue_1_q4))
   @qc.quick_check(@qc.forall(gen_xq, front_1_q6), expect=Fail)
@@ -596,7 +643,11 @@ pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
 
 ///|
 test "model-based testing for Set" {
-  let gen = @gen.Gen::spawn().list_with_size(20)
+  let gen = @coreqc.Generator((size, state) => {
+      @coreqc.Arbitrary::arbitrary(size, state)
+    })
+    .array_with_size(20)
+    .map(xs => @list.List(xs))
   let prop = @qc.forall(gen, cmds => {
     let (model_set, model_trace) = run_model(cmds)
     let (sut_set, sut_trace) = run_sut(cmds)

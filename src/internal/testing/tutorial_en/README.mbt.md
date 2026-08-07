@@ -10,10 +10,21 @@ The idea of QuickCheck was originally introduced in John's paper [_QuickCheck: a
 
 ---
 
+## 0.15 migration
+
+Version 0.15 removes the module's duplicate generator and shrinker layers.
+Import `moonbitlang/core/quickcheck` for `Generator`, `Arbitrary`, and generator
+combinators, and `moonbitlang/core/quickcheck/shrink` for `Shrink`. The
+`moonbitlang/quickcheck/gen` and `moonbitlang/quickcheck/shrink` packages, the
+`Gen` type, and the root `@qc.Shrink` re-export no longer exist. The extended
+property DSL, test driver, reports, coverage classification, FEAT support, and
+modifiers remain in this module.
+
 ## Table of Contents
 
 - [MoonBit QuickCheck](#moonbit-quickcheck)
   - [Introduction](#introduction)
+  - [0.15 migration](#015-migration)
   - [Table of Contents](#table-of-contents)
   - [Quick Start](#quick-start)
     - [Installation](#installation)
@@ -51,13 +62,14 @@ moon add moonbitlang/quickcheck
 moon install
 ```
 
-To use the library, import the root package as `qc` and the generator
-subpackage as `gen` in your `moon.pkg.json` file:
+To use the extended driver, import this module as `qc`. Generator and shrinker
+APIs come from the MoonBit standard library:
 
 ```
 import {
   "moonbitlang/quickcheck" @qc
-  "moonbitlang/quickcheck/gen" @gen
+  "moonbitlang/core/quickcheck" @coreqc
+  "moonbitlang/core/quickcheck/shrink"
 }
 
 import {
@@ -347,7 +359,9 @@ enum Nat {
 
 ///|
 test {
-  let nat_gen : @gen.Gen[Nat] = @gen.Gen::spawn()
+  let nat_gen : @coreqc.Generator[Nat] = Generator((size, state) => {
+    @coreqc.Arbitrary::arbitrary(size, state)
+  })
   let nats = nat_gen.samples(size=4)
   debug_inspect(
     nats,
@@ -357,6 +371,12 @@ test {
       #|  Succ(Succ(Succ(Succ(Zero)))),
       #|  Succ(Zero),
       #|  Succ(Succ(Succ(Zero))),
+      #|  Zero,
+      #|  Zero,
+      #|  Succ(Zero),
+      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))),
+      #|  Zero,
+      #|  Succ(Succ(Succ(Succ(Zero)))),
       #|]
     ),
   )
@@ -364,16 +384,15 @@ test {
 ```
 
 For any type that implements `Arbitrary`,
-you can use the `Gen::spawn` function to get its generator.
+you can wrap its `arbitrary` implementation in a standard `Generator`.
 Calling the generator's method `samples` will generate some values of that type.
-Note that `Gen` is an internal type of QuickCheck,
-which will be automatically called by the `quick_check` function,
-but normally the user is not required to access it.
+Normally `quick_check_fn` constructs this generator automatically,
+so users only need it when passing an explicit generator to `forall`.
 Here we use it to show the behavior of `Arbitrary`.
 
 #### Shrink
 
-`Shrink` is a trait that shrinks a value to a simpler one.
+`Shrink` is the standard library trait that shrinks a value to a simpler one.
 It has a method `shrink` that takes a value and returns an `Iter`
 of simpler values (lazily).
 
@@ -402,22 +421,26 @@ This section summarizes some common mistakes in using QuickCheck:
 
 ### Generators
 
-Test data is produced by test data generators. QuickCheck defines default generators for some often used types, but you can roll your own, and will need to define your own generators for any new types you introduce (Or for simple types we can use the trivial definition by `derive(Arbitrary)`).
+Test data is produced by the standard library's test data generators. The
+`moonbitlang/quickcheck` module consumes these generators but does not define a
+second generator abstraction.
 
-Generators have types of the form `Gen[T]`, which is a generator for values of type `T`. It was defined as a struct, it contains a single field named `gen`, with type `(Int, RandomState) -> T` (The first parameter is the size of the generated value, and the second is the random number generator), notice that this is similar to the `arbitrary` method in the `Arbitrary` trait:
+Generators have type `@coreqc.Generator[T]`. A generator is built from a
+function of size and random state:
 
 ```mbt nocheck
 ///|
-struct Gen[T] {
-  gen : (Int, @splitmix.RandomState) -> T
-}
+fn[T] Generator::Generator(
+  generate : (Int, @splitmix.RandomState) -> T,
+) -> Generator[T]
 ```
 
-QuickCheck defines a series of useful methods for `Gen[T]`, for the most basic ones, we can use the `Gen(f: (Int, RandomState) -> T)` constructor to create a generator from a function and run it by invoking the `run` method:
+Use the standard constructor to create a generator and `run` to invoke it with
+an explicit size and random state:
 
 ```mbt check
 ///|
-let g : @gen.Gen[Int] = {
+let g : @coreqc.Generator[Int] = {
   ...
 } // Suppose we have a generator for Int
 
@@ -425,54 +448,56 @@ let g : @gen.Gen[Int] = {
 let _x : Int = g.run(100, @splitmix.new()) // Generate a random Int at size 100
 ```
 
-`Gen[T]` was implemented as functor, applicative and monad which means you can compose it in many ways.
+Standard generators compose with `map` and `flat_map`:
 
 ```mbt nocheck
-fn pure[T](val : T) -> Gen[T]
-fn fmap[T, U](self : Gen[T], f : (T) -> U) -> Gen[U]
-fn ap[T, U](self : Gen[(T) -> U], v : Gen[T]) -> Gen[U]
-fn bind[T, U](self : Gen[T], f : (T) -> Gen[U]) -> Gen[U]
+fn pure[T](val : T) -> Generator[T]
+fn Generator::map[T, U](self : Generator[T], f : (T) -> U) -> Generator[U]
+fn Generator::flat_map[T, U](
+  self : Generator[T],
+  f : (T) -> Generator[U],
+) -> Generator[U]
 ```
 
-For instance, you can use the `fmap` method to transform the generated value:
+For instance, use `map` to transform a generated value:
 
 ```mbt check
 ///|
-let g1 : @gen.Gen[Int] = Gen(
+let g1 : @coreqc.Generator[Int] = Generator(
   {
     ...
   },
 )
 
 ///|
-let _g2 : @gen.Gen[Int] = g1.fmap(x => x + 1)
+let _g2 : @coreqc.Generator[Int] = g1.map(x => x + 1)
 
 ///|
-let _g3 : @gen.Gen[String] = g1.fmap(x => x.to_string())
+let _g3 : @coreqc.Generator[String] = g1.map(x => x.to_string())
 ```
 
 Or create a dependent generator:
 
 ```mbt check
 ///|
-let dg1 : @gen.Gen[Int] = Gen(
+let dg1 : @coreqc.Generator[Int] = Generator(
   {
     ...
   },
 )
 
 ///|
-let _dg2 : @gen.Gen[Int] = dg1.bind(x => {
+let _dg2 : @coreqc.Generator[Int] = dg1.flat_map(x => {
   // TODO(upstream) <| does not work here
   if x == 0 {
-    @gen.pure(100)
+    @coreqc.pure(100)
   } else {
-    @gen.pure(200)
+    @coreqc.pure(200)
   }
 })
 ```
 
-The following documents explains some useful combinators for `Gen[T]`.
+The standard library also provides useful generator combinators.
 
 #### Choosing Between Alternatives
 
@@ -480,16 +505,19 @@ A generator may take the form `one_of` which chooses among the generators in the
 
 ```mbt check
 ///|
-let _gen_bool : @gen.Gen[Bool] = @gen.one_of([@gen.pure(true), @gen.pure(false)])
+let _gen_bool : @coreqc.Generator[Bool] = @coreqc.one_of([
+  @coreqc.pure(true),
+  @coreqc.pure(false),
+])
 ```
 
 If you want to control the distribution of results using frequency instead. We have `frequency` which chooses a generator from the array randomly, but weighs the probability of choosing each alternative by the factor given. For example, this generates true in the probability of $4/5$.
 
 ```mbt check
 ///|
-let _gen_freq : @gen.Gen[Bool] = @gen.frequency([
-  (4, @gen.pure(true)),
-  (1, @gen.pure(false)),
+let _gen_freq : @coreqc.Generator[Bool] = @coreqc.frequency([
+  (4, @coreqc.pure(true)),
+  (1, @coreqc.pure(false)),
 ])
 ```
 
@@ -500,14 +528,14 @@ We have pointed out that test data generators have an size parameter. QuickCheck
 You can obtain the value of the size parameter using `sized` combinator.
 
 ```mbt nocheck
-pub fn sized[T](f : (Int) ->  @gen.Gen[T]) ->  @gen.Gen[T]
+pub fn sized[T](f : (Int) ->  @coreqc.Generator[T]) ->  @coreqc.Generator[T]
 ```
 
 For example, we can make a trivial generator for a list of integers with a given length:
 
 ```mbt check
 ///|
-let gen : @gen.Gen[Int] = @gen.sized(@gen.pure)
+let gen : @coreqc.Generator[Int] = @coreqc.sized(@coreqc.pure)
 
 ///|
 let arr : Array[Int] = Array::makei(20, i => gen.sample(size=i))
@@ -535,29 +563,47 @@ let prop_rev : (@list.List[Int]) -> Bool = (x : @list.List[Int]) => {
 
 ///|
 test "List reverse" {
-  @qc.quick_check(@qc.forall(@gen.Gen::spawn(), prop_rev))
+  @qc.quick_check(
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      prop_rev,
+    ),
+  )
 }
 ```
 
-Note that the `spawn` function is useful for creating `Gen[T]` from its arbitrary instance. In this example the type checker infers the type of the first argument in `forall` to be `Gen[List[T]]` from the type of the property function.
+The wrapper below is the direct way to create a `Generator[T]` from an
+`Arbitrary` implementation. The type checker infers `T` from the property
+function passed to `forall`.
 
 ```mbt nocheck
-fn Gen::spawn[T : Arbitrary]() -> Gen[T]
+///|
+fn[T : Arbitrary] arbitrary_generator() -> Generator[T] {
+  Generator((size, state) => Arbitrary::arbitrary(size, state))
+}
 ```
 
 ### Custom Generator
 
-Recall the `remove` function we wanted to test before. The QuickCheck do report an error for us, but the generator is quite random and the tuple element `(x, arr): (Int, Array[Int])` is independent. In most cases, `x` is not in the array, so the test is not very meaningful (falls to the branch `None => ()`). Now we use the `one_of_array` combinator to generate a random element from a generated non-empty array, which makes the test more meaningful.
+Recall the `remove` function we wanted to test before. The randomly generated
+tuple `(x, arr)` usually contains an `x` unrelated to `arr`. The standard
+`elements` combinator instead chooses an element from a generated non-empty
+array, making the property meaningful.
 
 ```mbt check
 ///|
 test {
   @qc.quick_check(
-    @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
-      @qc.forall(@gen.one_of_array(a), y => !remove(a, y).contains(y)).filter(
-        a.length() != 0,
-      )
-    }),
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (a : Array[Int]) => {
+        if a.is_empty() {
+          @qc.filter(true, false)
+        } else {
+          @qc.forall(@coreqc.elements(a), y => !remove(a, y).contains(y))
+        }
+      },
+    ),
     expect=Fail,
     // We expect this test to fail because of the bug in the remove function
   )
@@ -569,7 +615,7 @@ We admit the following facts:
 - The first `spawn` evaluates to a generator of `Array[Int]`.
 - The `forall` function can be nested.
 - There is a `filter` function that filters out the test cases that do not satisfy the condition. A non-empty array is required in this case.
-- The `one_of_array` function selects a random element from a non-empty array.
+- The standard `elements` function selects a random element from a non-empty array.
 
 ```
 *** [4/33/100] Failed! Falsified.
@@ -577,7 +623,9 @@ We admit the following facts:
 0
 ```
 
-We find that there are 33 cases that do not satisfy the condition, and the counterexample is `[0, 0]` and `0`, which points out the issue clearly. The `one_of_array` function selects a random element from the array, so the `y` is always `0` in this case. The `remove` function only removes the first one, so the property does not hold.
+The counterexample `[0, 0]` and `0` points out the issue clearly. Because
+`elements` selects a value that is present, the test exposes that `remove`
+deletes only the first occurrence.
 
 ### Conditional Properties
 
@@ -591,10 +639,15 @@ test {
   }
 
   @qc.quick_check(
-    @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
-      let (x, arr) = iarr
-      @qc.property(!remove(arr.copy(), x).contains(x)).filter(no_duplicate(arr))
-    }),
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (iarr : (Int, Array[Int])) => {
+        let (x, arr) = iarr
+        @qc.property(!remove(arr.copy(), x).contains(x)).filter(
+          no_duplicate(arr),
+        )
+      },
+    ),
     max_size=50,
     discard_ratio=20,
     max_success=100,

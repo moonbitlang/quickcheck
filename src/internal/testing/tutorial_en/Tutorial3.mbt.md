@@ -30,7 +30,7 @@ Let us start with the simplest case. For integers, default shrinking does not bl
 ```mbt check
 ///|
 test "shrink int sample" {
-  json_inspect(@qc.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
+  json_inspect(@shrink.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
 }
 ```
 
@@ -61,7 +61,7 @@ test "default shrink for tuple and array" {
       #|*** [8/0/100] Failed! Falsified.
       #|Seed: 37
       #|Counterexample:
-      #|(0, [0, 0, -1])
+      #|(0, [0, 0])
       #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
     ),
   )
@@ -80,7 +80,7 @@ QuickCheck provides two directly relevant APIs:
 
 ```mbt nocheck
 fn[T : Testable, A : Debug] @qc.forall_shrink(
-  gen : @gen.Gen[A],
+  gen : @coreqc.Generator[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> @qc.Property
@@ -99,12 +99,12 @@ Here is a simple example. Suppose the input domain is "non-negative even integer
 ```mbt check
 ///|
 fn shrink_even_nat(x : Int) -> Iter[Int] {
-  @qc.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
+  @shrink.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
 ///|
 test "forall_shrink keeps even invariant" {
-  let gen = @gen.int_range(0, 100).fmap(x => x * 2)
+  let gen = @coreqc.int_range(0, 100).map(x => x * 2)
   let prop = @qc.forall_shrink(gen, shrink_even_nat, x => x < 20)
   @qc.quick_check(prop, expect=Fail)
 }
@@ -141,7 +141,7 @@ Take a `sorted array`. Default array shrinking does two things: it removes eleme
 
 ```mbt check
 ///|
-pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
+pub fn[T : @shrink.Shrink + Compare] shrink_sorted_array(
   xs : Array[T],
   lo~ : T,
   hi~ : T,
@@ -158,7 +158,7 @@ pub fn[T : @qc.Shrink + Compare] shrink_sorted_array(
     .flat_map(i => {
       let lo = if i == 0 { lo } else { nv[i - 1] }
       let hi = if i == l { hi } else { nv[i + 1] }
-      @qc.Shrink::shrink(nv[i]).flat_map(x => {
+      @shrink.Shrink::shrink(nv[i]).flat_map(x => {
         if lo <= x && x <= hi && x != nv[i] {
           let nv1 = nv.copy()
           nv1[i] = x
@@ -205,7 +205,7 @@ Once we attach this shrinker to a property, we get a shrinking process that pres
 ```mbt check
 ///|
 test "forall_shrink for sorted array" {
-  let gen = @gen.int_range(0, 9).array_with_size(6).fmap(a => a..sort())
+  let gen = @coreqc.int_range(0, 9).array_with_size(6).map(a => a..sort())
   let prop = @qc.forall_shrink(gen, x => shrink_sorted_array(x, lo=0, hi=10), xs => {
     xs.length() < 3
   })
@@ -217,7 +217,7 @@ test "forall_shrink for sorted array" {
       #|Seed: 37
       #|Counterexample:
       #|[0, 0, 0]
-      #|Shrinks: 9 successful, 12 unsuccessful, 2 final attempts
+      #|Shrinks: 10 successful, 14 unsuccessful, 2 final attempts
     ),
   )
 }
@@ -238,7 +238,7 @@ QuickCheck provides the combinator `counterexample` for exactly this reason. It 
 ```mbt check
 ///|
 test "counterexample adds derived information" {
-  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), iarr => {
+  let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
     @qc.property(!out.contains(x)).counterexample(
