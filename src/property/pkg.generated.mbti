@@ -4,11 +4,10 @@ package "moonbitlang/quickcheck/property"
 import {
   "moonbitlang/core/debug",
   "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/shrink",
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/rose",
   "moonbitlang/quickcheck/internal/state",
-  "moonbitlang/quickcheck/shrink",
 }
 
 // Values
@@ -22,9 +21,9 @@ pub fn[P : Testable] counterexample(P, String) -> Property
 
 pub fn[P : Testable] filter(P, Bool) -> Property
 
-pub fn[T : Testable, A : @debug.Debug] forall(@gen.Gen[A], (A) -> T) -> Property
+pub fn[T : Testable, A : @debug.Debug] forall(@quickcheck.Generator[A], (A) -> T) -> Property
 
-pub fn[T : Testable, A : @debug.Debug] forall_shrink(@gen.Gen[A], (A) -> Iter[A], (A) -> T) -> Property
+pub fn[T : Testable, A : @debug.Debug] forall_shrink(@quickcheck.Generator[A], (A) -> Iter[A], (A) -> T) -> Property
 
 pub fn[P : Testable] if_fail(P, () -> Unit) -> Property
 
@@ -75,6 +74,5 @@ pub impl Testable for Unit
 pub impl Testable for Bool
 pub impl[P : Testable] Testable for P?
 pub impl[P : Testable, E : @debug.Debug] Testable for Result[P, E]
-pub impl[P : Testable] Testable for @gen.Gen[P]
+pub impl[P : Testable] Testable for @quickcheck.Generator[P]
 pub impl Testable for @state.SingleResult
-

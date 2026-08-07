@@ -1,6 +1,5 @@
 import {
   "moonbitlang/quickcheck/property",
-  "moonbitlang/quickcheck/shrink",
   "moonbitlang/quickcheck/internal/rose",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/quickcheck/internal/report",
@@ -8,6 +7,7 @@ import {
   "moonbitlang/core/list",
   "moonbitlang/core/debug",
   "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/quickcheck/shrink",
 }
 
 warnings = "+unnecessary_annotation+missing_doc"

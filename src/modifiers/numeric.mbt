@@ -30,7 +30,7 @@ pub impl @shrink.Shrink for NonNegative[Int] with fn shrink(self) {
 
 ///|
 test "NonNegative[Int] generates non-negative values" {
-  let gen : @gen.Gen[NonNegative[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[NonNegative[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 >= 0))
 }
@@ -78,7 +78,7 @@ pub impl @shrink.Shrink for Positive[Int] with fn shrink(self) {
 
 ///|
 test "Positive[Int] generates positive values" {
-  let gen : @gen.Gen[Positive[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[Positive[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 > 0))
 }
@@ -123,7 +123,7 @@ pub impl @shrink.Shrink for Negative[Int] with fn shrink(self) {
 
 ///|
 test "Negative[Int] generates negative values" {
-  let gen : @gen.Gen[Negative[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[Negative[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 < 0))
 }
@@ -149,8 +149,10 @@ pub impl[T : Debug] Debug for NonZero[T] with fn to_repr(self) {
 
 ///|
 pub impl @coreqc.Arbitrary for NonZero[Int] with fn arbitrary(size, rs) {
-  let gen : @gen.Gen[Int] = @gen.Gen::spawn()
-  gen.such_that(v => v != 0).run(size, rs)
+  let bound = if size <= 0 { 1 } else { size }
+  let magnitude = rs.next_positive_int() % bound + 1
+  let value = if rs.next_double() < 0.5 { magnitude } else { -magnitude }
+  NonZero(value)
 }
 
 ///|
@@ -166,7 +168,7 @@ pub impl @shrink.Shrink for NonZero[Int] with fn shrink(self) {
 
 ///|
 test "NonZero[Int] generates non-zero values" {
-  let gen : @gen.Gen[NonZero[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[NonZero[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 != 0))
 }
@@ -189,7 +191,7 @@ pub(all) struct Small[T](T) derive(Eq)
 
 ///|
 pub impl[T : Debug] Debug for Small[T] with fn to_repr(self) {
-  @debug.Repr::opaque_("Small", @debug.to_repr(self.0))
+  @debug.Repr::opaque_("Small", Repr(self.0))
 }
 
 ///|
@@ -211,7 +213,7 @@ pub impl @shrink.Shrink for Small[Int] with fn shrink(self) {
 
 ///|
 test "Small[Int] generates values" {
-  let gen : @gen.Gen[Small[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[Small[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }

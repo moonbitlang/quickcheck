@@ -1,12 +1,13 @@
 import {
   "moonbitlang/quickcheck/property",
-  "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/feat/ifseq",
   "moonbitlang/quickcheck/internal/report",
   "moonbitlang/quickcheck/internal/state",
   "moonbitlang/core/debug",
   "moonbitlang/core/list",
   "moonbitlang/core/sorted_set",
+  "moonbitlang/core/quickcheck" @coreqc,
+  "moonbitlang/core/bigint",
 }
 
 warnings = "+unnecessary_annotation+missing_doc"

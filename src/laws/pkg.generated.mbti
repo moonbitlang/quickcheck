@@ -54,4 +54,3 @@ pub impl[T : @debug.Debug] @debug.Debug for Equivalence[T]
 // Type aliases
 
 // Traits
-

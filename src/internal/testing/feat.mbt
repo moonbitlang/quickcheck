@@ -1,8 +1,8 @@
 ///|
 test "feat int" {
-  let fe : @gen.Gen[Int] = @feat.feat_random(10)
+  let fe : @coreqc.Generator[Int] = @feat.feat_random(10)
   debug_inspect(
-    fe.samples(size=50),
+    fe.samples(count=50, size=50),
     content=(
       #|[
       #|  2,
@@ -62,9 +62,9 @@ test "feat int" {
 
 ///|
 test "feat nat" {
-  let fe : @gen.Gen[Nat] = @feat.feat_random(21)
+  let fe : @coreqc.Generator[Nat] = @feat.feat_random(21)
   debug_inspect(
-    fe.samples(size=20),
+    fe.samples(count=20, size=20),
     content=(
       #|[
       #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))),
@@ -196,7 +196,7 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with fn enumerate() {
 
 ///|
 test "feat tree random" {
-  let tg : @gen.Gen[Tree[Nat]] = @feat.feat_random(10)
+  let tg : @coreqc.Generator[Tree[Nat]] = @feat.feat_random(10)
   debug_inspect(
     tg.samples(),
     content=(
@@ -218,7 +218,7 @@ test "feat tree random" {
 
 ///|
 test "feat tree" {
-  let fe : @gen.Gen[Tree[Nat]] = @feat.feat_random(11)
+  let fe : @coreqc.Generator[Tree[Nat]] = @feat.feat_random(11)
   debug_inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
   let x : SingleTree = @feat.Enumerable::enumerate()[200]
   debug_inspect(

@@ -1,5 +1,4 @@
 import {
-  "moonbitlang/quickcheck/gen",
   "moonbitlang/quickcheck/internal/utils",
   "moonbitlang/core/list",
   "moonbitlang/core/sorted_map",

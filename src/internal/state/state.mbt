@@ -217,7 +217,7 @@ pub(all) struct State {
   // Initial seed retained for failure reproduction
   seed : UInt64
   // Current random state
-  mut random_state : @gen.RandomState
+  mut random_state : @splitmix.RandomState
   // Number of successful shrinks
   mut num_success_shrinks : Int
   // Number of shrinks tried since last successful shrink

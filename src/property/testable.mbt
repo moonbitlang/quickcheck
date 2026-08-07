@@ -1,15 +1,19 @@
 ///|
-fn[T] promote_rose(s : @rose.Rose[@gen.Gen[T]]) -> @gen.Gen[@rose.Rose[T]] {
-  @gen.Gen((n, rs) => (g : @gen.Gen[T]) => g.run(n, rs)).fmap(m => s.fmap(m))
+fn[T] promote_rose(
+  s : @rose.Rose[@coreqc.Generator[T]],
+) -> @coreqc.Generator[@rose.Rose[T]] {
+  @coreqc.Generator((n, rs) => (g : @coreqc.Generator[T]) => g.run(n, rs)).map(m => {
+    s.fmap(m)
+  })
 }
 
 ///|
 /// The shape every `Testable` collapses to before a driver runs it:
 /// a generator of a shrink tree of per-run outcomes.
 ///
-/// `Property` wraps `@gen.Gen[@rose.Rose[SingleResult]]`, keeping the
+/// `Property` wraps `@coreqc.Generator[@rose.Rose[SingleResult]]`, keeping the
 /// representation opaque while exposing controlled execution helpers.
-struct Property(@gen.Gen[@rose.Rose[@state.SingleResult]])
+struct Property(@coreqc.Generator[@rose.Rose[@state.SingleResult]])
 
 ///|
 /// Anything that can be handed to a QuickCheck-style driver.
@@ -42,7 +46,7 @@ pub impl Testable for Unit with fn property(_self) {
 
 ///|
 pub impl Testable for @state.SingleResult with fn property(self) {
-  @gen.pure(@rose.pure(self))
+  @coreqc.pure(@rose.pure(self))
 }
 
 ///|
@@ -54,8 +58,8 @@ pub impl Testable for Bool with fn property(self) {
 }
 
 ///|
-pub impl[P : Testable] Testable for @gen.Gen[P] with fn property(self) {
-  self.bind(run_prop)
+pub impl[P : Testable] Testable for @coreqc.Generator[P] with fn property(self) {
+  self.flat_map(run_prop)
 }
 
 ///|
@@ -82,7 +86,10 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
   A,
   P,
 ] with fn property(self) {
-  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, self.0)
+  let gen = @coreqc.Generator((size, state) => {
+    @coreqc.Arbitrary::arbitrary(size, state)
+  })
+  forall_shrink(gen, @shrink.Shrink::shrink, self.0)
 }
 
 ///|
@@ -92,20 +99,28 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
   A,
   P,
 ] with fn property(self) {
-  forall_shrink(@gen.Gen::spawn(), @shrink.Shrink::shrink, (a : A) => {
-    try (self.0)(a) |> Ok catch {
-      error => Err(error)
+  let gen = @coreqc.Generator((size, state) => {
+    @coreqc.Arbitrary::arbitrary(size, state)
+  })
+  forall_shrink(gen, @shrink.Shrink::shrink, (a : A) => {
+    (self.0)(a).property() catch {
+      error =>
+        Testable::property({
+          ..@state.failed(),
+          reason: @debug.to_string(error),
+          error: Some(error),
+        })
     }
   })
 }
 
 ///|
-/// Project a `Testable` to its underlying `@gen.Gen[Rose[SingleResult]]`.
+/// Project a `Testable` to its underlying `@coreqc.Generator[Rose[SingleResult]]`.
 /// This stays private so callers can compose through `Property` instead
 /// of depending on its representation.
 fn[P : Testable] run_prop(
   prop : P,
-) -> @gen.Gen[@rose.Rose[@state.SingleResult]] {
+) -> @coreqc.Generator[@rose.Rose[@state.SingleResult]] {
   prop.property().0
 }
 
@@ -123,7 +138,7 @@ fn[P : Testable] map_total_result(
   prop : P,
   f : (@state.SingleResult) -> @state.SingleResult,
 ) -> Property {
-  run_prop(prop).fmap(rose => rose.fmap(f))
+  run_prop(prop).map(rose => rose.fmap(f))
 }
 
 ///|
@@ -144,7 +159,7 @@ pub fn[P : Testable] with_run_options(
 pub fn Property::run(
   self : Property,
   size : Int,
-  random_state : @gen.RandomState,
+  random_state : @coreqc.RandomState,
 ) -> @rose.Rose[@state.SingleResult] {
   self.0.run(size, random_state)
 }
@@ -170,11 +185,13 @@ pub fn[P : Testable, T] shrinking(
   x0 : T,
   pf : (T) -> P,
 ) -> Property {
-  fn props(x) -> @rose.Rose[@gen.Gen[@rose.Rose[@state.SingleResult]]] {
+  fn props(
+    x,
+  ) -> @rose.Rose[@coreqc.Generator[@rose.Rose[@state.SingleResult]]] {
     Rose(pf(x) |> run_prop, shrinker(x).map(props))
   }
 
-  promote_rose(props(x0)).fmap(x => x.join())
+  promote_rose(props(x0)).map(x => x.join())
 }
 
 ///|
@@ -256,7 +273,7 @@ pub fn Property::filter(self : Property, cond : Bool) -> Property {
 ///|
 /// Run with an explicit generator.
 pub fn[T : Testable, A : Debug] forall(
-  gen : @gen.Gen[A],
+  gen : @coreqc.Generator[A],
   f : (A) -> T,
 ) -> Property {
   forall_shrink(gen, _x => Iter::empty(), f)
@@ -265,11 +282,11 @@ pub fn[T : Testable, A : Debug] forall(
 ///|
 /// Run a property with an explicit generator and shrinker.
 pub fn[T : Testable, A : Debug] forall_shrink(
-  gen : @gen.Gen[A],
+  gen : @coreqc.Generator[A],
   shrinker : (A) -> Iter[A],
   f : (A) -> T,
 ) -> Property {
-  gen.bind(x => {
+  gen.flat_map(x => {
     shrinking(shrinker, x, (a : A) => {
       let s = @debug.to_string(a)
       counterexample(f(a), s)

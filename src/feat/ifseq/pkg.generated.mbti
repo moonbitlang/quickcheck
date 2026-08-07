@@ -51,4 +51,3 @@ pub struct Seq[T] {
 pub using @bigint {type BigInt as Index}
 
 // Traits
-

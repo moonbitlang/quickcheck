@@ -7,12 +7,6 @@
 // -----------------------------------------------------------------------
 
 ///|
-/// Re-export the `Shrink` trait so existing callers can keep writing
-/// `@quickcheck.Shrink` after the trait's definition moved to the
-/// `moonbitlang/quickcheck/shrink` subpackage.
-pub using @shrink {trait Shrink}
-
-///|
 /// Re-export `Expected` from `internal/state` so the public driver
 /// API (`quick_check(..., expect=Fail)`) stays spelled as
 /// `@quickcheck.Expected` even though the enum now lives in the

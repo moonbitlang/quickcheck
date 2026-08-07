@@ -118,7 +118,8 @@ The compositional payoff:
 
 - **No hand-written shrinker per type.** Because `Rose` is a monad
   (see below), composing generators *automatically* composes shrinkers.
-  `Gen[(A, B)]` derives shrinking from `Gen[A]` and `Gen[B]` for free —
+  `Generator[(A, B)]` derives shrinking from `Generator[A]` and
+  `Generator[B]` for free —
   no bespoke `Shrink` instance for the pair.
 - **No re-running the shrinker on each candidate.** The shrink space is
   laid out lazily up front; the driver consumes only the path it takes.
@@ -246,7 +247,7 @@ construction.
 ## Rose is a monad
 
 That's the integrated-shrinking trick: because `Rose` is a monad, every
-generator written in a `Gen[Rose[T]]` style automatically produces not just
+generator written in a `Generator[Rose[T]]` style automatically produces not just
 *a value* but *a tree of values and their shrinks*. No separate `Shrink`
 instance needed.
 
@@ -374,7 +375,7 @@ consumed by an earlier walk.
 ```mermaid
 sequenceDiagram
   participant QC as QuickCheck driver
-  participant G as Gen[Rose[T]]
+  participant G as Generator[Rose[T]]
   participant Prop as property
   QC->>G: run(size, rng)
   G-->>QC: Rose(val = x, branch = alternatives)
@@ -399,7 +400,7 @@ shrinkable value" data type. The actual driver lives in
 Most users never touch `Rose` — they derive `Shrink` or let the `falsify`
 driver construct the tree for them. You'd reach for `Rose` directly when:
 
-- Writing a custom `Gen[T]` with bespoke shrinking semantics.
+- Writing a custom `Generator[T]` with bespoke shrinking semantics.
 - Testing your shrinker itself, where the tree shape matters.
 - Porting Haskell/OCaml code that uses integrated shrinking.
 
@@ -411,8 +412,9 @@ struct, and all its operations are ordinary methods.
 `Rose` is the *value* that a trait-aware shrinker works with, not the
 trait itself:
 
-- The root package's `Shrink` trait (`shrink(Self) -> Iter[Self]`) is the
-  classical, external counterpart. A `Shrink` impl emits a flat
+- The standard library's `moonbitlang/core/quickcheck/shrink.Shrink` trait
+  (`shrink(Self) -> Iter[Self]`) is the classical, external counterpart. A
+  `Shrink` impl emits a flat
   `Iter[Self]`; `Rose` organizes those candidates as a tree so the
   driver can follow a failing branch without re-running the generator
   from scratch.

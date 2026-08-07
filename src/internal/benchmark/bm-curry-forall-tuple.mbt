@@ -5,9 +5,15 @@ fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
 }
 
 ///|
-let test_forall : @qc.Property = @qc.forall(@gen.Gen::spawn(), (x : Array[Int]) => {
-  @qc.forall(@gen.Gen::spawn(), (y : Array[Int]) => prop_symmetry(x, y))
-})
+let test_forall : @qc.Property = @qc.forall(
+  Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+  (x : Array[Int]) => {
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (y : Array[Int]) => prop_symmetry(x, y),
+    )
+  },
+)
 
 ///|
 fn[A, B] coerce(x : A) -> B = "%identity"

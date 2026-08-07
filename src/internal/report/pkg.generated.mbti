@@ -27,4 +27,3 @@ pub(all) enum TestSuccess {
 // Type aliases
 
 // Traits
-

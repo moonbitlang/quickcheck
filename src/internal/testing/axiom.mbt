@@ -5,7 +5,7 @@ struct Queue {
 } derive(Debug)
 
 ///|
-impl @qc.Shrink for Queue
+impl @shrink.Shrink for Queue
 
 ///|
 fn build_queue(f : @list.List[Int], r : @list.List[Int]) -> Queue {
@@ -70,7 +70,7 @@ impl @coreqc.Arbitrary for Queue with fn arbitrary(i, rs) {
 priv struct EqQueue(@laws.Equivalence[Queue]) derive(Debug)
 
 ///|
-impl @qc.Shrink for EqQueue
+impl @shrink.Shrink for EqQueue
 
 ///|
 impl @coreqc.Arbitrary for EqQueue with fn arbitrary(i, rs) {
@@ -79,7 +79,7 @@ impl @coreqc.Arbitrary for EqQueue with fn arbitrary(i, rs) {
   }
 
   fn from(xs : @list.List[Int]) {
-    let n = @gen.int_bound(xs.length() - 1).run(i, rs)
+    let n = @coreqc.int_range(0, xs.length()).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }

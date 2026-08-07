@@ -86,8 +86,7 @@ pub impl Debug for PrintableString with fn to_repr(self) {
 pub impl @coreqc.Arbitrary for PrintableString with fn arbitrary(size, rs) {
   PrintableString(
     string_with(size, rs, rst => {
-      let gen_char : @gen.Gen[Char] = @gen.Gen::spawn()
-      gen_char.such_that(c => c.is_printable()).run(size, rst)
+      Int::unsafe_to_char(0x20 + rst.next_positive_int() % (0x7f - 0x20))
     }),
   )
 }
@@ -129,7 +128,7 @@ fn is_printable_string(s : String) -> Bool {
 
 ///|
 test "ASCIIString generates ASCII" {
-  let gen : @gen.Gen[ASCIIString] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[ASCIIString] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => is_ascii_string(x.0)))
 }
@@ -158,7 +157,7 @@ test "ASCIIString debug output keeps wrapper name" {
 
 ///|
 test "UnicodeString generates Unicode scalar strings" {
-  let gen : @gen.Gen[UnicodeString] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[UnicodeString] = arbitrary_generator()
   let samples = gen.samples(size=10)
   assert_true(samples.all(x => is_unicode_string(x.0)))
 }
@@ -177,7 +176,7 @@ test "UnicodeString empty shrinks to empty" {
 
 ///|
 test "PrintableString generates printable Unicode" {
-  let gen : @gen.Gen[PrintableString] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[PrintableString] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => is_printable_string(x.0)))
 }

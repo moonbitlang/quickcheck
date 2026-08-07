@@ -1,8 +1,0 @@
-import {
-  "moonbitlang/core/debug",
-  "moonbitlang/core/list",
-  "moonbitlang/core/quickcheck" @coreqc,
-  "moonbitlang/core/quickcheck/splitmix",
-}
-
-warnings = "+unnecessary_annotation+missing_doc"

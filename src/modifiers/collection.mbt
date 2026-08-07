@@ -24,12 +24,14 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with fn a
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T] with fn shrink(
   self,
 ) {
-  @shrink.shrink_non_empty_array(self.0).map(a => NonEmptyArray(a))
+  @shrink.Shrink::shrink(self.0)
+  .filter(a => !a.is_empty())
+  .map(a => NonEmptyArray(a))
 }
 
 ///|
 test "NonEmptyArray[Int] generates non-empty arrays" {
-  let gen : @gen.Gen[NonEmptyArray[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[NonEmptyArray[Int]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.length() > 0))
 }
@@ -71,12 +73,14 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with fn ar
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T] with fn shrink(
   self,
 ) {
-  @shrink.shrink_non_empty_list(self.0).map(l => NonEmptyList(l))
+  @shrink.Shrink::shrink(self.0)
+  .filter(l => !l.is_empty())
+  .map(l => NonEmptyList(l))
 }
 
 ///|
 test "NonEmptyList[Int] generates non-empty lists" {
-  let gen : @gen.Gen[NonEmptyList[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[NonEmptyList[Int]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => !x.0.is_empty()))
 }
@@ -112,15 +116,14 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] w
 
 ///|
 pub impl @shrink.Shrink for SortedArray[Int] with fn shrink(self) {
-  @shrink.shrink_sorted_array(self.0, lo=@int.MIN_VALUE, hi=@int.MAX_VALUE).map(a => {
-      SortedArray(a)
-    },
-  )
+  @shrink.Shrink::shrink(self.0)
+  .filter(a => a.is_sorted())
+  .map(a => SortedArray(a))
 }
 
 ///|
 test "SortedArray[Int] generates sorted arrays" {
-  let gen : @gen.Gen[SortedArray[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[SortedArray[Int]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.is_sorted()))
 }
@@ -156,14 +159,14 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] wi
 
 ///|
 pub impl @shrink.Shrink for SortedList[Int] with fn shrink(self) {
-  @shrink.shrink_sorted_list(self.0, lo=@int.MIN_VALUE, hi=@int.MAX_VALUE).map(l => {
-    SortedList(l)
-  })
+  @shrink.Shrink::shrink(self.0)
+  .filter(l => l.to_array().is_sorted())
+  .map(l => SortedList(l))
 }
 
 ///|
 test "SortedList[Int] generates sorted lists" {
-  let gen : @gen.Gen[SortedList[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[SortedList[Int]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.to_array().is_sorted()))
 }

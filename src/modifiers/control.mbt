@@ -1,4 +1,9 @@
 ///|
+fn[T : @coreqc.Arbitrary] arbitrary_generator() -> @coreqc.Generator[T] {
+  Generator((size, state) => T::arbitrary(size, state))
+}
+
+///|
 /// Wraps a value while hiding it from display/debug output. Generation and
 /// shrinking behave like the underlying value.
 pub(all) struct Blind[T](T) derive(Eq)
@@ -28,7 +33,7 @@ test "Blind[Int] hides debug output" {
 
 ///|
 test "Blind[Int] generates underlying values" {
-  let gen : @gen.Gen[Blind[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[Blind[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }
@@ -69,7 +74,7 @@ test "NoShrink[Int] preserves wrapper name in debug output" {
 
 ///|
 test "NoShrink[Int] generates underlying values" {
-  let gen : @gen.Gen[NoShrink[Int]] = @gen.Gen::spawn()
+  let gen : @coreqc.Generator[NoShrink[Int]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }

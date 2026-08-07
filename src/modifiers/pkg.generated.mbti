@@ -5,8 +5,8 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/list",
   "moonbitlang/core/quickcheck",
+  "moonbitlang/core/quickcheck/shrink",
   "moonbitlang/core/quickcheck/splitmix",
-  "moonbitlang/quickcheck/shrink",
 }
 
 // Values
@@ -87,4 +87,3 @@ pub impl @shrink.Shrink for UnicodeString
 // Type aliases
 
 // Traits
-

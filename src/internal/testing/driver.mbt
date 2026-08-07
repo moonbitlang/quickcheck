@@ -239,7 +239,7 @@ test "nested arrow uses fresh sample" {
   // that nested Arrow does not share the outer sample.
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.pure(0), x => @qc.Arrow((y : Int) => y == x)),
+      @qc.forall(@coreqc.pure(0), x => @qc.Arrow((y : Int) => y == x)),
       expect=Fail,
     ),
     content=(
@@ -363,11 +363,11 @@ test "label + classes" {
 
 ///|
 test "failure report is concise by default" {
-  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
     @qc.property(!out.contains(x)).counterexample(
-      "after remove: \{to_repr(out)}",
+      "after remove: \{Repr(out)}",
     )
   })
   inspect(
@@ -394,7 +394,7 @@ test "verbose failure report includes the reproduction seed" {
 
 ///|
 test "failure report renders details" {
-  let prop = @qc.forall(@gen.pure((0, [0, 0, -1])), fn(iarr) {
+  let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
     @qc.property(!out.contains(x)).counterexample(
@@ -485,7 +485,7 @@ impl Eq for Nat with fn equal(self, other) {
 }
 
 ///|
-impl @qc.Shrink for Nat
+impl @shrink.Shrink for Nat
 
 ///|
 fn add_comm_nat(ab : (Nat, Nat)) -> Bool {
@@ -578,10 +578,13 @@ test "prop remove not presence with max success" {
 test "custom generator" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.Gen::spawn(), (i_arr : (Int, Array[Int])) => {
-        let (x, arr) = i_arr
-        !remove(arr, x).contains(x)
-      }),
+      @qc.forall(
+        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+        (i_arr : (Int, Array[Int])) => {
+          let (x, arr) = i_arr
+          !remove(arr, x).contains(x)
+        },
+      ),
       expect=Fail,
     ),
     content=(
@@ -598,12 +601,15 @@ test "no_duplicate" {
 
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.Gen::spawn(), (iarr : (Int, Array[Int])) => {
-        let (x, arr) = iarr
-        @qc.property(!remove(arr.copy(), x).contains(x)).filter(
-          no_duplicate(arr),
-        )
-      }),
+      @qc.forall(
+        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+        (iarr : (Int, Array[Int])) => {
+          let (x, arr) = iarr
+          @qc.property(!remove(arr.copy(), x).contains(x)).filter(
+            no_duplicate(arr),
+          )
+        },
+      ),
       expect=GaveUp,
     ),
     content=(
@@ -616,11 +622,18 @@ test "no_duplicate" {
 test "use one_of" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.Gen::spawn(), (a : Array[Int]) => {
-        @qc.forall(@gen.one_of_array(a), (y : Int) => !remove(a, y).contains(y)).filter(
-          a.length() != 0,
-        )
-      }),
+      @qc.forall(
+        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+        (a : Array[Int]) => {
+          if a.is_empty() {
+            @qc.filter(true, false)
+          } else {
+            @qc.forall(@coreqc.elements(a), (y : Int) => {
+              !remove(a, y).contains(y)
+            })
+          }
+        },
+      ),
       expect=Fail,
     ),
     content=(
@@ -633,7 +646,10 @@ test "use one_of" {
 test "explicit universal qualification" {
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@gen.Gen::spawn(), (x : @list.List[Int]) => x.rev().rev() == x),
+      @qc.forall(
+        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+        (x : @list.List[Int]) => x.rev().rev() == x,
+      ),
     ),
     content=(
       #|+++ [100/0/100] Ok, passed!
@@ -655,14 +671,14 @@ impl @coreqc.Arbitrary for DebugOnly with fn arbitrary(size, rs) {
 }
 
 ///|
-impl @qc.Shrink for DebugOnly with fn shrink(self) {
-  @qc.Shrink::shrink(self.0).map(x => DebugOnly(x))
+impl @shrink.Shrink for DebugOnly with fn shrink(self) {
+  @shrink.Shrink::shrink(self.0).map(x => DebugOnly(x))
 }
 
 ///|
 test "forall accepts Debug-only samples" {
   inspect(
-    @qc.quick_check_silence(@qc.forall(@gen.pure(DebugOnly(1)), x => x == x)),
+    @qc.quick_check_silence(@qc.forall(@coreqc.pure(DebugOnly(1)), x => x == x)),
     content=(
       #|+++ [100/0/100] Ok, passed!
     ),

@@ -33,4 +33,3 @@ pub fn[T] removes_list(Int, Int, @list.List[T]) -> @list.List[@list.List[T]]
 // Type aliases
 
 // Traits
-
