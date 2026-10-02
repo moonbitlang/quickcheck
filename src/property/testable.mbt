@@ -53,7 +53,7 @@ pub impl Testable for @state.SingleResult with fn property(self) {
 pub impl Testable for Bool with fn property(self) {
   match self {
     true => Testable::property(@state.succeed())
-    false => Testable::property({ ..@state.failed(), reason: "Falsified." })
+    false => Testable::property({ ..@state.failed(), reason: "Falsified.", })
   }
 }
 
@@ -77,7 +77,7 @@ pub impl[P : Testable, E : Debug] Testable for Result[P, E] with fn property(
   match self {
     Ok(p) => p.property()
     Err(e) =>
-      Testable::property({ ..@state.failed(), reason: @debug.to_string(e) })
+      Testable::property({ ..@state.failed(), reason: @debug.to_string(e), })
   }
 }
 
@@ -150,7 +150,7 @@ pub fn[P : Testable] with_run_options(
   expect : Expected,
   abort : Bool,
 ) -> Property {
-  map_total_result(prop, res => { ..res, expect, abort })
+  map_total_result(prop, res => { ..res, expect, abort, })
 }
 
 ///|
@@ -197,7 +197,7 @@ pub fn[P : Testable, T] shrinking(
 ///|
 /// Attach a post-test or post-final-failure callback to `p`.
 pub fn[P : Testable] callback(p : P, cb : @state.Callback) -> Property {
-  map_total_result(p, res => { ..res, callbacks: res.callbacks.add(cb) })
+  map_total_result(p, res => { ..res, callbacks: res.callbacks.add(cb), })
 }
 
 ///|
@@ -209,7 +209,7 @@ pub fn Property::callback(self : Property, cb : @state.Callback) -> Property {
 ///|
 /// Attaches a label to a test case.
 pub fn[P : Testable] label(p : P, s : String) -> Property {
-  map_total_result(p, res => { ..res, labels: res.labels.add(s) })
+  map_total_result(p, res => { ..res, labels: res.labels.add(s), })
 }
 
 ///|
@@ -233,7 +233,7 @@ pub fn[T : Show] Property::collect(self : Property, t : T) -> Property {
 ///|
 /// Classifies a test case based on a condition.
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
-  map_total_result(p, res => { ..res, classes: res.classes.add((s, cond)) })
+  map_total_result(p, res => { ..res, classes: res.classes.add((s, cond)), })
 }
 
 ///|
@@ -246,7 +246,7 @@ pub fn Property::classify(self : Property, cond : Bool, s : String) -> Property 
 /// Adds a string to the counterexample if the property fails.
 pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
   let cb = callback(p, PostFinalFailure(CounterExample, (_st, _res) => ()))
-  map_total_result(cb, res => { ..res, test_case: res.test_case.add(s) })
+  map_total_result(cb, res => { ..res, test_case: res.test_case.add(s), })
 }
 
 ///|

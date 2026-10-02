@@ -27,7 +27,7 @@ test "Equivalence debug output is opaque" {
 /// Build an `Equivalence` asserting that `lhs` and `rhs` should be
 /// equal under whatever relation the property checker uses.
 pub fn[T] Equivalence::new(lhs : T, rhs : T) -> Equivalence[T] {
-  { lhs, rhs }
+  { lhs, rhs, }
 }
 
 ///|
@@ -38,7 +38,7 @@ pub fn[T, U] Equivalence::fmap(
   self : Equivalence[T],
   f : (T) -> U,
 ) -> Equivalence[U] {
-  { lhs: f(self.lhs), rhs: f(self.rhs) }
+  { lhs: f(self.lhs), rhs: f(self.rhs), }
 }
 
 ///|
@@ -52,7 +52,7 @@ pub fn[T, U] Equivalence::bind(
 ) -> Equivalence[U] {
   let lhs = f(self.lhs).lhs
   let rhs = f(self.rhs).rhs
-  { lhs, rhs }
+  { lhs, rhs, }
 }
 
 ///|
@@ -64,14 +64,14 @@ pub fn[T, U] Equivalence::ap(
 ) -> Equivalence[U] {
   let lhs = (self.lhs)(other.lhs)
   let rhs = (self.rhs)(other.rhs)
-  { lhs, rhs }
+  { lhs, rhs, }
 }
 
 ///|
 /// Unit of the `Equivalence` applicative: both sides are the same
 /// value `x`. Trivially equal under any relation.
 pub fn[T] pure_eq(x : T) -> Equivalence[T] {
-  { lhs: x, rhs: x }
+  { lhs: x, rhs: x, }
 }
 
 ///|

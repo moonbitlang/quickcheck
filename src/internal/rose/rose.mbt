@@ -26,7 +26,7 @@ pub struct Rose[T] {
 // TODO(upstream): as_free_fn(deprecated="Use Rose(...) directly")
 // the attribute unknown is unclear, should report `unused attribute`? 
 pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
-  { val, branch }
+  { val, branch, }
 }
 
 ///|

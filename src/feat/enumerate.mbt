@@ -34,7 +34,7 @@ fn[T] make(run : (Int) -> @ifseq.Seq[T]) -> Enumerate[T] {
       }
     }
   }
-  { run: memoized, prefix_totals: [0] }
+  { run: memoized, prefix_totals: [0], }
 }
 
 ///|

@@ -366,9 +366,7 @@ test "failure report is concise by default" {
   let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.property(!out.contains(x)).counterexample(
-      "after remove: \{Repr(out)}",
-    )
+    @qc.property(!out.contains(x)).counterexample("after remove: \{Repr(out)}")
   })
   inspect(
     @qc.quick_check_silence(prop),

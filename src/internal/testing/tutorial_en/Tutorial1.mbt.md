@@ -323,8 +323,8 @@ struct Queue {
 ///|
 fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
   match f {
-    Empty => { f: r.rev(), r: @list.empty() }
-    _ => { f, r }
+    Empty => { f: r.rev(), r: @list.empty(), }
+    _ => { f, r, }
   }
 }
 
@@ -350,7 +350,7 @@ fn Queue::front(q : Queue) -> Int {
 
 ///|
 fn Queue::dequeue(q : Queue) -> Queue {
-  let { f, r } = q
+  let { f, r, } = q
   bq(f.unsafe_tail(), r)
 }
 ```
@@ -463,14 +463,14 @@ fn from_list(xs : @list.List[Int]) -> @coreqc.Generator[Queue] {
 ///|
 fn gen_equiv_queue() -> @coreqc.Generator[@laws.Equivalence[Queue]] {
   gen_int_list().flat_map(z => {
-    from_list(z).flat_map(x => from_list(z).map(y => { lhs: x, rhs: y }))
+    from_list(z).flat_map(x => from_list(z).map(y => { lhs: x, rhs: y, }))
   })
 }
 
 ///|
 test "queue invariance" {
   let prop = @qc.forall(gen_equiv_queue(), eqv => {
-    let { lhs, rhs } = eqv
+    let { lhs, rhs, } = eqv
     guard !lhs.is_empty() else { true }
     lhs.front() == rhs.front()
   })

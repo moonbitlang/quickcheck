@@ -14,7 +14,7 @@ fn[T] make(
   get : (Index) -> T,
   foreach : (Bool, (T) -> Unit) -> Unit,
 ) -> Seq[T] {
-  { length, get, foreach }
+  { length, get, foreach, }
 }
 
 ///|
