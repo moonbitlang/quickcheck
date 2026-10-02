@@ -20,6 +20,9 @@ pub struct Rose[T] {
 } derive(Debug)
 
 ///|
+pub extend Rose with Debug::{to_repr}
+
+///|
 /// Deprecated: prefer the primary constructor `Rose(val, branch)`.
 /// Kept for backward compatibility with callers that predate the
 /// primary-constructor migration.
@@ -38,7 +41,7 @@ pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let nested : Rose[Rose[Int]] = pure(pure(42))
+///   let nested : @rose.Rose[@rose.Rose[Int]] = @rose.pure(@rose.pure(42))
 ///   @debug.assert_eq(nested.join().iter().collect(), [42])
 /// }
 /// ```
@@ -54,7 +57,7 @@ pub fn[T] Rose::join(self : Rose[Rose[T]]) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let r : Rose[String] = pure("hello")
+///   let r : @rose.Rose[String] = @rose.pure("hello")
 ///   assert_eq(r.val, "hello")
 ///   assert_eq(r.branch.collect().length(), 0)
 /// }
@@ -70,7 +73,7 @@ pub fn[T] pure(val : T) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let tree = @rose.Rose(1, [|pure(2), pure(3)|])
+///   let tree = @rose.Rose(1, [|@rose.pure(2), @rose.pure(3)|])
 ///   let doubled = tree.fmap(x => x * 2)
 ///   @debug.assert_eq(doubled.iter().collect(), [2, 4, 6])
 /// }

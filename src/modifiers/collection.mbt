@@ -4,12 +4,18 @@
 pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
 
 ///|
+pub extend NonEmptyArray with Eq::{not_equal, equal}
+
+///|
 pub impl[T : Debug] Debug for NonEmptyArray[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "NonEmptyArray",
-    @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
+    @debug.Repr::array(self.0.map(x => Repr(x))),
   )
 }
+
+///|
+pub extend NonEmptyArray with Debug::{to_repr}
 
 ///|
 pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with fn arbitrary(
@@ -21,6 +27,9 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyArray[T] with fn a
 }
 
 ///|
+pub extend NonEmptyArray with @coreqc.Arbitrary::{arbitrary}
+
+///|
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T] with fn shrink(
   self,
 ) {
@@ -28,6 +37,9 @@ pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T] with fn shrink(
   .filter(a => !a.is_empty())
   .map(a => NonEmptyArray(a))
 }
+
+///|
+pub extend NonEmptyArray with @shrink.Shrink::{shrink}
 
 ///|
 test "NonEmptyArray[Int] generates non-empty arrays" {
@@ -53,12 +65,18 @@ test "NonEmptyArray[Int] debug output keeps wrapper name" {
 pub(all) struct NonEmptyList[T](@list.List[T]) derive(Eq)
 
 ///|
+pub extend NonEmptyList with Eq::{not_equal, equal}
+
+///|
 pub impl[T : Debug] Debug for NonEmptyList[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "NonEmptyList",
-    @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
+    @debug.Repr::array(self.0.to_array().map(x => Repr(x))),
   )
 }
+
+///|
+pub extend NonEmptyList with Debug::{to_repr}
 
 ///|
 pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with fn arbitrary(
@@ -70,6 +88,9 @@ pub impl[T : @coreqc.Arbitrary] @coreqc.Arbitrary for NonEmptyList[T] with fn ar
 }
 
 ///|
+pub extend NonEmptyList with @coreqc.Arbitrary::{arbitrary}
+
+///|
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T] with fn shrink(
   self,
 ) {
@@ -77,6 +98,9 @@ pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T] with fn shrink(
   .filter(l => !l.is_empty())
   .map(l => NonEmptyList(l))
 }
+
+///|
+pub extend NonEmptyList with @shrink.Shrink::{shrink}
 
 ///|
 test "NonEmptyList[Int] generates non-empty lists" {
@@ -97,12 +121,18 @@ test "NonEmptyList[Int] shrinks without producing empty" {
 pub(all) struct SortedArray[T](Array[T]) derive(Eq)
 
 ///|
+pub extend SortedArray with Eq::{not_equal, equal}
+
+///|
 pub impl[T : Debug] Debug for SortedArray[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "SortedArray",
-    @debug.Repr::array(self.0.map(x => @debug.to_repr(x))),
+    @debug.Repr::array(self.0.map(x => Repr(x))),
   )
 }
+
+///|
+pub extend SortedArray with Debug::{to_repr}
 
 ///|
 pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] with fn arbitrary(
@@ -115,11 +145,17 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] w
 }
 
 ///|
+pub extend SortedArray with @coreqc.Arbitrary::{arbitrary}
+
+///|
 pub impl @shrink.Shrink for SortedArray[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0)
   .filter(a => a.is_sorted())
   .map(a => SortedArray(a))
 }
+
+///|
+pub extend SortedArray with @shrink.Shrink::{shrink}
 
 ///|
 test "SortedArray[Int] generates sorted arrays" {
@@ -140,12 +176,18 @@ test "SortedArray[Int] shrinks preserving sort" {
 pub(all) struct SortedList[T](@list.List[T]) derive(Eq)
 
 ///|
+pub extend SortedList with Eq::{not_equal, equal}
+
+///|
 pub impl[T : Debug] Debug for SortedList[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "SortedList",
-    @debug.Repr::array(self.0.to_array().map(x => @debug.to_repr(x))),
+    @debug.Repr::array(self.0.to_array().map(x => Repr(x))),
   )
 }
+
+///|
+pub extend SortedList with Debug::{to_repr}
 
 ///|
 pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] with fn arbitrary(
@@ -158,11 +200,17 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] wi
 }
 
 ///|
+pub extend SortedList with @coreqc.Arbitrary::{arbitrary}
+
+///|
 pub impl @shrink.Shrink for SortedList[Int] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0)
   .filter(l => l.to_array().is_sorted())
   .map(l => SortedList(l))
 }
+
+///|
+pub extend SortedList with @shrink.Shrink::{shrink}
 
 ///|
 test "SortedList[Int] generates sorted lists" {

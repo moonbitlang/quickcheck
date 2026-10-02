@@ -21,6 +21,7 @@ pub fn[T, U] Rose::bind(Self[T], (T) -> Self[U]) -> Self[U]
 pub fn[T, U] Rose::fmap(Self[T], (T) -> U) -> Self[U]
 pub fn[T] Rose::iter(Self[T]) -> Iter[T]
 pub fn[T] Rose::join(Self[Self[T]]) -> Self[T]
+pub fn[T : @debug.Debug] Rose::to_repr(Self[T]) -> @debug.Repr
 
 // Type aliases
 

@@ -24,15 +24,15 @@ This package is intentionally separate from the root package:
 ```mbt check
 ///|
 test "associative helper works on integer addition" {
-  let law = associative(Int::add)
+  let law = @laws.associative(Int::add)
   assert_eq(law((1, 2, 3)), true)
 }
 
 ///|
 test "idempotent helper works on a clamp" {
   let clamp = (x : Int) => if x < 0 { 0 } else { x }
-  assert_eq(idempotent(clamp)(-5), true)
-  assert_eq(idempotent(clamp)(7), true)
+  assert_eq(@laws.idempotent(clamp)(-5), true)
+  assert_eq(@laws.idempotent(clamp)(7), true)
 }
 ```
 
@@ -40,8 +40,8 @@ test "idempotent helper works on a clamp" {
 
 ```mbt check
 ///|
-fn succ_pred_axiom() -> Axiom[Int] {
-  Axiom::new(x => Equivalence::new(x + 1 - 1, x))
+fn succ_pred_axiom() -> @laws.Axiom[Int] {
+  @laws.Axiom::new(x => @laws.Equivalence::new(x + 1 - 1, x))
 }
 
 ///|

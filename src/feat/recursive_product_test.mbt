@@ -13,9 +13,9 @@ fn recursive_product_node(
 
 ///|
 impl Enumerable for RecursiveProductTree with fn enumerate() {
-  pay(() => {
-    singleton(Leaf) +
-    product(Enumerable::enumerate(), Enumerable::enumerate()).fmap(
+  @feat.pay(() => {
+    @feat.singleton(Leaf) +
+    @feat.product(@feat.Enumerable::enumerate(), @feat.Enumerable::enumerate()).fmap(
       recursive_product_node,
     )
   })
@@ -23,8 +23,8 @@ impl Enumerable for RecursiveProductTree with fn enumerate() {
 
 ///|
 test "minimal recursive product repro" {
-  let trees : Enumerate[RecursiveProductTree] = Enumerable::enumerate()
-  assert_eq(@ifseq.length(part(trees, 1)), 1)
+  let trees : @feat.Enumerate[RecursiveProductTree] = @feat.Enumerable::enumerate()
+  assert_eq(@ifseq.length(@feat.part(trees, 1)), 1)
   match trees[0] {
     Leaf => ()
     _ => abort("expected Leaf")

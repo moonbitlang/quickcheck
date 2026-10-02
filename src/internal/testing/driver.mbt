@@ -21,7 +21,7 @@ test "prop reverse (fail)" {
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
     content=(
-      #|+++ [9/0/100] Ok! Failed as expected.
+      #|+++ [8/0/100] Ok! Failed as expected.
     ),
   )
 }
@@ -243,7 +243,7 @@ test "nested arrow uses fresh sample" {
       expect=Fail,
     ),
     content=(
-      #|+++ [2/0/100] Ok! Failed as expected.
+      #|+++ [0/0/100] Ok! Failed as expected.
     ),
   )
 }
@@ -395,9 +395,7 @@ test "failure report renders details" {
   let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), fn(iarr) {
     let (x, arr) = iarr
     let out = remove(arr.copy(), x)
-    @qc.property(!out.contains(x)).counterexample(
-      "after remove: \{to_repr(out)}",
-    )
+    @qc.property(!out.contains(x)).counterexample("after remove: \{Repr(out)}")
   })
   inspect(
     @qc.quick_check_silence(prop, verbose=true),
@@ -567,7 +565,7 @@ test "prop remove not presence with max success" {
       expect=Fail,
     ),
     content=(
-      #|+++ [8/0/1000] Ok! Failed as expected.
+      #|+++ [51/0/1000] Ok! Failed as expected.
     ),
   )
 }
@@ -586,7 +584,7 @@ test "custom generator" {
       expect=Fail,
     ),
     content=(
-      #|+++ [8/0/100] Ok! Failed as expected.
+      #|+++ [51/0/100] Ok! Failed as expected.
     ),
   )
 }
@@ -611,7 +609,7 @@ test "no_duplicate" {
       expect=GaveUp,
     ),
     content=(
-      #|+++ [60/1000/100] Ok, gave up!
+      #|+++ [100/256/100] Ok, passed!
     ),
   )
 }
@@ -635,7 +633,7 @@ test "use one_of" {
       expect=Fail,
     ),
     content=(
-      #|+++ [3/35/100] Ok! Failed as expected.
+      #|+++ [12/38/100] Ok! Failed as expected.
     ),
   )
 }

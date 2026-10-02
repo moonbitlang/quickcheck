@@ -177,7 +177,7 @@ priv struct Forest[T] {
 impl[T : Debug] Debug for Forest[T] with fn to_repr(self) {
   @debug.Repr::opaque_(
     "Forest",
-    @debug.Repr::array(self.forest.to_array().map(x => @debug.to_repr(x))),
+    @debug.Repr::array(self.forest.to_array().map(x => Repr(x))),
   )
 }
 

@@ -4,7 +4,6 @@ import {
   "moonbitlang/core/debug",
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/core/list",
-  "moonbitlang/core/int",
 }
 
 warnings = "+unnecessary_annotation+missing_doc"

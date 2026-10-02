@@ -54,6 +54,7 @@ pub fn[A : Enumerable, B] unary((A) -> B) -> Enumerate[B]
 
 // Types and methods
 type Enumerate[T]
+pub fn[T] Enumerate::add(Self[T], Self[T]) -> Self[T]
 #alias("_[_]")
 #alias(en_index, deprecated)
 pub fn[T] Enumerate::at(Self[T], @bigint.BigInt) -> T

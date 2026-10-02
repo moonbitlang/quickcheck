@@ -1,7 +1,10 @@
 import {
-  "moonbitlang/core/debug",
   "moonbitlang/core/list",
   "moonbitlang/core/ref",
 }
+
+import {
+  "moonbitlang/core/debug",
+} for "test"
 
 warnings = "+unnecessary_annotation+missing_doc"
