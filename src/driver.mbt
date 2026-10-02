@@ -290,7 +290,7 @@ fn @state.State::find_failure(
   self : @state.State,
   rose : @rose.Rose[@state.SingleResult],
 ) -> @report.TestSuccess raise @report.TestError {
-  let sr = { ..self, num_try_shrinks: 0 }.local_min(rose)
+  let sr = { ..self, num_try_shrinks: 0, }.local_min(rose)
   self.callback_post_final_failure(sr.result)
   match rose.val.expect {
     Success | GaveUp =>
@@ -344,7 +344,7 @@ fn @state.State::local_min(
           num_shrink_final: self.num_try_shrinks,
           result: res,
         }
-      Some({ val, branch }) => {
+      Some({ val, branch, }) => {
         self.callback_post_test(val)
         match val.status {
           Failed => {

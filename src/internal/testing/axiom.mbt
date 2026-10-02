@@ -10,20 +10,20 @@ impl @shrink.Shrink for Queue
 ///|
 fn build_queue(f : @list.List[Int], r : @list.List[Int]) -> Queue {
   match f {
-    Empty => { f: r, r: @list.empty() }
-    f => { f, r }
+    Empty => { f: r, r: @list.empty(), }
+    f => { f, r, }
   }
 }
 
 ///|
 pub fn empty_queue() -> Queue {
-  { f: @list.empty(), r: @list.empty() }
+  { f: @list.empty(), r: @list.empty(), }
 }
 
 ///|
 pub fn enqueue(q : Queue, x : Int) -> Queue {
   match q {
-    { f, r } => build_queue(f, r.add(x))
+    { f, r, } => build_queue(f, r.add(x))
   }
 }
 
@@ -45,7 +45,7 @@ fn Queue::front(self : Queue) -> Int {
 
 ///|
 fn Queue::dequeue(self : Queue) -> Queue {
-  let { f, r } = self
+  let { f, r, } = self
   build_queue(f.unsafe_tail(), r)
 }
 
@@ -87,7 +87,7 @@ impl @coreqc.Arbitrary for EqQueue with fn arbitrary(i, rs) {
   let z : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
-  EqQueue({ lhs, rhs })
+  EqQueue({ lhs, rhs, })
 }
 
 ///|

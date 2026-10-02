@@ -103,7 +103,7 @@ pub(all) struct SingleResult {
 /// A `SingleResult` that reports the current input passed. Used by
 /// combinators that wrap a `Bool` into a `Testable`.
 pub fn succeed() -> SingleResult {
-  { ..Default::default(), status: Passed }
+  { ..Default::default(), status: Passed, }
 }
 
 ///|
@@ -111,7 +111,7 @@ pub fn succeed() -> SingleResult {
 /// `reason` / `test_case` / `labels` can be filled in by chaining
 /// further combinators before handing it to the driver.
 pub fn failed() -> SingleResult {
-  { ..Default::default(), status: Failed }
+  { ..Default::default(), status: Failed, }
 }
 
 ///|
@@ -119,7 +119,7 @@ pub fn failed() -> SingleResult {
 /// should skip it and try another. Produced by `filter` when its
 /// precondition fails.
 pub fn rejected() -> SingleResult {
-  { ..Default::default(), status: Rejected }
+  { ..Default::default(), status: Rejected, }
 }
 
 ///|
@@ -255,7 +255,7 @@ pub fn from_config(cfg : Config) -> State {
 /// before a step that may need to be rolled back on discard /
 /// failure.
 pub fn State::clone(self : State) -> State {
-  { ..self }
+  { ..self, }
 }
 
 ///|
@@ -272,7 +272,7 @@ pub fn State::compute_size(self : State) -> Int {
       max_discarded_ratio_: mdr,
       num_success_tests: n,
       num_recent_discarded_tests: d,
-      ..,
+      ..
     } => {
       let dDenom = if mdr > 0 {
         (mss * mdr / 3).clamp(min=1, max=10)
