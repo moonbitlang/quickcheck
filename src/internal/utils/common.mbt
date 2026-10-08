@@ -40,7 +40,7 @@ pub fn fresh_name() -> String {
 /// test {
 ///   let xs = @list.List([1, 2, 3, 4, 5, 6])
 ///   debug_inspect(
-///     removes_list(2, 6, xs),
+///     @utils.removes_list(2, 6, xs),
 ///     content=(
 ///       #|<List: [<List: [3, 4, 5, 6]>, <List: [1, 2, 5, 6]>]>
 ///     ),
@@ -73,7 +73,7 @@ pub fn[T] removes_list(
 ///
 /// ```mbt check
 /// test {
-///   @debug.assert_eq(removes_array(2, 6, [1, 2, 3, 4, 5, 6]), [
+///   @debug.assert_eq(@utils.removes_array(2, 6, [1, 2, 3, 4, 5, 6]), [
 ///     [3, 4, 5, 6],
 ///     [1, 2, 5, 6],
 ///   ])
@@ -108,7 +108,7 @@ pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
 /// ```mbt check
 /// test {
 ///   debug_inspect(
-///     apply_while_list(16, z => z / 2, z => z > 0),
+///     @utils.apply_while_list(16, z => z / 2, z => z > 0),
 ///     content=(
 ///       #|<List: [1, 2, 4, 8]>
 ///     ),
@@ -136,7 +136,9 @@ pub fn[T] apply_while_list(
 ///
 /// ```mbt check
 /// test {
-///   @debug.assert_eq(apply_while_array(16, z => z / 2, z => z > 0), [1, 2, 4, 8])
+///   @debug.assert_eq(@utils.apply_while_array(16, z => z / 2, z => z > 0), [
+///     1, 2, 4, 8,
+///   ])
 /// }
 /// ```
 pub fn[T] apply_while_array(
@@ -167,7 +169,7 @@ pub fn[T] id(x : T) -> T = "%identity"
 ///
 /// ```mbt check
 /// test {
-///   let always_seven : (Int) -> Int = const_(7)
+///   let always_seven : (Int) -> Int = @utils.const_(7)
 ///   assert_eq(always_seven(0), 7)
 ///   assert_eq(always_seven(999), 7)
 /// }
@@ -193,7 +195,7 @@ pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
 /// test {
 ///   let sub = (a : Int, b : Int) => a - b
 ///   assert_eq(sub(3, 10), -7)
-///   assert_eq(flip(sub)(3, 10), 7)
+///   assert_eq(@utils.flip(sub)(3, 10), 7)
 /// }
 /// ```
 pub fn[M, N, Z] flip(f : (M, N) -> Z) -> (N, M) -> Z {

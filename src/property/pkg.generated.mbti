@@ -41,14 +41,18 @@ pub fn[P : Testable] with_run_options(P, @state.Expected, Bool) -> Property
 
 // Types and methods
 pub(all) struct Arrow[A, B]((A) -> B)
+pub fn[P : Testable, A : @quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] Arrow::property(Self[A, P]) -> Property
 pub impl[P : Testable, A : @quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] Testable for Arrow[A, P]
 
 pub(all) struct ArrowAsync[A, B](async (A) -> B)
 
 pub(all) struct ArrowError[A, B]((A) -> B raise)
+pub fn[P : Testable, A : @quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] ArrowError::property(Self[A, P]) -> Property
 pub impl[P : Testable, A : @quickcheck.Arbitrary + @shrink.Shrink + @debug.Debug] Testable for ArrowError[A, P]
 
 type Discard derive(Default)
+pub fn Discard::default() -> Self
+pub fn Discard::property(Self) -> Property
 pub impl Testable for Discard
 
 type Property
@@ -60,6 +64,7 @@ pub fn Property::filter(Self, Bool) -> Self
 pub fn Property::if_fail(Self, () -> Unit) -> Self
 pub fn Property::label(Self, String) -> Self
 pub fn Property::map_size(Self, (Int) -> Int) -> Self
+pub fn Property::property(Self) -> Self
 pub fn Property::run(Self, Int, @splitmix.RandomState) -> @rose.Rose[@state.SingleResult]
 pub impl Testable for Property
 

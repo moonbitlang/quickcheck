@@ -30,14 +30,23 @@ pub(open) trait Testable {
 struct Discard {} derive(Default)
 
 ///|
+pub extend Discard with Default::{default}
+
+///|
 pub impl Testable for Property with fn property(self) {
   self
 }
 
 ///|
+pub extend Property with Testable::{property}
+
+///|
 pub impl Testable for Discard with fn property(_self) {
   Testable::property(@state.rejected())
 }
+
+///|
+pub extend Discard with Testable::{property}
 
 ///|
 pub impl Testable for Unit with fn property(_self) {
@@ -93,6 +102,9 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
 }
 
 ///|
+pub extend Arrow with Testable::{property}
+
+///|
 /// `Testable` for a raising function: wraps `raise` as a failure by
 /// catching the error and turning it into the counter-example reason.
 pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable for ArrowError[
@@ -113,6 +125,9 @@ pub impl[P : Testable, A : @coreqc.Arbitrary + @shrink.Shrink + Debug] Testable 
     }
   })
 }
+
+///|
+pub extend ArrowError with Testable::{property}
 
 ///|
 /// Project a `Testable` to its underlying `@coreqc.Generator[Rose[SingleResult]]`.

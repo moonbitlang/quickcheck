@@ -5,6 +5,9 @@ struct Queue {
 } derive(Debug)
 
 ///|
+pub extend Queue with Debug::{to_repr}
+
+///|
 impl @shrink.Shrink for Queue
 
 ///|

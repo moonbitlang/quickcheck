@@ -11,9 +11,12 @@ pub(all) struct Equivalence[T] {
 pub impl[T : Debug] Debug for Equivalence[T] with fn to_repr(self) {
   Repr::opaque_(
     "Equivalence",
-    Repr::record({ "lhs": to_repr(self.lhs), "rhs": to_repr(self.rhs) }),
+    Repr::record({ "lhs": Repr(self.lhs), "rhs": Repr(self.rhs) }),
   )
 }
+
+///|
+pub extend Equivalence with Debug::{to_repr}
 
 ///|
 test "Equivalence debug output is opaque" {

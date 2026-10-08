@@ -7,7 +7,6 @@ import {
   "moonbitlang/core/quickcheck/splitmix",
   "moonbitlang/core/list",
   "moonbitlang/core/immut/sorted_set",
-  "moonbitlang/core/debug",
 } for "test"
 
 warnings = "-28"

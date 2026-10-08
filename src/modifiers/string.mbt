@@ -33,14 +33,23 @@ fn arbitrary_unicode_char(rs : @splitmix.RandomState) -> Char {
 pub(all) struct ASCIIString(String) derive(Eq)
 
 ///|
+pub extend ASCIIString with Eq::{not_equal, equal}
+
+///|
 pub impl Debug for ASCIIString with fn to_repr(self) {
   @debug.Repr::string(self.0)
 }
 
 ///|
+pub extend ASCIIString with Debug::{to_repr}
+
+///|
 pub impl @coreqc.Arbitrary for ASCIIString with fn arbitrary(size, rs) {
   ASCIIString(string_with(size, rs, arbitrary_ascii_char))
 }
+
+///|
+pub extend ASCIIString with @coreqc.Arbitrary::{arbitrary}
 
 ///|
 pub impl @shrink.Shrink for ASCIIString with fn shrink(self) {
@@ -50,9 +59,15 @@ pub impl @shrink.Shrink for ASCIIString with fn shrink(self) {
 }
 
 ///|
+pub extend ASCIIString with @shrink.Shrink::{shrink}
+
+///|
 /// Wraps a `String` whose characters are Unicode scalar values. The generated
 /// string never contains UTF-16 surrogate codepoints.
 pub(all) struct UnicodeString(String) derive(Eq)
+
+///|
+pub extend UnicodeString with Eq::{not_equal, equal}
 
 ///|
 pub impl Debug for UnicodeString with fn to_repr(self) {
@@ -60,9 +75,15 @@ pub impl Debug for UnicodeString with fn to_repr(self) {
 }
 
 ///|
+pub extend UnicodeString with Debug::{to_repr}
+
+///|
 pub impl @coreqc.Arbitrary for UnicodeString with fn arbitrary(size, rs) {
   UnicodeString(string_with(size, rs, arbitrary_unicode_char))
 }
+
+///|
+pub extend UnicodeString with @coreqc.Arbitrary::{arbitrary}
 
 ///|
 pub impl @shrink.Shrink for UnicodeString with fn shrink(self) {
@@ -72,15 +93,24 @@ pub impl @shrink.Shrink for UnicodeString with fn shrink(self) {
 }
 
 ///|
+pub extend UnicodeString with @shrink.Shrink::{shrink}
+
+///|
 /// Wraps a printable Unicode `String`, corresponding to Haskell
 /// QuickCheck's printable string modifier under the MoonBit name
 /// `PrintableString`.
 pub(all) struct PrintableString(String) derive(Eq)
 
 ///|
+pub extend PrintableString with Eq::{not_equal, equal}
+
+///|
 pub impl Debug for PrintableString with fn to_repr(self) {
   @debug.Repr::string(self.0)
 }
+
+///|
+pub extend PrintableString with Debug::{to_repr}
 
 ///|
 pub impl @coreqc.Arbitrary for PrintableString with fn arbitrary(size, rs) {
@@ -92,11 +122,17 @@ pub impl @coreqc.Arbitrary for PrintableString with fn arbitrary(size, rs) {
 }
 
 ///|
+pub extend PrintableString with @coreqc.Arbitrary::{arbitrary}
+
+///|
 pub impl @shrink.Shrink for PrintableString with fn shrink(self) {
   @shrink.Shrink::shrink(self.0.to_array())
   .filter(chars => chars.all(c => c.is_printable()))
   .map(chars => PrintableString(String::from_array(chars)))
 }
+
+///|
+pub extend PrintableString with @shrink.Shrink::{shrink}
 
 ///|
 fn is_ascii_char(c : Char) -> Bool {

@@ -30,7 +30,7 @@ Let us start with the simplest case. For integers, default shrinking does not bl
 ```mbt check
 ///|
 test "shrink int sample" {
-  json_inspect(@shrink.Shrink::shrink(100), content=[99, 97, 94, 88, 75, 50, 0])
+  json_inspect(@shrink.Shrink::shrink(100), content=[50, 75, 88, 94, 97, 99, 0])
 }
 ```
 
@@ -49,7 +49,7 @@ fn remove_first_only(arr : Array[Int], x : Int) -> Array[Int] {
 ///|
 fn prop_remove_all(iarr : (Int, Array[Int])) -> Bool {
   let (x, arr) = iarr
-  !remove_first_only(arr, x).contains(x)
+  !remove_first_only(arr.copy(), x).contains(x)
 }
 
 ///|
@@ -58,11 +58,29 @@ test "default shrink for tuple and array" {
   inspect(
     x,
     content=(
-      #|*** [8/0/100] Failed! Falsified.
+      #|*** [51/0/100] Failed! Falsified.
       #|Seed: 37
       #|Counterexample:
-      #|(0, [0, 0])
-      #|Shrinks: 1 successful, 1 unsuccessful, 1 final attempts
+      #|(
+      #|  2147483647,
+      #|  [
+      #|    2147483647,
+      #|    1,
+      #|    16777216,
+      #|    -2147483647,
+      #|    0,
+      #|    -2048,
+      #|    -2147483647,
+      #|    2147483647,
+      #|    2090128758,
+      #|    2,
+      #|    2,
+      #|    1,
+      #|    100000000,
+      #|    131096085,
+      #|  ],
+      #|)
+      #|Shrinks: 5 successful, 93 unsuccessful, 2 final attempts
     ),
   )
 }
@@ -125,7 +143,7 @@ test "shrinking starts from explicit value" {
     content=(
       #|*** [0/0/100] Failed! Falsified.
       #|Seed: 37
-      #|Shrinks: 11 successful, 0 unsuccessful, 1 final attempts
+      #|Shrinks: 3 successful, 1 unsuccessful, 1 final attempts
     ),
   )
 }
@@ -194,7 +212,7 @@ test "shrink sorted array" {
   debug_inspect(
     [..s],
     content=(
-      #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 4], [1, 3, 3]]
+      #|[[3, 5], [1, 5], [1, 3], [0, 3, 5], [1, 2, 5], [1, 3, 3], [1, 3, 4]]
     ),
   )
 }
@@ -217,7 +235,7 @@ test "forall_shrink for sorted array" {
       #|Seed: 37
       #|Counterexample:
       #|[0, 0, 0]
-      #|Shrinks: 10 successful, 14 unsuccessful, 2 final attempts
+      #|Shrinks: 13 successful, 20 unsuccessful, 2 final attempts
     ),
   )
 }
@@ -241,9 +259,7 @@ test "counterexample adds derived information" {
   let prop = @qc.forall(@coreqc.pure((0, [0, 0, -1])), iarr => {
     let (x, arr) = iarr
     let out = remove_first_only(arr.copy(), x)
-    @qc.property(!out.contains(x)).counterexample(
-      "after remove: \{to_repr(out)}",
-    )
+    @qc.property(!out.contains(x)).counterexample("after remove: \{Repr(out)}")
   })
   let r = @qc.quick_check_silence(prop, verbose=true)
   inspect(

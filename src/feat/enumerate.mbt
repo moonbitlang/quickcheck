@@ -87,6 +87,9 @@ pub impl[T] Add for Enumerate[T] with fn add(self, other) {
 }
 
 ///|
+pub extend Enumerate with Add::{add}
+
+///|
 /// Existential choice over a finite list: union all enumerations from `xs`.
 pub fn[A, B] exists(
   xs : @list.List[A],

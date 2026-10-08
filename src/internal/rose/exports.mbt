@@ -10,7 +10,7 @@
 ///
 /// ```mbt check
 /// test {
-///   let r = pure(3).bind(x => pure(x * x))
+///   let r = @rose.pure(3).bind(x => @rose.pure(x * x))
 ///   @debug.assert_eq(r.iter().collect(), [9])
 /// }
 /// ```

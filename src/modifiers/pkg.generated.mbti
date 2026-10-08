@@ -15,71 +15,141 @@ import {
 
 // Types and methods
 pub(all) struct ASCIIString(String) derive(Eq)
+pub fn ASCIIString::arbitrary(Int, @splitmix.RandomState) -> Self
+pub fn ASCIIString::equal(Self, Self) -> Bool
+pub fn ASCIIString::not_equal(Self, Self) -> Bool
+pub fn ASCIIString::shrink(Self) -> Iter[Self]
+pub fn ASCIIString::to_repr(Self) -> @debug.Repr
 pub impl @debug.Debug for ASCIIString
 pub impl @quickcheck.Arbitrary for ASCIIString
 pub impl @shrink.Shrink for ASCIIString
 
 pub(all) struct Blind[T](T) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary] Blind::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] Blind::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] Blind::not_equal(Self[T], Self[T]) -> Bool
+pub fn[T : @shrink.Shrink] Blind::shrink(Self[T]) -> Iter[Self[T]]
+pub fn[T] Blind::to_repr(Self[T]) -> @debug.Repr
 pub impl[T] @debug.Debug for Blind[T]
 pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for Blind[T]
 pub impl[T : @shrink.Shrink] @shrink.Shrink for Blind[T]
 
 pub(all) struct Negative[T](T) derive(Eq)
+pub fn Negative::arbitrary(Int, @splitmix.RandomState) -> Self[Int]
+pub fn[T : Eq] Negative::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] Negative::not_equal(Self[T], Self[T]) -> Bool
+pub fn Negative::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] Negative::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for Negative[T]
 pub impl @quickcheck.Arbitrary for Negative[Int]
 pub impl @shrink.Shrink for Negative[Int]
 
 pub(all) struct NoShrink[T](T) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary] NoShrink::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] NoShrink::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] NoShrink::not_equal(Self[T], Self[T]) -> Bool
+pub fn[T] NoShrink::shrink(Self[T]) -> Iter[Self[T]]
+pub fn[T : @debug.Debug] NoShrink::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for NoShrink[T]
 pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NoShrink[T]
 pub impl[T] @shrink.Shrink for NoShrink[T]
 
 pub(all) struct NonEmptyArray[T](Array[T]) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary] NonEmptyArray::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] NonEmptyArray::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] NonEmptyArray::not_equal(Self[T], Self[T]) -> Bool
+pub fn[T : @shrink.Shrink] NonEmptyArray::shrink(Self[T]) -> Iter[Self[T]]
+pub fn[T : @debug.Debug] NonEmptyArray::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for NonEmptyArray[T]
 pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NonEmptyArray[T]
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyArray[T]
 
 pub(all) struct NonEmptyList[T](@list.List[T]) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary] NonEmptyList::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] NonEmptyList::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] NonEmptyList::not_equal(Self[T], Self[T]) -> Bool
+pub fn[T : @shrink.Shrink] NonEmptyList::shrink(Self[T]) -> Iter[Self[T]]
+pub fn[T : @debug.Debug] NonEmptyList::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for NonEmptyList[T]
 pub impl[T : @quickcheck.Arbitrary] @quickcheck.Arbitrary for NonEmptyList[T]
 pub impl[T : @shrink.Shrink] @shrink.Shrink for NonEmptyList[T]
 
 pub(all) struct NonNegative[T](T) derive(Eq)
+pub fn NonNegative::arbitrary(Int, @splitmix.RandomState) -> Self[Int]
+pub fn[T : Eq] NonNegative::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] NonNegative::not_equal(Self[T], Self[T]) -> Bool
+pub fn NonNegative::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] NonNegative::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for NonNegative[T]
 pub impl @quickcheck.Arbitrary for NonNegative[Int]
 pub impl @shrink.Shrink for NonNegative[Int]
 
 pub(all) struct NonZero[T](T) derive(Eq)
+pub fn NonZero::arbitrary(Int, @splitmix.RandomState) -> Self[Int]
+pub fn[T : Eq] NonZero::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] NonZero::not_equal(Self[T], Self[T]) -> Bool
+pub fn NonZero::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] NonZero::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for NonZero[T]
 pub impl @quickcheck.Arbitrary for NonZero[Int]
 pub impl @shrink.Shrink for NonZero[Int]
 
 pub(all) struct Positive[T](T) derive(Eq)
+pub fn Positive::arbitrary(Int, @splitmix.RandomState) -> Self[Int]
+pub fn[T : Eq] Positive::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] Positive::not_equal(Self[T], Self[T]) -> Bool
+pub fn Positive::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] Positive::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for Positive[T]
 pub impl @quickcheck.Arbitrary for Positive[Int]
 pub impl @shrink.Shrink for Positive[Int]
 
 pub(all) struct PrintableString(String) derive(Eq)
+pub fn PrintableString::arbitrary(Int, @splitmix.RandomState) -> Self
+pub fn PrintableString::equal(Self, Self) -> Bool
+pub fn PrintableString::not_equal(Self, Self) -> Bool
+pub fn PrintableString::shrink(Self) -> Iter[Self]
+pub fn PrintableString::to_repr(Self) -> @debug.Repr
 pub impl @debug.Debug for PrintableString
 pub impl @quickcheck.Arbitrary for PrintableString
 pub impl @shrink.Shrink for PrintableString
 
 pub(all) struct Small[T](T) derive(Eq)
+pub fn Small::arbitrary(Int, @splitmix.RandomState) -> Self[Int]
+pub fn[T : Eq] Small::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] Small::not_equal(Self[T], Self[T]) -> Bool
+pub fn Small::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] Small::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for Small[T]
 pub impl @quickcheck.Arbitrary for Small[Int]
 pub impl @shrink.Shrink for Small[Int]
 
 pub(all) struct SortedArray[T](Array[T]) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary + Compare] SortedArray::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] SortedArray::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] SortedArray::not_equal(Self[T], Self[T]) -> Bool
+pub fn SortedArray::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] SortedArray::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for SortedArray[T]
 pub impl[T : @quickcheck.Arbitrary + Compare] @quickcheck.Arbitrary for SortedArray[T]
 pub impl @shrink.Shrink for SortedArray[Int]
 
 pub(all) struct SortedList[T](@list.List[T]) derive(Eq)
+pub fn[T : @quickcheck.Arbitrary + Compare] SortedList::arbitrary(Int, @splitmix.RandomState) -> Self[T]
+pub fn[T : Eq] SortedList::equal(Self[T], Self[T]) -> Bool
+pub fn[T : Eq] SortedList::not_equal(Self[T], Self[T]) -> Bool
+pub fn SortedList::shrink(Self[Int]) -> Iter[Self[Int]]
+pub fn[T : @debug.Debug] SortedList::to_repr(Self[T]) -> @debug.Repr
 pub impl[T : @debug.Debug] @debug.Debug for SortedList[T]
 pub impl[T : @quickcheck.Arbitrary + Compare] @quickcheck.Arbitrary for SortedList[T]
 pub impl @shrink.Shrink for SortedList[Int]
 
 pub(all) struct UnicodeString(String) derive(Eq)
+pub fn UnicodeString::arbitrary(Int, @splitmix.RandomState) -> Self
+pub fn UnicodeString::equal(Self, Self) -> Bool
+pub fn UnicodeString::not_equal(Self, Self) -> Bool
+pub fn UnicodeString::shrink(Self) -> Iter[Self]
+pub fn UnicodeString::to_repr(Self) -> @debug.Repr
 pub impl @debug.Debug for UnicodeString
 pub impl @quickcheck.Arbitrary for UnicodeString
 pub impl @shrink.Shrink for UnicodeString
