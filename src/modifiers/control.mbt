@@ -45,7 +45,7 @@ test "Blind[Int] hides debug output" {
 
 ///|
 test "Blind[Int] generates underlying values" {
-  let gen : @coreqc.Generator[Blind[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[Blind[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }
@@ -98,7 +98,7 @@ test "NoShrink[Int] preserves wrapper name in debug output" {
 
 ///|
 test "NoShrink[Int] generates underlying values" {
-  let gen : @coreqc.Generator[NoShrink[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[NoShrink[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }

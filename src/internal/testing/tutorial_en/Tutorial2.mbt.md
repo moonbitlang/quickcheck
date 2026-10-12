@@ -73,7 +73,7 @@ test "gen spawn for arbitrary" {
   let gc : @coreqc.Generator[Color] = Generator((size, state) => {
     @coreqc.Arbitrary::arbitrary(size, state)
   })
-  let gen : @coreqc.Generator[Int] = Generator((size, state) => {
+  let gen : @coreqc.Generator[Int32] = Generator((size, state) => {
     @coreqc.Arbitrary::arbitrary(size, state)
   })
   debug_inspect(
@@ -127,7 +127,7 @@ test "gen array_with_size" {
 ///|
 test "gen array_with_size + map sample" {
   let gen = @coreqc.int_range('a', 'f')
-    .map(Int::unsafe_to_char)
+    .map(Int32::unsafe_to_char)
     .array_with_size(3)
     .map(xs => @list.List(xs))
   json_inspect(gen.sample(), content=["b", "e", "a"])
@@ -413,8 +413,8 @@ At this point we have range constraints, distribution control, and size control.
 ```mbt check
 ///|
 test "combinator sorted array with filter" {
-  fn is_non_decreasing(xs : Array[Int]) -> Bool {
-    fn go(i : Int) -> Bool {
+  fn is_non_decreasing(xs : Array[Int32]) -> Bool {
+    fn go(i : Int32) -> Bool {
       if i + 1 >= xs.length() {
         true
       } else {
@@ -471,7 +471,7 @@ QuickCheck’s `Gen` has an implicit `size` parameter: as the number of tests in
 ```mbt check
 ///|
 fn[T] _gen_t() -> @coreqc.Generator[T] {
-  letrec go = (s : Int) => {
+  letrec go = (s : Int32) => {
     match s {
       0 => ... // base case
       _n => ... // recursive case, can call go(n - 1) for smaller substructures
@@ -565,8 +565,8 @@ The next approach is **range-based recursive generation**, where we grow the tre
 
 ```mbt check
 ///|
-fn gen_bst_ranged(min : Int, max : Int) -> @coreqc.Generator[Tree[Int]] {
-  fn go(n : Int, lo : Int, hi : Int) {
+fn gen_bst_ranged(min : Int32, max : Int32) -> @coreqc.Generator[Tree[Int32]] {
+  fn go(n : Int32, lo : Int32, hi : Int32) {
     guard lo <= hi && n > 0 else { @coreqc.pure(Leaf) }
     @coreqc.frequency([
       (1, @coreqc.pure(Leaf)),

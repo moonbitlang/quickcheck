@@ -38,7 +38,7 @@ fn[T] find_min_failing(rose : @rose.Rose[T], fails : (T) -> Bool) -> T? {
 
 ///|
 /// Halving shrink tree: a single child per node, halving towards 0.
-fn halve_tree(x : Int) -> @rose.Rose[Int] {
+fn halve_tree(x : Int32) -> @rose.Rose[Int32] {
   if x == 0 {
     @rose.pure(0)
   } else {

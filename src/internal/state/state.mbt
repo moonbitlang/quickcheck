@@ -87,10 +87,10 @@ pub(all) struct SingleResult {
   expect : Expected
   reason : String
   abort : Bool
-  maybe_num_tests : Int?
-  maybe_discarded_ratio : Int?
-  maybe_max_shrinks : Int?
-  maybe_max_test_size : Int?
+  maybe_num_tests : Int32?
+  maybe_discarded_ratio : Int32?
+  maybe_max_shrinks : Int32?
+  maybe_max_test_size : Int32?
   labels : @list.List[String]
   classes : @list.List[(String, Bool)]
   tables : @list.List[(String, String)]
@@ -133,12 +133,12 @@ impl Default for SingleResult with fn default() {
     maybe_discarded_ratio: None,
     maybe_max_shrinks: None,
     maybe_max_test_size: None,
-    labels: @list.empty(),
-    classes: @list.empty(),
-    tables: @list.empty(),
-    test_case: @list.empty(),
+    labels: List([]),
+    classes: List([]),
+    tables: List([]),
+    test_case: List([]),
     error: None,
-    callbacks: @list.empty(),
+    callbacks: List([]),
   }
 }
 
@@ -157,10 +157,10 @@ impl Default for SingleResult with fn default() {
 /// - `max_shrinks`: cap on the total shrink attempts after a failure.
 /// - `seed`: initial seed used to construct the deterministic random state.
 pub(all) struct Config {
-  max_success : Int
-  max_discard_ratio : Int
-  max_size : Int
-  max_shrinks : Int
+  max_success : Int32
+  max_discard_ratio : Int32
+  max_size : Int32
+  max_shrinks : Int32
   seed : UInt64
 }
 
@@ -192,22 +192,22 @@ pub(all) struct State {
   // Name of the test
   name : String
   // Top bound of test size (immutable, the argument of the Gen)
-  mut max_test_size_ : Int
+  mut max_test_size_ : Int32
   // Maximum number of successful tests (immutable)
-  mut max_success_tests_ : Int
+  mut max_success_tests_ : Int32
   // Maximum ratio of discarded tests (immutable)
   // For instance if max_success_tests is 100 and max_discarded_ratio is 0.1
   // then the maximum number of discarded tests is 10
-  mut max_discarded_ratio_ : Int
+  mut max_discarded_ratio_ : Int32
   // Maximum number of shrinks (immutable)
-  mut max_shrinks_ : Int
+  mut max_shrinks_ : Int32
 
   // Number of tests that have succeeded (mutable)
-  num_success_tests : Int
+  num_success_tests : Int32
   // Number of tests that have been discarded (mutable, total)
-  num_discarded_tests : Int
+  num_discarded_tests : Int32
   // Since last successful test, number of discarded tests (mutable)
-  num_recent_discarded_tests : Int
+  num_recent_discarded_tests : Int32
 
   // Note that Map provides inner mutability hence we don't need to use mut tag.
 
@@ -219,11 +219,11 @@ pub(all) struct State {
   // Current random state
   mut random_state : @splitmix.RandomState
   // Number of successful shrinks
-  mut num_success_shrinks : Int
+  mut num_success_shrinks : Int32
   // Number of shrinks tried since last successful shrink
-  mut num_try_shrinks : Int
+  mut num_try_shrinks : Int32
   // Number of shrinks failed (total)
-  mut num_to_try_shrinks : Int
+  mut num_to_try_shrinks : Int32
 }
 
 ///|
@@ -243,7 +243,7 @@ pub fn from_config(cfg : Config) -> State {
     collects: Coverage::new(),
     expected: Success,
     seed: cfg.seed,
-    random_state: @splitmix.new(seed=cfg.seed),
+    random_state: RandomState(seed=cfg.seed),
     num_success_shrinks: 0,
     num_try_shrinks: 0,
     num_to_try_shrinks: 0,
@@ -264,7 +264,7 @@ pub fn State::clone(self : State) -> State {
 /// inputs are larger) while staying bounded by `max_test_size_`, and
 /// nudges up for every recently-discarded case so discards don't
 /// stall at a trivial size.
-pub fn State::compute_size(self : State) -> Int {
+pub fn State::compute_size(self : State) -> Int32 {
   match self {
     {
       max_success_tests_: mss,

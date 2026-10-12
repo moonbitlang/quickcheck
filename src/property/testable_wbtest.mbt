@@ -4,7 +4,7 @@ priv suberror RaisedForTest {
 }
 
 ///|
-fn raise_for_test(_ : Int) -> Bool raise {
+fn raise_for_test(_ : Int32) -> Bool raise {
   raise RaisedForTest
 }
 

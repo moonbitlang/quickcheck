@@ -40,14 +40,14 @@ Now consider a more realistic example. Suppose we write a broken removal functio
 
 ```mbt check
 ///|
-fn remove_first_only(arr : Array[Int], x : Int) -> Array[Int] {
+fn remove_first_only(arr : Array[Int32], x : Int32) -> Array[Int32] {
   guard arr.search(x) is Some(i) else { arr }
   arr.remove(i) |> ignore
   arr
 }
 
 ///|
-fn prop_remove_all(iarr : (Int, Array[Int])) -> Bool {
+fn prop_remove_all(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   !remove_first_only(arr.copy(), x).contains(x)
 }
@@ -116,7 +116,7 @@ Here is a simple example. Suppose the input domain is "non-negative even integer
 
 ```mbt check
 ///|
-fn shrink_even_nat(x : Int) -> Iter[Int] {
+fn shrink_even_nat(x : Int32) -> Iter[Int32] {
   @shrink.Shrink::shrink(x).filter(y => y >= 0 && y % 2 == 0)
 }
 
@@ -288,14 +288,14 @@ QuickCheck provides three common tools for inspecting sampled data: `label`, `cl
 
 ```mbt check
 ///|
-fn t3_prop_rev_list(xs : @list.List[Int]) -> Bool {
+fn t3_prop_rev_list(xs : @list.List[Int32]) -> Bool {
   xs.rev().rev() == xs
 }
 
 ///|
 test "classify list distribution" {
   let r = @qc.quick_check_silence(
-    @qc.Arrow((xs : @list.List[Int]) => {
+    @qc.Arrow((xs : @list.List[Int32]) => {
       @qc.property(t3_prop_rev_list(xs))
       .classify(xs.length() > 5, "long list")
       .classify(xs.length() <= 5, "short list")
@@ -328,7 +328,7 @@ Consider a mild example. Suppose we only want to test non-empty lists, so we add
 ```mbt check
 ///|
 test "discard on non-empty lists" {
-  let prop_non_empty = (xs : @list.List[Int]) => {
+  let prop_non_empty = (xs : @list.List[Int32]) => {
     @qc.property(!xs.is_empty()).filter(!xs.is_empty())
   }
   inspect(
@@ -347,7 +347,7 @@ In the extreme case, the test may give up entirely:
 ```mbt check
 ///|
 test "reject all gives up" {
-  let prop_reject = (_x : Int) => @qc.property(true).filter(false)
+  let prop_reject = (_x : Int32) => @qc.property(true).filter(false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content=(
@@ -382,7 +382,7 @@ The constraint here is not `Arbitrary + Shrink`, but `Enumerable`. SmallCheck is
 ///|
 test "small check fails on first non-zero int" {
   let r = @feat.small_check_silence(
-    (x : Int) => x == 0,
+    (x : Int32) => x == 0,
     max_size=5,
     verbose=true,
   )

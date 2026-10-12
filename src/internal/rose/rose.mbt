@@ -41,7 +41,7 @@ pub fn[T] Rose::Rose(val : T, branch : Iter[Rose[T]]) -> Rose[T] {
 ///
 /// ```mbt check
 /// test {
-///   let nested : @rose.Rose[@rose.Rose[Int]] = @rose.pure(@rose.pure(42))
+///   let nested : @rose.Rose[@rose.Rose[Int32]] = @rose.pure(@rose.pure(42))
 ///   @debug.assert_eq(nested.join().iter().collect(), [42])
 /// }
 /// ```
@@ -126,9 +126,9 @@ test "iter is lazy over an infinite-width tree" {
 /// `Rose::iter` were not lazy, building spine(0) or calling .iter() on
 /// it would non-terminate.
 test "iter is lazy over an infinite-depth spine" {
-  fn spine(n : Int) -> Rose[Int] {
+  fn spine(n : Int32) -> Rose[Int32] {
     let mut pulled = false
-    let branch : Iter[Rose[Int]] = Iter::new() <| () => {
+    let branch : Iter[Rose[Int32]] = Iter::new() <| () => {
       if pulled {
         None
       } else {

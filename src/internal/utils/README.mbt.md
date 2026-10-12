@@ -37,14 +37,14 @@ surface area of the main library.
 ```mbt check
 ///|
 test "const_ ignores the second argument" {
-  let always_7 : (String) -> Int = @utils.const_(7)
+  let always_7 : (String) -> Int32 = @utils.const_(7)
   assert_eq(always_7("whatever"), 7)
   assert_eq(always_7("anything"), 7)
 }
 
 ///|
 test "flip swaps argument order" {
-  let sub = (x : Int, y : Int) => x - y
+  let sub = (x : Int32, y : Int32) => x - y
   let rsub = @utils.flip(sub)
   assert_eq(sub(10, 3), 7)
   assert_eq(rsub(10, 3), -7)

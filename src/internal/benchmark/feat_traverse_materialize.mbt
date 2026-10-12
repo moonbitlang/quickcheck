@@ -1,10 +1,10 @@
 ///|
-fn byte_pair_score(pair : (Byte, Byte)) -> Int {
+fn byte_pair_score(pair : (Byte, Byte)) -> Int32 {
   pair.0.to_int() + pair.1.to_int()
 }
 
 ///|
-fn byte_triple_score(triple : (Byte, (Byte, Byte))) -> Int {
+fn byte_triple_score(triple : (Byte, (Byte, Byte))) -> Int32 {
   triple.0.to_int() + triple.1.0.to_int() + triple.1.1.to_int()
 }
 

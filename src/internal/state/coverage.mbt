@@ -6,8 +6,8 @@
 /// success / failure report; construction and update happen inside
 /// this package.
 struct Coverage {
-  labels : @sorted_map.SortedMap[@list.List[String], Int]
-  classes : @sorted_map.SortedMap[String, Int]
+  labels : @sorted_map.SortedMap[@list.List[String], Int32]
+  classes : @sorted_map.SortedMap[String, Int32]
 }
 
 ///|
@@ -42,7 +42,7 @@ fn Coverage::class_incr(
 }
 
 ///|
-fn format_percent(count : Int, total : Int) -> String {
+fn format_percent(count : Int32, total : Int32) -> String {
   guard total > 0 else { "0%" }
   let scaled = count * 10000
   let whole = scaled / total / 100
@@ -59,7 +59,7 @@ fn format_percent(count : Int, total : Int) -> String {
 }
 
 ///|
-fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::label_to_string(self : Coverage, success : Int32) -> String {
   [
     for list, i in self.labels if !list.is_empty() => {
       format_percent(i, success) + " : " + list.to_array().join(", ")
@@ -68,7 +68,7 @@ fn Coverage::label_to_string(self : Coverage, success : Int) -> String {
 }
 
 ///|
-fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
+fn Coverage::class_to_string(self : Coverage, success : Int32) -> String {
   [
     for s, i in self.classes => "\{format_percent(i, success)} : \{s}"
   ].join("\n")
@@ -78,7 +78,7 @@ fn Coverage::class_to_string(self : Coverage, success : Int) -> String {
 /// Render the labels + classes tally as percentage lines for the
 /// report (normalised against `success`, the number of passing
 /// samples). Called by `CheckReport::render` in the root package.
-pub fn Coverage::to_array(self : Coverage, success : Int) -> Array[String] {
+pub fn Coverage::to_array(self : Coverage, success : Int32) -> Array[String] {
   [
     if self.labels.length() == 0 {
       ""

@@ -84,7 +84,7 @@ Let's start with something very simple. Suppose that we just wrote a function `r
 ```mbt check
 ///|
 test "reverse" {
-  debug_inspect(([] : Array[Int]).rev(), content="[]")
+  debug_inspect(([] : Array[Int32]).rev(), content="[]")
   debug_inspect([1, 2, 3].rev(), content="[3, 2, 1]")
 }
 ```
@@ -95,7 +95,7 @@ But what property should we write? We may notice that the reverse of the reverse
 
 ```mbt check
 ///|
-fn prop_reverse_identity(arr : Array[Int]) -> Bool {
+fn prop_reverse_identity(arr : Array[Int32]) -> Bool {
   arr.rev().rev() == arr
 }
 ```
@@ -148,7 +148,7 @@ search for `x` in the array and remove it if found:
 
 ```mbt check
 ///|
-fn remove(arr : Array[Int], x : Int) -> Array[Int] {
+fn remove(arr : Array[Int32], x : Int32) -> Array[Int32] {
   match arr.search(x) {
     Some(i) => arr.remove(i) |> ignore
     None => ()
@@ -179,7 +179,7 @@ Now we translate the first property into a MoonBit function (Note that the prope
 
 ```mbt check
 ///|
-fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
+fn prop_length_is_not_greater(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   let len = arr.length()
   remove(arr, x).length() <= len
@@ -202,7 +202,7 @@ similarly we implement it in MoonBit:
 
 ```mbt check
 ///|
-fn prop_removed_not_present(iarr : (Int, Array[Int])) -> Bool {
+fn prop_removed_not_present(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   !remove(arr, x).contains(x)
 }
@@ -247,14 +247,14 @@ in the MoonBit QuickCheck library:
 /// path: src/driver.mbt
 pub fn[A : @coreqc.Arbitrary + Shrink + Debug, B : Testable] quick_check_fn(
   f : (A) -> B,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks? : Int32,
+  max_success? : Int32,
+  max_size? : Int32,
+  discard_ratio? : Int32,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
@@ -312,7 +312,7 @@ to modify the maximum number of successes:
 
 ```mbt check
 ///|
-fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
+fn prop_remove_not_presence(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   !remove(arr, x).contains(x)
 }
@@ -341,7 +341,7 @@ generator and then returns a random value of the type.
 ```mbt check
 ///|
 pub trait Arbitrary {
-  fn arbitrary(Int, @splitmix.RandomState) -> Self
+  fn arbitrary(Int32, @splitmix.RandomState) -> Self
 }
 ```
 
@@ -440,12 +440,12 @@ an explicit size and random state:
 
 ```mbt check
 ///|
-let g : @coreqc.Generator[Int] = {
+let g : @coreqc.Generator[Int32] = {
   ...
 } // Suppose we have a generator for Int
 
 ///|
-let _x : Int = g.run(100, @splitmix.new()) // Generate a random Int at size 100
+let _x : Int32 = g.run(100, @splitmix.RandomState()) // Generate a random Int at size 100
 ```
 
 Standard generators compose with `map` and `flat_map`:
@@ -463,14 +463,14 @@ For instance, use `map` to transform a generated value:
 
 ```mbt check
 ///|
-let g1 : @coreqc.Generator[Int] = Generator(
+let g1 : @coreqc.Generator[Int32] = Generator(
   {
     ...
   },
 )
 
 ///|
-let _g2 : @coreqc.Generator[Int] = g1.map(x => x + 1)
+let _g2 : @coreqc.Generator[Int32] = g1.map(x => x + 1)
 
 ///|
 let _g3 : @coreqc.Generator[String] = g1.map(x => x.to_string())
@@ -480,14 +480,14 @@ Or create a dependent generator:
 
 ```mbt check
 ///|
-let dg1 : @coreqc.Generator[Int] = Generator(
+let dg1 : @coreqc.Generator[Int32] = Generator(
   {
     ...
   },
 )
 
 ///|
-let _dg2 : @coreqc.Generator[Int] = dg1.flat_map(x => {
+let _dg2 : @coreqc.Generator[Int32] = dg1.flat_map(x => {
   // TODO(upstream) <| does not work here
   if x == 0 {
     @coreqc.pure(100)
@@ -535,10 +535,10 @@ For example, we can make a trivial generator for a list of integers with a given
 
 ```mbt check
 ///|
-let gen : @coreqc.Generator[Int] = @coreqc.sized(@coreqc.pure)
+let gen : @coreqc.Generator[Int32] = @coreqc.sized(@coreqc.pure)
 
 ///|
-let arr : Array[Int] = Array::makei(20, i => gen.sample(size=i))
+let arr : Array[Int32] = Array::makei(20, i => gen.sample(size=i))
 
 ///|
 test "sized" {
@@ -557,7 +557,7 @@ QuickCheck defines default test data generators and shrinkers for some often use
 
 ```mbt check
 ///|
-let prop_rev : (@list.List[Int]) -> Bool = (x : @list.List[Int]) => {
+let prop_rev : (@list.List[Int32]) -> Bool = (x : @list.List[Int32]) => {
   x.rev().rev() == x
 }
 
@@ -596,7 +596,7 @@ test {
   @qc.quick_check(
     @qc.forall(
       Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-      (a : Array[Int]) => {
+      (a : Array[Int32]) => {
         if a.is_empty() {
           @qc.filter(true, false)
         } else {
@@ -634,14 +634,14 @@ Now let's further verify our hypothesis: The function `remove` only removes the 
 ```mbt check
 ///|
 test {
-  fn no_duplicate(x : Array[Int]) -> Bool {
+  fn no_duplicate(x : Array[Int32]) -> Bool {
     @sorted_set.from_iter(x.iter()).length() == x.length()
   }
 
   @qc.quick_check(
     @qc.forall(
       Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-      (iarr : (Int, Array[Int])) => {
+      (iarr : (Int32, Array[Int32])) => {
         let (x, arr) = iarr
         @qc.property(!remove(arr.copy(), x).contains(x)).filter(
           no_duplicate(arr),
@@ -668,7 +668,7 @@ We may also be interested in the distribution of the generated data: sometimes t
 ```mbt check
 ///|
 test "classes" {
-  @qc.quick_check_fn((x : @list.List[Int]) => {
+  @qc.quick_check_fn((x : @list.List[Int32]) => {
     @qc.property(prop_rev(x))
     .classify(x.length() > 5, "long list")
     .classify(x.length() <= 5, "short list")
@@ -691,7 +691,7 @@ The `label` function takes a string and classifies the test case with the string
 ```mbt check
 ///|
 test "label" {
-  @qc.quick_check_fn((x : @list.List[Int]) => {
+  @qc.quick_check_fn((x : @list.List[Int32]) => {
     @qc.property(prop_rev(x)).label(
       if x.is_empty() {
         "trivial"
