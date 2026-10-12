@@ -17,7 +17,7 @@ fn finish_report(
 ///|
 fn[P : Testable] run_testable_once(
   prop : P,
-  size : Int,
+  size : Int32,
   state : @state.State,
   expect : Expected,
   abort : Bool,
@@ -37,10 +37,10 @@ fn[P : Testable] run_testable_once(
 /// `max_size` total test cases.
 pub fn[A : Enumerable + Debug, B : Testable] small_check(
   f : (A) -> B,
-  max_size? : Int = 100,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_size~ : Int32 = 100,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   let result = try
     small_check_with_result(f, max_size, expect, abort) |> Ok
@@ -56,10 +56,10 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check(
 /// `String`.
 pub fn[A : Enumerable + Debug, B : Testable] small_check_silence(
   f : (A) -> B,
-  max_size? : Int = 100,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_size~ : Int32 = 100,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> String {
   let result = try
     small_check_with_result(f, max_size, expect, abort) |> Ok
@@ -74,10 +74,10 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_silence(
 /// raised error is treated as a counter-example.
 pub fn[A : Enumerable + Debug, B : Testable] small_check_error(
   f : (A) -> B raise,
-  max_size? : Int = 100,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_size~ : Int32 = 100,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   small_check(
     a => {
@@ -97,10 +97,10 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_error(
 /// outcome as a `String` instead of raising.
 pub fn[A : Enumerable + Debug, B : Testable] small_check_error_silence(
   f : (A) -> B raise,
-  max_size? : Int = 100,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_size~ : Int32 = 100,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> String {
   small_check_silence(
     a => {
@@ -119,7 +119,7 @@ pub fn[A : Enumerable + Debug, B : Testable] small_check_error_silence(
 fn[A : Debug, B : Testable] check_small_value(
   f : (A) -> B,
   val : A,
-  idx : Int,
+  idx : Int32,
   st : @state.State,
   expect : Expected,
   abort : Bool,
@@ -167,7 +167,7 @@ fn[A : Debug, B : Testable] check_small_value(
 ///|
 fn[A : Enumerable + Debug, B : Testable] small_check_with_result(
   f : (A) -> B,
-  max_size : Int,
+  max_size : Int32,
   expect : Expected,
   abort : Bool,
 ) -> @report.TestSuccess raise @report.TestError {

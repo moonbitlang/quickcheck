@@ -14,7 +14,7 @@ test "config seed initializes and is retained by state" {
     max_shrinks: 1,
     seed: 123,
   })
-  let expected = @splitmix.new(seed=123)
+  let expected = @splitmix.RandomState(seed=123)
   assert_eq(state.seed, 123)
   assert_eq(state.random_state.next_uint(), expected.next_uint())
 }

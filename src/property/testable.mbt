@@ -173,7 +173,7 @@ pub fn[P : Testable] with_run_options(
 /// This is the controlled representation boundary used by drivers.
 pub fn Property::run(
   self : Property,
-  size : Int,
+  size : Int32,
   random_state : @coreqc.RandomState,
 ) -> @rose.Rose[@state.SingleResult] {
   self.0.run(size, random_state)
@@ -182,13 +182,13 @@ pub fn Property::run(
 ///|
 /// Adjust the size parameter before running `p`. Equivalent to
 /// `Gen::scale(f)` but lifted to the `Testable` level.
-pub fn[P : Testable] map_size(p : P, f : (Int) -> Int) -> Property {
+pub fn[P : Testable] map_size(p : P, f : (Int32) -> Int32) -> Property {
   run_prop(p).scale(f)
 }
 
 ///|
 /// Method form of `map_size`, useful for chaining property decorators.
-pub fn Property::map_size(self : Property, f : (Int) -> Int) -> Property {
+pub fn Property::map_size(self : Property, f : (Int32) -> Int32) -> Property {
   map_size(self, f)
 }
 
@@ -212,7 +212,7 @@ pub fn[P : Testable, T] shrinking(
 ///|
 /// Attach a post-test or post-final-failure callback to `p`.
 pub fn[P : Testable] callback(p : P, cb : @state.Callback) -> Property {
-  map_total_result(p, res => { ..res, callbacks: res.callbacks.add(cb), })
+  map_total_result(p, res => { ..res, callbacks: res.callbacks.prepend(cb), })
 }
 
 ///|
@@ -224,7 +224,7 @@ pub fn Property::callback(self : Property, cb : @state.Callback) -> Property {
 ///|
 /// Attaches a label to a test case.
 pub fn[P : Testable] label(p : P, s : String) -> Property {
-  map_total_result(p, res => { ..res, labels: res.labels.add(s), })
+  map_total_result(p, res => { ..res, labels: res.labels.prepend(s), })
 }
 
 ///|
@@ -248,7 +248,7 @@ pub fn[T : Show] Property::collect(self : Property, t : T) -> Property {
 ///|
 /// Classifies a test case based on a condition.
 pub fn[P : Testable] classify(p : P, cond : Bool, s : String) -> Property {
-  map_total_result(p, res => { ..res, classes: res.classes.add((s, cond)), })
+  map_total_result(p, res => { ..res, classes: res.classes.prepend((s, cond)), })
 }
 
 ///|
@@ -261,7 +261,7 @@ pub fn Property::classify(self : Property, cond : Bool, s : String) -> Property 
 /// Adds a string to the counterexample if the property fails.
 pub fn[P : Testable] counterexample(p : P, s : String) -> Property {
   let cb = callback(p, PostFinalFailure(CounterExample, (_st, _res) => ()))
-  map_total_result(cb, res => { ..res, test_case: res.test_case.add(s), })
+  map_total_result(cb, res => { ..res, test_case: res.test_case.prepend(s), })
 }
 
 ///|

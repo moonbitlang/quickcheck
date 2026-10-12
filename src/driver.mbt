@@ -2,17 +2,17 @@
 /// The result of a shrink search: how many shrinks succeeded, how
 /// many were tried unsuccessfully, and the final minimal result.
 priv struct ShrinkResult {
-  num_shrinks : Int
-  num_shrink_tries : Int
-  num_shrink_final : Int
+  num_shrinks : Int32
+  num_shrink_tries : Int32
+  num_shrink_final : Int32
   result : @state.SingleResult
 }
 
 ///|
 fn validate_config(
-  max_size : Int,
-  max_success : Int,
-  max_shrinks : Int,
+  max_size : Int32,
+  max_success : Int32,
+  max_shrinks : Int32,
 ) -> Unit raise Failure {
   if max_size <= 0 {
     raise Failure("quickcheck: max_size must be greater than 0")
@@ -59,14 +59,14 @@ fn finish_report(
 /// `test "…"` blocks.
 pub fn[P : Testable] quick_check(
   prop : P,
-  max_shrinks? : Int = 100,
-  max_success? : Int = 100,
-  max_size? : Int = 100,
-  discard_ratio? : Int = 10,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks~ : Int32 = 100,
+  max_success~ : Int32 = 100,
+  max_size~ : Int32 = 100,
+  discard_ratio~ : Int32 = 10,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   validate_config(max_size, max_success, max_shrinks)
   let prop = @property.with_run_options(prop, expect, abort)
@@ -89,14 +89,14 @@ pub fn[P : Testable] quick_check(
 /// driver's output with `inspect(..., content=...)`.
 pub fn[P : Testable] quick_check_silence(
   prop : P,
-  max_shrinks? : Int = 100,
-  max_success? : Int = 100,
-  max_size? : Int = 100,
-  discard_ratio? : Int = 10,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks~ : Int32 = 100,
+  max_success~ : Int32 = 100,
+  max_size~ : Int32 = 100,
+  discard_ratio~ : Int32 = 10,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> String raise Failure {
   validate_config(max_size, max_success, max_shrinks)
   let prop = @property.with_run_options(prop, expect, abort)
@@ -117,14 +117,14 @@ pub fn[P : Testable] quick_check_silence(
 /// user-written property to a full QuickCheck run.
 pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check_fn(
   f : (A) -> B,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks? : Int32,
+  max_success? : Int32,
+  max_size? : Int32,
+  discard_ratio? : Int32,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     Arrow(f),
@@ -145,14 +145,14 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check
 /// configured limits still raise `Failure`.
 pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check_fn_silence(
   f : (A) -> B,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks? : Int32,
+  max_success? : Int32,
+  max_size? : Int32,
+  discard_ratio? : Int32,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> String raise Failure {
   quick_check_silence(
     Arrow(f),
@@ -173,14 +173,14 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check
 /// reason.
 pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check_fn_error(
   f : (A) -> B raise,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks? : Int32,
+  max_success? : Int32,
+  max_size? : Int32,
+  discard_ratio? : Int32,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> Unit raise Failure {
   quick_check(
     ArrowError(f),
@@ -201,14 +201,14 @@ pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check
 /// raise `Failure`.
 pub fn[A : @coreqc.Arbitrary + @shrink.Shrink + Debug, B : Testable] quick_check_fn_error_silence(
   f : (A) -> B raise,
-  max_shrinks? : Int,
-  max_success? : Int,
-  max_size? : Int,
-  discard_ratio? : Int,
-  seed? : UInt64 = 37,
-  expect? : Expected = Success,
-  abort? : Bool = false,
-  verbose? : Bool = false,
+  max_shrinks? : Int32,
+  max_success? : Int32,
+  max_size? : Int32,
+  discard_ratio? : Int32,
+  seed~ : UInt64 = 37,
+  expect~ : Expected = Success,
+  abort~ : Bool = false,
+  verbose~ : Bool = false,
 ) -> String raise Failure {
   quick_check_silence(
     ArrowError(f),

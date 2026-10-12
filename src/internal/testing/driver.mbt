@@ -11,13 +11,13 @@ fn add_assoc_double(xyz : (Double, Double, Double)) -> Bool {
 }
 
 ///|
-fn prop_rev(l : @list.List[Int]) -> Bool {
+fn prop_rev(l : @list.List[Int32]) -> Bool {
   l.rev().rev() == l
 }
 
 ///|
 test "prop reverse (fail)" {
-  let prop_rev = (l : @list.List[Int]) => l.rev().rev() == l.rev()
+  let prop_rev = (l : @list.List[Int32]) => l.rev().rev() == l.rev()
   inspect(
     @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
     content=(
@@ -148,7 +148,7 @@ test "add assoc double (expect fail)" {
 
 ///|
 test "small check pass" {
-  let prop = (x : Int) => x + 0 == x
+  let prop = (x : Int32) => x + 0 == x
   inspect(
     @feat.small_check_silence(prop, max_size=1000000),
     content=(
@@ -159,7 +159,7 @@ test "small check pass" {
 
 ///|
 test "small check expect fail" {
-  let prop = (x : Int) => x == 0
+  let prop = (x : Int32) => x == 0
   inspect(
     @feat.small_check_silence(prop, max_size=5, expect=Fail),
     content=(
@@ -170,7 +170,7 @@ test "small check expect fail" {
 
 ///|
 test "non empty list (with filter)" {
-  let prop_is_non_empty = (l : @list.List[Int]) => {
+  let prop_is_non_empty = (l : @list.List[Int32]) => {
     @qc.property(!l.is_empty()).filter(!l.is_empty())
   }
   inspect(
@@ -183,7 +183,7 @@ test "non empty list (with filter)" {
 
 ///|
 test "reject all" {
-  let prop_reject = (_x : Int) => @qc.property(true).filter(false)
+  let prop_reject = (_x : Int32) => @qc.property(true).filter(false)
   inspect(
     @qc.quick_check_silence(@qc.Arrow(prop_reject), expect=GaveUp),
     content=(
@@ -194,10 +194,10 @@ test "reject all" {
 
 ///|
 test "label" {
-  let ar : @qc.Arrow[@list.List[Int], Bool] = Arrow(prop_rev)
+  let ar : @qc.Arrow[@list.List[Int32], Bool] = Arrow(prop_rev)
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : @list.List[Int]) => {
+      @qc.Arrow((x : @list.List[Int32]) => {
         @qc.property(ar).label(
           if x.is_empty() {
             "trivial"
@@ -220,7 +220,7 @@ test "label" {
 test "collect" {
   inspect(
     @feat.small_check_silence(
-      fn(x : Int) { @qc.property(true).collect(x) },
+      fn(x : Int32) { @qc.property(true).collect(x) },
       max_size=2,
     ),
     content=(
@@ -239,7 +239,7 @@ test "nested arrow uses fresh sample" {
   // that nested Arrow does not share the outer sample.
   inspect(
     @qc.quick_check_silence(
-      @qc.forall(@coreqc.pure(0), x => @qc.Arrow((y : Int) => y == x)),
+      @qc.forall(@coreqc.pure(0), x => @qc.Arrow((y : Int32) => y == x)),
       expect=Fail,
     ),
     content=(
@@ -252,7 +252,7 @@ test "nested arrow uses fresh sample" {
 test "classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : @list.List[Int]) => {
+      @qc.Arrow((x : @list.List[Int32]) => {
         @qc.property(prop_rev(x))
         .classify(x.length() > 5, "long list")
         .classify(x.length() <= 5, "short list")
@@ -271,7 +271,7 @@ test "classes" {
 test "classes can overlap" {
   inspect(
     @feat.small_check_silence(
-      fn(x : Int) {
+      fn(x : Int32) {
         @qc.property(true)
         .classify(x != 0, "non-zero")
         .classify(x >= 0, "non-negative")
@@ -414,7 +414,7 @@ test "failure report renders details" {
 test "failure coverage excludes the failing sample" {
   inspect(
     @feat.small_check_silence(
-      fn(x : Int) {
+      fn(x : Int32) {
         @qc.property(x != 1).collect(if x == 0 { "zero" } else { "non-zero" })
       },
       max_size=3,
@@ -506,13 +506,13 @@ fn[T] reverse(lst : Array[T]) -> Array[T] {
 
 ///|
 test "reverse" {
-  debug_inspect(reverse(([] : Array[Int])), content="[]")
+  debug_inspect(reverse(([] : Array[Int32])), content="[]")
   debug_inspect(reverse([1, 2, 3]), content="[3, 2, 1]")
 }
 
 ///|
 test "prop_reverse_identity" {
-  fn prop_reverse_identity(arr : Array[Int]) {
+  fn prop_reverse_identity(arr : Array[Int32]) {
     reverse(reverse(arr)) == arr
   }
 
@@ -525,7 +525,7 @@ test "prop_reverse_identity" {
 }
 
 ///|
-fn remove(arr : Array[Int], x : Int) -> Array[Int] {
+fn remove(arr : Array[Int32], x : Int32) -> Array[Int32] {
   match arr.search(x) {
     Some(i) => arr.remove(i) |> ignore
     None => ()
@@ -534,13 +534,13 @@ fn remove(arr : Array[Int], x : Int) -> Array[Int] {
 }
 
 ///|
-fn prop_remove_not_presence(iarr : (Int, Array[Int])) -> Bool {
+fn prop_remove_not_presence(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   !remove(arr, x).contains(x)
 }
 
 ///|
-fn prop_length_is_not_greater(iarr : (Int, Array[Int])) -> Bool {
+fn prop_length_is_not_greater(iarr : (Int32, Array[Int32])) -> Bool {
   let (x, arr) = iarr
   let len = arr.length()
   remove(arr, x).length() <= len
@@ -576,7 +576,7 @@ test "custom generator" {
     @qc.quick_check_silence(
       @qc.forall(
         Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (i_arr : (Int, Array[Int])) => {
+        (i_arr : (Int32, Array[Int32])) => {
           let (x, arr) = i_arr
           !remove(arr, x).contains(x)
         },
@@ -591,7 +591,7 @@ test "custom generator" {
 
 ///|
 test "no_duplicate" {
-  fn no_duplicate(x : Array[Int]) -> Bool {
+  fn no_duplicate(x : Array[Int32]) -> Bool {
     @sorted_set.from_iter(x.iter()).length() == x.length()
   }
 
@@ -599,7 +599,7 @@ test "no_duplicate" {
     @qc.quick_check_silence(
       @qc.forall(
         Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (iarr : (Int, Array[Int])) => {
+        (iarr : (Int32, Array[Int32])) => {
           let (x, arr) = iarr
           @qc.property(!remove(arr.copy(), x).contains(x)).filter(
             no_duplicate(arr),
@@ -620,11 +620,11 @@ test "use one_of" {
     @qc.quick_check_silence(
       @qc.forall(
         Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (a : Array[Int]) => {
+        (a : Array[Int32]) => {
           if a.is_empty() {
             @qc.filter(true, false)
           } else {
-            @qc.forall(@coreqc.elements(a), (y : Int) => {
+            @qc.forall(@coreqc.elements(a), (y : Int32) => {
               !remove(a, y).contains(y)
             })
           }
@@ -644,7 +644,7 @@ test "explicit universal qualification" {
     @qc.quick_check_silence(
       @qc.forall(
         Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (x : @list.List[Int]) => x.rev().rev() == x,
+        (x : @list.List[Int32]) => x.rev().rev() == x,
       ),
     ),
     content=(
@@ -654,11 +654,13 @@ test "explicit universal qualification" {
 }
 
 ///|
-priv struct DebugOnly(Int) derive(Eq, Debug)
+priv struct DebugOnly(Int32) derive(Eq, Debug)
 
 ///|
 impl @feat.Enumerable for DebugOnly with fn enumerate() {
-  (@feat.Enumerable::enumerate() : @feat.Enumerate[Int]).fmap(x => DebugOnly(x))
+  (@feat.Enumerable::enumerate() : @feat.Enumerate[Int32]).fmap(x => {
+    DebugOnly(x)
+  })
 }
 
 ///|

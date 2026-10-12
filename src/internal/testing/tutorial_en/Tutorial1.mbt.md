@@ -52,7 +52,7 @@ You can think of this as a testing mode where “we provide the rule, and the sy
 
 ```mbt check
 ///|
-fn prop_add_zero(x : Int) -> Bool {
+fn prop_add_zero(x : Int32) -> Bool {
   x + 0 == x
 }
 
@@ -66,7 +66,7 @@ Real-world business functions are often multi-argument, while a property accepts
 
 ```mbt check
 ///|
-fn prop_add_comm(pair : (Int, Int)) -> Bool {
+fn prop_add_comm(pair : (Int32, Int32)) -> Bool {
   let (a, b) = pair
   a + b == b + a
 }
@@ -155,7 +155,7 @@ test "@laws.associative for add" {
     @coreqc.int_range(-20, 20),
     @coreqc.int_range(-20, 20),
   )
-  let prop = @qc.forall(gen, @laws.associative(Int::add))
+  let prop = @qc.forall(gen, @laws.associative(Int32::add))
   @qc.quick_check(prop)
 }
 ```
@@ -170,7 +170,7 @@ test "@laws.distributive_left for mul/add" {
     @coreqc.int_range(-12, 12),
     @coreqc.int_range(-12, 12),
   )
-  let prop = @qc.forall(gen, @laws.distributive_left(Int::mul, Int::add))
+  let prop = @qc.forall(gen, @laws.distributive_left(Int32::mul, Int32::add))
   @qc.quick_check(prop)
 }
 ```
@@ -179,7 +179,7 @@ Beyond algebraic laws, many business requirements amount to “reapplying this o
 
 ```mbt check
 ///|
-fn clamp_nonneg(x : Int) -> Int {
+fn clamp_nonneg(x : Int32) -> Int32 {
   guard x < 0 else { x }
   0
 }
@@ -201,7 +201,7 @@ Another common pattern is “apply an operation twice and return to the original
 test "@laws.involutory neg" {
   let prop = @qc.forall(
     @coreqc.int_range(-100, 100),
-    @laws.involutory(Int::neg),
+    @laws.involutory(Int32::neg),
   )
   @qc.quick_check(prop)
 }
@@ -211,12 +211,12 @@ When a requirement says “different implementations should yield the same resul
 
 ```mbt check
 ///|
-fn double1(x : Int) -> Int {
+fn double1(x : Int32) -> Int32 {
   x + x
 }
 
 ///|
-fn double2(x : Int) -> Int {
+fn double2(x : Int32) -> Int32 {
   x * 2
 }
 
@@ -234,12 +234,12 @@ Some requirements express invertibility. In that case, we can use `@laws.inverse
 
 ```mbt check
 ///|
-fn inc(x : Int) -> Int {
+fn inc(x : Int32) -> Int32 {
   x + 1
 }
 
 ///|
-fn dec(x : Int) -> Int {
+fn dec(x : Int32) -> Int32 {
   x - 1
 }
 
@@ -273,13 +273,13 @@ As an example, consider a FIFO queue. We specify operation signatures and axioms
 declare fn empty() -> Queue
 
 ///|
-declare fn Queue::enqueue(q : Queue, x : Int) -> Queue
+declare fn Queue::enqueue(q : Queue, x : Int32) -> Queue
 
 ///|
 declare fn Queue::is_empty(q : Queue) -> Bool
 
 ///|
-declare fn Queue::front(q : Queue) -> Int
+declare fn Queue::front(q : Queue) -> Int32
 
 ///|
 declare fn Queue::dequeue(q : Queue) -> Queue
@@ -316,26 +316,26 @@ These tests can even be written without knowing the internal representation of `
 ```mbt check
 ///|
 struct Queue {
-  f : @list.List[Int]
-  r : @list.List[Int]
+  f : @list.List[Int32]
+  r : @list.List[Int32]
 } derive(Debug)
 
 ///|
-fn bq(f : @list.List[Int], r : @list.List[Int]) -> Queue {
+fn bq(f : @list.List[Int32], r : @list.List[Int32]) -> Queue {
   match f {
-    Empty => { f: r.rev(), r: @list.empty(), }
+    Empty => { f: r.rev(), r: List([]), }
     _ => { f, r, }
   }
 }
 
 ///|
-fn Queue::enqueue(q : Queue, x : Int) -> Queue {
+fn Queue::enqueue(q : Queue, x : Int32) -> Queue {
   bq(q.f, q.r.prepend(x))
 }
 
 ///|
 fn empty() -> Queue {
-  bq(@list.empty(), @list.empty())
+  bq(List([]), List([]))
 }
 
 ///|
@@ -344,7 +344,7 @@ fn Queue::is_empty(q : Queue) -> Bool {
 }
 
 ///|
-fn Queue::front(q : Queue) -> Int {
+fn Queue::front(q : Queue) -> Int32 {
   q.f.unsafe_last()
 }
 
@@ -374,30 +374,30 @@ fn q1() -> Bool {
 }
 
 ///|
-fn q2(xq : (Int, Queue)) -> Bool {
+fn q2(xq : (Int32, Queue)) -> Bool {
   let (x, q) = xq
   q.enqueue(x).is_empty() == false
 }
 
 ///|
-fn q3(x : Int) -> Bool {
+fn q3(x : Int32) -> Bool {
   empty().enqueue(x).front() == x
 }
 
 ///|
-fn q4(xq : (Int, Queue)) -> Bool {
+fn q4(xq : (Int32, Queue)) -> Bool {
   let (x, q) = xq
   guard !q.is_empty() else { true }
   q.enqueue(x).front() == q.front()
 }
 
 ///|
-fn q5(x : Int) -> Bool {
+fn q5(x : Int32) -> Bool {
   empty().enqueue(x).dequeue() == empty()
 }
 
 ///|
-fn q6(xq : (Int, Queue)) -> Bool {
+fn q6(xq : (Int32, Queue)) -> Bool {
   let (x, q) = xq
   guard !q.is_empty() else { true }
   q.enqueue(x).dequeue() == q.dequeue().enqueue(x)
@@ -408,7 +408,7 @@ Because `==` is defined as “convert to lists and compare”—i.e. a form of *
 
 ```mbt check
 ///|
-fn gen_int_list() -> @coreqc.Generator[@list.List[Int]] {
+fn gen_int_list() -> @coreqc.Generator[@list.List[Int32]] {
   @coreqc.sized(n => {
     @coreqc.int_range(-100, 100).array_with_size(n).map(xs => @list.List(xs))
   })
@@ -446,7 +446,7 @@ To mitigate this, we introduce **operational invariance** testing: when two valu
 
 ```mbt check
 ///|
-fn from_list(xs : @list.List[Int]) -> @coreqc.Generator[Queue] {
+fn from_list(xs : @list.List[Int32]) -> @coreqc.Generator[Queue] {
   let len = xs.length()
   let gen_i = if len <= 0 {
     @coreqc.pure(0)
@@ -501,7 +501,7 @@ $$
 
 ```mbt check
 ///|
-fn enqueue_1_q3(xq : (Int, Queue)) -> Bool {
+fn enqueue_1_q3(xq : (Int32, Queue)) -> Bool {
   let (x, q) = xq
   let lhs = empty().enqueue(x).front()
   let rhs = x
@@ -509,7 +509,7 @@ fn enqueue_1_q3(xq : (Int, Queue)) -> Bool {
 }
 
 ///|
-fn enqueue_1_q4(xqp : (Int, Queue, Queue)) -> Bool {
+fn enqueue_1_q4(xqp : (Int32, Queue, Queue)) -> Bool {
   let (x, q, p) = xqp
   guard !q.is_empty() else { true }
   let lhs = q.enqueue(x).front()
@@ -518,7 +518,7 @@ fn enqueue_1_q4(xqp : (Int, Queue, Queue)) -> Bool {
 }
 
 ///|
-fn front_1_q6(xq : (Int, Queue)) -> Bool {
+fn front_1_q6(xq : (Int32, Queue)) -> Bool {
   let (x, q) = xq
   guard !q.is_empty() else { true }
   let lhs = q.enqueue(x).dequeue()
@@ -571,7 +571,7 @@ struct ModelSet[T](@list.List[T])
 
 ///|
 fn[T] ModelSet::empty() -> ModelSet[T] {
-  ModelSet(@list.empty())
+  ModelSet(List([]))
 }
 
 ///|
@@ -596,9 +596,9 @@ Next we define a set of commands representing an operation sequence on the set:
 ```mbt check
 ///|
 enum Cmd {
-  Insert(Int)
-  Remove(Int)
-  Contains(Int)
+  Insert(Int32)
+  Remove(Int32)
+  Contains(Int32)
 } derive(@coreqc.Arbitrary, Debug)
 
 ///|
@@ -609,8 +609,8 @@ We then execute the command sequence on the model:
 
 ```mbt check
 ///|
-pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int], Trace) {
-  let step = (str : (ModelSet[Int], Trace), cmd : Cmd) => {
+pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int32], Trace) {
+  let step = (str : (ModelSet[Int32], Trace), cmd : Cmd) => {
     let (st, tr) = str
     match cmd {
       Insert(x) => (st.insert(x), tr)
@@ -618,7 +618,7 @@ pub fn run_model(cmds : @list.List[Cmd]) -> (ModelSet[Int], Trace) {
       Contains(x) => (st, Trace(tr.0.prepend(st.contains(x))))
     }
   }
-  @list.List::fold(cmds, init=(ModelSet::empty(), Trace(@list.empty())), step)
+  @list.List::fold(cmds, init=(ModelSet::empty(), Trace(List([]))), step)
 }
 ```
 
@@ -629,8 +629,8 @@ We run the same command sequence on the SUTSet and compare final state and trace
 type SUTSet[T] = @sorted_set.SortedSet[T] // assume this is the complex implementation under test
 
 ///|
-pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
-  let step = (str : (SUTSet[Int], Trace), cmd : Cmd) => {
+pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int32], Trace) {
+  let step = (str : (SUTSet[Int32], Trace), cmd : Cmd) => {
     let (st, tr) = str
     match cmd {
       Insert(x) => (st.add(x), tr)
@@ -638,7 +638,7 @@ pub fn run_sut(cmds : @list.List[Cmd]) -> (SUTSet[Int], Trace) {
       Contains(x) => (st, Trace(tr.0.prepend(st.contains(x))))
     }
   }
-  @list.List::fold(cmds, init=(SUTSet::new(), Trace(@list.empty())), step)
+  @list.List::fold(cmds, init=(SUTSet::new(), Trace(List([]))), step)
 }
 
 ///|

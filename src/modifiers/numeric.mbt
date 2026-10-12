@@ -15,7 +15,7 @@ pub impl[T : Debug] Debug for NonNegative[T] with fn to_repr(self) {
 pub extend NonNegative with Debug::{to_repr}
 
 ///|
-pub impl @coreqc.Arbitrary for NonNegative[Int] with fn arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for NonNegative[Int32] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -33,7 +33,7 @@ pub impl @coreqc.Arbitrary for NonNegative[Int] with fn arbitrary(size, rs) {
 pub extend NonNegative with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for NonNegative[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for NonNegative[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v >= 0).map(v => NonNegative(v))
 }
 
@@ -42,7 +42,7 @@ pub extend NonNegative with @shrink.Shrink::{shrink}
 
 ///|
 test "NonNegative[Int] generates non-negative values" {
-  let gen : @coreqc.Generator[NonNegative[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[NonNegative[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 >= 0))
 }
@@ -75,7 +75,7 @@ pub impl[T : Debug] Debug for Positive[T] with fn to_repr(self) {
 pub extend Positive with Debug::{to_repr}
 
 ///|
-pub impl @coreqc.Arbitrary for Positive[Int] with fn arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for Positive[Int32] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -93,7 +93,7 @@ pub impl @coreqc.Arbitrary for Positive[Int] with fn arbitrary(size, rs) {
 pub extend Positive with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for Positive[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for Positive[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v > 0).map(v => Positive(v))
 }
 
@@ -102,7 +102,7 @@ pub extend Positive with @shrink.Shrink::{shrink}
 
 ///|
 test "Positive[Int] generates positive values" {
-  let gen : @coreqc.Generator[Positive[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[Positive[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 > 0))
 }
@@ -132,7 +132,7 @@ pub impl[T : Debug] Debug for Negative[T] with fn to_repr(self) {
 pub extend Negative with Debug::{to_repr}
 
 ///|
-pub impl @coreqc.Arbitrary for Negative[Int] with fn arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for Negative[Int32] with fn arbitrary(size, rs) {
   let p = rs.next_double()
   let v = if p < 0.5 {
     rs.next_positive_int() % 10
@@ -150,7 +150,7 @@ pub impl @coreqc.Arbitrary for Negative[Int] with fn arbitrary(size, rs) {
 pub extend Negative with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for Negative[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for Negative[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter(v => v < 0).map(v => Negative(v))
 }
 
@@ -159,7 +159,7 @@ pub extend Negative with @shrink.Shrink::{shrink}
 
 ///|
 test "Negative[Int] generates negative values" {
-  let gen : @coreqc.Generator[Negative[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[Negative[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 < 0))
 }
@@ -190,7 +190,7 @@ pub impl[T : Debug] Debug for NonZero[T] with fn to_repr(self) {
 pub extend NonZero with Debug::{to_repr}
 
 ///|
-pub impl @coreqc.Arbitrary for NonZero[Int] with fn arbitrary(size, rs) {
+pub impl @coreqc.Arbitrary for NonZero[Int32] with fn arbitrary(size, rs) {
   let bound = if size <= 0 { 1 } else { size }
   let magnitude = rs.next_positive_int() % bound + 1
   let value = if rs.next_double() < 0.5 { magnitude } else { -magnitude }
@@ -201,7 +201,7 @@ pub impl @coreqc.Arbitrary for NonZero[Int] with fn arbitrary(size, rs) {
 pub extend NonZero with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for NonZero[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for NonZero[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).filter_map(v => {
     if v != 0 {
       Some(NonZero(v))
@@ -216,7 +216,7 @@ pub extend NonZero with @shrink.Shrink::{shrink}
 
 ///|
 test "NonZero[Int] generates non-zero values" {
-  let gen : @coreqc.Generator[NonZero[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[NonZero[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.all(x => x.0 != 0))
 }
@@ -249,7 +249,7 @@ pub impl[T : Debug] Debug for Small[T] with fn to_repr(self) {
 pub extend Small with Debug::{to_repr}
 
 ///|
-pub impl @coreqc.Arbitrary for Small[Int] with fn arbitrary(_size, rs) {
+pub impl @coreqc.Arbitrary for Small[Int32] with fn arbitrary(_size, rs) {
   let p = rs.next_double()
   let mag = if p < 0.75 {
     rs.next_positive_int() % 11
@@ -264,7 +264,7 @@ pub impl @coreqc.Arbitrary for Small[Int] with fn arbitrary(_size, rs) {
 pub extend Small with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for Small[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for Small[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0).map(v => Small(v))
 }
 
@@ -273,7 +273,7 @@ pub extend Small with @shrink.Shrink::{shrink}
 
 ///|
 test "Small[Int] generates values" {
-  let gen : @coreqc.Generator[Small[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[Small[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=50)
   assert_true(samples.length() > 0)
 }

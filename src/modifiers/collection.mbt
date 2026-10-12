@@ -43,7 +43,7 @@ pub extend NonEmptyArray with @shrink.Shrink::{shrink}
 
 ///|
 test "NonEmptyArray[Int] generates non-empty arrays" {
-  let gen : @coreqc.Generator[NonEmptyArray[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[NonEmptyArray[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.length() > 0))
 }
@@ -104,7 +104,7 @@ pub extend NonEmptyList with @shrink.Shrink::{shrink}
 
 ///|
 test "NonEmptyList[Int] generates non-empty lists" {
-  let gen : @coreqc.Generator[NonEmptyList[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[NonEmptyList[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => !x.0.is_empty()))
 }
@@ -148,7 +148,7 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedArray[T] w
 pub extend SortedArray with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for SortedArray[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for SortedArray[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0)
   .filter(a => a.is_sorted())
   .map(a => SortedArray(a))
@@ -159,7 +159,7 @@ pub extend SortedArray with @shrink.Shrink::{shrink}
 
 ///|
 test "SortedArray[Int] generates sorted arrays" {
-  let gen : @coreqc.Generator[SortedArray[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[SortedArray[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.is_sorted()))
 }
@@ -203,7 +203,7 @@ pub impl[T : @coreqc.Arbitrary + Compare] @coreqc.Arbitrary for SortedList[T] wi
 pub extend SortedList with @coreqc.Arbitrary::{arbitrary}
 
 ///|
-pub impl @shrink.Shrink for SortedList[Int] with fn shrink(self) {
+pub impl @shrink.Shrink for SortedList[Int32] with fn shrink(self) {
   @shrink.Shrink::shrink(self.0)
   .filter(l => l.to_array().is_sorted())
   .map(l => SortedList(l))
@@ -214,7 +214,7 @@ pub extend SortedList with @shrink.Shrink::{shrink}
 
 ///|
 test "SortedList[Int] generates sorted lists" {
-  let gen : @coreqc.Generator[SortedList[Int]] = arbitrary_generator()
+  let gen : @coreqc.Generator[SortedList[Int32]] = arbitrary_generator()
   let samples = gen.samples(size=20)
   assert_true(samples.all(x => x.0.to_array().is_sorted()))
 }

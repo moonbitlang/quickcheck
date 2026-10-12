@@ -1,7 +1,7 @@
 ///|
 struct Queue {
-  f : @list.List[Int]
-  r : @list.List[Int]
+  f : @list.List[Int32]
+  r : @list.List[Int32]
 } derive(Debug)
 
 ///|
@@ -11,22 +11,22 @@ pub extend Queue with Debug::{to_repr}
 impl @shrink.Shrink for Queue
 
 ///|
-fn build_queue(f : @list.List[Int], r : @list.List[Int]) -> Queue {
+fn build_queue(f : @list.List[Int32], r : @list.List[Int32]) -> Queue {
   match f {
-    Empty => { f: r, r: @list.empty(), }
+    Empty => { f: r, r: List([]), }
     f => { f, r, }
   }
 }
 
 ///|
 pub fn empty_queue() -> Queue {
-  { f: @list.empty(), r: @list.empty(), }
+  { f: List([]), r: List([]), }
 }
 
 ///|
-pub fn enqueue(q : Queue, x : Int) -> Queue {
+pub fn enqueue(q : Queue, x : Int32) -> Queue {
   match q {
-    { f, r, } => build_queue(f, r.add(x))
+    { f, r, } => build_queue(f, r.prepend(x))
   }
 }
 
@@ -42,7 +42,7 @@ pub fn Queue::is_empty(self : Queue) -> Bool {
 }
 
 ///|
-fn Queue::front(self : Queue) -> Int {
+fn Queue::front(self : Queue) -> Int32 {
   self.f.last().unwrap()
 }
 
@@ -53,7 +53,7 @@ fn Queue::dequeue(self : Queue) -> Queue {
 }
 
 ///|
-fn Queue::to_list(self : Queue) -> @list.List[Int] {
+fn Queue::to_list(self : Queue) -> @list.List[Int32] {
   self.f.concat(self.r.rev())
 }
 
@@ -64,8 +64,8 @@ fn Queue::op_equal(self : Queue, other : Queue) -> Bool {
 
 ///|
 impl @coreqc.Arbitrary for Queue with fn arbitrary(i, rs) {
-  let f : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
-  let r : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let f : @list.List[Int32] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let r : @list.List[Int32] = @coreqc.Arbitrary::arbitrary(i, rs)
   build_queue(f, r)
 }
 
@@ -77,17 +77,17 @@ impl @shrink.Shrink for EqQueue
 
 ///|
 impl @coreqc.Arbitrary for EqQueue with fn arbitrary(i, rs) {
-  fn split(xs : @list.List[Int], i) {
+  fn split(xs : @list.List[Int32], i) {
     (xs.take(i), xs.drop(i))
   }
 
-  fn from(xs : @list.List[Int]) {
+  fn from(xs : @list.List[Int32]) {
     let n = @coreqc.int_range(0, xs.length()).run(i, rs)
     let (xs1, xs2) = split(xs, n)
     build_queue(xs1, xs2.rev())
   }
 
-  let z : @list.List[Int] = @coreqc.Arbitrary::arbitrary(i, rs)
+  let z : @list.List[Int32] = @coreqc.Arbitrary::arbitrary(i, rs)
   let lhs = from(z)
   let rhs = from(z)
   EqQueue({ lhs, rhs, })

@@ -3,7 +3,7 @@
 /// size. This is the feat_moon representation: `run(size)` returns the part
 /// of all values whose constructor-cost is exactly `size`.
 struct Enumerate[T] {
-  run : (Int) -> @ifseq.Seq[T]
+  run : (Int32) -> @ifseq.Seq[T]
   prefix_totals : Array[BigInt]
 }
 
@@ -22,9 +22,9 @@ fn[T] delay(thunk : () -> T) -> () -> T {
 }
 
 ///|
-fn[T] make(run : (Int) -> @ifseq.Seq[T]) -> Enumerate[T] {
-  let cache : Map[Int, @ifseq.Seq[T]] = Map([])
-  fn memoized(size : Int) -> @ifseq.Seq[T] {
+fn[T] make(run : (Int32) -> @ifseq.Seq[T]) -> Enumerate[T] {
+  let cache : Map[Int32, @ifseq.Seq[T]] = Map([])
+  fn memoized(size : Int32) -> @ifseq.Seq[T] {
     match cache.get(size) {
       Some(seq) => seq
       None => {
@@ -39,7 +39,7 @@ fn[T] make(run : (Int) -> @ifseq.Seq[T]) -> Enumerate[T] {
 
 ///|
 /// Return the finite sequence for one exact size.
-pub fn[T] part(e : Enumerate[T], size : Int) -> @ifseq.Seq[T] {
+pub fn[T] part(e : Enumerate[T], size : Int32) -> @ifseq.Seq[T] {
   (e.run)(size)
 }
 
@@ -173,9 +173,9 @@ pub fn[T] finite(xs : @list.List[T]) -> Enumerate[T] {
 ///|
 /// Explicit memoized fixpoint helper for recursive enumerations.
 pub fn[T] fix(f : (Enumerate[T]) -> Enumerate[T]) -> Enumerate[T] {
-  let cache : Map[Int, @ifseq.Seq[T]] = Map([])
+  let cache : Map[Int32, @ifseq.Seq[T]] = Map([])
   let body_cache : Array[Enumerate[T]] = []
-  fn run(size : Int) -> @ifseq.Seq[T] {
+  fn run(size : Int32) -> @ifseq.Seq[T] {
     match cache.get(size) {
       Some(seq) => seq
       None => {
@@ -213,7 +213,7 @@ fn[T] Enumerate::ensure_prefix_covers(
 }
 
 ///|
-fn find_part(prefix_totals : Array[BigInt], idx : BigInt) -> Int {
+fn find_part(prefix_totals : Array[BigInt], idx : BigInt) -> Int32 {
   for low = 0, high = prefix_totals.length() - 1 {
     if low + 1 >= high {
       break low
@@ -247,9 +247,9 @@ pub fn[T] Enumerate::at(self : Enumerate[T], idx : BigInt) -> T {
 /// the bound; if all are empty, it expands until the first non-empty prefix.
 pub fn[T] Enumerate::sample_finite(
   self : Enumerate[T],
-  size : Int,
+  size : Int32,
 ) -> @ifseq.Seq[T] {
-  fn aggregate(start : Int, stop : Int) -> @ifseq.Seq[T] {
+  fn aggregate(start : Int32, stop : Int32) -> @ifseq.Seq[T] {
     if start < stop {
       @ifseq.sum(part(self, start), aggregate(start + 1, stop))
     } else {

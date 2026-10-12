@@ -10,7 +10,7 @@ pub impl Enumerable for Bool with fn enumerate() {
 }
 
 ///|
-pub impl Enumerable for Int with fn enumerate() {
+pub impl Enumerable for Int32 with fn enumerate() {
   make(fn(size) {
     if size < 0 {
       @ifseq.empty()
@@ -37,7 +37,7 @@ pub impl Enumerable for Int64 with fn enumerate() {
 }
 
 ///|
-pub impl Enumerable for UInt with fn enumerate() {
+pub impl Enumerable for UInt32 with fn enumerate() {
   pay(() => singleton(0U) + Enumerable::enumerate().fmap(x => x + 1U))
 }
 
@@ -48,13 +48,13 @@ pub impl Enumerable for UInt64 with fn enumerate() {
 
 ///|
 pub impl Enumerable for Byte with fn enumerate() {
-  of_seq(@ifseq.map(Int::to_byte, @ifseq.up(0, 256)))
+  of_seq(@ifseq.map(Int32::to_byte, @ifseq.up(0, 256)))
 }
 
 ///|
-fn char_from_index(idx : Int) -> Char {
+fn char_from_index(idx : Int32) -> Char {
   let cp = if idx < 55296 { idx } else { idx + 2048 }
-  Int::unsafe_to_char(cp)
+  Int32::unsafe_to_char(cp)
 }
 
 ///|
@@ -66,8 +66,10 @@ pub impl Enumerable for Char with fn enumerate() {
 pub impl[E : Enumerable] Enumerable for @moonbitlang/core/list.List[E] with fn enumerate() {
   consts(
     List([
-      singleton(@list.empty()),
-      unary((pair : (E, @moonbitlang/core/list.List[E])) => pair.1.add(pair.0)),
+      singleton(List([])),
+      unary((pair : (E, @moonbitlang/core/list.List[E])) => {
+        pair.1.prepend(pair.0)
+      }),
     ]),
   )
 }

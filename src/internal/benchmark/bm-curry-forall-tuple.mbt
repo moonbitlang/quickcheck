@@ -1,16 +1,16 @@
 ///|
 /// 
-fn prop_symmetry(x : Array[Int], y : Array[Int]) -> Bool {
+fn prop_symmetry(x : Array[Int32], y : Array[Int32]) -> Bool {
   (x == y) == (y == x)
 }
 
 ///|
 let test_forall : @qc.Property = @qc.forall(
   Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-  (x : Array[Int]) => {
+  (x : Array[Int32]) => {
     @qc.forall(
       Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-      (y : Array[Int]) => prop_symmetry(x, y),
+      (y : Array[Int32]) => prop_symmetry(x, y),
     )
   },
 )
@@ -19,13 +19,13 @@ let test_forall : @qc.Property = @qc.forall(
 fn[A, B] coerce(x : A) -> B = "%identity"
 
 ///|
-let test_curry : @qc.Arrow[Array[Int], @qc.Arrow[Array[Int], Bool]] = (a => {
+let test_curry : @qc.Arrow[Array[Int32], @qc.Arrow[Array[Int32], Bool]] = (a => {
     b => prop_symmetry(a, b)
   })
   |> coerce
 
 ///|
-let test_tuple : @qc.Arrow[(Array[Int], Array[Int]), Bool] = (p => {
+let test_tuple : @qc.Arrow[(Array[Int32], Array[Int32]), Bool] = (p => {
     let (x, y) = p
     prop_symmetry(x, y)
   })

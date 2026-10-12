@@ -1,14 +1,14 @@
 ///|
-let unicode_scalar_count : Int = 0x110000 - 0x800
+let unicode_scalar_count : Int32 = 0x110000 - 0x800
 
 ///|
-fn string_length(size : Int, rs : @splitmix.RandomState) -> Int {
+fn string_length(size : Int32, rs : @splitmix.RandomState) -> Int32 {
   rs.next_positive_int() % (size + 1)
 }
 
 ///|
 fn string_with(
-  size : Int,
+  size : Int32,
   rs : @splitmix.RandomState,
   next_char : (@splitmix.RandomState) -> Char,
 ) -> String {
@@ -18,14 +18,14 @@ fn string_with(
 
 ///|
 fn arbitrary_ascii_char(rs : @splitmix.RandomState) -> Char {
-  Int::unsafe_to_char(rs.next_positive_int() % 128)
+  Int32::unsafe_to_char(rs.next_positive_int() % 128)
 }
 
 ///|
 fn arbitrary_unicode_char(rs : @splitmix.RandomState) -> Char {
   let idx = rs.next_positive_int() % unicode_scalar_count
   let codepoint = if idx < 0xD800 { idx } else { idx + 0x800 }
-  Int::unsafe_to_char(codepoint)
+  Int32::unsafe_to_char(codepoint)
 }
 
 ///|
@@ -116,7 +116,7 @@ pub extend PrintableString with Debug::{to_repr}
 pub impl @coreqc.Arbitrary for PrintableString with fn arbitrary(size, rs) {
   PrintableString(
     string_with(size, rs, rst => {
-      Int::unsafe_to_char(0x20 + rst.next_positive_int() % (0x7f - 0x20))
+      Int32::unsafe_to_char(0x20 + rst.next_positive_int() % (0x7f - 0x20))
     }),
   )
 }

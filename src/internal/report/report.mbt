@@ -9,7 +9,7 @@ pub(all) struct CheckReport(Result[TestSuccess, TestError])
 /// Successful test outcomes — either the property passed
 /// `max_success` times, or it gave up but the user `expect`ed that.
 pub(all) enum TestSuccess {
-  Success(num_tests~ : Int, coverage~ : @state.Coverage, output~ : String)
+  Success(num_tests~ : Int32, coverage~ : @state.Coverage, output~ : String)
 }
 
 ///|
@@ -19,11 +19,11 @@ pub(all) enum TestSuccess {
 /// when the user `expect=Fail` but the property kept passing.
 pub(all) suberror TestError {
   Fail(
-    num_tests~ : Int,
-    num_discarded~ : Int,
-    num_shrinks~ : Int,
-    num_shrink_tries~ : Int,
-    num_shrink_final~ : Int,
+    num_tests~ : Int32,
+    num_discarded~ : Int32,
+    num_shrinks~ : Int32,
+    num_shrink_tries~ : Int32,
+    num_shrink_final~ : Int32,
     reason~ : String,
     error~ : Error?,
     output~ : String,
@@ -34,15 +34,15 @@ pub(all) suberror TestError {
     seed~ : UInt64
   )
   GaveUp(
-    num_tests~ : Int,
-    num_discarded~ : Int,
+    num_tests~ : Int32,
+    num_discarded~ : Int32,
     coverage~ : @state.Coverage,
     output~ : String,
     seed~ : UInt64
   )
   NoneExpectedFail(
-    num_tests~ : Int,
-    num_discarded~ : Int,
+    num_tests~ : Int32,
+    num_discarded~ : Int32,
     coverage~ : @state.Coverage,
     output~ : String,
     seed~ : UInt64
@@ -53,7 +53,7 @@ pub(all) suberror TestError {
 /// Format the report as a human-readable string. `verbose=true`
 /// expands the failure block with its seed, labels, classes, shrink
 /// counts, and full coverage.
-pub fn CheckReport::render(self : Self, verbose? : Bool = false) -> String {
+pub fn CheckReport::render(self : Self, verbose~ : Bool = false) -> String {
   match self.0 {
     Ok(result) => render_success(result)
     Err(error) => render_error(error, verbose)

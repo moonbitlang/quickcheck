@@ -1,6 +1,6 @@
 ///|
 test "feat int" {
-  let fe : @coreqc.Generator[Int] = @feat.feat_random(10)
+  let fe : @coreqc.Generator[Int32] = @feat.feat_random(10)
   debug_inspect(
     fe.samples(count=50, size=50),
     content=(
@@ -115,7 +115,7 @@ test "feat nat index" {
 
 ///|
 test "feat int index order" {
-  let e : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
+  let e : @feat.Enumerate[Int32] = @feat.Enumerable::enumerate()
   let xs = [0N, 1, 2, 3, 4, 5].map(i => e[i])
   debug_inspect(xs, content="[0, 1, -1, 2, -2, 3]")
 }
@@ -141,7 +141,7 @@ test "feat char index order" {
 
 ///|
 test "enumerate int" {
-  let gen : @feat.Enumerate[Int] = @feat.Enumerable::enumerate()
+  let gen : @feat.Enumerate[Int32] = @feat.Enumerable::enumerate()
   let arr = Array::makei(10, i => gen[BigInt::from_int(i)])
   debug_inspect(arr, content="[0, 1, -1, 2, -2, 3, -3, 4, -4, 5]")
 }

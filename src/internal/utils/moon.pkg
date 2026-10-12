@@ -1,6 +1,5 @@
 import {
   "moonbitlang/core/list",
-  "moonbitlang/core/ref",
 }
 
 import {

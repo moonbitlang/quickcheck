@@ -121,7 +121,7 @@ pub fn[T, U] map(f : (T) -> U, s : Seq[T]) -> Seq[U] {
 }
 
 ///|
-pub fn up(a : Int, b : Int) -> Seq[Int] {
+pub fn up(a : Int32, b : Int32) -> Seq[Int32] {
   if a >= b {
     empty()
   } else {

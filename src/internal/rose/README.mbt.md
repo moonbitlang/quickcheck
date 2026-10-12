@@ -96,7 +96,7 @@ re-shrinking required:
 ```mbt check
 ///|
 test "halving shrinker descends step-by-step" {
-  fn halve(x : Int) -> @rose.Rose[Int] {
+  fn halve(x : Int32) -> @rose.Rose[Int32] {
     if x == 0 {
       @rose.pure(0)
     } else {
@@ -162,8 +162,8 @@ alternative — its half — and the tree walks all the way down to 0.
 
 ```mbt check
 ///|
-fn shrink_int(n : Int) -> @rose.Rose[Int] {
-  fn go(x : Int) -> @rose.Rose[Int] {
+fn shrink_int(n : Int32) -> @rose.Rose[Int32] {
+  fn go(x : Int32) -> @rose.Rose[Int32] {
     if x == 0 {
       @rose.pure(0)
     } else {
@@ -270,7 +270,7 @@ test "fmap relabels every node" {
   let r = @rose.Rose(2, [|@rose.pure(0), @rose.pure(1)|])
   let doubled = r.fmap(x => x * 10)
   assert_eq(doubled.val, 20)
-  let children : Array[Int] = doubled.branch.map(c => c.val).collect()
+  let children : Array[Int32] = doubled.branch.map(c => c.val).collect()
   @debug.assert_eq(children, [0, 10])
 }
 ```
@@ -299,7 +299,7 @@ test "bind substitutes at every node" {
   })
   assert_eq(expanded.val, 1)
   // bind preserves the value; the tree gains new alternatives from f.
-  let kids : Array[Int] = expanded.branch.map(c => c.val).collect()
+  let kids : Array[Int32] = expanded.branch.map(c => c.val).collect()
   // First come the branches produced by `f(1)`: one alternative, 0.
   // Then come the original branches' fmapped forms: the leaf 0.
   @debug.assert_eq(kids, [0, 0])
@@ -309,7 +309,7 @@ test "bind substitutes at every node" {
 test "join flattens Rose[Rose[T]] into Rose[T]" {
   // Outer tree of Roses; the root already carries a Rose[Int].
   let inner = @rose.Rose(10, [|@rose.pure(5)|])
-  let outer : @rose.Rose[@rose.Rose[Int]] = Rose(inner, [|
+  let outer : @rose.Rose[@rose.Rose[Int32]] = Rose(inner, [|
     @rose.pure(@rose.pure(7)),
   |])
   let flat = outer.join()
@@ -317,7 +317,7 @@ test "join flattens Rose[Rose[T]] into Rose[T]" {
   assert_eq(flat.val, 10)
   // The joined branches are: (flattened outer siblings) ++ (inner's own
   // branches).
-  let kids : Array[Int] = flat.branch.map(c => c.val).collect()
+  let kids : Array[Int32] = flat.branch.map(c => c.val).collect()
   @debug.assert_eq(kids, [7, 5])
 }
 ```

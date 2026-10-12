@@ -1,5 +1,5 @@
 ///|
-let global_counter : Ref[Int] = @ref.new(0)
+let global_counter : Ref[Int32] = Ref(0)
 
 // Generate a fresh name
 
@@ -48,19 +48,21 @@ pub fn fresh_name() -> String {
 /// }
 /// ```
 pub fn[T] removes_list(
-  k : Int,
-  n : Int,
+  k : Int32,
+  n : Int32,
   xs : @list.List[T],
 ) -> @list.List[@list.List[T]] {
   if k > n {
-    @list.empty()
+    List([])
   } else {
     let xs_drop = xs.drop(k)
     if xs_drop.is_empty() {
-      @list.empty()
+      List([])
     } else {
       let xs_take = xs.take(k)
-      removes_list(k, n - k, xs_drop).map(x => xs_take.concat(x)).add(xs_drop)
+      removes_list(k, n - k, xs_drop)
+      .map(x => xs_take.concat(x))
+      .prepend(xs_drop)
     }
   }
 }
@@ -79,7 +81,7 @@ pub fn[T] removes_list(
 ///   ])
 /// }
 /// ```
-pub fn[T] removes_array(k : Int, n : Int, xs : Array[T]) -> Array[Array[T]] {
+pub fn[T] removes_array(k : Int32, n : Int32, xs : Array[T]) -> Array[Array[T]] {
   if k > n {
     []
   } else {
@@ -120,10 +122,10 @@ pub fn[T] apply_while_list(
   f : (T) -> T,
   cond : (T) -> Bool,
 ) -> @list.List[T] {
-  for acc = x, lst = @list.empty() {
+  for acc = x, lst = @list.List([]) {
     let next = f(acc)
     if cond(next) {
-      continue next, lst.add(next)
+      continue next, lst.prepend(next)
     } else {
       break lst
     }
@@ -169,7 +171,7 @@ pub fn[T] id(x : T) -> T = "%identity"
 ///
 /// ```mbt check
 /// test {
-///   let always_seven : (Int) -> Int = @utils.const_(7)
+///   let always_seven : (Int32) -> Int32 = @utils.const_(7)
 ///   assert_eq(always_seven(0), 7)
 ///   assert_eq(always_seven(999), 7)
 /// }
@@ -193,7 +195,7 @@ pub fn[A, B, C] pair_function(f : (A, B) -> C) -> ((A, B)) -> C {
 ///
 /// ```mbt check
 /// test {
-///   let sub = (a : Int, b : Int) => a - b
+///   let sub = (a : Int32, b : Int32) => a - b
 ///   assert_eq(sub(3, 10), -7)
 ///   assert_eq(@utils.flip(sub)(3, 10), 7)
 /// }
