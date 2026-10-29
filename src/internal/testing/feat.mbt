@@ -1,95 +1,28 @@
 ///|
 test "feat int" {
   let fe : @coreqc.Generator[Int32] = @feat.feat_random(10)
-  debug_inspect(
-    fe.samples(count=50, size=50),
-    content=(
-      #|[
-      #|  2,
-      #|  0,
-      #|  -4,
-      #|  7,
-      #|  -2,
-      #|  -8,
-      #|  7,
-      #|  6,
-      #|  -7,
-      #|  4,
-      #|  9,
-      #|  -9,
-      #|  0,
-      #|  -3,
-      #|  -4,
-      #|  0,
-      #|  6,
-      #|  -6,
-      #|  1,
-      #|  9,
-      #|  1,
-      #|  9,
-      #|  -5,
-      #|  7,
-      #|  6,
-      #|  -8,
-      #|  -4,
-      #|  4,
-      #|  -2,
-      #|  3,
-      #|  9,
-      #|  -2,
-      #|  5,
-      #|  -1,
-      #|  0,
-      #|  3,
-      #|  2,
-      #|  4,
-      #|  5,
-      #|  9,
-      #|  1,
-      #|  9,
-      #|  -9,
-      #|  4,
-      #|  1,
-      #|  -9,
-      #|  4,
-      #|  8,
-      #|  2,
-      #|  -2,
-      #|]
-    ),
-  )
+  let values = fe.samples(count=50, size=50)
+  assert_eq(values.length(), 50)
+  for value in values {
+    assert_true(value > -10 && value < 10)
+  }
+  assert_true(values.iter().any(x => x < 0))
+  assert_true(values.iter().any(x => x > 0))
+  assert_eq(values, fe.samples(count=50, size=50))
 }
 
 ///|
 test "feat nat" {
   let fe : @coreqc.Generator[Nat] = @feat.feat_random(21)
-  debug_inspect(
-    fe.samples(count=20, size=20),
-    content=(
-      #|[
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))),
-      #|  Zero,
-      #|  Succ(Succ(Succ(Succ(Zero)))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
-      #|  Succ(Succ(Zero)),
-      #|  Succ(Succ(Zero)),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))),
-      #|  Succ(Succ(Succ(Succ(Zero)))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))),
-      #|  Succ(Succ(Succ(Zero))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(...))))))))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))))),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero))))))))),
-      #|  Succ(Succ(Succ(Succ(Zero)))),
-      #|]
-    ),
-  )
+  let values = fe.samples(count=20, size=20)
+  assert_eq(values.length(), 20)
+  let depths = values.map(nat_depth)
+  for depth in depths {
+    assert_true(depth >= 0 && depth < 21)
+  }
+  assert_true(depths.contains(0))
+  assert_true(depths.iter().any(x => x > 10))
+  assert_eq(depths, fe.samples(count=20, size=20).map(nat_depth))
 }
 
 ///|
@@ -197,29 +130,20 @@ impl[E : @feat.Enumerable] @feat.Enumerable for Tree[E] with fn enumerate() {
 ///|
 test "feat tree random" {
   let tg : @coreqc.Generator[Tree[Nat]] = @feat.feat_random(10)
-  debug_inspect(
-    tg.samples(),
-    content=(
-      #|[
-      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))),
-      #|  Leaf(Succ(Succ(Succ(Succ(Zero))))),
-      #|  Branch(<Forest: [Leaf(Succ(Succ(Zero)))]>),
-      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))),
-      #|  Leaf(Succ(Succ(Succ(Zero)))),
-      #|  Branch(<Forest: [Branch(<Forest: []>)]>),
-      #|  Leaf(Succ(Succ(Zero))),
-      #|  Branch(<Forest: [Leaf(Succ(Zero))]>),
-      #|  Leaf(Succ(Succ(Succ(Succ(Succ(Zero)))))),
-      #|  Branch(<Forest: [Branch(<Forest: []>)]>),
-      #|]
-    ),
-  )
+  let trees = tg.samples()
+  assert_eq(trees.length(), 10)
+  assert_true(trees.iter().any(x => x is Leaf(_)))
+  assert_true(trees.iter().any(x => x is Branch(_)))
+  for tree in trees {
+    assert_true(tree_size(tree) < 10)
+  }
+  assert_eq(Repr(trees).to_string(), Repr(tg.samples()).to_string())
 }
 
 ///|
 test "feat tree" {
   let fe : @coreqc.Generator[Tree[Nat]] = @feat.feat_random(11)
-  debug_inspect(fe.sample(), content="Leaf(Succ(Succ(Succ(Succ(Zero)))))")
+  assert_true(tree_size(fe.sample()) < 11)
   let x : SingleTree = @feat.Enumerable::enumerate()[200]
   debug_inspect(
     x,
@@ -240,5 +164,23 @@ test "index large" {
   let eTree : @feat.Enumerate[SingleTree] = @feat.Enumerable::enumerate()
   for i = 100000N; i > 0; i = i - 1 {
     eTree[i] |> ignore
+  }
+}
+
+///|
+fn nat_depth(n : Nat) -> Int32 {
+  match n {
+    Zero => 0
+    Succ(n) => 1 + nat_depth(n)
+  }
+}
+
+///|
+fn tree_size(tree : Tree[Nat]) -> Int32 {
+  match tree {
+    Leaf(n) => 1 + nat_depth(n)
+    Branch(forest) =>
+      1 +
+      forest.forest.fold(init=1, (size, child) => size + 1 + tree_size(child))
   }
 }

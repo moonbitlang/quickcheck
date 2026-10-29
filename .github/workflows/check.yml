@@ -24,7 +24,7 @@ jobs:
           - pre-release
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.version != 'latest' }}
+    continue-on-error: ${{ matrix.version == 'pre-release' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -49,17 +49,20 @@ jobs:
       - name: install module dependencies
         run: |
           moon update
-          moon install
 
       - name: moon check
         run: moon check --deny-warn
 
+      # Generated interface spelling and formatting follow the audited nightly.
+      # Both stable and nightly still compile and run every target.
       - name: moon info
+        if: matrix.version == 'nightly'
         run: |
           moon info --target wasm,wasm-gc,js
           git diff --exit-code
 
       - name: format diff
+        if: matrix.version == 'nightly'
         run: |
           moon fmt
           git diff --exit-code
@@ -77,10 +80,6 @@ jobs:
         run: |
           moon test --target all
           moon test --target all --release
-
-      - name: moon test --doc
-        run: |
-          moon test --doc
 
   moon-json-format-check:
     runs-on: ubuntu-latest

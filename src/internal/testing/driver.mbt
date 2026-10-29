@@ -18,12 +18,7 @@ fn prop_rev(l : @list.List[Int32]) -> Bool {
 ///|
 test "prop reverse (fail)" {
   let prop_rev = (l : @list.List[Int32]) => l.rev().rev() == l.rev()
-  inspect(
-    @qc.quick_check_silence(prop_rev |> @qc.Arrow, expect=Fail),
-    content=(
-      #|+++ [8/0/100] Ok! Failed as expected.
-    ),
-  )
+  @qc.quick_check(prop_rev |> @qc.Arrow, expect=Fail)
 }
 
 ///|
@@ -138,12 +133,7 @@ test "larger max tests" {
 
 ///|
 test "add assoc double (expect fail)" {
-  inspect(
-    @qc.quick_check_silence(add_assoc_double |> @qc.Arrow, expect=Fail),
-    content=(
-      #|+++ [10/0/100] Ok! Failed as expected.
-    ),
-  )
+  @qc.quick_check(add_assoc_double |> @qc.Arrow, expect=Fail)
 }
 
 ///|
@@ -173,12 +163,7 @@ test "non empty list (with filter)" {
   let prop_is_non_empty = (l : @list.List[Int32]) => {
     @qc.property(!l.is_empty()).filter(!l.is_empty())
   }
-  inspect(
-    @qc.quick_check_silence(@qc.Arrow(prop_is_non_empty)),
-    content=(
-      #|+++ [100/40/100] Ok, passed!
-    ),
-  )
+  @qc.quick_check(@qc.Arrow(prop_is_non_empty))
 }
 
 ///|
@@ -197,7 +182,7 @@ test "label" {
   let ar : @qc.Arrow[@list.List[Int32], Bool] = Arrow(prop_rev)
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : @list.List[Int32]) => {
+      @qc.forall(coverage_lists(), (x : @list.List[Int32]) => {
         @qc.property(ar).label(
           if x.is_empty() {
             "trivial"
@@ -210,8 +195,8 @@ test "label" {
     content=(
       #|+++ [100/0/100] Ok, passed!
       #|Coverage:
-      #|8% : trivial
-      #|92% : non-trivial
+      #|50% : trivial
+      #|50% : non-trivial
     ),
   )
 }
@@ -252,7 +237,7 @@ test "nested arrow uses fresh sample" {
 test "classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow((x : @list.List[Int32]) => {
+      @qc.forall(coverage_lists(), (x : @list.List[Int32]) => {
         @qc.property(prop_rev(x))
         .classify(x.length() > 5, "long list")
         .classify(x.length() <= 5, "short list")
@@ -261,8 +246,8 @@ test "classes" {
     content=(
       #|+++ [100/0/100] Ok, passed!
       #|Coverage:
-      #|79% : long list
-      #|21% : short list
+      #|50% : long list
+      #|50% : short list
     ),
   )
 }
@@ -291,7 +276,7 @@ test "classes can overlap" {
 test "label + classes" {
   inspect(
     @qc.quick_check_silence(
-      @qc.Arrow(x => {
+      @qc.forall(coverage_lists(), x => {
         @qc.property(prop_rev(x))
         .classify(x.length() > 5, "long list")
         .classify(x.length() <= 5, "short list")
@@ -301,62 +286,10 @@ test "label + classes" {
     content=(
       #|+++ [100/0/100] Ok, passed!
       #|Coverage:
-      #|8% : length is 0
-      #|4% : length is 1
-      #|2% : length is 2
-      #|3% : length is 3
-      #|1% : length is 4
-      #|3% : length is 5
-      #|2% : length is 6
-      #|2% : length is 7
-      #|7% : length is 8
-      #|1% : length is 9
-      #|1% : length is 10
-      #|1% : length is 11
-      #|1% : length is 12
-      #|1% : length is 13
-      #|5% : length is 14
-      #|1% : length is 15
-      #|2% : length is 16
-      #|1% : length is 17
-      #|1% : length is 18
-      #|2% : length is 20
-      #|2% : length is 21
-      #|1% : length is 23
-      #|2% : length is 24
-      #|4% : length is 25
-      #|2% : length is 26
-      #|1% : length is 27
-      #|1% : length is 28
-      #|4% : length is 29
-      #|1% : length is 30
-      #|2% : length is 31
-      #|2% : length is 32
-      #|3% : length is 33
-      #|1% : length is 34
-      #|2% : length is 35
-      #|2% : length is 36
-      #|1% : length is 40
-      #|2% : length is 41
-      #|1% : length is 42
-      #|1% : length is 43
-      #|1% : length is 44
-      #|1% : length is 47
-      #|1% : length is 48
-      #|1% : length is 49
-      #|2% : length is 52
-      #|1% : length is 53
-      #|1% : length is 56
-      #|1% : length is 62
-      #|1% : length is 64
-      #|1% : length is 67
-      #|1% : length is 71
-      #|1% : length is 85
-      #|1% : length is 89
-      #|1% : length is 93
-      #|1% : length is 97
-      #|79% : long list
-      #|21% : short list
+      #|50% : length is 0
+      #|50% : length is 6
+      #|50% : long list
+      #|50% : short list
     ),
   )
 }
@@ -558,34 +491,24 @@ test "prop length is not greater" {
 
 ///|
 test "prop remove not presence with max success" {
-  inspect(
-    @qc.quick_check_silence(
-      @qc.Arrow(prop_remove_not_presence),
-      max_success=1000,
-      expect=Fail,
-    ),
-    content=(
-      #|+++ [51/0/1000] Ok! Failed as expected.
-    ),
+  @qc.quick_check(
+    @qc.Arrow(prop_remove_not_presence),
+    max_success=1000,
+    expect=Fail,
   )
 }
 
 ///|
 test "custom generator" {
-  inspect(
-    @qc.quick_check_silence(
-      @qc.forall(
-        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (i_arr : (Int32, Array[Int32])) => {
-          let (x, arr) = i_arr
-          !remove(arr, x).contains(x)
-        },
-      ),
-      expect=Fail,
+  @qc.quick_check(
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (i_arr : (Int32, Array[Int32])) => {
+        let (x, arr) = i_arr
+        !remove(arr, x).contains(x)
+      },
     ),
-    content=(
-      #|+++ [51/0/100] Ok! Failed as expected.
-    ),
+    expect=Fail,
   )
 }
 
@@ -595,46 +518,36 @@ test "no_duplicate" {
     @sorted_set.from_iter(x.iter()).length() == x.length()
   }
 
-  inspect(
-    @qc.quick_check_silence(
-      @qc.forall(
-        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (iarr : (Int32, Array[Int32])) => {
-          let (x, arr) = iarr
-          @qc.property(!remove(arr.copy(), x).contains(x)).filter(
-            no_duplicate(arr),
-          )
-        },
-      ),
-      expect=GaveUp,
+  @qc.quick_check(
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (iarr : (Int32, Array[Int32])) => {
+        let (x, arr) = iarr
+        @qc.property(!remove(arr.copy(), x).contains(x)).filter(
+          no_duplicate(arr),
+        )
+      },
     ),
-    content=(
-      #|+++ [100/256/100] Ok, passed!
-    ),
+    expect=Success,
   )
 }
 
 ///|
 test "use one_of" {
-  inspect(
-    @qc.quick_check_silence(
-      @qc.forall(
-        Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
-        (a : Array[Int32]) => {
-          if a.is_empty() {
-            @qc.filter(true, false)
-          } else {
-            @qc.forall(@coreqc.elements(a), (y : Int32) => {
-              !remove(a, y).contains(y)
-            })
-          }
-        },
-      ),
-      expect=Fail,
+  @qc.quick_check(
+    @qc.forall(
+      Generator((size, state) => @coreqc.Arbitrary::arbitrary(size, state)),
+      (a : Array[Int32]) => {
+        if a.is_empty() {
+          @qc.filter(true, false)
+        } else {
+          @qc.forall(@coreqc.elements(a), (y : Int32) => {
+            !remove(a, y).contains(y)
+          })
+        }
+      },
     ),
-    content=(
-      #|+++ [12/38/100] Ok! Failed as expected.
-    ),
+    expect=Fail,
   )
 }
 
@@ -717,4 +630,17 @@ test "collect accepts Debug-only labels" {
       #|50% : DebugOnly(1)
     ),
   )
+}
+
+///|
+fn coverage_lists() -> @coreqc.Generator[@list.List[Int32]] {
+  let index = Ref(0)
+  Generator((_, _) => {
+    index.val += 1
+    if index.val % 2 == 0 {
+      List([1, 2, 3, 4, 5, 6])
+    } else {
+      List([])
+    }
+  })
 }

@@ -22,9 +22,9 @@ pub fn[T] id(T) -> T
 #deprecated
 pub fn[A, B, C] pair_function((A, B) -> C) -> ((A, B)) -> C
 
-pub fn[T] removes_array(Int, Int, Array[T]) -> Array[Array[T]]
+pub fn[T] removes_array(Int32, Int32, Array[T]) -> Array[Array[T]]
 
-pub fn[T] removes_list(Int, Int, @list.List[T]) -> @list.List[@list.List[T]]
+pub fn[T] removes_list(Int32, Int32, @list.List[T]) -> @list.List[@list.List[T]]
 
 // Errors
 

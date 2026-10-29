@@ -10,9 +10,9 @@ import {
 
 // Errors
 pub(all) suberror TestError {
-  Fail(num_tests~ : Int, num_discarded~ : Int, num_shrinks~ : Int, num_shrink_tries~ : Int, num_shrink_final~ : Int, reason~ : String, error~ : Error?, output~ : String, coverage~ : @state.Coverage, failing_case~ : Array[String], failing_labels~ : Array[String], failing_classes~ : @sorted_set.SortedSet[String], seed~ : UInt64)
-  GaveUp(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
-  NoneExpectedFail(num_tests~ : Int, num_discarded~ : Int, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
+  Fail(num_tests~ : Int32, num_discarded~ : Int32, num_shrinks~ : Int32, num_shrink_tries~ : Int32, num_shrink_final~ : Int32, reason~ : String, error~ : Error?, output~ : String, coverage~ : @state.Coverage, failing_case~ : Array[String], failing_labels~ : Array[String], failing_classes~ : @sorted_set.SortedSet[String], seed~ : UInt64)
+  GaveUp(num_tests~ : Int32, num_discarded~ : Int32, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
+  NoneExpectedFail(num_tests~ : Int32, num_discarded~ : Int32, coverage~ : @state.Coverage, output~ : String, seed~ : UInt64)
 }
 
 // Types and methods
@@ -21,7 +21,7 @@ pub fn CheckReport::is_ok(Self) -> Bool
 pub fn CheckReport::render(Self, verbose? : Bool) -> String
 
 pub(all) enum TestSuccess {
-  Success(num_tests~ : Int, coverage~ : @state.Coverage, output~ : String)
+  Success(num_tests~ : Int32, coverage~ : @state.Coverage, output~ : String)
 }
 
 // Type aliases
