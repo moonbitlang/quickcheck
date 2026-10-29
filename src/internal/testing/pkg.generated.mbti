@@ -8,7 +8,7 @@ import {
 // Values
 pub fn empty_queue() -> Queue
 
-pub fn enqueue(Queue, Int) -> Queue
+pub fn enqueue(Queue, Int32) -> Queue
 
 // Errors
 

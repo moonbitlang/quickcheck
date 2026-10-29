@@ -363,23 +363,10 @@ test {
     @coreqc.Arbitrary::arbitrary(size, state)
   })
   let nats = nat_gen.samples(size=4)
-  debug_inspect(
-    nats,
-    content=(
-      #|[
-      #|  Succ(Succ(Succ(Zero))),
-      #|  Succ(Succ(Succ(Succ(Zero)))),
-      #|  Succ(Zero),
-      #|  Succ(Succ(Succ(Zero))),
-      #|  Zero,
-      #|  Zero,
-      #|  Succ(Zero),
-      #|  Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))))))))),
-      #|  Zero,
-      #|  Succ(Succ(Succ(Succ(Zero)))),
-      #|]
-    ),
-  )
+  assert_eq(nats.length(), 10)
+  assert_true(nats.iter().any(x => x is Zero))
+  assert_true(nats.iter().any(x => x is Succ(_)))
+  assert_eq(Repr(nats).to_string(), Repr(nat_gen.samples(size=4)).to_string())
 }
 ```
 

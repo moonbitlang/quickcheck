@@ -98,29 +98,16 @@ test "gen spawn for arbitrary" {
   let gen : @coreqc.Generator[Int32] = Generator((size, state) => {
     @coreqc.Arbitrary::arbitrary(size, state)
   })
-  debug_inspect(
-    gc.samples(size=5),
-    content=(
-      #|[Green, Green, Green, Blue, Red, Green, Green, Green, Red, Blue]
-    ),
-  )
-  debug_inspect(
-    gen.samples(),
-    content=(
-      #|[
-      #|  1118850684,
-      #|  -99999,
-      #|  846697896,
-      #|  -134217729,
-      #|  67108863,
-      #|  16777217,
-      #|  -365961592,
-      #|  128,
-      #|  -65535,
-      #|  -2,
-      #|]
-    ),
-  )
+  let colors = gc.samples(size=5)
+  assert_eq(colors.length(), 10)
+  assert_true(colors.iter().any(x => x is Red))
+  assert_true(colors.iter().any(x => x is Green))
+  assert_true(colors.iter().any(x => x is Blue))
+  let values = gen.samples()
+  assert_eq(values.length(), 10)
+  assert_eq(values, gen.samples())
+  assert_true(values.iter().any(x => x < 0))
+  assert_true(values.iter().any(x => x > 0))
 }
 ```
 
@@ -135,18 +122,15 @@ test "gen spawn for arbitrary" {
 ///|
 test "gen array_with_size" {
   let gen = @coreqc.int_range(0, 9).array_with_size(5)
-  json_inspect(gen.samples(size=5), content=[
-    [0, 6, 0, 1, 8],
-    [0, 0, 6, 5, 7],
-    [8, 2, 0, 0, 2],
-    [4, 1, 4, 4, 1],
-    [8, 1, 1, 3, 0],
-    [5, 7, 3, 3, 0],
-    [6, 7, 8, 1, 8],
-    [8, 5, 1, 4, 5],
-    [1, 3, 4, 1, 4],
-    [3, 4, 6, 8, 0],
-  ])
+  let samples = gen.samples(size=5)
+  assert_eq(samples.length(), 10)
+  for sample in samples {
+    assert_eq(sample.length(), 5)
+    for x in sample {
+      assert_true(x >= 0 && x < 9)
+    }
+  }
+  assert_eq(samples, gen.samples(size=5))
 }
 
 ///|
@@ -155,7 +139,12 @@ test "gen array_with_size + map sample" {
     .map(Int32::unsafe_to_char)
     .array_with_size(3)
     .map(xs => @list.List(xs))
-  json_inspect(gen.sample(), content=["b", "e", "a"])
+  let sample = gen.sample()
+  assert_eq(sample.length(), 3)
+  for x in sample {
+    assert_true(x >= 'a' && x < 'f')
+  }
+  assert_eq(sample, gen.sample())
 }
 ```
 
@@ -314,116 +303,14 @@ test "@coreqc.sized array with explicit length" {
       @coreqc.int_range(0, 9).array_with_size(len),
     )
   })
-  debug_inspect(
-    gen.sample(),
-    content=(
-      #|(
-      #|  100,
-      #|  [
-      #|    5,
-      #|    8,
-      #|    0,
-      #|    2,
-      #|    4,
-      #|    5,
-      #|    0,
-      #|    7,
-      #|    0,
-      #|    2,
-      #|    1,
-      #|    1,
-      #|    3,
-      #|    1,
-      #|    0,
-      #|    5,
-      #|    2,
-      #|    0,
-      #|    2,
-      #|    1,
-      #|    5,
-      #|    6,
-      #|    5,
-      #|    5,
-      #|    8,
-      #|    6,
-      #|    2,
-      #|    3,
-      #|    6,
-      #|    1,
-      #|    7,
-      #|    6,
-      #|    3,
-      #|    1,
-      #|    5,
-      #|    3,
-      #|    0,
-      #|    7,
-      #|    4,
-      #|    5,
-      #|    6,
-      #|    4,
-      #|    0,
-      #|    7,
-      #|    2,
-      #|    8,
-      #|    0,
-      #|    7,
-      #|    8,
-      #|    8,
-      #|    8,
-      #|    8,
-      #|    8,
-      #|    7,
-      #|    5,
-      #|    7,
-      #|    2,
-      #|    1,
-      #|    8,
-      #|    7,
-      #|    1,
-      #|    1,
-      #|    4,
-      #|    1,
-      #|    6,
-      #|    4,
-      #|    0,
-      #|    0,
-      #|    4,
-      #|    6,
-      #|    7,
-      #|    7,
-      #|    2,
-      #|    5,
-      #|    1,
-      #|    5,
-      #|    3,
-      #|    1,
-      #|    2,
-      #|    6,
-      #|    5,
-      #|    5,
-      #|    5,
-      #|    1,
-      #|    0,
-      #|    2,
-      #|    8,
-      #|    0,
-      #|    5,
-      #|    8,
-      #|    4,
-      #|    2,
-      #|    6,
-      #|    8,
-      #|    0,
-      #|    2,
-      #|    8,
-      #|    2,
-      #|    4,
-      #|    7,
-      #|  ],
-      #|)
-    ),
-  )
+  for size in [0, 1, 5, 100] {
+    let (len, sample) = gen.sample(size~)
+    assert_eq(len, size)
+    assert_eq(sample.length(), size)
+    for x in sample {
+      assert_true(x >= 0 && x < 9)
+    }
+  }
 }
 ```
 

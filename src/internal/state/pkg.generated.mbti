@@ -24,15 +24,15 @@ pub(all) enum Callback {
 }
 
 pub(all) struct Config {
-  max_success : Int
-  max_discard_ratio : Int
-  max_size : Int
-  max_shrinks : Int
+  max_success : Int32
+  max_discard_ratio : Int32
+  max_size : Int32
+  max_shrinks : Int32
   seed : UInt64
 }
 
 type Coverage
-pub fn Coverage::to_array(Self, Int) -> Array[String]
+pub fn Coverage::to_array(Self, Int32) -> Array[String]
 
 pub(all) enum Expected {
   Fail
@@ -50,10 +50,10 @@ pub(all) struct SingleResult {
   expect : Expected
   reason : String
   abort : Bool
-  maybe_num_tests : Int?
-  maybe_discarded_ratio : Int?
-  maybe_max_shrinks : Int?
-  maybe_max_test_size : Int?
+  maybe_num_tests : Int32?
+  maybe_discarded_ratio : Int32?
+  maybe_max_shrinks : Int32?
+  maybe_max_test_size : Int32?
   labels : @list.List[String]
   classes : @list.List[(String, Bool)]
   tables : @list.List[(String, String)]
@@ -64,26 +64,26 @@ pub(all) struct SingleResult {
 
 pub(all) struct State {
   name : String
-  mut max_test_size_ : Int
-  mut max_success_tests_ : Int
-  mut max_discarded_ratio_ : Int
-  mut max_shrinks_ : Int
-  num_success_tests : Int
-  num_discarded_tests : Int
-  num_recent_discarded_tests : Int
+  mut max_test_size_ : Int32
+  mut max_success_tests_ : Int32
+  mut max_discarded_ratio_ : Int32
+  mut max_shrinks_ : Int32
+  num_success_tests : Int32
+  num_discarded_tests : Int32
+  num_recent_discarded_tests : Int32
   collects : Coverage
   mut expected : Expected
   seed : UInt64
   mut random_state : @splitmix.RandomState
-  mut num_success_shrinks : Int
-  mut num_try_shrinks : Int
-  mut num_to_try_shrinks : Int
+  mut num_success_shrinks : Int32
+  mut num_try_shrinks : Int32
+  mut num_to_try_shrinks : Int32
 }
 pub fn State::add_coverages(Self, SingleResult) -> Unit
 pub fn State::callback_post_final_failure(Self, SingleResult) -> Unit
 pub fn State::callback_post_test(Self, SingleResult) -> Unit
 pub fn State::clone(Self) -> Self
-pub fn State::compute_size(Self) -> Int
+pub fn State::compute_size(Self) -> Int32
 pub fn State::counts(Self) -> String
 pub fn State::discarded_too_much(Self) -> Bool
 pub fn State::finished_successfully(Self) -> Bool

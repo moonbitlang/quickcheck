@@ -1,6 +1,6 @@
 name = "moonbitlang/quickcheck"
 
-version = "0.15.0"
+version = "0.15.1"
 
 readme = "README.md"
 

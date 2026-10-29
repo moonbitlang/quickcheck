@@ -36,7 +36,7 @@ pub fn[T] to_iter(Seq[T]) -> Iter[T]
 
 pub fn[T] to_iter_materialized(Seq[T]) -> Iter[T]
 
-pub fn up(Int, Int) -> Seq[Int]
+pub fn up(Int32, Int32) -> Seq[Int32]
 
 // Errors
 
